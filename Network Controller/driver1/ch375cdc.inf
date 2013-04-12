@@ -1,0 +1,58 @@
+; Windows USB CDC Setup File
+; Copyright (c) 2000 Microsoft Corporation
+; Copyright (c) 2006 Recursion Co., Ltd.
+
+[Version] 
+Signature="$Windows NT$" 
+Class=Ports
+ClassGuid={4D36E978-E325-11CE-BFC1-08002BE10318} 
+Provider=%COMPANY% 
+LayoutFile=layout.inf
+DriverVer=06/06/2006,1.0.0.0
+
+[Manufacturer] 
+%MFGNAME% = ManufName
+
+
+[DestinationDirs] 
+DefaultDestDir=12 
+
+[ManufName] 
+%Modem3% = Modem3, USB\VID_16C0&PID_05E1
+;%Modem3% = Modem3, USB\VID_067b&PID_2303 ;add
+;------------------------------------------------------------------------------
+;  Windows 2000/XP Sections
+;------------------------------------------------------------------------------
+
+[Modem3.nt]
+CopyFiles=USBModemCopyFileSection
+AddReg=Modem3.nt.AddReg 
+
+[USBModemCopyFileSection]
+usbser.sys,,,0x20
+
+[Modem3.nt.AddReg] 
+HKR,,DevLoader,,*ntkern 
+HKR,,NTMPDriver,,usbser.sys 
+HKR,,EnumPropPages32,,"MsPorts.dll,SerialPortPropPageProvider" 
+
+[Modem3.nt.Services] 
+AddService=usbser, 0x00000002, DriverService
+
+[DriverService] 
+DisplayName=%SERVICE%
+ServiceType=1
+StartType=3
+ErrorControl=1
+ServiceBinary=%12%\usbser.sys 
+
+;------------------------------------------------------------------------------
+;  String Definitions
+;------------------------------------------------------------------------------
+
+[Strings] 
+COMPANY="Temcocontrols Ltd."
+MFGNAME="www.temcocontrols.com"
+;Modem3="Communications Port" 
+Modem3="Network Controller" ;add
+;SERVICE="USB-232 Emulation Driver"

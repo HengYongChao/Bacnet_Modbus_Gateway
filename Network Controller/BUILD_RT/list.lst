@@ -1,0 +1,228 @@
+C51 COMPILER V9.06   LIST                                                                  03/13/2013 09:32:27 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE LIST
+NO OBJECT MODULE REQUESTED
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\list.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0
+                    -X6020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\
+                    -hsur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;.
+                    -.\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11
+                    -000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\list.lst) SRC(.\list
+                    -.SRC)
+
+line level    source
+
+   1          /*
+   2                  FreeRTOS V2.6.0 - Copyright (C) 2003 - 2005 Richard Barry.
+   3          
+   4                  This file is part of the FreeRTOS distribution.
+   5          
+   6                  FreeRTOS is free software; you can redistribute it and/or modify
+   7                  it under the terms of the GNU General Public License as published by
+   8                  the Free Software Foundation; either version 2 of the License, or
+   9                  (at your option) any later version.
+  10          
+  11                  FreeRTOS is distributed in the hope that it will be useful,
+  12                  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  13                  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  14                  GNU General Public License for more details.
+  15          
+  16                  You should have received a copy of the GNU General Public License
+  17                  along with FreeRTOS; if not, write to the Free Software
+  18                  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  19          
+  20                  A special exception to the GPL can be applied should you wish to distribute
+  21                  a combined work that includes FreeRTOS, without being obliged to provide
+  22                  the source code for any proprietary components.  See the licensing section 
+  23                  of http://www.FreeRTOS.org for full details of how and when the exception
+  24                  can be applied.
+  25          
+  26                  ***************************************************************************
+  27                  See http://www.FreeRTOS.org for documentation, latest information, license 
+  28                  and contact details.  Please ensure to read the configuration and relevant 
+  29                  port sections of the online documentation.
+  30                  ***************************************************************************
+  31          */
+  32          
+  33          /*
+  34          Changes from V1.2.0
+  35          
+  36                  + Removed the volatile modifier from the function parameters.  This was
+  37                    only ever included to prevent compiler warnings.  Now warnings are 
+  38                    removed by casting parameters where the calls are made.
+  39          
+  40                  + prvListGetOwnerOfNextEntry() and prvListGetOwnerOfHeadEntry() have been
+  41                    removed from the c file and added as macros to the h file.
+  42          
+  43                  + usNumberOfItems has been added to the list structure.  This removes the
+  44                    need for a pointer comparison when checking if a list is empty, and so
+  45                    is slightly faster.
+  46          
+  47                  + Removed the NULL check in vListRemove().  This makes the call faster but
+  48                    necessitates any application code utilising the list implementation to
+  49                    ensure NULL pointers are not passed.
+  50          
+C51 COMPILER V9.06   LIST                                                                  03/13/2013 09:32:27 PAGE 2   
+
+  51          Changes from V2.0.0
+  52          
+  53                  + Double linked the lists to allow faster removal item removal.
+  54          */
+  55          
+  56          #include <stdlib.h>
+  57          #include "projdefs.h"
+  58          #include "portable.h"
+  59          #include "list.h"
+  60          
+  61          /*-----------------------------------------------------------
+  62           * PUBLIC LIST API documented in list.h
+  63           *----------------------------------------------------------*/
+  64          
+  65          void vListInitialise( xList *pxList ) reentrant
+  66          {
+  67   1              /* The list structure contains a list item which is used to mark the 
+  68   1              end of the list.  To initialise the list the list end is inserted
+  69   1              as the only list entry. */
+  70   1              pxList->pxHead = &( pxList->xListEnd );
+  71   1              pxList->pxIndex = pxList->pxHead;
+  72   1      
+  73   1              /* The list end value is the highest possible value in the list to
+  74   1              ensure it remains at the end of the list. */
+  75   1              pxList->xListEnd.xItemValue = portMAX_DELAY;
+  76   1      
+  77   1              /* The list end next and previous pointers point to itself so we know
+  78   1              when the list is empty. */
+  79   1              pxList->xListEnd.pxNext = &( pxList->xListEnd );
+  80   1              pxList->xListEnd.pxPrevious = &( pxList->xListEnd );
+  81   1      
+  82   1              /* The list head will never get used and has no owner. */
+  83   1              pxList->xListEnd.pvOwner = NULL;
+  84   1      
+  85   1              /* Make sure the marker items are not mistaken for being on a list. */
+  86   1              vListInitialiseItem( ( xListItem * ) &( pxList->xListEnd ) );
+  87   1      
+  88   1              pxList->usNumberOfItems = ( unsigned portSHORT ) 0;
+  89   1      }
+  90          /*-----------------------------------------------------------*/
+  91          
+  92          void vListInitialiseItem( xListItem *pxItem ) reentrant
+  93          {
+  94   1              /* Make sure the list item is not recorded as being on a list. */
+  95   1              pxItem->pvContainer = NULL;
+  96   1      }
+  97          /*-----------------------------------------------------------*/
+  98          
+  99          void vListInsertEnd( xList *pxList, xListItem *pxNewListItem ) reentrant
+ 100          {
+ 101   1      volatile xListItem * pxIndex;
+ 102   1      
+ 103   1              /* Insert a new list item into pxList, but rather than sort the list, 
+ 104   1              makes the new list item the last item to be removed by a call to 
+ 105   1              pvListGetOwnerOfNextEntry.  This means it has to be the item pointed to by
+ 106   1              the pxIndex member. */
+ 107   1              pxIndex = pxList->pxIndex;
+ 108   1      
+ 109   1              pxNewListItem->pxNext = pxIndex->pxNext;
+ 110   1              pxNewListItem->pxPrevious = pxList->pxIndex;
+ 111   1              pxIndex->pxNext->pxPrevious = ( volatile xListItem * ) pxNewListItem;
+ 112   1              pxIndex->pxNext = ( volatile xListItem * ) pxNewListItem;
+C51 COMPILER V9.06   LIST                                                                  03/13/2013 09:32:27 PAGE 3   
+
+ 113   1              pxList->pxIndex = ( volatile xListItem * ) pxNewListItem;
+ 114   1      
+ 115   1              /* Remember which list the item is in. */
+ 116   1              pxNewListItem->pvContainer = ( void * ) pxList;
+ 117   1      
+ 118   1              ( pxList->usNumberOfItems )++;
+ 119   1      }
+ 120          /*-----------------------------------------------------------*/
+ 121          
+ 122          void vListInsert( xList *pxList, xListItem *pxNewListItem ) reentrant
+ 123          {
+ 124   1      volatile xListItem *pxIterator;
+ 125   1      register portTickType xValueOfInsertion;
+ 126   1      
+ 127   1              /* Insert the new list item into the list, sorted in ulListItem order. */
+ 128   1              xValueOfInsertion = pxNewListItem->xItemValue;
+ 129   1      
+ 130   1              /* If the list already contains a list item with the same item value then
+ 131   1              the new list item should be placed after it.  This ensures that TCB's which
+ 132   1              are stored in ready lists (all of which have the same ulListItem value)
+ 133   1              get an equal share of the CPU.  However, if the xItemValue is the same as 
+ 134   1              the back marker the iteration loop below will not end.  This means we need
+ 135   1              to guard against this by checking the value first and modifying the 
+ 136   1              algorithm slightly if necessary. */
+ 137   1              if( xValueOfInsertion == portMAX_DELAY )
+ 138   1              {
+ 139   2                      for( pxIterator = pxList->pxHead; pxIterator->pxNext->xItemValue < xValueOfInsertion; pxIterator = pxIte
+             -rator->pxNext )
+ 140   2                      {
+ 141   3                              /* There is nothing to do here, we are just iterating to the 
+ 142   3                              wanted insertion position. */
+ 143   3                      }
+ 144   2              }
+ 145   1              else
+ 146   1              {
+ 147   2                      for( pxIterator = pxList->pxHead; pxIterator->pxNext->xItemValue <= xValueOfInsertion; pxIterator = pxIt
+             -erator->pxNext )
+ 148   2                      {
+ 149   3                              /* There is nothing to do here, we are just iterating to the 
+ 150   3                              wanted insertion position. */
+ 151   3                      }
+ 152   2              }
+ 153   1      
+ 154   1              pxNewListItem->pxNext = pxIterator->pxNext;
+ 155   1              pxNewListItem->pxNext->pxPrevious = ( volatile xListItem * ) pxNewListItem;
+ 156   1              pxNewListItem->pxPrevious = pxIterator;
+ 157   1              pxIterator->pxNext = ( volatile xListItem * ) pxNewListItem;
+ 158   1      
+ 159   1              /* Remember which list the item is in.  This allows fast removal of the
+ 160   1              item later. */
+ 161   1              pxNewListItem->pvContainer = ( void * ) pxList;
+ 162   1      
+ 163   1              ( pxList->usNumberOfItems )++;
+ 164   1      }
+ 165          /*-----------------------------------------------------------*/
+ 166          
+ 167          void vListRemove( xListItem *pxItemToRemove ) reentrant
+ 168          {
+ 169   1      xList * pxList;
+ 170   1      
+ 171   1              pxItemToRemove->pxNext->pxPrevious = pxItemToRemove->pxPrevious;
+ 172   1              pxItemToRemove->pxPrevious->pxNext = pxItemToRemove->pxNext;
+C51 COMPILER V9.06   LIST                                                                  03/13/2013 09:32:27 PAGE 4   
+
+ 173   1              
+ 174   1              /* The list item knows which list it is in.  Obtain the list from the list
+ 175   1              item. */
+ 176   1              pxList = ( xList * ) pxItemToRemove->pvContainer;
+ 177   1      
+ 178   1              /* Make sure the index is left pointing to a valid item. */
+ 179   1              if( pxList->pxIndex == pxItemToRemove )
+ 180   1              {
+ 181   2                      pxList->pxIndex = pxItemToRemove->pxPrevious;
+ 182   2              }
+ 183   1      
+ 184   1              pxItemToRemove->pvContainer = NULL;
+ 185   1              ( pxList->usNumberOfItems )--;
+ 186   1      }
+ 187          /*-----------------------------------------------------------*/
+ 188          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1902    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

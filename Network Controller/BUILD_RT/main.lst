@@ -1,0 +1,2749 @@
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\main.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\main\main.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) INC
+                    -DIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\S
+                    -RC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buff
+                    -er\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\Sr
+                    -c\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\main.lst) OBJECT(.\main.obj)
+
+line level    source
+
+   1          /*
+   2           ******************************************************************************
+   3           *     Copyright (c) 2006       ASIX Electronic Corporation      All rights reserved.
+   4           *
+   5           *     This is unpublished proprietary source code of ASIX Electronic Corporation
+   6           *
+   7           *     The copyright notice above does not evidence any actual or intended
+   8           *     publication of such source code.
+   9           ******************************************************************************
+  10           */
+  11           /*============================================================================
+  12           * Module Name: adapter.c
+  13           * Purpose:
+  14           * Author:
+  15           * Date:
+  16           * Notes:
+  17           * $Log: adapter.c,v $
+  18           * Revision 1.8  2006/05/23 05:22:39  robin6633
+  19           * 1.Removed old command input.
+  20           *
+  21           * Revision 1.7  2006/05/23 01:53:55  robin6633
+  22           * 1.Removed debug information from UART2.
+  23           *
+  24           * Revision 1.6  2006/05/22 05:45:23  robin6633
+  25           * 1.Add DNS handle.
+  26           *
+  27           * Revision 1.5  2006/05/18 07:29:32  robin6633
+  28           * 1.Enabled time counter function.
+  29           *
+  30           * Revision 1.4  2006/05/18 02:13:35  robin6633
+  31           * 1.Changed DHCP initial function.
+  32           *
+  33           * Revision 1.3  2006/05/17 08:34:17  robin6633
+  34           * Disabled DHCP function.
+  35           *
+  36           * Revision 1.2  2006/05/16 05:03:09  robin6633
+  37           * no message
+  38           *
+  39           * Revision 1.1  2006/05/12 14:23:38  robin6633
+  40           * no message
+  41           *
+  42           * Revision 1.2  2006/02/24 00:31:47  borbin
+  43           * no message
+  44           *
+  45           * Revision 1.1.1.1  2006/02/23 00:55:10  borbin
+  46           * no message
+  47           *
+  48           *=============================================================================
+  49           */
+  50          
+  51          /* INCLUDE FILE DECLARATIONS */
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 2   
+
+  52          #include "reg80390.h"
+  53          #include "main.h"
+  54          #include "adapter.h"
+  55          #include "mstimer.h"
+  56          #include "ax11000.h"
+  57          #include "interrupt.h"
+  58          #include "stoe.h"
+  59          #include "dma.h"
+  60          #include "tcpip.h"
+  61          #include "hsuart.h"
+  62          #include "printd.h"
+  63          #include "uart.h"
+  64          #include "flash.h"
+  65          #include <stdio.h>
+  66          #include <Intrins.h>
+  67          
+  68          #include "../i2c/e2prom.h" 
+  69          
+  70          #include "delay.h"  //lihengning
+  71          
+  72          #if STOE_TRANSPARENT
+              //  #include "uip_arp.h"
+              #endif
+  75          #if (INCLUDE_DHCP_CLIENT)
+  76            #include "dhcpc.h"
+  77          #endif
+  78          #if (INCLUDE_DNS_CLIENT)
+                #include "dnsctab.h"
+              #endif
+  81          
+  82          #include "gconfig.h"
+  83          #include "gudpbc.h"
+  84          #include "temperature.h"
+  85          #include "httpd.h"
+  86          #include "filesys.h"
+  87          #include "sntpc.h"
+  88          
+  89          #include <string.h>
+  90          #include "projdefs.h"
+  91          #include "portable.h"
+  92          #include "task.h"
+  93          #include "queue.h"
+  94          #include "8563.h"
+  95          
+  96          #include "schedule.h"
+  97          #include "flash_schedule.h"
+  98          #include "../USB/ch375_COM.h"
+  99          #include "../scan/scan.h"
+ 100          
+ 101          #include "../bacnet/gudpmc.h"
+ 102          #include "../include/mstp.h"
+ 103          #include "../LCD/LCD.h"
+ 104          #include <stdlib.h>
+ 105          
+ 106          #include "../gsm/gsm.h"
+ 107          
+ 108          
+ 109          
+ 110          /* NAMING CONSTANT DECLARATIONS */
+ 111          #ifdef DEBUG
+              #define DBGMSG(A) {A}
+              #else
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 3   
+
+ 114          #define DBGMSG(A) {}
+ 115          #endif
+ 116          
+ 117          #define TIME_OUT_COUNTER        (250/SWTIMER_INTERVAL)  //250
+ 118          #define Hardware_Rev22       22
+ 119          
+ 120          typedef struct app_buf {
+ 121                  U32_T ipaddr;
+ 122                  U8_T buf[100];
+ 123                  U16_T uip_len;
+ 124                  U16_T PayLoadOffset;
+ 125                  U8_T wait;
+ 126          }APP_BUF;
+ 127          
+ 128          APP_BUF XDATA app_arp_buf;
+ 129          
+ 130          /* GLOBAL VARIABLES  */
+ 131          static U16_T ServerBroadcastListenPort;
+ 132          static U16_T bacnetListenPort;
+ 133          
+ 134          extern U8_T FlagIsp;
+ 135          extern U8_T ChangeFlash;
+ 136          extern U8_T far CRClo;
+ 137          extern U8_T far CRChi;
+ 138          extern U8_T data FlagSend0;
+ 139          extern U8_T far FlagSend1;
+ 140          extern U8_T far Parame[400]; 
+ 141          extern U8_T far Para[400]; 
+ 142          enum ledState LED = None;
+ 143          
+ 144          
+ 145          U8_T gsm_test_cnt = 0;       // LJ test
+ 146          
+ 147          #if 1 //lihengning    
+ 148          extern U8_T  far UartRevNum;  
+ 149          //extern U16_T far hsurRxCount;
+ 150          extern U8_T gudpbc_InterAppId;
+ 151          U8_T TcpSocket_ME;
+ 152          U8_T Sever_Order = SERVER_NONE;
+ 153          U8_T Sever_id;
+ 154          U8_T ChangeIP = 0;
+ 155          U8_T TcpIp_Scan = 0;
+ 156          Time_str Time_Server = {0, 0, 0};
+ 157          U8_T far mac_change_enable = 0;
+ 158          #endif
+ 159          
+ 160          #if (INCLUDE_DNS_CLIENT)
+              U8_T XDATA cmdDnsFlag = 0;
+              #endif
+ 163          
+ 164          static U8_T UpIndex = 0;
+ 165          U8_T  Hardware_Revision;
+ 166          
+ 167          
+ 168          /* LOCAL SUBPROGRAM DECLARATIONS */
+ 169          //static void UpdateIpSettings(U32_T);
+ 170          static void CheckArpTable(void);
+ 171          extern void InitCRC16(void);
+ 172          extern void CRC16_Tstat(unsigned char ch);
+ 173          
+ 174          /* LOCAL VARIABLES DECLARATIONS */
+ 175          xTaskHandle xHandle1;
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 4   
+
+ 176          xTaskHandle xHandle2;
+ 177          xTaskHandle xHandle3;
+ 178          xTaskHandle xHandle4;
+ 179          xTaskHandle xHandle5;
+ 180          xTaskHandle xHandle6;
+ 181          xTaskHandle xHandle7;
+ 182          xTaskHandle xHandle8;
+ 183          xTaskHandle xHandle9;   //LHN ADD
+ 184          xTaskHandle xHandle10;
+ 185          xTaskHandle xHandle11;
+ 186          xTaskHandle xHandle12; 
+ 187          xTaskHandle xHandle13;    //bacnet mstp task
+ 188          xTaskHandle xHandle14;    //bacnet mstp task
+ 189          
+ 190          void test_run(U8_T dat);
+ 191          U8_T test[10] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09};
+ 192          
+ 193          
+ 194          volatile struct mstp_port_struct_t *mstp_port ;
+ 195          
+ 196          
+ 197          
+ 198          
+ 199          BOOL  MODBUS_OR_BACNET_FUNCTION_SELECT_ON_UART0 ;
+ 200          
+ 201          //extern void test_uart0_tx(U8_T buf, U8_T len);
+ 202          
+ 203          
+ 204          char err485=0;
+ 205          U8_T data LedSta = 0xff;
+ 206          //U8_T BeatSta=0;
+ 207          U8_T  far WebText[6][30]={"time.windows.com","time.stdtime.gov.tw","clock.stdtime.gov.tw ",
+ 208                                     "watch.stdtime.gov.tw", "pool.ntp.org"};
+ 209          U32_T far IpServer[6]={0x3b7cc454,0xdc829e48,0xda4b0482,0x7ae2c004,0x3b7cc455};
+ 210          
+ 211          //U8_T add_mac[6]={1,2,3,4,5,6};
+ 212          //extern U8_T far UartRev[255];
+ 213          //extern U8_T far UartSend[255];
+ 214          //extern unsigned char  auchCRCHi[256];
+ 215          //extern unsigned char  auchCRCLo[256];
+ 216          //extern U8_T SerialFlag;
+ 217          //U16_T StartAdd_Port;
+ 218          //U16_T RealNum_Port;
+ 219          //extern U8_T IspFlag;
+ 220          //extern U8_T far FlagRev;
+ 221          //extern U8_T  SetimeFlag;
+ 222          //U16_T Port_Sin_Add=0;
+ 223          //extern U8_T far buf[255];
+ 224          //extern U8_T far buf1[255];
+ 225          
+ 226          
+ 227          void OSDelay(U8_T x)
+ 228          {
+ 229   1              vTaskDelay(x);
+ 230   1      }
+ 231          
+ 232          U8_T Read_Hardware_Revision(void)
+ 233          {
+ 234   1          
+ 235   1              return Para[17];
+ 236   1      
+ 237   1      }
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 5   
+
+ 238          
+ 239          
+ 240          /*
+ 241           * ----------------------------------------------------------------------------
+ 242           * Function Name: UpdateIpSettings
+ 243           * Purpose: Update IP address, subnet mak, gateway IP address and DNS IP address 
+ 244           * Params:
+ 245           * Returns:
+ 246           * Note:
+ 247           * ----------------------------------------------------------------------------
+ 248           */
+ 249          void UpdateIpSettings(U32_T ip)
+ 250          {
+ 251   1               U32_T gateWay,subnet;
+ 252   1      
+ 253   1               if(ip > 0)
+ 254   1               {
+ 255   2                      ip = STOE_GetIPAddr();
+ 256   2                      subnet = STOE_GetSubnetMask();
+ 257   2                      gateWay = STOE_GetGateway();
+ 258   2              
+ 259   2                      Para[215]=(U8_T)(ip>>24);
+ 260   2                      Para[217]=(U8_T)(ip>>16);
+ 261   2                      Para[219]=(U8_T)(ip>>8);
+ 262   2                      Para[221]=(U8_T)(ip);
+ 263   2              
+ 264   2                      Para[223]=(U8_T)(subnet>>24);
+ 265   2                      Para[225]=(U8_T)(subnet>>16);
+ 266   2                      Para[227]=(U8_T)(subnet>>8);
+ 267   2                      Para[229]=(U8_T)(subnet);
+ 268   2              
+ 269   2                      Para[231]=(U8_T)(gateWay>>24);
+ 270   2                      Para[233]=(U8_T)(gateWay>>16);
+ 271   2                      Para[235]=(U8_T)(gateWay>>8);
+ 272   2                      Para[237]=(U8_T)(gateWay);
+ 273   2              }
+ 274   1              else
+ 275   1              {
+ 276   2                      ip = (((U32_T)Para[215]) << 24) | ((U32_T)Para[217] << 16) | ((U32_T)Para[219] << 8) | (Para[221]);
+ 277   2                      subnet = (((U32_T)Para[223]) << 24) | ((U32_T)Para[225] << 16) | ((U32_T)Para[227] << 8) | (Para[229]);
+ 278   2                      gateWay = (((U32_T)Para[231]) << 24) | ((U32_T)Para[233] << 16) | ((U32_T)Para[235] << 8) | (Para[237]);
+ 279   2                      
+ 280   2                      TCPIP_SetIPAddr(ip); 
+ 281   2                      TCPIP_SetSubnetMask(subnet);
+ 282   2                      TCPIP_SetGateway(gateWay);
+ 283   2                              
+ 284   2                      STOE_SetIPAddr(ip); 
+ 285   2                  STOE_SetSubnetMask(subnet);
+ 286   2                      STOE_SetGateway(gateWay);
+ 287   2              
+ 288   2              //      GCONFIG_SetServerDynamicIP(ip);                                         
+ 289   2              //      GCONFIG_WriteConfigData();
+ 290   2              //      GUDPBC_Init(ServerBroadcastListenPort);
+ 291   2              }
+ 292   1      
+ 293   1      }
+ 294          
+ 295          /*
+ 296           * ----------------------------------------------------------------------------
+ 297           * Function Name: CheckArpTable
+ 298           * Purpose: Update IP address, subnet mak, gateway IP address and DNS IP address 
+ 299           * Params:
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 6   
+
+ 300           * Returns:
+ 301           * Note:
+ 302           * ----------------------------------------------------------------------------
+ 303           */
+ 304          void CheckArpTable(void)
+ 305          {
+ 306   1              if (app_arp_buf.wait) 
+ 307   1              {
+ 308   2                      U8_T valid = STOE_CHECK_MAC(&app_arp_buf.ipaddr);
+ 309   2                      if (valid) 
+ 310   2                      {
+ 311   3                              DMA_GrantXdata(uip_buf, app_arp_buf.buf, app_arp_buf.uip_len);
+ 312   3                              PRINTD(DEBUG_MSG ,("send out the packet from arp buffer\n\r"));
+ 313   3                              uip_len = app_arp_buf.uip_len;
+ 314   3                              ETH_Send(app_arp_buf.PayLoadOffset);
+ 315   3                              uip_len = 0;
+ 316   3                              app_arp_buf.wait = 0;
+ 317   3                      }
+ 318   2              }
+ 319   1      } /* End of CheckArpTable */
+ 320          
+ 321          
+ 322          
+ 323          void TCPIP_Task(void)reentrant
+ 324          {
+ 325   1         //U32_T far iP,gateWay,subnet;
+ 326   1      //   portTickType xDelayPeriod  = ( portTickType ) 250 / portTICK_RATE_MS;//2 minutes writting flash.
+ 327   1              
+ 328   1      
+ 329   1       #if (BOOTLDR_ISR)
+                      ERROR: BOOTLDR_ISR must set to '0' in non-bootloader driver.
+                 #endif
+ 332   1         #if (!AX_ETH_INT_ENABLE)
+                       ERROR: Must enable ethernet module in this driver.
+                 #endif
+ 335   1               U32_T  timeCount,preTimeCount;
+ 336   1         #if (INCLUDE_DHCP_CLIENT)
+ 337   1              U8_T    cmdDhcpFlag = 0;
+ 338   1              U32_T   dhcpTimeStart = 0;
+ 339   1              U32_T   dhcpTimeStop = 0;
+ 340   1      #endif
+ 341   1      #if STOE_TRANSPARENT
+              //      U8_T xdata arptimer;
+              #endif
+ 344   1      
+ 345   1      //   U8_T WhichServer;
+ 346   1      
+ 347   1              /* Initialize Network adapter */
+ 348   1              ETH_Init();
+ 349   1      
+ 350   1              DHCP_Init();
+ 351   1              //if (DHCP_Init())
+ 352   1              //      printd("DHCP init ok.\n\r");
+ 353   1      
+ 354   1      #if (INCLUDE_DNS_CLIENT)
+                      DNSCTAB_Init(); /* include DNS table */
+              #endif
+ 357   1      
+ 358   1      
+ 359   1      #if GCONFIG_EEPROM_CONFIG
+                      I2C_Init();
+              #endif
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 7   
+
+ 362   1              GCONFIG_Init();
+ 363   1      
+ 364   1      //      ServerBroadcastListenPort = GCONFIG_GetServerBroadcastListenPort();
+ 365   1      //      printd ("ServerBroadcastListenPort = %d\n\r", ServerBroadcastListenPort);
+ 366   1      //      ServerBroadcastListenPort = 25122;
+ 367   1      //      GUDPBC_Init(ServerBroadcastListenPort);
+ 368   1      
+ 369   1      #if (INCLUDE_DHCP_CLIENT)       
+ 370   1              if ( (Para[213] == 1) && ((GCONFIG_GetNetwork() & GCONFIG_NETWORK_DHCP_ENABLE) == GCONFIG_NETWORK_DHCP_EN
+             -ABLE) )
+ 371   1              {
+ 372   2                      printd("DHCP request... ");
+ 373   2                      DHCP_Start();
+ 374   2      #if (!STOE_TRANSPARENT)
+ 375   2                      STOE_DisableIpFilter();
+ 376   2      #endif
+ 377   2                      cmdDhcpFlag = 1;
+ 378   2                      dhcpTimeStart = SWTIMER_Tick();
+ 379   2              }
+ 380   1              else
+ 381   1              {
+ 382   2                      UpdateIpSettings(0);
+ 383   2              }
+ 384   1      #else
+                      printd("DHCP module is not included. Use static IP address\n\r");
+                      GCONFIG_SetServerDynamicIP(GCONFIG_GetServerStaticIP());                                                
+                      GCONFIG_WriteConfigData();
+                      GUDPBC_Init(ServerBroadcastListenPort);
+              #endif
+ 390   1      
+ 391   1              ServerBroadcastListenPort = 1234; 
+ 392   1              GUDPBC_Init(ServerBroadcastListenPort);
+ 393   1      
+ 394   1      
+ 395   1              bacnetListenPort = 47808;
+ 396   1              GUDPMC_Init(bacnetListenPort);                  // bacnet port
+ 397   1      
+ 398   1      
+ 399   1              HTTP_Init();
+ 400   1              FSYS_Init();
+ 401   1      
+ 402   1      //      SNTPC_Init();
+ 403   1              
+ 404   1              ETH_Start();
+ 405   1      
+ 406   1      
+ 407   1      
+ 408   1      //      WhichServer=Para[45]; //customer choose which server fro Sync.
+ 409   1      //      SNTPC_Start(800, IpServer[WhichServer]);
+ 410   1      //      should add condition if whichserver exceeds 6
+ 411   1      
+ 412   1              while (1)
+ 413   1              {
+ 414   2      //              HSUR_ErrorRecovery(); 
+ 415   2        
+ 416   2      
+ 417   2      #if (!STOE_TRANSPARENT)
+ 418   2                      ETH_SendArpToGateway(ETH_CONTINUE_ARP_REQUEST_TO_GATEWAY_AFTER_REPLY);
+ 419   2      #endif
+ 420   2      
+ 421   2                      CheckArpTable();
+ 422   2      
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 8   
+
+ 423   2      #if (INCLUDE_DHCP_CLIENT)
+ 424   2                      if (cmdDhcpFlag == 1)
+ 425   2                      {                       
+ 426   3                              if (DHCP_GetState() > DHCP_IDLE_STATE)
+ 427   3                              {
+ 428   4                                      DHCP_Send();
+ 429   4                              }
+ 430   3                              else
+ 431   3                              {
+ 432   4                                      UpdateIpSettings(STOE_GetIPAddr());
+ 433   4      #if (!STOE_TRANSPARENT)
+ 434   4                                      STOE_EnableIpFilter();
+ 435   4      #endif
+ 436   4                                      cmdDhcpFlag = 0;
+ 437   4                              }
+ 438   3                      }
+ 439   2      #endif
+ 440   2      
+ 441   2      #if (STOE_GET_INTSTATUS_MODE == STOE_INTERRUPT_MODE)    /* interrupt mode */
+                              if (STOE_GetInterruptFlag())
+                              {
+                                      STOE_ProcessInterrupt();
+                              }
+              #else   /* polling mode */
+ 447   2                      STOE_ProcessInterrupt();
+ 448   2      #endif
+ 449   2      
+ 450   2      #if (!MAC_GET_INTSTATUS_MODE)
+ 451   2                      if (MAC_GetInterruptFlag())
+ 452   2                      {
+ 453   3                              MAC_ProcessInterrupt();
+ 454   3                      }
+ 455   2      #else
+                              MAC_LinkSpeedChk();
+              #endif
+ 458   2      
+ 459   2                      timeCount = (U16_T)SWTIMER_Tick();
+ 460   2                      if ((timeCount- preTimeCount)>= TIME_OUT_COUNTER)
+ 461   2                      {
+ 462   3                              preTimeCount = timeCount;
+ 463   3                              TCPIP_PeriodicCheck();
+ 464   3                      }
+ 465   2              //      vTaskDelay(xDelayPeriod);
+ 466   2                      
+ 467   2             timeCount = (U16_T)SWTIMER_Tick();
+ 468   2             if(Para[43]==2)
+ 469   2                 {
+ 470   3                        SNTPC_GetState();Para[43]=1;
+ 471   3             }
+ 472   2      
+ 473   2            //  SNTPC_Debug();
+ 474   2      
+ 475   2      #if (INCLUDE_DNS_CLIENT)
+                              if (cmdDnsFlag == 1)
+                              {
+                                      U8_T state = DNSCTAB_GetState();/* include DNS table */
+              
+                                      if (state == DNSC_STATE_FREE)
+                                      {
+                                              cmdDnsFlag = 0;
+                                              printf ("Can not find DNS server.\n\r");
+                                      }
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 9   
+
+                                      else if (state == DNSC_STATE_RESPONSED)
+                                      {
+                                              U32_T   ip;
+              
+                                              cmdDnsFlag = 0;
+              
+                                              if ((ip = DNSCTAB_GetIP()) == 0)
+                                              {
+                                                      printf ("Can not find remote station via DNS server.\n\r");
+                                              }
+                                              else
+                                              {
+                                                      printf ("Get IP address from DNS server : %lx\n\r", ip);
+                                              }
+                                      }
+                              }
+              #endif
+ 502   2      
+ 503   2              }
+ 504   1      } /* End of main() */
+ 505          
+ 506          
+ 507          U8_T BeatSta = 0;
+ 508          volatile U8_T far LEDS _at_ 0x200000;   //LED Address > 80000, or will compete with SRAM which the range is 
+             -0-0x80000!!
+ 509          
+ 510          
+ 511          void Beat_ON(void)//Set Pin low
+ 512          {
+ 513   1              U8_T i;
+ 514   1      
+ 515   1      //      if(Hardware_Revision >= Hardware_Rev22)
+ 516   1      //       {      DisPlay1 = 0;
+ 517   1      //              DisPlay2 = 1; }
+ 518   1      //      else {
+ 519   1      //      DisPlay1 = 1;
+ 520   1      //      DisPlay2 = 0;  }
+ 521   1      
+ 522   1              DisPlay1 = 1;
+ 523   1              DisPlay2 = 0; 
+ 524   1      
+ 525   1      
+ 526   1              LE = 0; 
+ 527   1              LedSta = 0xfd;
+ 528   1              for(i = 0; i < 100; i++);                          
+ 529   1              LEDS = LedSta;                                                   
+ 530   1              LE = 1;  
+ 531   1      }
+ 532          
+ 533          void Beat_OFF(void)  //Set Pin high
+ 534          {
+ 535   1      //      if(Hardware_Revision >= Hardware_Rev22)
+ 536   1      //       {      DisPlay1 = 0;
+ 537   1      //              DisPlay2 = 1; }
+ 538   1      //      else {
+ 539   1      //      DisPlay1 = 1;
+ 540   1      //      DisPlay2 = 0;  }
+ 541   1              
+ 542   1      
+ 543   1              DisPlay1 = 1;
+ 544   1              DisPlay2 = 0; 
+ 545   1      
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 10  
+
+ 546   1              LE = 0;
+ 547   1              LedSta = 0xff;                             
+ 548   1              LEDS = LedSta;                               
+ 549   1              LE = 1; 
+ 550   1      }
+ 551          
+ 552          void Led_EthSend(void)//Pin set low
+ 553          {
+ 554   1      //      if(Hardware_Revision >= Hardware_Rev22)
+ 555   1      //       {      DisPlay1 = 0;
+ 556   1      //              DisPlay2 = 1; }
+ 557   1      //      else {
+ 558   1      //      DisPlay1 = 1;
+ 559   1      //      DisPlay2 = 0;  }
+ 560   1              
+ 561   1              DisPlay1 = 1;
+ 562   1              DisPlay2 = 0; 
+ 563   1      
+ 564   1              
+ 565   1              LE = 0;
+ 566   1              if(BeatSta == 0)
+ 567   1                      LedSta = 0xef;
+ 568   1              else
+ 569   1                      LedSta = 0xed;             
+ 570   1              LEDS = LedSta;                               
+ 571   1              LE = 1;                               
+ 572   1      }
+ 573          
+ 574          
+ 575          
+ 576          void Led_EthRxD(void) //Pin set low 
+ 577          {
+ 578   1      //      if(Hardware_Revision >= Hardware_Rev22)
+ 579   1      //       {      DisPlay1 = 0;
+ 580   1      //              DisPlay2 = 1; }
+ 581   1      //      else {
+ 582   1      //      DisPlay1 = 1;
+ 583   1      //      DisPlay2 = 0;  }
+ 584   1      
+ 585   1              DisPlay1 = 1;
+ 586   1              DisPlay2 = 0; 
+ 587   1      
+ 588   1              LE = 0;
+ 589   1              if(BeatSta == 0)
+ 590   1                      LedSta = 0xdf;  
+ 591   1              else  
+ 592   1                      LedSta = 0xdd;                     
+ 593   1              LEDS = LedSta; 
+ 594   1              LE = 1;
+ 595   1      }
+ 596          
+ 597          void Led_485RxD(void)//Pin set low 
+ 598          {    
+ 599   1      //      if(Hardware_Revision >= Hardware_Rev22)
+ 600   1      //       {      DisPlay1 = 1;
+ 601   1      //              DisPlay2 = 0; }
+ 602   1      //      else {
+ 603   1      //      DisPlay1 = 0;
+ 604   1      //      DisPlay2 = 1;  }
+ 605   1              
+ 606   1              
+ 607   1              DisPlay1 = 0;
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 11  
+
+ 608   1              DisPlay2 = 1; 
+ 609   1      
+ 610   1              LE = 0;
+ 611   1              LedSta = 0xbf;                     
+ 612   1              LEDS = LedSta; 
+ 613   1              LE = 1;
+ 614   1      }
+ 615          
+ 616          void Led_485Send(void) //Pin set low 
+ 617          {      
+ 618   1      //      if(Hardware_Revision >= Hardware_Rev22)
+ 619   1      //       {      DisPlay1 = 1;
+ 620   1      //              DisPlay2 = 0; }
+ 621   1      //      else {
+ 622   1      //      DisPlay1 = 0;
+ 623   1      //      DisPlay2 = 1;  }
+ 624   1              
+ 625   1              
+ 626   1              DisPlay1 = 0;
+ 627   1              DisPlay2 = 1; 
+ 628   1      
+ 629   1      
+ 630   1              LE = 0;
+ 631   1              LedSta = 0xdf;
+ 632   1              LEDS = LedSta;
+ 633   1              LE = 1;
+ 634   1      }
+ 635          
+ 636          void Led_485ERR(void) //Pin set low 
+ 637          {   
+ 638   1      //      if(Hardware_Revision >= Hardware_Rev22)
+ 639   1      //       {      DisPlay1 = 0;
+ 640   1      //              DisPlay2 = 1; }
+ 641   1      //      else {
+ 642   1      //      DisPlay1 = 1;
+ 643   1      //      DisPlay2 = 0;  }
+ 644   1      
+ 645   1      
+ 646   1              DisPlay1 = 1;
+ 647   1              DisPlay2 = 0; 
+ 648   1      
+ 649   1      
+ 650   1              LE = 0;
+ 651   1              if(BeatSta == 0)
+ 652   1                      LedSta = 0xfb;  
+ 653   1              else
+ 654   1                      LedSta = 0xf9;                             
+ 655   1              LEDS = LedSta; 
+ 656   1              LE = 1;
+ 657   1      }
+ 658          void Led_ReSet(void)
+ 659          {
+ 660   1      //      if(Hardware_Revision >= Hardware_Rev22)
+ 661   1      //       {      DisPlay1 = 0;
+ 662   1      //              DisPlay2 = 1; }
+ 663   1      //      else {
+ 664   1      //      DisPlay1 = 1;
+ 665   1      //      DisPlay2 = 0;  }
+ 666   1              
+ 667   1              
+ 668   1              DisPlay1 = 1;
+ 669   1              DisPlay2 = 0; 
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 12  
+
+ 670   1      
+ 671   1      
+ 672   1      
+ 673   1              LE = 0;
+ 674   1              if(BeatSta == 0)
+ 675   1                      LedSta = 0xff;  
+ 676   1              else
+ 677   1                      LedSta = 0xfd;                             
+ 678   1              LEDS = LedSta; 
+ 679   1              LE = 1;
+ 680   1      }
+ 681          
+ 682          
+ 683          
+ 684          void Led_ispSet(void)
+ 685          {
+ 686   1      //      if(Hardware_Revision >= Hardware_Rev22)
+ 687   1      //       {      DisPlay1 = 0;
+ 688   1      //              DisPlay2 = 1; }
+ 689   1      //      else {
+ 690   1      //      DisPlay1 = 1;
+ 691   1      //      DisPlay2 = 0;  }
+ 692   1              
+ 693   1              DisPlay1 = 1;
+ 694   1              DisPlay2 = 0; 
+ 695   1              
+ 696   1              LE = 0;                            
+ 697   1              LEDS = 0xfe;                                                     
+ 698   1              LE = 1;  
+ 699   1      }
+ 700          
+ 701          
+ 702          
+ 703          /*****************************************/
+ 704          /*****************************************/
+ 705          /*****Uart0 routine***********************/
+ 706          void Uart0_Tx(U8_T *buf,U8_T len)
+ 707          {     
+ 708   1      /*
+ 709   1              U8_T i;
+ 710   1              U16_T j;
+ 711   1              for(i = 0; i < len; i++)
+ 712   1              { 
+ 713   1                      SBUF0 = buf[i];
+ 714   1                      for(j = 0; j < 1000; j++);
+ 715   1      //              FlagSend0 = 0;
+ 716   1      //              while(FlagSend0 == 0);
+ 717   1              }
+ 718   1      */
+ 719   1              U8_T i;
+ 720   1              for(i = 0; i < len; i++)
+ 721   1              { 
+ 722   2                      FlagSend0 = 0;
+ 723   2                      SBUF0 = buf[i];
+ 724   2                      while(FlagSend0 == 0);
+ 725   2              }
+ 726   1      
+ 727   1      }
+ 728          
+ 729          
+ 730          void Uart0_Receive(void)
+ 731          {
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 13  
+
+ 732   1      
+ 733   1              if(uart0_RxCount > 0)
+ 734   1              {
+ 735   2      
+ 736   2                      LED = S485_OK;          
+ 737   2                      
+ 738   2                      if((uart0_RxBuf[0] == Para[13]) || (uart0_RxBuf[0] == 0xff))//Address of NetControl 
+ 739   2                      { 
+ 740   3                              if(uart0_RxBuf[1] == 0x19) //scan Tsnet
+ 741   3                              {
+ 742   4                                      Sever_Order = SERVER_RS232;
+ 743   4                                      Sever_id = uart0_RxBuf[0]; 
+ 744   4                                      Tx_To_Tstat(uart0_RxBuf, uart0_RxCount);                                                                                                                        
+ 745   4                              }                                       
+ 746   3                              else if(uart0_RxBuf[1] == 0x1a) //scan NC
+ 747   3                              {
+ 748   4                                      U8_T i; 
+ 749   4                                      uart0_TxCount = 0;
+ 750   4                                      uart0_TxBuf[uart0_TxCount++] = uart0_RxBuf[0];
+ 751   4                                      uart0_TxBuf[uart0_TxCount++] = 0x19;
+ 752   4                                      uart0_TxBuf[uart0_TxCount++] = Para[13];                                                 
+ 753   4                                      uart0_TxBuf[uart0_TxCount++] = Para[1];
+ 754   4                                      uart0_TxBuf[uart0_TxCount++] = Para[3];
+ 755   4                                      uart0_TxBuf[uart0_TxCount++] = Para[5];
+ 756   4                                      uart0_TxBuf[uart0_TxCount++] = Para[7];
+ 757   4                                      InitCRC16();
+ 758   4                                      for(i = 0; i < uart0_TxCount; i++)
+ 759   4                                              CRC16_Tstat(uart0_TxBuf[i]);
+ 760   4                                      uart0_TxBuf[uart0_TxCount++] = CRChi;
+ 761   4                                      uart0_TxBuf[uart0_TxCount++] = CRClo;                                    
+ 762   4                                      Uart0_Tx(uart0_TxBuf, uart0_TxCount);   
+ 763   4                                      uart0_TxCount = 0;
+ 764   4                              }
+ 765   3                              else if(uart0_RxBuf[1] == read) 
+ 766   3                              {       
+ 767   4                                      U16_T i;
+ 768   4                                      U8_T far temp_number;
+ 769   4                                      U8_T far temp_address;
+ 770   4                                      U8_T far send_buffer;
+ 771   4                                      U16_T StartAdd = (uart0_RxBuf[2] << 8) | uart0_RxBuf[3];
+ 772   4      
+ 773   4                                      uart0_TxBuf[0] = uart0_RxBuf[0];
+ 774   4                                      uart0_TxBuf[1] = uart0_RxBuf[1];
+ 775   4                                      uart0_TxBuf[2] = 2 * uart0_RxBuf[5];
+ 776   4                                      uart0_TxCount = 3 + uart0_TxBuf[2];
+ 777   4                                      for(i = 0; i < uart0_RxBuf[5]; i++)
+ 778   4                                      {
+ 779   5                                              if((StartAdd + i) < MODBUS_TIMER_ADDRESS) //200
+ 780   5                                              {  
+ 781   6                                                      uart0_TxBuf[3 + 2 * i] = Para[2 * (StartAdd + i)];  
+ 782   6                                                      uart0_TxBuf[4 + 2 * i] = Para[2 * (StartAdd + i) + 1];
+ 783   6                                              }
+ 784   5                                              else if(((StartAdd + i) >= MODBUS_TIMER_ADDRESS) && ((StartAdd + i) < (MODBUS_TIMER_ADDRESS + 8))) 
+ 785   5                                              {
+ 786   6                                                      //  YEAR  MONTH  WEEK DATE  HOUR  MINUTE  SECOND 
+ 787   6                                                      uart0_TxBuf[3 + 2 * i] = 0;
+ 788   6                                                      switch(StartAdd + i - MODBUS_TIMER_ADDRESS)
+ 789   6                                                      {
+ 790   7                                                              case 7:
+ 791   7                                                                      uart0_TxBuf[4 + 2 * i] = Time.UN.Current.sec;
+ 792   7                                                                      break;  
+ 793   7                                                              case 6:
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 14  
+
+ 794   7                                                                      uart0_TxBuf[4 + 2 * i] = Time.UN.Current.min;
+ 795   7                                                                      break;
+ 796   7                                                              case 5:
+ 797   7                                                                      uart0_TxBuf[4 + 2 * i] = Time.UN.Current.hour;
+ 798   7                                                                      break;
+ 799   7                                                              case 4:
+ 800   7                                                                      uart0_TxBuf[4 + 2 * i] = Time.UN.Current.day;
+ 801   7                                                                      break;
+ 802   7                                                              case 3:
+ 803   7                                                                      uart0_TxBuf[4 + 2 * i] = Time.UN.Current.dayofweek;
+ 804   7                                                                      break;
+ 805   7                                                              case 2:
+ 806   7                                                                      uart0_TxBuf[4 + 2 * i] = Time.UN.Current.month;
+ 807   7                                                                      break;
+ 808   7                                                              case 1:
+ 809   7                                                                      uart0_TxBuf[4 + 2 * i] = Time.UN.Current.year;
+ 810   7                                                                      break;
+ 811   7                                                              case 0:
+ 812   7                                                                      uart0_TxBuf[4 + 2 * i] = Time.UN.Current.centary;
+ 813   7                                                                      break;
+ 814   7                                                      }               
+ 815   6                                              }
+ 816   5                                              else if(((StartAdd + i) >= MODBUS_WR_DESCRIP_FIRST) && ((StartAdd + i) < MODBUS_WR_DESCRIP_LAST))
+ 817   5                                              {
+ 818   6                                                      temp_number = (StartAdd + i - MODBUS_WR_DESCRIP_FIRST) / WR_DESCRIPTION_SIZE;
+ 819   6                                                      temp_address = (StartAdd + i - MODBUS_WR_DESCRIP_FIRST) % WR_DESCRIPTION_SIZE;
+ 820   6                                                      send_buffer = WR_Roution[temp_number].UN.all[temp_address];
+ 821   6                                                  if((temp_address == (WR_DESCRIPTION_SIZE - 1)) && (send_buffer != 0xff))
+ 822   6                                                      {
+ 823   7                                                              if((send_buffer & 0x80) == 0)
+ 824   7                                                              {
+ 825   8                                                                      if(GetBit(temp_number, wr_state_index))
+ 826   8                                                                              send_buffer |= 0x40;
+ 827   8                                                                      else
+ 828   8                                                                              send_buffer &= 0xbf;
+ 829   8                                                              }
+ 830   7      
+ 831   7                                                              if(GetBit(temp_number, holiday1_state_index))
+ 832   7                                                                      send_buffer |= 0x20;
+ 833   7                                                              else
+ 834   7                                                                      send_buffer &= 0xdf;
+ 835   7      
+ 836   7                                                              if(GetBit(temp_number, holiday2_state_index))
+ 837   7                                                                      send_buffer |= 0x10;
+ 838   7                                                              else
+ 839   7                                                                      send_buffer &= 0xef;
+ 840   7                                                      }
+ 841   6                                                      uart0_TxBuf[3 + 2 * i] = 0;     
+ 842   6                                                      uart0_TxBuf[4 + 2 * i] = send_buffer;   
+ 843   6                                              }
+ 844   5                                              else if(((StartAdd + i) >= MODBUS_AR_DESCRIP_FIRST) && ((StartAdd + i) < MODBUS_AR_DESCRIP_LAST))
+ 845   5                                              {
+ 846   6                                                      temp_number = (StartAdd + i - MODBUS_AR_DESCRIP_FIRST) / AR_DESCRIPTION_SIZE;    // line
+ 847   6                                                      temp_address = (StartAdd + i - MODBUS_AR_DESCRIP_FIRST) % AR_DESCRIPTION_SIZE;
+ 848   6                                                      send_buffer = AR_Roution[temp_number].UN.all[temp_address];
+ 849   6      
+ 850   6                                                      if(temp_address == (AR_DESCRIPTION_SIZE - 1))
+ 851   6                                                      {
+ 852   7                                                              if((send_buffer & 0x80) == 0)
+ 853   7                                                              {
+ 854   8                                                                      if(GetBit(temp_number, ar_state_index))
+ 855   8                                                                              send_buffer |= 0x40;
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 15  
+
+ 856   8                                                                      else
+ 857   8                                                                              send_buffer &= 0xbf;
+ 858   8                                                              }
+ 859   7                                                      }
+ 860   6                                                      uart0_TxBuf[3 + 2 * i] = 0;     
+ 861   6                                                      uart0_TxBuf[4 + 2 * i] = send_buffer;   
+ 862   6                                              }
+ 863   5                                              else if(((StartAdd + i) >= MODBUS_ID_FIRST) && ((StartAdd + i) < MODBUS_ID_LAST))
+ 864   5                                              {
+ 865   6                                                      temp_number = (StartAdd + i - MODBUS_ID_FIRST) / ID_SIZE;
+ 866   6                                                      temp_address = (StartAdd + i - MODBUS_ID_FIRST) % ID_SIZE;
+ 867   6                                                      send_buffer = ID_Config[temp_number].all[temp_address];
+ 868   6                      
+ 869   6                                                      if((temp_address == (ID_SIZE - 1)) && (send_buffer != 0xff))
+ 870   6                                                      {
+ 871   7                                                              if((send_buffer & 0x80) == 0)
+ 872   7                                                              {
+ 873   8                                                                      if(GetBit(temp_number, output_state_index))
+ 874   8                                                                              send_buffer |= 0x40;
+ 875   8                                                                      else
+ 876   8                                                                              send_buffer &= 0xbf;
+ 877   8                                                              }
+ 878   7      
+ 879   7                                                              if(GetBit(temp_number, schedual1_state_index))
+ 880   7                                                                      send_buffer |= 0x20;
+ 881   7                                                              else
+ 882   7                                                                      send_buffer &= 0xdf;
+ 883   7      
+ 884   7                                                              if(GetBit(temp_number, schedual2_state_index))
+ 885   7                                                                      send_buffer |= 0x10;
+ 886   7                                                              else
+ 887   7                                                                      send_buffer &= 0xef;
+ 888   7                                                      }
+ 889   6                                                      uart0_TxBuf[3 + 2 * i] = 0;     
+ 890   6                                                      uart0_TxBuf[4 + 2 * i] = send_buffer;   
+ 891   6                                              }
+ 892   5                                              else if(((StartAdd + i) >= MODBUS_AR_TIME_FIRST) && ((StartAdd + i) < MODBUS_WR_ONTIME_FIRST))
+ 893   5                                              {
+ 894   6                                                      temp_number = (StartAdd + i - MODBUS_AR_TIME_FIRST) / AR_TIME_SIZE;
+ 895   6                                                      temp_address = (StartAdd + i - MODBUS_AR_TIME_FIRST) % AR_TIME_SIZE;
+ 896   6                                                      send_buffer = AR_Roution[temp_number].Time[temp_address];
+ 897   6                      
+ 898   6                                                      uart0_TxBuf[3 + 2 * i] = 0;     
+ 899   6                                                      uart0_TxBuf[4 + 2 * i] = send_buffer;
+ 900   6                                              }
+ 901   5                                              else if(((StartAdd + i) >= MODBUS_WR_ONTIME_FIRST) && ((StartAdd + i) < MODBUS_WR_OFFTIME_FIRST))
+ 902   5                                              {
+ 903   6                                                      temp_number = (StartAdd + i - MODBUS_WR_ONTIME_FIRST) / WR_TIME_SIZE;           
+ 904   6                                                      temp_address = (StartAdd + i - MODBUS_WR_ONTIME_FIRST) % WR_TIME_SIZE;
+ 905   6                                                      send_buffer = WR_Roution[temp_number].OnTime[temp_address];
+ 906   6                                                      uart0_TxBuf[3 + 2 * i] = 0;     
+ 907   6                                                      uart0_TxBuf[4 + 2 * i] = send_buffer;
+ 908   6                                              }
+ 909   5                                              else if(((StartAdd + i) >= MODBUS_WR_OFFTIME_FIRST) && ((StartAdd + i) < MODBUS_WR_OFFTIME_LAST))
+ 910   5                                              {
+ 911   6                                                      temp_number = (StartAdd + i - MODBUS_WR_OFFTIME_FIRST) / WR_TIME_SIZE;
+ 912   6                                                      temp_address = (StartAdd + i - MODBUS_WR_OFFTIME_FIRST) % WR_TIME_SIZE;
+ 913   6                                                      send_buffer = WR_Roution[temp_number].OffTime[temp_address];
+ 914   6                                                      uart0_TxBuf[3 + 2 * i] = 0;     
+ 915   6                                                      uart0_TxBuf[4 + 2 * i] = send_buffer;                   
+ 916   6                                              }
+ 917   5                                              else if((((StartAdd + i))       >= BACNET_MODBUS_FEATURE_CHOICE_START)&&(StartAdd + i) < BACNET_MODBUS_FEAT
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 16  
+
+             -URE_CHOICE_LAST)
+ 918   5                                              {
+ 919   6      
+ 920   6      
+ 921   6                                              }
+ 922   5      
+ 923   5                                              else
+ 924   5                                              {
+ 925   6                                                      uart0_TxBuf[3 + 2 * i] = 0;     
+ 926   6                                                      uart0_TxBuf[4 + 2 * i] = 1;
+ 927   6                                              }                                               
+ 928   5                                      } 
+ 929   4      
+ 930   4                                      EA = 0;
+ 931   4                                      InitCRC16();
+ 932   4                                      for(i = 0; i < uart0_TxCount; i++)
+ 933   4                                              CRC16_Tstat(uart0_TxBuf[i]);
+ 934   4                                      uart0_TxBuf[uart0_TxCount++] = CRChi;                        
+ 935   4                                      uart0_TxBuf[uart0_TxCount++] = CRClo;
+ 936   4                                      EA = 1;
+ 937   4      
+ 938   4                                      Uart0_Tx(uart0_TxBuf, uart0_TxCount);                                                                                   
+ 939   4                              }
+ 940   3                              else if(uart0_RxBuf[1] == swrite) 
+ 941   3                              {
+ 942   4                                      U16_T StartAdd = (uart0_RxBuf[2] << 8) | uart0_RxBuf[3];
+ 943   4                                      if(StartAdd < 200)
+ 944   4                                      {
+ 945   5                                              if(StartAdd == 15) // clear flash to zero
+ 946   5                                              {
+ 947   6                                                      if(((uart0_RxBuf[4] << 8) | uart0_RxBuf[5]) == 0x55)
+ 948   6                                                      {
+ 949   7                                                              memset(WR_Roution, 0, MAX_WR * WR_STRUCT_LENGTH);
+ 950   7                                                              memset(AR_Roution, 0, MAX_AR * AR_STRUCT_LENGTH);
+ 951   7                                                              memset(ID_Config, 0, MAX_ID * ID_SIZE);
+ 952   7                                                              Para[30] = 0;
+ 953   7                                                              Para[31] = 0;
+ 954   7                                                              ChangeFlash = 1;
+ 955   7                                                      }
+ 956   6                                              }
+ 957   5                                              else if(StartAdd == 106)
+ 958   5                                              {
+ 959   6      //                                              if((((Para[212] << 8) | Para[213]) == 0) && (((uart0_RxBuf[4] << 8) | uart0_RxBuf[5]) != 0))
+ 960   6                                                      if(((Para[212] << 8) | Para[213]) != ((uart0_RxBuf[4] << 8) | uart0_RxBuf[5]))
+ 961   6                                                      {
+ 962   7                                                              if(((Para[212] << 8) | Para[213]) == 0)
+ 963   7                                                              {
+ 964   8                                                                      Para[212] = 0;
+ 965   8                                                                      Para[213] = 1;
+ 966   8                                                              
+ 967   8                                                                      ChangeIP = 1;
+ 968   8                                                                      ChangeFlash = 2;
+ 969   8                                                      
+ 970   8                                                              }
+ 971   7                                                              else if(((uart0_RxBuf[4] << 8) | uart0_RxBuf[5]) == 0)
+ 972   7                                                              {
+ 973   8                                                                      Para[212] = 0;
+ 974   8                                                                      Para[213] = 0;
+ 975   8      
+ 976   8                                                                      ChangeIP = 1;
+ 977   8                                                                      ChangeFlash = 2;
+ 978   8      
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 17  
+
+ 979   8                                                              }
+ 980   7                                                      }
+ 981   6                                              }
+ 982   5                                              else if((StartAdd >= 107) && (StartAdd <= 120)) //IP change ,reset cpu
+ 983   5                                              {
+ 984   6                                                      if(((Para[212] << 8) | Para[213]) == 0)
+ 985   6                                                      {
+ 986   7                                                              Para[2*uart0_RxBuf[3]] = uart0_RxBuf[4];                //write to bufffer array high bit
+ 987   7                                                              Para[2*uart0_RxBuf[3] + 1] = uart0_RxBuf[5];    //write to bufffer array low bit
+ 988   7                                                              ChangeFlash = 2;
+ 989   7                                                              ChangeIP = 1;
+ 990   7                                                      }
+ 991   6                                              }
+ 992   5                                              else
+ 993   5                                              {
+ 994   6                                                      Para[2*uart0_RxBuf[3]] = uart0_RxBuf[4];                //write to bufffer array high bit
+ 995   6                                                      Para[2*uart0_RxBuf[3] + 1] = uart0_RxBuf[5];    //write to bufffer array low bit
+ 996   6                                                      ChangeFlash = 1;
+ 997   6                                              }
+ 998   5                                      }
+ 999   4                                      else if((StartAdd >= SCHEDUAL_MODBUS_ADDRESS) && (StartAdd < (SCHEDUAL_MODBUS_ADDRESS + 8)))
+1000   4                                      {
+1001   5                                              switch(StartAdd - SCHEDUAL_MODBUS_ADDRESS)
+1002   5                                              {
+1003   6                                                      case 0: //century
+1004   6                                                              if(uart0_RxBuf[5] == 19)
+1005   6                                                              {
+1006   7                                                                      Set_Clock(PCF_MON, Time.UN.Current.month | 0x80);
+1007   7                                                              }
+1008   6                                                              else if(uart0_RxBuf[5] == 20)
+1009   6                                                              {
+1010   7                                                                      Set_Clock(PCF_MON, Time.UN.Current.month & 0x7f);
+1011   7                                                              }
+1012   6                                                              break;
+1013   6                                                      case 1: //year
+1014   6                                                              Set_Clock(PCF_YEAR, uart0_RxBuf[5]);
+1015   6                                                              break;
+1016   6                                                      case 2: //month
+1017   6                                                              if(Time.UN.Current.centary == 19)
+1018   6                                                              {
+1019   7                                                                      Set_Clock(PCF_MON, uart0_RxBuf[5] | 0x80);
+1020   7                                                              }
+1021   6                                                              else if(Time.UN.Current.centary == 20)
+1022   6                                                              {
+1023   7                                                                      Set_Clock(PCF_MON, uart0_RxBuf[5] & 0x7f);
+1024   7                                                              }
+1025   6                                                              break;
+1026   6                                                      case 3:
+1027   6                                                              Set_Clock(PCF_WEEK, uart0_RxBuf[5]);
+1028   6                                                              break;
+1029   6                                                      case 4: //date
+1030   6                                                              Set_Clock(PCF_DAY, uart0_RxBuf[5]);
+1031   6                                                              break;
+1032   6                                                      case 5: //hour
+1033   6                                                              Set_Clock(PCF_HOUR, uart0_RxBuf[5]);
+1034   6                                                              break;
+1035   6                                                      case 6: //minute
+1036   6                                                              Set_Clock(PCF_MIN, uart0_RxBuf[5]);
+1037   6                                                              break;
+1038   6                                                      case 7: //second
+1039   6                                                              Set_Clock(PCF_SEC, uart0_RxBuf[5]);
+1040   6                                                              break;
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 18  
+
+1041   6                                              }
+1042   5                                      }
+1043   4                                      else
+1044   4                                      {
+1045   5                                              // spare
+1046   5                                      }
+1047   4      
+1048   4                                      Uart0_Tx(uart0_RxBuf, uart0_RxCount);
+1049   4                              }
+1050   3                              else if(uart0_RxBuf[1] == mwrite) //multi_write
+1051   3                              {
+1052   4                                      U8_T i;
+1053   4                                      U16_T StartAdd = (uart0_RxBuf[2] << 8) | uart0_RxBuf[3];
+1054   4                                      ChangeFlash = 1;
+1055   4                                      if(StartAdd < SCHEDUAL_MODBUS_ADDRESS)
+1056   4                                      {
+1057   5                                              if((StartAdd == 100) && (uart0_RxBuf[6] == 12))
+1058   5                                              {
+1059   6                                                      Para[201] = uart0_RxBuf[8];
+1060   6                                                      Para[203] = uart0_RxBuf[10];
+1061   6                                                      Para[205] = uart0_RxBuf[12];
+1062   6                                                      Para[207] = uart0_RxBuf[14];
+1063   6                                                      Para[209] = uart0_RxBuf[16];
+1064   6                                                      Para[211] = uart0_RxBuf[18];
+1065   6                      
+1066   6                                                      mac_change_enable = 1;
+1067   6                                                      ChangeIP = 1;
+1068   6                                              }
+1069   5                                          else
+1070   5                                              {
+1071   6                                                      for(i = 0; i < uart0_RxBuf[6]; i++)
+1072   6                                                      {
+1073   7                                                              if(((StartAdd + i / 2) < 100) || ((StartAdd + i / 2) > 105))  
+1074   7                                                                      Para[2 * StartAdd + i] = uart0_RxBuf[7+i];
+1075   7      
+1076   7                                                      } 
+1077   6      
+1078   6                                              
+1079   6                                                      if((StartAdd == 107) && (uart0_RxBuf[6] == 8)){
+1080   7                                                      ChangeIP = 1;
+1081   7                                                      ChangeFlash = 2;}
+1082   6                                                      
+1083   6                                                                      
+1084   6                                              }
+1085   5                                      }
+1086   4                                      else if(StartAdd == SCHEDUAL_MODBUS_ADDRESS) //200th register ,write time 
+1087   4                                      {
+1088   5      //                                      if((StartAdd - SCHEDUAL_MODBUS_ADDRESS) % 8 == 0)
+1089   5      //                                              memcpy(Time.UN.Setime,&uart0_RxBuf[7], 8);
+1090   5                                              if(uart0_RxBuf[5] == 8)
+1091   5                                              {
+1092   6                                                      if(uart0_RxBuf[5] == uart0_RxBuf[6])
+1093   6                                                      {
+1094   7                                                              Time.UN.Setime[7] = uart0_RxBuf[14];
+1095   7                                                              Time.UN.Setime[6] = uart0_RxBuf[13];
+1096   7                                                              Time.UN.Setime[5] = uart0_RxBuf[12];
+1097   7                                                              Time.UN.Setime[4] = uart0_RxBuf[11];
+1098   7                                                              Time.UN.Setime[3] = uart0_RxBuf[10];
+1099   7                                                              if(uart0_RxBuf[7] == 19)
+1100   7                                                                      uart0_RxBuf[9] |= 0x80;
+1101   7                                                              else
+1102   7                                                                      uart0_RxBuf[9] &= 0x7f;
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 19  
+
+1103   7                                                              Time.UN.Setime[2] = uart0_RxBuf[9];
+1104   7                                                              Time.UN.Setime[1] = uart0_RxBuf[8];
+1105   7                                                              Time.UN.Setime[0] = uart0_RxBuf[7];
+1106   7                                                      }
+1107   6                                                      else
+1108   6                                                      {
+1109   7                                                              Time.UN.Setime[7] = uart0_RxBuf[22];
+1110   7                                                              Time.UN.Setime[6] = uart0_RxBuf[20];
+1111   7                                                              Time.UN.Setime[5] = uart0_RxBuf[18];
+1112   7                                                              Time.UN.Setime[4] = uart0_RxBuf[16];
+1113   7                                                              Time.UN.Setime[3] = uart0_RxBuf[14];
+1114   7                                                              if(uart0_RxBuf[8] == 19)
+1115   7                                                                      uart0_RxBuf[12] |= 0x80;
+1116   7                                                              else
+1117   7                                                                      uart0_RxBuf[12] &= 0x7f;
+1118   7                                                              Time.UN.Setime[2] = uart0_RxBuf[12];
+1119   7                                                              Time.UN.Setime[1] = uart0_RxBuf[10];
+1120   7                                                              Time.UN.Setime[0] = uart0_RxBuf[8];
+1121   7                                                      }
+1122   6                                                      Initial_Clock();
+1123   6                                              }
+1124   5                                      }
+1125   4                                      else if ((StartAdd >= MODBUS_WR_DESCRIP_FIRST) && (StartAdd < MODBUS_WR_DESCRIP_LAST)) //weekly
+1126   4                              {                                                               
+1127   5                                              if((StartAdd - MODBUS_WR_DESCRIP_FIRST) % WR_DESCRIPTION_SIZE == 0)
+1128   5                                              {
+1129   6                                                      i = (StartAdd - MODBUS_WR_DESCRIP_FIRST) / WR_DESCRIPTION_SIZE;
+1130   6                                                      memcpy((U8_T *)&WR_Roution[i].UN.all[0], uart0_RxBuf + 7, WR_DESCRIPTION_SIZE);
+1131   6                                              }
+1132   5                              }
+1133   4                                      else if((StartAdd >= MODBUS_AR_DESCRIP_FIRST) && (StartAdd < MODBUS_AR_DESCRIP_LAST))
+1134   4                                      {
+1135   5                                              if((StartAdd - MODBUS_AR_DESCRIP_FIRST) % AR_DESCRIPTION_SIZE == 0)
+1136   5                                              {
+1137   6                                                      i = (StartAdd - MODBUS_AR_DESCRIP_FIRST) / AR_DESCRIPTION_SIZE;          
+1138   6                                                      memcpy((U8_T *)&AR_Roution[i].UN.all[0], uart0_RxBuf + 7, AR_DESCRIPTION_SIZE);
+1139   6                                              }
+1140   5                                      }
+1141   4                                      else if((StartAdd >= MODBUS_ID_FIRST) && (StartAdd < MODBUS_ID_LAST))
+1142   4                                      {
+1143   5                                              if((StartAdd - MODBUS_ID_FIRST) % ID_SIZE == 0)
+1144   5                                              {
+1145   6                                                      i = (StartAdd - MODBUS_ID_FIRST) / ID_SIZE;
+1146   6                                                      memcpy((U8_T *)&ID_Config[i].all[0], uart0_RxBuf + 7, ID_SIZE);
+1147   6                                              }
+1148   5                                      }
+1149   4                                      else if((StartAdd >= MODBUS_AR_TIME_FIRST) && (StartAdd < MODBUS_AR_TIME_LAST))
+1150   4                                      {
+1151   5                                              if((StartAdd - MODBUS_AR_TIME_FIRST) % AR_TIME_SIZE == 0)
+1152   5                                              {
+1153   6                                                      i = (StartAdd - MODBUS_AR_TIME_FIRST) / AR_TIME_SIZE;                   
+1154   6                                                      memcpy((U8_T *)&AR_Roution[i].Time[0], uart0_RxBuf + 7, AR_TIME_SIZE);
+1155   6                                              }
+1156   5                                      }
+1157   4                                      else if((StartAdd >= MODBUS_WR_ONTIME_FIRST) && (StartAdd < MODBUS_WR_ONTIME_LAST))
+1158   4                                      {
+1159   5                                              if((StartAdd - MODBUS_WR_ONTIME_FIRST) % WR_TIME_SIZE == 0)
+1160   5                                              {
+1161   6                                                      i = (StartAdd - MODBUS_WR_ONTIME_FIRST) / WR_TIME_SIZE;
+1162   6                                                      memcpy((U8_T *)&WR_Roution[i].OnTime[0], uart0_RxBuf + 7, WR_TIME_SIZE);
+1163   6                                              }
+1164   5                                      }
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 20  
+
+1165   4                                      else if((StartAdd >= MODBUS_WR_OFFTIME_FIRST) && (StartAdd < MODBUS_WR_OFFTIME_LAST))
+1166   4                                      {
+1167   5                                              if((StartAdd - MODBUS_WR_OFFTIME_FIRST) % WR_TIME_SIZE == 0)
+1168   5                                              {
+1169   6                                                      i = (StartAdd - MODBUS_WR_OFFTIME_FIRST) / WR_TIME_SIZE;                                        
+1170   6                                                      memcpy((U8_T *)&WR_Roution[i].OffTime[0], uart0_RxBuf + 7 , WR_TIME_SIZE);
+1171   6                                              }
+1172   5                                      }
+1173   4      
+1174   4                                      InitCRC16();
+1175   4                                      for(i = 0; i < 6; i++)
+1176   4                                      {
+1177   5                                              uart0_TxBuf[i] = uart0_RxBuf[i];
+1178   5                                              CRC16_Tstat(uart0_TxBuf[i]);
+1179   5                                      }
+1180   4                                      uart0_TxBuf[6] = CRChi;                        
+1181   4                                      uart0_TxBuf[7] = CRClo;
+1182   4      
+1183   4                                      Uart0_Tx(uart0_TxBuf, 8);
+1184   4                              }
+1185   3                      }
+1186   2                      else
+1187   2                      {
+1188   3                              Sever_Order = SERVER_RS232;
+1189   3                              Sever_id = uart0_RxBuf[0];                                
+1190   3                              Tx_To_Tstat(uart0_RxBuf, uart0_RxCount);                                                                                                                         
+1191   3                      }
+1192   2      
+1193   2                      uart0_RxCount = 0;    
+1194   2              }
+1195   1      }
+1196          
+1197          
+1198          /*****************************************/
+1199          /*****************************************/
+1200          /*****Uart1 routine***********************/
+1201          void Uart1_Tx(U8_T *buf,U8_T len)
+1202          {     
+1203   1              U8_T i;
+1204   1              for(i = 0; i < len; i++)
+1205   1              { 
+1206   2                      FlagSend1 = 0;
+1207   2                      SBUF1 = buf[i];
+1208   2                      while(FlagSend1 == 0);
+1209   2              }
+1210   1      }
+1211          
+1212          U8_T forward_buffer[300];
+1213          extern U16_T sessonlen;
+1214          extern void Set_transaction_ID(U8_T *str, U16_T reg);
+1215          
+1216          void Uart1_Receive(void)
+1217          {
+1218   1              U16_T uart1_count = 0;
+1219   1      
+1220   1              EA = 0;
+1221   1              if(uart1_RxCount)
+1222   1              {
+1223   2                      if(Sever_Order == SERVER_TCPIP)
+1224   2                      {
+1225   3                              Set_transaction_ID(forward_buffer, sessonlen);
+1226   3                              uart1_count = 6;
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 21  
+
+1227   3                      }
+1228   2      
+1229   2                      memcpy(forward_buffer + uart1_count, uart1_RxBuf, uart1_RxCount);
+1230   2                      uart1_count += uart1_RxCount;
+1231   2                      uart1_RxCount = 0;
+1232   2                      EA = 1;
+1233   2      
+1234   2              //      LED = S485_OK;
+1235   2              }
+1236   1              else
+1237   1              {
+1238   2                      EA = 1;
+1239   2                      return;
+1240   2              }
+1241   1      
+1242   1              if(uart1_count)
+1243   1              {
+1244   2                      if(Sever_Order == SERVER_TCPIP)  //Sever Order is from TCPIP
+1245   2                      {
+1246   3                              if(TcpIp_Scan == 1)
+1247   3                              {
+1248   4                                      TcpIp_Scan = 0;
+1249   4                                      TCPIP_TcpSend(TcpSocket_ME, forward_buffer, uart1_count, TCPIP_SEND_NOT_FINAL);
+1250   4                              }
+1251   3                              else
+1252   3                              {
+1253   4                                      TCPIP_TcpSend(TcpSocket_ME, forward_buffer, uart1_count-2, TCPIP_SEND_NOT_FINAL);
+1254   4                              }
+1255   3                      }
+1256   2                      else if(Sever_Order == SERVER_RS232)
+1257   2                      {
+1258   3                              Uart0_Tx(forward_buffer, uart1_count);
+1259   3                      }
+1260   2                      else if(Sever_Order == SERVER_USB)
+1261   2                      {
+1262   3                              memcpy(UpBuf, forward_buffer, uart1_count);
+1263   3                              UpCtr = uart1_count;
+1264   3                              UpIndex = 0;
+1265   3                              ENDP2_NEED_UP_FLAG = 1;
+1266   3                      }
+1267   2                      else if(Sever_Order == SERVER_SCHEDULE)
+1268   2                      {
+1269   3                              if(uart1_count == 8)
+1270   3                              {
+1271   4                                      U8_T i;
+1272   4                                      InitCRC16();
+1273   4                                      for(i = 0; i < 6; i++)
+1274   4                                              CRC16_Tstat(forward_buffer[i]);
+1275   4      
+1276   4                                      if((forward_buffer[6] == CRChi) && (forward_buffer[7] == CRClo))
+1277   4                                      {
+1278   5                                              schedule_flag = 1;
+1279   5                                      }
+1280   4                              }
+1281   3                      }
+1282   2                      else if(Sever_Order == SERVER_SCAN)
+1283   2                      {
+1284   3                              switch(scan_state)
+1285   3                              {
+1286   4                                      case SCAN_BINSEARCH:
+1287   4                                              scan_response_state = MULTIPLE_ID;
+1288   4                                              if(uart1_count >= 9) // right
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 22  
+
+1289   4                                              {
+1290   5                                                      U8_T i;
+1291   5                                                      InitCRC16();
+1292   5                                                      for(i = 0; i < 7; i++)
+1293   5                                                              CRC16_Tstat(forward_buffer[i]);
+1294   5                      
+1295   5                                                      if((forward_buffer[7] == CRChi) && (forward_buffer[8] == CRClo))
+1296   5                                                      {
+1297   6                                                              if((forward_buffer[0] == 0xff) && (forward_buffer[1] == 0x19)) // double check it is the response f
+             -or scan command
+1298   6                                                              {
+1299   7                                                                      current_db.id = forward_buffer[2];
+1300   7                                                                      current_db.sn = ((U32_T)forward_buffer[6] << 24) | ((U32_T)forward_buffer[5] << 16) | ((U32_T)forw
+             -ard_buffer[4] << 8) | forward_buffer[3];
+1301   7                                                                      if(uart1_count == 9)
+1302   7                                                                      {
+1303   8                                                                              scan_response_state = UNIQUE_ID;
+1304   8                                                                      }
+1305   7                                                                      else
+1306   7                                                                      {
+1307   8                                                                              scan_response_state = UNIQUE_ID_FROM_MULTIPLE;
+1308   8                                                                      }
+1309   7                                                              }
+1310   6                                                      }
+1311   5                                              }
+1312   4                                              // and none tstat in the range will wait timeout in the waitrsponse routine
+1313   4                                              break;
+1314   4                                      case SCAN_ASSIGN_ID_WITH_SN:
+1315   4                                              if(uart1_count == 12) //right
+1316   4                                              {
+1317   5                                                      scan_response_state = ASSIGN_ID;
+1318   5                                              }
+1319   4                                              break;
+1320   4                              }
+1321   3                      }
+1322   2                      else
+1323   2                      {
+1324   3                              
+1325   3                      }
+1326   2                      Sever_Order = SERVER_NONE;
+1327   2              }
+1328   1      }
+1329          
+1330          
+1331          /*****Uart2 routine***********************/
+1332          U8_T Uart2_Receive(void)
+1333          {
+1334   1              U16_T uart2_count = 0;
+1335   1      
+1336   1              EA = 0;
+1337   1              if(hsurRxCount)
+1338   1              {
+1339   2                      if(Sever_Order == SERVER_TCPIP)
+1340   2                      {
+1341   3                              Set_transaction_ID(forward_buffer, sessonlen);
+1342   3                              uart2_count = 6;
+1343   3                      }
+1344   2      
+1345   2                      memcpy(forward_buffer + uart2_count, hsurRxBuffer, hsurRxCount);
+1346   2                      uart2_count += hsurRxCount;
+1347   2                      hsurRxCount = 0;
+1348   2                      EA = 1;
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 23  
+
+1349   2      
+1350   2               //  LED = S485_OK;
+1351   2              }
+1352   1              else
+1353   1              {
+1354   2                      EA = 1;
+1355   2                      return FALSE;
+1356   2              }
+1357   1      
+1358   1              if(uart2_count)
+1359   1              {
+1360   2                      
+1361   2                      
+1362   2                      if(Sever_Order == SERVER_TCPIP)  //Sever Order is from TCPIP
+1363   2                      {
+1364   3                              if(TcpIp_Scan == 1)
+1365   3                              {
+1366   4                                      TcpIp_Scan = 0;
+1367   4                                      TCPIP_TcpSend(TcpSocket_ME, forward_buffer, uart2_count, TCPIP_SEND_NOT_FINAL);
+1368   4                              }
+1369   3                              else
+1370   3                              {
+1371   4                                      TCPIP_TcpSend(TcpSocket_ME, forward_buffer, uart2_count-2, TCPIP_SEND_NOT_FINAL);
+1372   4                              }
+1373   3                      }
+1374   2                      else if(Sever_Order == SERVER_RS232)
+1375   2                      {
+1376   3                              Uart0_Tx(forward_buffer, uart2_count);
+1377   3                      }
+1378   2                      else if(Sever_Order == SERVER_USB)
+1379   2                      {
+1380   3                              memcpy(UpBuf, forward_buffer, uart2_count);
+1381   3                              UpCtr = uart2_count;
+1382   3                              UpIndex = 0;
+1383   3                              ENDP2_NEED_UP_FLAG = 1;
+1384   3                      }
+1385   2                      else if(Sever_Order == SERVER_SCHEDULE) // schedule commands
+1386   2                      {
+1387   3                              if(uart2_count == 8)
+1388   3                              {
+1389   4                                      U8_T i;
+1390   4                                      InitCRC16();
+1391   4                                      for(i = 0; i < 6; i++)
+1392   4                                              CRC16_Tstat(forward_buffer[i]);
+1393   4      
+1394   4                                      if((forward_buffer[6] == CRChi) && (forward_buffer[7] == CRClo))
+1395   4                                      {
+1396   5                                              schedule_flag = 1;
+1397   5                                      }
+1398   4                              }       
+1399   3                      }
+1400   2                      else if(Sever_Order == SERVER_SCAN)
+1401   2                      {
+1402   3                              switch(scan_state)
+1403   3                              {
+1404   4                                      case SCAN_BINSEARCH:
+1405   4                                              scan_response_state = MULTIPLE_ID;
+1406   4                                              if(uart2_count >= 9) // right
+1407   4                                              {
+1408   5                                                      U8_T i;
+1409   5                                                      InitCRC16();
+1410   5                                                      for(i = 0; i < 7; i++)
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 24  
+
+1411   5                                                              CRC16_Tstat(forward_buffer[i]);
+1412   5                      
+1413   5                                                      if((forward_buffer[7] == CRChi) && (forward_buffer[8] == CRClo))
+1414   5                                                      {
+1415   6                                                              if((forward_buffer[0] == 0xff) && (forward_buffer[1] == 0x19)) // double check it is the response f
+             -or scan command
+1416   6                                                              {
+1417   7                                                                      current_db.id = forward_buffer[2];
+1418   7                                                                      current_db.sn = ((U32_T)forward_buffer[6] << 24) | ((U32_T)forward_buffer[5] << 16) | ((U32_T)forw
+             -ard_buffer[4] << 8) | forward_buffer[3];
+1419   7                                                                      if(uart2_count == 9)
+1420   7                                                                      {
+1421   8                                                                              scan_response_state = UNIQUE_ID;
+1422   8                                                                      }
+1423   7                                                                      else
+1424   7                                                                      {
+1425   8                                                                              scan_response_state = UNIQUE_ID_FROM_MULTIPLE;
+1426   8                                                                      }
+1427   7                                                              }
+1428   6                                                      }
+1429   5                                              }
+1430   4                                              // and none tstat in the range will wait timeout in the waitrsponse routine
+1431   4                                              break;
+1432   4                                      case SCAN_ASSIGN_ID_WITH_SN:
+1433   4                                              if(uart2_count == 12) //right
+1434   4                                              {
+1435   5                                                      scan_response_state = ASSIGN_ID;
+1436   5                                              }
+1437   4                                              break;
+1438   4                              }
+1439   3                      }
+1440   2                      else
+1441   2                      {
+1442   3                              
+1443   3                      }
+1444   2                      Sever_Order = SERVER_NONE;
+1445   2              }
+1446   1      
+1447   1              return TRUE;
+1448   1      }
+1449          
+1450          /*****transmit order to tstat***********************/
+1451          void Tx_To_Tstat(U8_T *buf, U8_T len)
+1452          {
+1453   1              U8_T i;
+1454   1      
+1455   1              Rs485_EN = 1;
+1456   1      
+1457   1              Uart1_Tx(buf, len);
+1458   1      
+1459   1      //      DELAY_Ms(1);
+1460   1      
+1461   1              for(i = 0; i < len; i++)  
+1462   1                      HSUR_PutChar(buf[i]);
+1463   1      
+1464   1              if(len < 10)
+1465   1                      DELAY_Ms(1);
+1466   1              else
+1467   1                      DELAY_Ms((len + 1) / 8);
+1468   1      
+1469   1              Rs485_EN = 0;
+1470   1      }
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 25  
+
+1471          
+1472          void LedBeat_task(void) reentrant
+1473          {   U16_T i;
+1474   1        
+1475   1              portTickType xDelayPeriod = ( portTickType ) 500 / portTICK_RATE_MS;  //2000
+1476   1          portTickType xDelayPeriod1 = ( portTickType ) 100 / portTICK_RATE_MS;
+1477   1      
+1478   1              for (;;)                                
+1479   1              {       
+1480   2                      if(err485)
+1481   2                      {
+1482   3                              Led_485ERR();
+1483   3                              for(i = 0; i < 20000;i++);
+1484   3                                      err485 = 0;
+1485   3      
+1486   3                              vTaskDelay(xDelayPeriod1);
+1487   3                      } 
+1488   2      //              BeatSta=1;
+1489   2                      Beat_ON();
+1490   2                      vTaskDelay(xDelayPeriod);
+1491   2      //              BeatSta=0;
+1492   2                      Beat_OFF() ;
+1493   2                      vTaskDelay(xDelayPeriod);                                
+1494   2              }
+1495   1      }
+1496          
+1497          void Realtimer_task(void) reentrant
+1498          {
+1499   1      
+1500   1              portTickType xDelayPeriod = ( portTickType ) 1000 / portTICK_RATE_MS;//2 minutes writting flash.
+1501   1              
+1502   1              for (;;)
+1503   1              {   
+1504   2                           vTaskDelay(xDelayPeriod);
+1505   2                  /* if(SetimeFlag)
+1506   2                     { SetimeFlag=0;
+1507   2                       Initial_Clock();
+1508   2                     }*/
+1509   2      
+1510   2                              // Uart0_Tx(Data,48);
+1511   2                   Read_Clock(2);
+1512   2              }
+1513   1      
+1514   1      }
+1515          
+1516          
+1517          void Timer_task(void) reentrant
+1518          {
+1519   1              static U8_T refresh_flash_timer = 0;
+1520   1              portTickType xDelayPeriod = ( portTickType ) 1000 / portTICK_RATE_MS;//3000
+1521   1              for (;;)
+1522   1              {
+1523   2              vTaskDelay(xDelayPeriod);                               
+1524   2                      
+1525   2                      if(ChangeFlash == 1)
+1526   2                      {  
+1527   3                              ChangeFlash = 0;
+1528   3                              refresh_flash_timer = 30;                       
+1529   3                      }
+1530   2      
+1531   2                      if(refresh_flash_timer)
+1532   2                      {
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 26  
+
+1533   3                              refresh_flash_timer--;
+1534   3                              if(refresh_flash_timer == 0)
+1535   3                              {
+1536   4                                      Flash_Write_Schedule();
+1537   4                              }
+1538   3                      }
+1539   2      
+1540   2                      if(ChangeIP > 0)  //LHN add
+1541   2                      {
+1542   3                              ChangeIP++;
+1543   3                              if(ChangeIP >= 4)
+1544   3                              {
+1545   4                                      ChangeIP = 0;
+1546   4      
+1547   4                                      if(ChangeFlash == 2)
+1548   4                                              Flash_Write_Schedule();
+1549   4                              
+1550   4                                      if(mac_change_enable == 1)
+1551   4                                      {
+1552   5                                              E2prom_Write_Byte_To_Absolute_Address(0x0b, Para[201]);
+1553   5                                              E2prom_Write_Byte_To_Absolute_Address(0x0a, Para[203]);
+1554   5                                              E2prom_Write_Byte_To_Absolute_Address(0x09, Para[205]);
+1555   5                                              E2prom_Write_Byte_To_Absolute_Address(0x08, Para[207]);
+1556   5                                              E2prom_Write_Byte_To_Absolute_Address(0x07, Para[209]);
+1557   5                                              E2prom_Write_Byte_To_Absolute_Address(0x06, Para[211]);
+1558   5                                      
+1559   5                                              mac_change_enable = 0;
+1560   5                                      }
+1561   4                                      
+1562   4                                      lcdreset();
+1563   4                                      AX11000_SoftReboot();
+1564   4                              
+1565   4                              }
+1566   3                      }
+1567   2      
+1568   2                      Read_Clock(2);
+1569   2              }
+1570   1      }
+1571          
+1572          
+1573          void Ledflash_task(void) reentrant
+1574          {
+1575   1        
+1576   1              portTickType xDelayPeriod = ( portTickType ) 100 / portTICK_RATE_MS;//200
+1577   1              portTickType xDelayPeriod1 = ( portTickType ) 50 / portTICK_RATE_MS;//100
+1578   1              for (;;)
+1579   1              {  
+1580   2                        if(LED==S485_OK){   
+1581   3                                                                Led_EthSend(); 
+1582   3                                                                vTaskDelay(xDelayPeriod1);    /*disable Ethernet LED*/
+1583   3                                                                Led_EthRxD(); 
+1584   3                                                                vTaskDelay(xDelayPeriod1);
+1585   3                                      
+1586   3                                                Led_485Send();
+1587   3                                                                vTaskDelay(xDelayPeriod1);
+1588   3                                                                Led_485RxD();
+1589   3                                                                vTaskDelay(xDelayPeriod1);
+1590   3                                                      
+1591   3                                                        LED=None;Led_ReSet();
+1592   3                                                   }
+1593   2      
+1594   2                if(LED==Ethnet_OK){ 
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 27  
+
+1595   3                                                                      Led_EthSend(); 
+1596   3                                                                      vTaskDelay(xDelayPeriod1);
+1597   3                                                                      Led_EthRxD(); 
+1598   3                                                                      vTaskDelay(xDelayPeriod1);
+1599   3                                                                  LED= None;Led_ReSet();
+1600   3                                                      }
+1601   2      
+1602   2                  
+1603   2                if(LED==S485_ERR){ Led_485ERR(); vTaskDelay(xDelayPeriod1); vTaskDelay(xDelayPeriod1);
+1604   3                                   
+1605   3                                               LED= None;Led_ReSet();
+1606   3                                               }
+1607   2                
+1608   2                
+1609   2                     vTaskDelay(xDelayPeriod);
+1610   2              }
+1611   1      }
+1612          
+1613          
+1614          /*  BACnet Master Node PFM */
+1615          void Master_Node_task(void) reentrant
+1616          {
+1617   1              portTickType xDelayPeriod  = ( portTickType ) 20 / portTICK_RATE_MS;//1000
+1618   1              
+1619   1              for (;;)
+1620   1          {
+1621   2                      vTaskDelay(xDelayPeriod);
+1622   2                        if(MODBUS_OR_BACNET_FUNCTION_SELECT_ON_UART0){
+1623   3                               MSTP_Master_Node_FSM(mstp_port);
+1624   3                        }
+1625   2          }           
+1626   1      
+1627   1      }
+1628          
+1629          
+1630          void test_task(void) reentrant
+1631          {
+1632   1              portTickType xDelayPeriod  = ( portTickType ) 50 / portTICK_RATE_MS;//1000
+1633   1              for (;;)
+1634   1          {
+1635   2                      vTaskDelay(xDelayPeriod);
+1636   2      
+1637   2                 P3 = ~ P3 ;
+1638   2      
+1639   2                 test[0] = 0x21;
+1640   2                 Uart0_Tx(test,1);
+1641   2      
+1642   2          }           
+1643   1      }
+1644          
+1645          
+1646          
+1647          
+1648          void display_ip(void)
+1649          {
+1650   1              U8_T adr,i;             //num,
+1651   1              U32_T sn,a,b,c,d;
+1652   1      
+1653   1              a =  Para[7];
+1654   1              a = a << 24;
+1655   1      
+1656   1              b =  Para[5];
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 28  
+
+1657   1              b = b << 16;
+1658   1      
+1659   1              c =  Para[3];
+1660   1              c = c << 8;
+1661   1      
+1662   1              d =  Para[1];
+1663   1      
+1664   1              sn = a + b + c + d ;
+1665   1      
+1666   1              Lcd_Show_String(3,1,"ip = ",1,5);
+1667   1              Lcd_Show_Data(3,6,Para[215],0,1);
+1668   1              Lcd_Show_String(3,9,".",1,1);
+1669   1              Lcd_Show_Data(3,10,Para[217],0,1);
+1670   1              Lcd_Show_String(3,13,".",1,1);
+1671   1              Lcd_Show_Data(3,14,Para[219],0,1);
+1672   1              Lcd_Show_String(3,15,".",1,1);
+1673   1              Lcd_Show_Data(3,16,Para[221],0,1);
+1674   1      
+1675   1      
+1676   1              Lcd_Show_String(1,1,"id = ",1,5);
+1677   1              Lcd_Show_Data(1,6,Para[13],0,1);
+1678   1      
+1679   1              Lcd_Show_String(2,1,"sn = ",1,5);
+1680   1              Lcd_show_for_32bit(2,6,sn,1);
+1681   1      
+1682   1              
+1683   1              adr = Para[9] % 10 ;
+1684   1              i = 1;
+1685   1              Lcd_Show_String(4,i,"fw:",1,3);
+1686   1              Lcd_Show_Data(4,i+3,Para[11],0,1);
+1687   1              Lcd_Show_String(4,i+5,".",1,1);
+1688   1      //      Lcd_Show_Data(4,7,adr,0,1);
+1689   1              Lcd_Show_Data(4,i+6,Para[9],0,1);
+1690   1      
+1691   1              Lcd_Show_String(4,i+9,"hw:",1,3);
+1692   1              Lcd_Show_Data(4,i+12,Para[17],0,1);
+1693   1      
+1694   1              Lcd_Show_String(4,i+15,"bw:",1,3);
+1695   1              Lcd_Show_Data(4,i+18,Para[29],0,1);
+1696   1      
+1697   1      
+1698   1      //      Lcd_Show_Data(4,adr,(U16_T)(sn >> 16),0,1);
+1699   1      //      Lcd_Show_Data(4,adr+4,(U16_T)sn,0,1);
+1700   1              Lcd_Show_String(0,1,"Network Controller",1,12);
+1701   1      }
+1702          
+1703          
+1704          
+1705          
+1706          
+1707          void Uart0_task(void) reentrant
+1708          {
+1709   1              portTickType xDelayPeriod  = ( portTickType ) 50 / portTICK_RATE_MS;//1000
+1710   1              
+1711   1              for (;;)
+1712   1          {
+1713   2                      vTaskDelay(xDelayPeriod);
+1714   2                      if(uart0_timeout == 0)
+1715   2                      {
+1716   3                         if(!MODBUS_OR_BACNET_FUNCTION_SELECT_ON_UART0){              
+1717   4                               
+1718   4      
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 29  
+
+1719   4                              Uart0_Receive();
+1720   4                              
+1721   4                              }
+1722   3                      }
+1723   2          }           
+1724   1      }
+1725          
+1726          void Uart1_task(void) reentrant
+1727          {
+1728   1              portTickType xDelayPeriod = ( portTickType ) 50 / portTICK_RATE_MS;//1500
+1729   1      
+1730   1              for (;;)
+1731   1          {   
+1732   2                      vTaskDelay(xDelayPeriod);
+1733   2                      if(uart1_timeout == 0)
+1734   2                      {
+1735   3                              Uart1_Receive();
+1736   3                      }
+1737   2      
+1738   2              }
+1739   1      }
+1740          
+1741          void uart2_rescue(void)
+1742          {
+1743   1              U16_T baudRateDiv = 0;
+1744   1      
+1745   1      //    HSUR_InitValue();
+1746   1      
+1747   1              switch (CSREPR & (BIT6|BIT7))
+1748   1                      {
+1749   2                  case SCS_25M:
+1750   2                              baudRateDiv = UR2_BR25_19200;
+1751   2                              break;
+1752   2                      case SCS_50M:
+1753   2                              baudRateDiv = UR2_BR50_19200;
+1754   2                              break;
+1755   2                      case SCS_100M:
+1756   2                              baudRateDiv = UR2_BR100_19200;
+1757   2                              break;
+1758   2                      }
+1759   1                
+1760   1      
+1761   1              HSUR_Setup(baudRateDiv, (UR2_CHAR_8|UR2_STOP_10), (UR2_RDI_ENB|UR2_RLSI_ENB),
+1762   1              (UR2_FIFO_MODE|UR2_RXFIFO_RST|UR2_TXFIFO_RST|UR2_TRIG_08), UR2_RTS);
+1763   1      
+1764   1      
+1765   1      }
+1766          
+1767          void Uart2_task(void) reentrant
+1768          {
+1769   1              U8_T rescue_counter = 0;
+1770   1              portTickType xDelayPeriod = ( portTickType ) 50 / portTICK_RATE_MS;//1000
+1771   1      
+1772   1              for (;;)
+1773   1          { 
+1774   2                      vTaskDelay(xDelayPeriod);
+1775   2                      if(uart2_timeout == 0)
+1776   2                      {
+1777   3                              if(Uart2_Receive() == FALSE)
+1778   3                              {
+1779   4                                      rescue_counter++;
+1780   4                                      if(rescue_counter >= 40)
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 30  
+
+1781   4                                      {
+1782   5                                              rescue_counter = 0;
+1783   5                                              uart2_rescue();
+1784   5                                      }
+1785   4                              }
+1786   3                      }
+1787   2              }
+1788   1      }
+1789          
+1790          
+1791          void Schedule_task(void) reentrant
+1792          {
+1793   1              static U8_T     count = 0;
+1794   1              portTickType xDelayPeriod = ( portTickType ) 500 / portTICK_RATE_MS;//500
+1795   1              for (;;)
+1796   1              {
+1797   2                      vTaskDelay(xDelayPeriod); 
+1798   2      #if 1
+1799   2      /* implement CaculateTime rution  per 500ms */
+1800   2                      CaculateTime();
+1801   2      /* implement CheckWeeklyRoutines rution  per 1s */
+1802   2                      if(count % 2 == 0)  // 1s
+1803   2                      {
+1804   3                              //Para[1]++;
+1805   3                              CheckWeeklyRoutines();
+1806   3                      }
+1807   2      /* implement CheckAnnualRoutines rution  per 3s */
+1808   2      /* implement CheckIdRoutines rution  per 3s */  
+1809   2                      if(count % 6 == 0)  // 3s
+1810   2                      {
+1811   3                              //Para[3]++;
+1812   3                              CheckAnnualRoutines();
+1813   3                              CheckIdRoutines();
+1814   3                      }
+1815   2      
+1816   2      #endif          
+1817   2                      if(count < 6)
+1818   2                              count++;
+1819   2                      else
+1820   2                              count = 0;
+1821   2              }
+1822   1      }
+1823          
+1824          void TimeServer_task(void) reentrant
+1825          {
+1826   1              portTickType xDelayPeriod = ( portTickType ) 1000 / portTICK_RATE_MS;  //2000
+1827   1          U8_T i;
+1828   1              U32_T ip;//ntp.fudan.edu.cn=0x3D812A2C; 0xc0a800c7;192.168.0.199 0x4137150f;time.windows.com
+1829   1              U8_T Data[48]={0xd9,0x00,0x0a,0xfa,0x00,0x00,0x00,0x00,0x00,0x01,0x04}; //{0x65,0,0x0b,0};
+1830   1              for (;;)
+1831   1              { 
+1832   2                      Time_Server.Leng++;
+1833   2                      if( (Time_Server.Leng == 50000) || (Para[355] == 6))                                                                 
+1834   2                      {       
+1835   3                              Para[355] = 0;
+1836   3                              Para[399] = 0;
+1837   3      
+1838   3                              ip = ((U32_T)Para[357]) << 24 | ((U32_T)Para[359]) << 16 | ((U32_T)Para[361]) << 8 | (U32_T)Para[363];
+1839   3                              Time_Server.UdpSocket = TCPIP_UdpNew(gudpbc_InterAppId, 0, ip, 1234,123);
+1840   3                              if(Time_Server.UdpSocket != TCPIP_NO_NEW_CONN)
+1841   3                              {
+1842   4                                      for(i = 11; i < 40; i++)
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 31  
+
+1843   4                                              Data[i] = 0;
+1844   4                                      Data[40] = 0xd2;Data[41] = 0x3c;Data[42] = 0xde;Data[43] = 0xd6;
+1845   4                                      Data[44] = 0xe8;Data[45] = 0;Data[46] = 0;Data[47] = 0;                         
+1846   4                              //      Uart0_Tx(Data,48);
+1847   4                              //      DELAY_Ms(5);
+1848   4                                      TCPIP_UdpSend(Time_Server.UdpSocket, 0, 0, Data,48);
+1849   4                              }
+1850   3                      }
+1851   2      
+1852   2                      if (Time_Server.Leng >= 50110) 
+1853   2                              Time_Server.Leng = 0;
+1854   2                                                      
+1855   2                      vTaskDelay(xDelayPeriod);
+1856   2              }
+1857   1      }
+1858          
+1859          void Scan_task(void)
+1860          {
+1861   1              portTickType xDelayPeriod = (portTickType)5000 / portTICK_RATE_MS;
+1862   1              init_scan();
+1863   1              while(1)
+1864   1              {
+1865   2                      vTaskDelay(xDelayPeriod);
+1866   2                      scan_tstat();
+1867   2              }
+1868   1      }
+1869          
+1870          
+1871          void USB_task(void)
+1872          {
+1873   1              U8_T len, length;
+1874   1              U16_T StartAdd;
+1875   1              portTickType xDelayPeriod = (portTickType)20 / portTICK_RATE_MS;
+1876   1      
+1877   1              CH375_Init();
+1878   1      
+1879   1              while(1)
+1880   1              {   
+1881   2                      vTaskDelay(xDelayPeriod);
+1882   2                      if(usb_poll() == TRUE)
+1883   2                      {
+1884   3                              mCH375Interrupt();
+1885   3                      }
+1886   2                      else
+1887   2                      {
+1888   3                              if(USB_timeout == 0)
+1889   3                              {
+1890   4                                      if(DownCtr > 0)
+1891   4                                      {
+1892   5                                              if((DownBuf[0] == Para[13]) || (DownBuf[0] == 0xff))    // Address of NetControl 
+1893   5                                              { 
+1894   6                                                      if(DownBuf[1] == 0x19)          //scan Tsnet
+1895   6                                                      {
+1896   7                                                              Sever_Order = SERVER_USB;               //USB
+1897   7                                                              Sever_id = DownBuf[0];
+1898   7                                                              Tx_To_Tstat(DownBuf, DownCtr);                                                                                                                  
+1899   7                                                      }                                       
+1900   6                                                      else if(DownBuf[1] == 0x1a)     //scan NC
+1901   6                                                      { 
+1902   7                                                              UpCtr = 0;
+1903   7                                                              UpBuf[UpCtr++] = DownBuf[0];
+1904   7                                                              UpBuf[UpCtr++] = 0x19;
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 32  
+
+1905   7                                                              UpBuf[UpCtr++] = Para[13];                                               
+1906   7                                                              UpBuf[UpCtr++] = Para[1];
+1907   7                                                              UpBuf[UpCtr++] = Para[3];
+1908   7                                                              UpBuf[UpCtr++] = Para[5];
+1909   7                                                              UpBuf[UpCtr++] = Para[7];
+1910   7                                                              InitCRC16();
+1911   7                                                              for(len = 0; len < UpCtr; len++)
+1912   7                                                                      CRC16_Tstat(UpBuf[len]);
+1913   7                                                              UpBuf[UpCtr++] = CRChi;
+1914   7                                                              UpBuf[UpCtr++] = CRClo;
+1915   7                                                              UpIndex = 0;
+1916   7                                                              ENDP2_NEED_UP_FLAG = 1;                                  
+1917   7                                                      }
+1918   6                                                      else if(DownBuf[1] == read) 
+1919   6                                                      {
+1920   7                                                              UpBuf[0] = DownBuf[0];
+1921   7                                                              UpBuf[1] = DownBuf[1];
+1922   7                                                              length = (DownBuf[4] << 8) | DownBuf[5];
+1923   7                                                              UpBuf[2] = 2 * length;
+1924   7                                                              UpCtr = 3 + UpBuf[2];
+1925   7                                                              StartAdd = (DownBuf[2] << 8) | DownBuf[3];                                                                           
+1926   7                                                              for(len = 0; len < length; len++)
+1927   7                                                              {
+1928   8                                                                      if(StartAdd < 200)
+1929   8                                                                      {
+1930   9                                                                              UpBuf[3 + 2 * len] = Para[2 * (StartAdd + len)];  
+1931   9                                                                              UpBuf[4 + 2 * len] = Para[2 * (StartAdd + len) + 1];
+1932   9                                                                      }
+1933   8                                                                      else if(((StartAdd + len) >= MODBUS_TIMER_ADDRESS) && ((StartAdd + len) < (MODBUS_TIMER_ADDRESS + 
+             -8))) 
+1934   8                                                                      {
+1935   9                                                                              //  YEAR  MONTH  WEEK DATE  HOUR  MINUTE  SECOND 
+1936   9                                                                              UpBuf[3 + 2 * len] = 0;
+1937   9                                                                              switch(StartAdd + len - MODBUS_TIMER_ADDRESS)
+1938   9                                                                              {
+1939  10                                                                                      case 7:
+1940  10                                                                                              UpBuf[4 + 2 * len] = Time.UN.Current.sec;
+1941  10                                                                                              break;  
+1942  10                                                                                      case 6:
+1943  10                                                                                              UpBuf[4 + 2 * len] = Time.UN.Current.min;
+1944  10                                                                                              break;
+1945  10                                                                                      case 5:
+1946  10                                                                                              UpBuf[4 + 2 * len] = Time.UN.Current.hour;
+1947  10                                                                                              break;
+1948  10                                                                                      case 4:
+1949  10                                                                                              UpBuf[4 + 2 * len] = Time.UN.Current.day;
+1950  10                                                                                              break;
+1951  10                                                                                      case 3:
+1952  10                                                                                              UpBuf[4 + 2 * len] = Time.UN.Current.dayofweek;
+1953  10                                                                                              break;
+1954  10                                                                                      case 2:
+1955  10                                                                                              UpBuf[4 + 2 * len] = Time.UN.Current.month;
+1956  10                                                                                              break;
+1957  10                                                                                      case 1:
+1958  10                                                                                              UpBuf[4 + 2 * len] = Time.UN.Current.year;
+1959  10                                                                                              break;
+1960  10                                                                                      case 0:
+1961  10                                                                                              UpBuf[4 + 2 * len] = Time.UN.Current.centary;
+1962  10                                                                                              break;
+1963  10                                                                              }               
+1964   9                                                                      }
+1965   8                                                                      else if(((StartAdd + len) >= MODBUS_WR_DESCRIP_FIRST) && ((StartAdd + len) < MODBUS_WR_DESCRIP_LAS
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 33  
+
+             -T))
+1966   8                                                                      {
+1967   9                                                                              U8_T temp_number = (StartAdd + len - MODBUS_WR_DESCRIP_FIRST) / WR_DESCRIPTION_SIZE;
+1968   9                                                                              U8_T temp_address = (StartAdd + len - MODBUS_WR_DESCRIP_FIRST) % WR_DESCRIPTION_SIZE;
+1969   9                                                                              U8_T send_buffer = WR_Roution[temp_number].UN.all[temp_address];
+1970   9                                                                          if((temp_address == (WR_DESCRIPTION_SIZE - 1)) && (send_buffer != 0xff))
+1971   9                                                                              {
+1972  10                                                                                      if((send_buffer & 0x80) == 0)
+1973  10                                                                                      {
+1974  11                                                                                              if(GetBit(temp_number, wr_state_index))
+1975  11                                                                                                      send_buffer |= 0x40;
+1976  11                                                                                              else
+1977  11                                                                                                      send_buffer &= 0xbf;
+1978  11                                                                                      }
+1979  10      
+1980  10                                                                                      if(GetBit(temp_number, holiday1_state_index))
+1981  10                                                                                              send_buffer |= 0x20;
+1982  10                                                                                      else
+1983  10                                                                                              send_buffer &= 0xdf;
+1984  10      
+1985  10                                                                                      if(GetBit(temp_number, holiday2_state_index))
+1986  10                                                                                              send_buffer |= 0x10;
+1987  10                                                                                      else
+1988  10                                                                                              send_buffer &= 0xef;
+1989  10                                                                              }
+1990   9                                                                              UpBuf[3 + 2 * len] = 0; 
+1991   9                                                                              UpBuf[4 + 2 * len] = send_buffer;       
+1992   9                                                                      }
+1993   8                                                                      else if(((StartAdd + len) >= MODBUS_AR_DESCRIP_FIRST) && ((StartAdd + len) < MODBUS_AR_DESCRIP_LAS
+             -T))
+1994   8                                                                      {
+1995   9                                                                              U8_T temp_number = (StartAdd + len - MODBUS_AR_DESCRIP_FIRST) / AR_DESCRIPTION_SIZE;    // line
+1996   9                                                                              U8_T temp_address = (StartAdd + len - MODBUS_AR_DESCRIP_FIRST) % AR_DESCRIPTION_SIZE;
+1997   9                                                                              U8_T send_buffer = AR_Roution[temp_number].UN.all[temp_address];
+1998   9                              
+1999   9                                                                              if(temp_address == (AR_DESCRIPTION_SIZE - 1))
+2000   9                                                                              {
+2001  10                                                                                      if((send_buffer & 0x80) == 0)
+2002  10                                                                                      {
+2003  11                                                                                              if(GetBit(temp_number, ar_state_index))
+2004  11                                                                                                      send_buffer |= 0x40;
+2005  11                                                                                              else
+2006  11                                                                                                      send_buffer &= 0xbf;
+2007  11                                                                                      }
+2008  10                                                                              }
+2009   9                                                                              UpBuf[3 + 2 * len] = 0; 
+2010   9                                                                              UpBuf[4 + 2 * len] = send_buffer;       
+2011   9                                                                      }
+2012   8                                                                      else if(((StartAdd + len) >= MODBUS_ID_FIRST) && ((StartAdd + len) < MODBUS_ID_LAST))
+2013   8                                                                      {
+2014   9                                                                              U8_T temp_number = (StartAdd + len - MODBUS_ID_FIRST) / ID_SIZE;
+2015   9                                                                              U8_T temp_address = (StartAdd + len - MODBUS_ID_FIRST) % ID_SIZE;
+2016   9                                                                              U8_T send_buffer = ID_Config[temp_number].all[temp_address];
+2017   9                                              
+2018   9                                                                              if((temp_address == (ID_SIZE - 1)) && (send_buffer != 0xff))
+2019   9                                                                              {
+2020  10                                                                                      if((send_buffer & 0x80) == 0)
+2021  10                                                                                      {
+2022  11                                                                                              if(GetBit(temp_number, output_state_index))
+2023  11                                                                                                      send_buffer |= 0x40;
+2024  11                                                                                              else
+2025  11                                                                                                      send_buffer &= 0xbf;
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 34  
+
+2026  11                                                                                      }
+2027  10      
+2028  10                                                                                      if(GetBit(temp_number, schedual1_state_index))
+2029  10                                                                                              send_buffer |= 0x20;
+2030  10                                                                                      else
+2031  10                                                                                              send_buffer &= 0xdf;
+2032  10      
+2033  10                                                                                      if(GetBit(temp_number, schedual2_state_index))
+2034  10                                                                                              send_buffer |= 0x10;
+2035  10                                                                                      else
+2036  10                                                                                              send_buffer &= 0xef;
+2037  10                                                                              }
+2038   9                                                                              UpBuf[3 + 2 * len] = 0; 
+2039   9                                                                              UpBuf[4 + 2 * len] = send_buffer;       
+2040   9                                                                      }
+2041   8                                                                      else if(((StartAdd + len) >= MODBUS_AR_TIME_FIRST) && ((StartAdd + len) < MODBUS_WR_ONTIME_FIRST))
+2042   8                                                                      {
+2043   9                                                                              U8_T temp_number = (StartAdd + len - MODBUS_AR_TIME_FIRST) / AR_TIME_SIZE;
+2044   9                                                                              U8_T temp_address = (StartAdd + len - MODBUS_AR_TIME_FIRST) % AR_TIME_SIZE;
+2045   9                                                                              U8_T send_buffer = AR_Roution[temp_number].Time[temp_address];
+2046   9                                              
+2047   9                                                                              UpBuf[3 + 2 * len] = 0; 
+2048   9                                                                              UpBuf[4 + 2 * len] = send_buffer;
+2049   9                                                                      }
+2050   8                                                                      else if(((StartAdd + len) >= MODBUS_WR_ONTIME_FIRST) && ((StartAdd + len) < MODBUS_WR_OFFTIME_FIRS
+             -T))
+2051   8                                                                      {
+2052   9                                                                              U8_T temp_number = (StartAdd + len - MODBUS_WR_ONTIME_FIRST) / WR_TIME_SIZE;            
+2053   9                                                                              U8_T temp_address = (StartAdd + len - MODBUS_WR_ONTIME_FIRST) % WR_TIME_SIZE;
+2054   9                                                                              U8_T send_buffer = WR_Roution[temp_number].OnTime[temp_address];
+2055   9                                                                              UpBuf[3 + 2 * len] = 0; 
+2056   9                                                                              UpBuf[4 + 2 * len] = send_buffer;
+2057   9                                                                      }
+2058   8                                                                      else if(((StartAdd + len) >= MODBUS_WR_OFFTIME_FIRST) && ((StartAdd + len) < MODBUS_WR_OFFTIME_LAS
+             -T))
+2059   8                                                                      {
+2060   9                                                                              U8_T temp_number = (StartAdd + len - MODBUS_WR_OFFTIME_FIRST) / WR_TIME_SIZE;
+2061   9                                                                              U8_T temp_address = (StartAdd + len - MODBUS_WR_OFFTIME_FIRST) % WR_TIME_SIZE;
+2062   9                                                                              U8_T send_buffer = WR_Roution[temp_number].OffTime[temp_address];
+2063   9                                                                              UpBuf[3 + 2 * len] = 0; 
+2064   9                                                                              UpBuf[4 + 2 * len] = send_buffer;                       
+2065   9                                                                      }
+2066   8                                                                      else
+2067   8                                                                      {
+2068   9                                                                              UpBuf[3 + 2 * len] = 0; 
+2069   9                                                                              UpBuf[4 + 2 * len] = 1;
+2070   9                                                                      }                                               
+2071   8                                                              } 
+2072   7      
+2073   7                                                              InitCRC16();
+2074   7                                                              for(len = 0; len < UpCtr; len++)
+2075   7                                                                      CRC16_Tstat(UpBuf[len]);
+2076   7      
+2077   7                                                              UpBuf[UpCtr++] = CRChi;                        
+2078   7                                                              UpBuf[UpCtr++] = CRClo;
+2079   7      
+2080   7                                                              UpIndex = 0;
+2081   7                                                              ENDP2_NEED_UP_FLAG = 1;                                                                                         
+2082   7                                                      }
+2083   6                                                      else if(DownBuf[1] == swrite) 
+2084   6                                                      {
+2085   7                                                              U16_T StartAdd = (DownBuf[2] << 8) | DownBuf[3];
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 35  
+
+2086   7                                                              if(StartAdd < 200)
+2087   7                                                              {
+2088   8                                                                      if(StartAdd == 15) // clear flash to zero
+2089   8                                                                      {
+2090   9                                                                              if(((DownBuf[4] << 8) | DownBuf[5]) == 0x55)
+2091   9                                                                              {
+2092  10                                                                                      memset(WR_Roution, 0, MAX_WR * WR_STRUCT_LENGTH);
+2093  10                                                                                      memset(AR_Roution, 0, MAX_AR * AR_STRUCT_LENGTH);
+2094  10                                                                                      memset(ID_Config, 0, MAX_ID * ID_SIZE);
+2095  10                                                                                      Para[30] = 0;
+2096  10                                                                                      Para[31] = 0;
+2097  10                                                                                      ChangeFlash = 1;
+2098  10                                                                              }                                 
+2099   9                                                                      }
+2100   8                                                                      else if(StartAdd == 106)
+2101   8                                                                      {
+2102   9                                                                              if((((Para[212] << 8) | Para[213]) == 0) && (((DownBuf[4] << 8) | DownBuf[5]) != 0))
+2103   9                                                                              {
+2104  10                                                                                      Para[212] = DownBuf[4];
+2105  10                                                                                      Para[213] = DownBuf[5];
+2106  10                                                                                      ChangeIP = 1;
+2107  10                                                                                      ChangeFlash = 2;
+2108  10                                                                              }
+2109   9                                                                      }
+2110   8                                                                      else if((StartAdd >= 107) && (StartAdd <= 120)) //IP change ,reset cpu
+2111   8                                                                      {
+2112   9                                                                              if(((Para[212] << 8) | Para[213]) == 0)
+2113   9                                                                              {
+2114  10                                                                                      Para[2*DownBuf[3]] = DownBuf[4];                //write to bufffer array high bit
+2115  10                                                                                      Para[2*DownBuf[3] + 1] = DownBuf[5];    //write to bufffer array low bit
+2116  10                                                                                      ChangeFlash = 2;
+2117  10                                                                                      ChangeIP = 1;
+2118  10                                                                              }
+2119   9                                                                      }
+2120   8                                                                      else
+2121   8                                                                      {
+2122   9                                                                              Para[2*DownBuf[3]] = DownBuf[4];                        //write to bufffer array high bit
+2123   9                                                                              Para[2*DownBuf[3] + 1] = DownBuf[5];            //write to bufffer array low bit
+2124   9                                                                              ChangeFlash = 1;
+2125   9                                                                      }
+2126   8                                                              }
+2127   7                                                              else if((StartAdd >= SCHEDUAL_MODBUS_ADDRESS) && (StartAdd < SCHEDUAL_MODBUS_ADDRESS + 8))
+2128   7                                                              {
+2129   8                                                                      switch(StartAdd - SCHEDUAL_MODBUS_ADDRESS)
+2130   8                                                                      {
+2131   9                                                                              case 0: //century
+2132   9                                                                                      if(DownBuf[5] == 19)
+2133   9                                                                                      {
+2134  10                                                                                              Set_Clock(PCF_MON, Time.UN.Current.month | 0x80);
+2135  10                                                                                      }
+2136   9                                                                                      else if(DownBuf[5] == 20)
+2137   9                                                                                      {
+2138  10                                                                                              Set_Clock(PCF_MON, Time.UN.Current.month & 0x7f);
+2139  10                                                                                      }
+2140   9                                                                                      break;
+2141   9                                                                              case 1: //year
+2142   9                                                                                      Set_Clock(PCF_YEAR, DownBuf[5]);
+2143   9                                                                                      break;
+2144   9                                                                              case 2: //month
+2145   9                                                                                      if(Time.UN.Current.centary == 19)
+2146   9                                                                                      {
+2147  10                                                                                              Set_Clock(PCF_MON, DownBuf[5] | 0x80);
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 36  
+
+2148  10                                                                                      }
+2149   9                                                                                      else if(Time.UN.Current.centary == 20)
+2150   9                                                                                      {
+2151  10                                                                                              Set_Clock(PCF_MON, DownBuf[5] & 0x7f);
+2152  10                                                                                      }
+2153   9                                                                                      break;
+2154   9                                                                              case 3:
+2155   9                                                                                      Set_Clock(PCF_WEEK, DownBuf[5]);
+2156   9                                                                                      break;
+2157   9                                                                              case 4: //date
+2158   9                                                                                      Set_Clock(PCF_DAY, DownBuf[5]);
+2159   9                                                                                      break;
+2160   9                                                                              case 5: //hour
+2161   9                                                                                      Set_Clock(PCF_HOUR, DownBuf[5]);
+2162   9                                                                                      break;
+2163   9                                                                              case 6: //minute
+2164   9                                                                                      Set_Clock(PCF_MIN, DownBuf[5]);
+2165   9                                                                                      break;
+2166   9                                                                              case 7: //second
+2167   9                                                                                      Set_Clock(PCF_SEC, DownBuf[5]);
+2168   9                                                                                      break;
+2169   9                                                                      }
+2170   8                                                              }
+2171   7                                                              else
+2172   7                                                              {
+2173   8                                                                      // spare
+2174   8                                                              }
+2175   7      
+2176   7                                                              for(len = 0; len < DownCtr; len++)
+2177   7                                                                      UpBuf[len] = DownBuf[len];
+2178   7              
+2179   7                                                              UpCtr = len;
+2180   7                                                              UpIndex = 0;
+2181   7                                                              ENDP2_NEED_UP_FLAG = 1;
+2182   7                                                      }
+2183   6                                                      else if(DownBuf[1] == mwrite) //multi_write
+2184   6                                                      {
+2185   7                                                              U8_T i;
+2186   7                                                              U16_T StartAdd = (DownBuf[2] << 8) | DownBuf[3];
+2187   7                                                              ChangeFlash = 1;
+2188   7                                                              if(StartAdd < SCHEDUAL_MODBUS_ADDRESS)
+2189   7                                                              {
+2190   8                                                                      if((StartAdd == 100) && (DownBuf[6] == 12))
+2191   8                                                                      {
+2192   9                                                                              Para[201] = DownBuf[8];
+2193   9                                                                              Para[203] = DownBuf[10];
+2194   9                                                                              Para[205] = DownBuf[12];
+2195   9                                                                              Para[207] = DownBuf[14];
+2196   9                                                                              Para[209] = DownBuf[16];
+2197   9                                                                              Para[211] = DownBuf[18];
+2198   9                                              
+2199   9                                                                              mac_change_enable = 1;
+2200   9                                                                              ChangeIP = 1;
+2201   9                                                                      }
+2202   8                                                                  else
+2203   8                                                                      {
+2204   9                                                                              for(i = 0; i < DownBuf[6]; i++)
+2205   9                                                                              {
+2206  10                                                                                      if(((StartAdd + i / 2) < 100) || ((StartAdd + i / 2) > 105))  
+2207  10                                                                                              Para[2 * StartAdd + i] = DownBuf[i];
+2208  10                                                                              }
+2209   9                                                                      }
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 37  
+
+2210   8                                                              }
+2211   7                                                              else if(StartAdd == SCHEDUAL_MODBUS_ADDRESS) //200th register ,write time 
+2212   7                                                              {
+2213   8      //                                                              if((StartAdd - SCHEDUAL_MODBUS_ADDRESS) % 8 == 0)
+2214   8      //                                                                      memcpy(Time.UN.Setime,&DownBuf[7], 8);
+2215   8                                                                      if(DownBuf[5] == 8)
+2216   8                                                                      {
+2217   9                                                                              if(DownBuf[5] == DownBuf[6])
+2218   9                                                                              {
+2219  10                                                                                      Time.UN.Setime[7] = DownBuf[14];
+2220  10                                                                                      Time.UN.Setime[6] = DownBuf[13];
+2221  10                                                                                      Time.UN.Setime[5] = DownBuf[12];
+2222  10                                                                                      Time.UN.Setime[4] = DownBuf[11];
+2223  10                                                                                      Time.UN.Setime[3] = DownBuf[10];
+2224  10                                                                                      if(DownBuf[7] == 19)
+2225  10                                                                                              DownBuf[9] |= 0x80;
+2226  10                                                                                      else
+2227  10                                                                                              DownBuf[9] &= 0x7f;
+2228  10                                                                                      Time.UN.Setime[2] = DownBuf[9];
+2229  10                                                                                      Time.UN.Setime[1] = DownBuf[8];
+2230  10                                                                                      Time.UN.Setime[0] = DownBuf[7];
+2231  10                                                                              }
+2232   9                                                                              else
+2233   9                                                                              {
+2234  10                                                                                      Time.UN.Setime[7] = DownBuf[22];
+2235  10                                                                                      Time.UN.Setime[6] = DownBuf[20];
+2236  10                                                                                      Time.UN.Setime[5] = DownBuf[18];
+2237  10                                                                                      Time.UN.Setime[4] = DownBuf[16];
+2238  10                                                                                      Time.UN.Setime[3] = DownBuf[14];
+2239  10                                                                                      if(DownBuf[8] == 19)
+2240  10                                                                                              DownBuf[12] |= 0x80;
+2241  10                                                                                      else
+2242  10                                                                                              DownBuf[12] &= 0x7f;
+2243  10                                                                                      Time.UN.Setime[2] = DownBuf[12];
+2244  10                                                                                      Time.UN.Setime[1] = DownBuf[10];
+2245  10                                                                                      Time.UN.Setime[0] = DownBuf[8];
+2246  10                                                                              }
+2247   9                                                                              Initial_Clock();
+2248   9                                                                      }
+2249   8                                                              }
+2250   7                                                              else if ((StartAdd >= MODBUS_WR_DESCRIP_FIRST) && (StartAdd < MODBUS_WR_DESCRIP_LAST)) //weekly
+2251   7                                                      {                                                               
+2252   8                                                                      if((StartAdd - MODBUS_WR_DESCRIP_FIRST) % WR_DESCRIPTION_SIZE == 0)
+2253   8                                                                      {
+2254   9                                                                              i = (StartAdd - MODBUS_WR_DESCRIP_FIRST) / WR_DESCRIPTION_SIZE;
+2255   9                                                                              memcpy(WR_Roution[i].UN.all, DownBuf + 7, WR_DESCRIPTION_SIZE);
+2256   9                                                                      }
+2257   8                                                      }
+2258   7                                                              else if((StartAdd >= MODBUS_AR_DESCRIP_FIRST) && (StartAdd < MODBUS_AR_DESCRIP_LAST))
+2259   7                                                              {
+2260   8                                                                      if((StartAdd - MODBUS_AR_DESCRIP_FIRST) % AR_DESCRIPTION_SIZE == 0)
+2261   8                                                                      {
+2262   9                                                                              i = (StartAdd - MODBUS_AR_DESCRIP_FIRST) / AR_DESCRIPTION_SIZE;          
+2263   9                                                                              memcpy(AR_Roution[i].UN.all, DownBuf + 7, AR_DESCRIPTION_SIZE);
+2264   9                                                                      }
+2265   8                                                              }
+2266   7                                                              else if((StartAdd >= MODBUS_ID_FIRST) && (StartAdd < MODBUS_ID_LAST))
+2267   7                                                              {
+2268   8                                                                      if((StartAdd - MODBUS_ID_FIRST) % ID_SIZE == 0)
+2269   8                                                                      {
+2270   9                                                                              i = (StartAdd - MODBUS_ID_FIRST) / ID_SIZE;
+2271   9                                                                              memcpy(ID_Config[i].all, DownBuf + 7, ID_SIZE);
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 38  
+
+2272   9                                                                      }
+2273   8                                                              }
+2274   7                                                              else if((StartAdd >= MODBUS_AR_TIME_FIRST) && (StartAdd < MODBUS_AR_TIME_LAST))
+2275   7                                                              {
+2276   8                                                                      if((StartAdd - MODBUS_AR_TIME_FIRST) % AR_TIME_SIZE == 0)
+2277   8                                                                      {
+2278   9                                                                              i = (StartAdd - MODBUS_AR_TIME_FIRST) / AR_TIME_SIZE;                   
+2279   9                                                                              memcpy(AR_Roution[i].Time, DownBuf + 7, AR_TIME_SIZE);
+2280   9                                                                      }
+2281   8                                                              }
+2282   7                                                              else if((StartAdd >= MODBUS_WR_ONTIME_FIRST) && (StartAdd < MODBUS_WR_ONTIME_LAST))
+2283   7                                                              {
+2284   8                                                                      if((StartAdd - MODBUS_WR_ONTIME_FIRST) % WR_TIME_SIZE == 0)
+2285   8                                                                      {
+2286   9                                                                              i = (StartAdd - MODBUS_WR_ONTIME_FIRST) / WR_TIME_SIZE;
+2287   9                                                                              memcpy(WR_Roution[i].OnTime, DownBuf + 7, WR_TIME_SIZE);
+2288   9                                                                      }
+2289   8                                                              }
+2290   7                                                              else if((StartAdd >= MODBUS_WR_OFFTIME_FIRST) && (StartAdd < MODBUS_WR_OFFTIME_LAST))
+2291   7                                                              {
+2292   8                                                                      if((StartAdd - MODBUS_WR_OFFTIME_FIRST) % WR_TIME_SIZE == 0)
+2293   8                                                                      {
+2294   9                                                                              i = (StartAdd - MODBUS_WR_OFFTIME_FIRST) / WR_TIME_SIZE;                                        
+2295   9                                                                              memcpy(WR_Roution[i].OffTime, DownBuf + 7 , WR_TIME_SIZE);
+2296   9                                                                      }
+2297   8                                                              }
+2298   7      
+2299   7                                                              InitCRC16();
+2300   7                                                              for(i = 0; i < 6; i++)
+2301   7                                                              {
+2302   8                                                                      UpBuf[len] = DownBuf[len];
+2303   8                                                                      CRC16_Tstat(UpBuf[i]);
+2304   8                                                              }
+2305   7                                                              UpBuf[6] = CRChi;                        
+2306   7                                                              UpBuf[7] = CRClo;
+2307   7              
+2308   7                                                              UpCtr = 8;
+2309   7                                                              UpIndex = 0;
+2310   7                                                              ENDP2_NEED_UP_FLAG = 1;
+2311   7                                                      }
+2312   6                                              }
+2313   5                                              else
+2314   5                                              {
+2315   6                                                      Sever_Order = SERVER_USB;               //USB
+2316   6                                                      Sever_id = DownBuf[0];                            
+2317   6                                                      Tx_To_Tstat(DownBuf, DownCtr);                                                                                                                   
+2318   6                                              } 
+2319   5                                              
+2320   5                                              DownCtr = 0;
+2321   5                                      }
+2322   4                              }
+2323   3      
+2324   3                              if((ENDP2_NEED_UP_FLAG == 1) && (ENDP2_UP_SUC_FLAG == 1) && UpCtr)
+2325   3                              {
+2326   4                                      ENDP2_UP_SUC_FLAG = 0;
+2327   4                                      if(UpCtr > BULK_IN_ENDP_MAX_SIZE)
+2328   4                                      {
+2329   5                                              length = BULK_IN_ENDP_MAX_SIZE;
+2330   5                                              UpCtr -= BULK_IN_ENDP_MAX_SIZE;
+2331   5                                      }
+2332   4                                      else
+2333   4                                      {
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 39  
+
+2334   5                                              length = UpCtr;
+2335   5                                              UpCtr = 0;
+2336   5                                              ENDP2_NEED_UP_FLAG = 0;
+2337   5                                      }
+2338   4      
+2339   4                                      CH375_WR_CMD_PORT(CMD_WR_USB_DATA7);                    // 发出写上传端点2命令
+2340   4                                      CH375_WR_DAT_PORT(length);
+2341   4                                      for(len = 0; len < length; len++)
+2342   4                                              CH375_WR_DAT_PORT(UpBuf[UpIndex++]);
+2343   4                              }
+2344   3                      }
+2345   2              }
+2346   1      }
+2347          
+2348          
+2349          BOOL send_out = TRUE;
+2350          U8_T test_setpoint[] = { 0xfe, 0x06, 0x01, 0x5b, 0x00, 0x19, 0x2c, 0x20}; 
+2351          U8_T rev_cnt = 0;
+2352          
+2353          void gsm_task(void) reentrant                                           // LJ
+2354          {
+2355   1      
+2356   1              char temp_gsm[100];
+2357   1              portTickType xDelayPeriod = ( portTickType)     1500 / portTICK_RATE_MS;
+2358   1      
+2359   1              gsm_init();                     // LJ
+2360   1          
+2361   1      
+2362   1              for (;;)
+2363   1              {
+2364   2                      vTaskDelay(xDelayPeriod);
+2365   2      
+2366   2                      switch ( g_state)
+2367   2                      {
+2368   3                              case GSM_INITING:
+2369   3                                      gsm_module_init();
+2370   3                                      break;
+2371   3                              case GSM_ERROR:
+2372   3      //                              gsm_debug( "RETURN ERROR");
+2373   3                                      break;
+2374   3                              case GSM_INIT_DONE:
+2375   3      #if 0                                      // for test
+                                              if(send_out){
+                                                      send_at_cmd( "AT+CMGF=1");
+                                                      MicroWait(65000);
+                                                      sprintf( temp_gsm, "AT+CMGS=\"%s\"", "15618987525");
+                                                      send_at_cmd( temp_gsm);
+                                                      MicroWait(65000);
+                                                      send_at_cmd( "test first time");
+                                                      simulate_write_byte( 0x1a);
+              //                                      gsm_debug( "Send phone number");
+                                                      send_out = FALSE;
+                                                      }
+                                              break;
+              #endif
+2389   3                                      if(0)          // wait for temperature register
+2390   3                                      {
+2391   4                                              if(send_out)
+2392   4                                              {
+2393   5      //                                              send_at_cmd( "AT+CMGF=1");                                         // TEXT 模式
+2394   5      //                                              MicroWait(65000);
+2395   5                                                      sprintf( temp_gsm, "AT+CMGS=\"%s\"", &phoneNumber[3]);
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 40  
+
+2396   5                                                      send_at_cmd( temp_gsm);
+2397   5                                                      MicroWait(65000);
+2398   5                                                      send_at_cmd( "test first time");
+2399   5                                                      simulate_write_byte( 0x1a);
+2400   5                                                      //g_state = SMS_SENDING;
+2401   5                                                      send_out = FALSE;
+2402   5                                              }
+2403   4                                      }
+2404   3                                      break;                          
+2405   3                              case SMS_READY:
+2406   3                                      send_at_cmd( "Test GSM module first time");
+2407   3                                      simulate_write_byte( 0x1a);
+2408   3                                      g_state = GSM_INIT_DONE;
+2409   3                                      break;
+2410   3                              case SMS_SEND_SUCCESS:
+2411   3                                      g_state = GSM_INIT_DONE;
+2412   3                                      break;
+2413   3                              case GET_MSG:
+2414   3      //                              gsm_debug( "send cmgr");
+2415   3                                      send_at_cmd( "AT+CMGR=1");
+2416   3      //                              MicroWait(65000);
+2417   3                                      rev_cnt++;
+2418   3      //                              g_state = GSM_INIT_DONE;
+2419   3                                      if( rev_cnt > 9)
+2420   3                                      {
+2421   4                                              g_state = GSM_INIT_DONE;
+2422   4                                              rev_cnt = 0;
+2423   4                                              send_at_cmd( "AT+CMGD=1");                         // 尝试10次后，删除短信
+2424   4                                      }
+2425   3                                      break;
+2426   3                              case SET_POINT:
+2427   3                                      Tx_To_Tstat( test_setpoint, 8);
+2428   3                                      g_state = GSM_INIT_DONE;
+2429   3                                      break;
+2430   3                              default:
+2431   3                                      break;
+2432   3                      }
+2433   2      //              if( gsm_timeout == 0)
+2434   2                      {
+2435   3      //                      gsm_debug("UUUUUUUUUUUUUUU");
+2436   3                              if( gsm_RxBuf.size > 1)
+2437   3                              {
+2438   4      //                              gsm_debug( gsm_RxBuf.buf);
+2439   4                                      gsm_msg_process (gsm_RxBuf.buf); 
+2440   4      //                              gsm_RxBuf.size = 0;
+2441   4      //                              gsm_debug( "Process     simulate uart message");
+2442   4                              }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+2443   3                      }
+2444   2      
+2445   2              }
+2446   1      }
+2447          
+2448          void test_run(U8_T dat)
+2449          {
+2450   1      /* TEST CODE */
+2451   1      
+2452   1              while(1){
+2453   2               P1_1 = ~ P1_1;
+2454   2      
+2455   2               P3_7 = ~ P3_7;
+2456   2               DELAY_Ms(dat);
+2457   2              }
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 41  
+
+2458   1      }
+2459          
+2460          void test_port(U8_T num)
+2461          {
+2462   1      
+2463   1              test[0] = num;
+2464   1              Uart0_Tx(test,1);
+2465   1      
+2466   1      }
+2467          
+2468          
+2469          
+2470          
+2471          /*
+2472           * ----------------------------------------------------------------------------
+2473           * Function Name: main
+2474           * Purpose:
+2475           * Params:
+2476           * Returns:
+2477           * Note:
+2478           * ----------------------------------------------------------------------------*/
+2479          void main(void )
+2480          { 
+2481   1              U16_T i;
+2482   1          U8_T FlashFlag=0; //已经烧写过flash 还是没有
+2483   1          U8_T dat[100];
+2484   1              U8_T flag_store_schedule;
+2485   1      
+2486   1              mstp_port = calloc(1, sizeof(struct mstp_port_struct_t));
+2487   1      
+2488   1      //      LED==S485_OK;
+2489   1      
+2490   1              MODBUS_OR_BACNET_FUNCTION_SELECT_ON_UART0 = 0;                   /* */
+2491   1      
+2492   1              ExecuteRuntimeFlag = 1;
+2493   1      
+2494   1      
+2495   1              /* System Initiation */
+2496   1              AX11000_Init();
+2497   1      
+2498   1      
+2499   1              /* UART Interface Initiation */
+2500   1              UART_Init(0);
+2501   1              
+2502   1      
+2503   1              UART_Init(1);
+2504   1      
+2505   1         
+2506   1          /* init mstp port */
+2507   1          MSTP_Init(mstp_port);
+2508   1      
+2509   1      
+2510   1              uart2_rescue();
+2511   1      
+2512   1      
+2513   1              Lcd_Initial();
+2514   1      
+2515   1      
+2516   1          I2C_Init();
+2517   1      
+2518   1      
+2519   1              ETH_Init();
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 42  
+
+2520   1      
+2521   1      
+2522   1      
+2523   1              for(i = 0; i < 100; i++)
+2524   1          { 
+2525   2                      IntFlashReadByte(0x70000 + i, &dat[i]);
+2526   2                      if(dat[i] == 0xff) FlashFlag++;
+2527   2          }
+2528   1      
+2529   1      
+2530   1              if(FlashFlag > 90) //if its the time to program
+2531   1              {   
+2532   2                      IntFlashReadByte(0x6FFFF, &Parame[29]);         
+2533   2                      E2prom_Read_Byte_From_Absolute_Address(0x0b, Parame + 201);
+2534   2                      E2prom_Read_Byte_From_Absolute_Address(0x0a, Parame + 203);
+2535   2                      E2prom_Read_Byte_From_Absolute_Address(0x09, Parame + 205);
+2536   2                      E2prom_Read_Byte_From_Absolute_Address(0x08, Parame + 207);
+2537   2                      E2prom_Read_Byte_From_Absolute_Address(0x07, Parame + 209);
+2538   2                      E2prom_Read_Byte_From_Absolute_Address(0x06, Parame + 211);
+2539   2                      MassFlashWrite(0, Parame, 400);   //write datas to address 0,length 400 
+2540   2              }
+2541   1      
+2542   1      
+2543   1      
+2544   1              for(i = 0; i < 400; i++)   //read 
+2545   1                      IntFlashReadByte(0x70000 + i, &Para[i]);   //the first para means location,last means array
+2546   1      
+2547   1              E2prom_Read_Byte_From_Absolute_Address(0x0b, Para + 201);
+2548   1              E2prom_Read_Byte_From_Absolute_Address(0x0a, Para + 203);
+2549   1              E2prom_Read_Byte_From_Absolute_Address(0x09, Para + 205);
+2550   1              E2prom_Read_Byte_From_Absolute_Address(0x08, Para + 207);
+2551   1              E2prom_Read_Byte_From_Absolute_Address(0x07, Para + 209);
+2552   1              E2prom_Read_Byte_From_Absolute_Address(0x06, Para + 211);
+2553   1      
+2554   1                                                                                                               
+2555   1      
+2556   1              Flash_Inital(); 
+2557   1              IntFlashReadByte(0x7fff0, &flag_store_schedule);
+2558   1              if(flag_store_schedule == 0x55) 
+2559   1              {
+2560   2                      Flash_Read_Schedule(); // read scheduel data from flash
+2561   2              }
+2562   1      
+2563   1      
+2564   1              if(Para[9] != Parame[9])  //botload is changed,user configure can't erase.so if software revision need to
+             - change
+2565   1              {
+2566   2                      Para[9] = Parame[9];
+2567   2                      Flash_Write_Schedule(); 
+2568   2              }
+2569   1              if(Para[33] == 0x1f)//if update is not completed,flashing led shows this statement.
+2570   1              FlagIsp = 1; 
+2571   1      
+2572   1      
+2573   1              display_ip();
+2574   1              Hardware_Revision = Read_Hardware_Revision();
+2575   1      
+2576   1      
+2577   1        sTaskCreate(TCPIP_Task, (const signed portCHAR * const)"TCPIP_task",
+2578   1                      portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, (xTaskHandle *)&xHandle1); //0 2
+2579   1      
+2580   1        sTaskCreate(LedBeat_task, (const signed portCHAR * const)"LedBeat_task",
+C51 COMPILER V9.06   MAIN                                                                  03/13/2013 09:32:21 PAGE 43  
+
+2581   1                      portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, (xTaskHandle *)&xHandle3);  //3
+2582   1      
+2583   1        sTaskCreate(Timer_task, (const signed portCHAR * const)"Timer_task",
+2584   1                      portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 3, (xTaskHandle *)&xHandle2);  //3
+2585   1      
+2586   1         sTaskCreate(Ledflash_task, (const signed portCHAR * const)"Ledflash_task",
+2587   1                      portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 4, (xTaskHandle *)&xHandle4);  //5
+2588   1      
+2589   1         sTaskCreate(Uart0_task, (const signed portCHAR * const)"Uart0_task",
+2590   1                      portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 7, (xTaskHandle *)&xHandle5); //0
+2591   1      
+2592   1         sTaskCreate(Uart1_task, (const signed portCHAR * const)"Uart1_task",
+2593   1                      portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 8, (xTaskHandle *)&xHandle6);
+2594   1      
+2595   1         sTaskCreate(Uart2_task, (const signed portCHAR * const)"Uart2_task",
+2596   1                      portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 9, (xTaskHandle *)&xHandle9);
+2597   1      
+2598   1         sTaskCreate(Schedule_task, (const signed portCHAR * const)"Schedule_task",
+2599   1                      portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 6, (xTaskHandle *)&xHandle8);
+2600   1      
+2601   1      
+2602   1         sTaskCreate(TimeServer_task, (const signed portCHAR * const)"TimeServer_task",
+2603   1                      portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 5, (xTaskHandle *)&xHandle7);//8
+2604   1      
+2605   1          sTaskCreate(USB_task, (const signed portCHAR * const)"USB_task",
+2606   1                      portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 10, (xTaskHandle *)&xHandle11);//8
+2607   1      
+2608   1              sTaskCreate(gsm_task, (const signed portCHAR * const)"gsm_task",
+2609   1                      portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 4, (xTaskHandle *)&xHandle12);           // LJ
+2610   1      
+2611   1      
+2612   1              sTaskCreate(Master_Node_task, (const signed portCHAR * const)"Master_Node_task",
+2613   1                      portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 9, (xTaskHandle *)&xHandle14);           // hyc
+2614   1      
+2615   1      /* Finally kick off the scheduler.  This function should never return. */
+2616   1              vTaskStartScheduler( portUSE_PREEMPTION );
+2617   1      
+2618   1      }
+2619          
+2620          
+2621          /* End of adapter.c */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =  17623    ----
+   CONSTANT SIZE    =    377    ----
+   XDATA SIZE       =    498     176
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =    208    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

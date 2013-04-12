@@ -1,0 +1,343 @@
+C51 COMPILER V9.06   WPM                                                                   01/07/2013 11:01:39 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE WPM
+OBJECT MODULE PLACED IN .\wpm.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\wpm.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) IN
+                    -CDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\
+                    -SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buf
+                    -fer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\S
+                    -rc\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\wpm.lst) OBJECT(.\wpm.obj)
+
+line level    source
+
+   1          /**************************************************************************
+   2          *
+   3          * Copyright (C) 2011 Krzysztof Malorny <malornykrzysztof@gmail.com>
+   4          * Contributions by ?????? ????? 2011 <nikola.jelic@euroicc.com>
+   5          *
+   6          * Permission is hereby granted, free of charge, to any person obtaining
+   7          * a copy of this software and associated documentation files (the
+   8          * "Software"), to deal in the Software without restriction, including
+   9          * without limitation the rights to use, copy, modify, merge, publish,
+  10          * distribute, sublicense, and/or sell copies of the Software, and to
+  11          * permit persons to whom the Software is furnished to do so, subject to
+  12          * the following conditions:
+  13          *
+  14          * The above copyright notice and this permission notice shall be included
+  15          * in all copies or substantial portions of the Software.
+  16          *
+  17          * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  18          * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  19          * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+  20          * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+  21          * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+  22          * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+  23          * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  24          *
+  25          *********************************************************************/
+  26          #include <stdint.h>
+  27          #include "../include/bacapp.h"
+  28          #include "../include/bacenum.h"
+  29          #include "../include/bacdcode.h"
+  30          #include "../include/bacdef.h"
+  31          #include "../include/wp.h"
+  32          #include "../include/wpm.h"
+  33          
+  34          /** @file wpm.c  Encode/Decode BACnet Write Property Multiple APDUs  */
+  35          
+  36          /** Decoding for WritePropertyMultiple service, object ID.
+  37           * @ingroup DSWPM
+  38           * This handler will be invoked by write_property_multiple handler
+  39           * if it has been enabled by a call to apdu_set_confirmed_handler().
+  40           * This function decodes only the first tagged entity, which is
+  41           * an object identifier.  This function will return an error if:
+  42           *   - the tag is not the right value
+  43           *   - the number of bytes is not enough to decode for this entity
+  44           *   - the subsequent tag number is incorrect
+  45           *
+  46           * @param apdu [in] The contents of the APDU buffer.
+  47           * @param apdu_len [in] The length of the APDU buffer.
+  48           * @param data [out] The BACNET_WRITE_PROPERTY_DATA structure
+  49           *    which will contain the reponse values or error.
+  50           */
+  51          int wpm_decode_object_id(
+C51 COMPILER V9.06   WPM                                                                   01/07/2013 11:01:39 PAGE 2   
+
+  52              uint8_t * apdu,
+  53              uint16_t apdu_len,
+  54              BACNET_WRITE_PROPERTY_DATA * wp_data)
+  55          {
+  56   1          uint8_t tag_number = 0;
+  57   1          uint32_t len_value = 0;
+  58   1          uint32_t object_instance = 0;
+  59   1          uint16_t object_type = 0;
+  60   1          uint16_t len = 0;
+  61   1      
+  62   1          if (apdu && (apdu_len > 5) && wp_data) {
+  63   2              /* Context tag 0 - Object ID */
+  64   2              len +=
+  65   2                  decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+  66   2              if ((tag_number == 0) && (apdu_len > len)) {
+  67   3                  apdu_len -= len;
+  68   3                  if (apdu_len >= 4) {
+  69   4                      len +=
+  70   4                          decode_object_id(&apdu[len], &object_type,
+  71   4                          &object_instance);
+  72   4                      wp_data->object_type = object_type;
+  73   4                      wp_data->object_instance = object_instance;
+  74   4                      apdu_len -= len;
+  75   4                  } else {
+  76   4                      wp_data->error_code =
+  77   4                          ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+  78   4                      return BACNET_STATUS_REJECT;
+  79   4                  }
+  80   3              } else {
+  81   3                  wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+  82   3                  return BACNET_STATUS_REJECT;
+  83   3              }
+  84   2              /* just test for the next tag - no need to decode it here */
+  85   2              /* Context tag 1: sequence of BACnetPropertyValue */
+  86   2              if (apdu_len && !decode_is_opening_tag_number(&apdu[len], 1)) {
+  87   3                  wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+  88   3                  return BACNET_STATUS_REJECT;
+  89   3              }
+  90   2          } else {
+  91   2              wp_data->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+  92   2              return BACNET_STATUS_REJECT;
+  93   2          }
+  94   1      
+  95   1          return (int) len;
+  96   1      }
+  97          
+  98          
+  99          int wpm_decode_object_property(
+ 100              uint8_t * apdu,
+ 101              uint16_t apdu_len,
+ 102              BACNET_WRITE_PROPERTY_DATA * wp_data)
+ 103          {
+ 104   1          uint8_t tag_number = 0;
+ 105   1          uint32_t len_value = 0;
+ 106   1          uint32_t ulVal = 0;
+ 107   1          int len = 0, i = 0;
+ 108   1      
+ 109   1      
+ 110   1          if ((apdu) && (apdu_len) && (wp_data)) {
+ 111   2              wp_data->array_index = BACNET_ARRAY_ALL;
+ 112   2              wp_data->priority = BACNET_MAX_PRIORITY;
+ 113   2              wp_data->application_data_len = 0;
+C51 COMPILER V9.06   WPM                                                                   01/07/2013 11:01:39 PAGE 3   
+
+ 114   2              /* tag 0 - Property Identifier */
+ 115   2              len +=
+ 116   2                  decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+ 117   2              if (tag_number == 0) {
+ 118   3                  len += decode_enumerated(&apdu[len], len_value, &ulVal);
+ 119   3                  wp_data->object_property = ulVal;
+ 120   3              } else {
+ 121   3                  wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+ 122   3                  return BACNET_STATUS_REJECT;
+ 123   3              }
+ 124   2      
+ 125   2              /* tag 1 - Property Array Index - optional */
+ 126   2              len +=
+ 127   2                  decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+ 128   2              if (tag_number == 1) {
+ 129   3                  len += decode_unsigned(&apdu[len], len_value, &ulVal);
+ 130   3                  wp_data->array_index = ulVal;
+ 131   3      
+ 132   3                  len +=
+ 133   3                      decode_tag_number_and_value(&apdu[len], &tag_number,
+ 134   3                      &len_value);
+ 135   3              }
+ 136   2              /* tag 2 - Property Value */
+ 137   2              if ((tag_number == 2) && (decode_is_opening_tag(&apdu[len - 1]))) {
+ 138   3                  len--;
+ 139   3                  wp_data->application_data_len =
+ 140   3                      bacapp_data_len(&apdu[len], (unsigned) (apdu_len - len),
+ 141   3                      wp_data->object_property);
+ 142   3                  len++;
+ 143   3      
+ 144   3                  /* copy application data */
+ 145   3                  for (i = 0; i < wp_data->application_data_len; i++) {
+ 146   4                      wp_data->application_data[i] = apdu[len + i];
+ 147   4                  }
+ 148   3                  len += wp_data->application_data_len;
+ 149   3                  len +=
+ 150   3                      decode_tag_number_and_value(&apdu[len], &tag_number,
+ 151   3                      &len_value);
+ 152   3                  /* closing tag 2 */
+ 153   3                  if ((tag_number != 2) && (decode_is_closing_tag(&apdu[len - 1]))) {
+ 154   4                      wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+ 155   4                      return BACNET_STATUS_REJECT;
+ 156   4                  }
+ 157   3              } else {
+ 158   3                  wp_data->error_code = ERROR_CODE_REJECT_INVALID_TAG;
+ 159   3                  return BACNET_STATUS_REJECT;
+ 160   3              }
+ 161   2      
+ 162   2              /* tag 3 - Priority - optional */
+ 163   2              len +=
+ 164   2                  decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
+ 165   2              if (tag_number == 3) {
+ 166   3                  len += decode_unsigned(&apdu[len], len_value, &ulVal);
+ 167   3                  wp_data->priority = ulVal;
+ 168   3              } else
+ 169   2                  len--;
+ 170   2          } else {
+ 171   2              wp_data->error_code = ERROR_CODE_REJECT_MISSING_REQUIRED_PARAMETER;
+ 172   2              return BACNET_STATUS_REJECT;
+ 173   2          }
+ 174   1      
+ 175   1          return len;
+C51 COMPILER V9.06   WPM                                                                   01/07/2013 11:01:39 PAGE 4   
+
+ 176   1      }
+ 177          
+ 178          /* encode functions */
+ 179          int wpm_encode_apdu_init(
+ 180              uint8_t * apdu,
+ 181              uint8_t invoke_id)
+ 182          {
+ 183   1          int apdu_len = 0;   /* total length of the apdu, return value */
+ 184   1      
+ 185   1          if (apdu) {
+ 186   2              apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
+ 187   2              apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
+ 188   2              apdu[2] = invoke_id;
+ 189   2              apdu[3] = SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE;        /* service choice */
+ 190   2              apdu_len = 4;
+ 191   2          }
+ 192   1      
+ 193   1          return apdu_len;
+ 194   1      
+ 195   1      }
+ 196          
+ 197          int wpm_encode_apdu_object_begin(
+ 198              uint8_t * apdu,
+ 199              BACNET_OBJECT_TYPE object_type,
+ 200              uint32_t object_instance)
+ 201          {
+ 202   1          int apdu_len = 0;   /* total length of the apdu, return value */
+ 203   1      
+ 204   1          if (apdu) {
+ 205   2              apdu_len =
+ 206   2                  encode_context_object_id(&apdu[0], 0, object_type,
+ 207   2                  object_instance);
+ 208   2              /* Tag 1: sequence of WriteAccessSpecification */
+ 209   2              apdu_len += encode_opening_tag(&apdu[apdu_len], 1);
+ 210   2          }
+ 211   1      
+ 212   1          return apdu_len;
+ 213   1      }
+ 214          
+ 215          int wpm_encode_apdu_object_end(
+ 216              uint8_t * apdu)
+ 217          {
+ 218   1          int apdu_len = 0;   /* total length of the apdu, return value */
+ 219   1      
+ 220   1          if (apdu) {
+ 221   2              apdu_len = encode_closing_tag(&apdu[0], 1);
+ 222   2          }
+ 223   1      
+ 224   1          return apdu_len;
+ 225   1      }
+ 226          
+ 227          int wpm_encode_apdu_object_property(
+ 228              uint8_t * apdu,
+ 229              BACNET_WRITE_PROPERTY_DATA * wpdata)
+ 230          {
+ 231   1          int apdu_len = 0;   /* total length of the apdu, return value */
+ 232   1          int len = 0;
+ 233   1      
+ 234   1          if (apdu) {
+ 235   2              apdu_len =
+ 236   2                  encode_context_enumerated(&apdu[0], 0, wpdata->object_property);
+ 237   2              /* optional array index */
+C51 COMPILER V9.06   WPM                                                                   01/07/2013 11:01:39 PAGE 5   
+
+ 238   2              if (wpdata->array_index != BACNET_ARRAY_ALL) {
+ 239   3                  apdu_len +=
+ 240   3                      encode_context_unsigned(&apdu[apdu_len], 1,
+ 241   3                      wpdata->array_index);
+ 242   3              }
+ 243   2              apdu_len += encode_opening_tag(&apdu[apdu_len], 2);
+ 244   2              for (len = 0; len < wpdata->application_data_len; len++) {
+ 245   3                  apdu[apdu_len] = wpdata->application_data[len];
+ 246   3                  apdu_len++;
+ 247   3              }
+ 248   2              apdu_len += encode_closing_tag(&apdu[apdu_len], 2);
+ 249   2              if (wpdata->priority != BACNET_NO_PRIORITY) {
+ 250   3                  encode_context_unsigned(&apdu[apdu_len], 3, wpdata->priority);
+ 251   3              }
+ 252   2          }
+ 253   1      
+ 254   1          return apdu_len;
+ 255   1      }
+ 256          
+ 257          int wpm_ack_encode_apdu_init(
+ 258              uint8_t * apdu,
+ 259              uint8_t invoke_id)
+ 260          {
+ 261   1          int len = 0;
+ 262   1      
+ 263   1          if (apdu) {
+ 264   2              apdu[len++] = PDU_TYPE_SIMPLE_ACK;
+ 265   2              apdu[len++] = invoke_id;
+ 266   2              apdu[len++] = SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE;
+ 267   2          }
+ 268   1      
+ 269   1          return len;
+ 270   1      }
+ 271          
+ 272          int wpm_error_ack_encode_apdu(
+ 273              uint8_t * apdu,
+ 274              uint8_t invoke_id,
+ 275              BACNET_WRITE_PROPERTY_DATA * wp_data)
+ 276          {
+ 277   1          int len = 0;
+ 278   1      
+ 279   1          if (apdu) {
+ 280   2              apdu[len++] = PDU_TYPE_ERROR;
+ 281   2              apdu[len++] = invoke_id;
+ 282   2              apdu[len++] = SERVICE_CONFIRMED_WRITE_PROP_MULTIPLE;
+ 283   2      
+ 284   2              len += encode_opening_tag(&apdu[len], 0);
+ 285   2              len += encode_application_enumerated(&apdu[len], wp_data->error_class);
+ 286   2              len += encode_application_enumerated(&apdu[len], wp_data->error_code);
+ 287   2              len += encode_closing_tag(&apdu[len], 0);
+ 288   2      
+ 289   2              len += encode_opening_tag(&apdu[len], 1);
+ 290   2              len +=
+ 291   2                  encode_context_object_id(&apdu[len], 0, wp_data->object_type,
+ 292   2                  wp_data->object_instance);
+ 293   2              len +=
+ 294   2                  encode_context_enumerated(&apdu[len], 1, wp_data->object_property);
+ 295   2      
+ 296   2              if (wp_data->array_index != BACNET_ARRAY_ALL)
+ 297   2                  len +=
+ 298   2                      encode_context_unsigned(&apdu[len], 2, wp_data->array_index);
+ 299   2              len += encode_closing_tag(&apdu[len], 1);
+C51 COMPILER V9.06   WPM                                                                   01/07/2013 11:01:39 PAGE 6   
+
+ 300   2          }
+ 301   1          return len;
+ 302   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   3730    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----      81
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

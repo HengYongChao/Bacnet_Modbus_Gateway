@@ -1,0 +1,215 @@
+C51 COMPILER V9.06   DNSCTAB                                                               03/13/2013 09:32:24 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE DNSCTAB
+OBJECT MODULE PLACED IN .\dnsctab.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\dns\dnsctab.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) I
+                    -NCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..
+                    -\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\bu
+                    -ffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\
+                    -Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\dnsctab.lst) OBJECT(.\dnscta
+                    -b.obj)
+
+line level    source
+
+   1          /*
+   2           ******************************************************************************
+   3           *     Copyright (c) 2006       ASIX Electronic Corporation      All rights reserved.
+   4           *
+   5           *     This is unpublished proprietary source code of ASIX Electronic Corporation
+   6           *
+   7           *     The copyright notice above does not evidence any actual or intended
+   8           *     publication of such source code.
+   9           ******************************************************************************
+  10           */
+  11           /*============================================================================
+  12           * Module Name: dnsctab.c
+  13           * Purpose:
+  14           * Author:
+  15           * Date:
+  16           * Notes:
+  17           * $Log: dnsctab.c,v $
+  18           * Revision 1.2  2006/05/23 01:53:38  robin6633
+  19           * 1.Removed debug information from UART2.
+  20           *
+  21           * Revision 1.1  2006/05/22 05:44:27  robin6633
+  22           * no message
+  23           *
+  24           *
+  25           *=============================================================================
+  26           */
+  27          
+  28          /* INCLUDE FILE DECLARATIONS */
+  29          #include "main.h"
+  30          
+  31          #if (INCLUDE_DNS_CLIENT)
+              #include "adapter.h"
+              #include "dnsctab.h"
+              #include "uart.h"
+              #include "printd.h"
+              
+              #include <string.h>
+              #include <stdio.h>
+              
+              /* NAMING CONSTANT DECLARATIONS */
+              #define DNSCTAB_MAX_HOST_NAME_LEN       255
+              
+              /* GLOBAL VARIABLES DECLARATIONS */
+              
+              /* LOCAL VARIABLES DECLARATIONS */
+              static S8_T  XDATA dnsctab_HostNameTable[DNSCTAB_MAX_RECORD][DNSCTAB_MAX_HOST_NAME_LEN + 1];
+              static U32_T XDATA dnsctab_HostIpTable[DNSCTAB_MAX_RECORD];
+              static U8_T  XDATA dnsctab_HostName[DNSCTAB_MAX_HOST_NAME_LEN + 1];
+              static U8_T  XDATA dnsctab_OldestRecord; // Oldest record for overwrite
+              /* LOCAL SUBPROGRAM DECLARATIONS */
+C51 COMPILER V9.06   DNSCTAB                                                               03/13/2013 09:32:24 PAGE 2   
+
+              
+              /*
+               * ----------------------------------------------------------------------------
+               * Function Name: DNSCTAB_Init()
+               * Purpose: Initialization
+               * Params:
+               * Returns:
+               * Note:
+               * ----------------------------------------------------------------------------
+               */
+              void DNSCTAB_Init(void)
+              {
+                      U8_T i;
+              
+                      for (i = 0; i < DNSCTAB_MAX_RECORD; i++)
+                      {
+                              dnsctab_HostIpTable[i] = 0;
+                      }
+              
+                      dnsctab_OldestRecord = 0;
+              
+                      DNSC_Init();
+              
+              } /* End of DNSCTAB_Init() */
+              
+              /*
+               * ----------------------------------------------------------------------------
+               * Function Name: DNSCTAB_Query
+               * Purpose: 
+               * Params:
+               * Returns:
+               * Note:
+               * ----------------------------------------------------------------------------
+               */
+              U8_T DNSCTAB_Query(S8_T *pName, U32_T *pip)
+              {
+                      U8_T    i;
+              
+                      if(strlen(pName) <= 255)
+                      {
+                              for (i = 0; i < DNSCTAB_MAX_RECORD; i++)
+                              {
+                                      if (dnsctab_HostIpTable[i] == 0)
+                                              continue;
+                                      if (strcmp(pName, dnsctab_HostNameTable[i]) == 0) // Does both host name match?
+                                      {
+                                              *pip = dnsctab_HostIpTable[i]; // Yes, return the host IP
+              
+                                              return DNSC_STATE_RESPONSED; 
+                                      }       
+                              }
+                      
+                              strcpy(dnsctab_HostName, pName); // Store this new host name
+                              return DNSC_Query(pName);
+                      }
+                      else
+                      {
+              #if (UART0_ENABLE)
+              //              printd ("Host name length is greater than 255 bytes.\n\r");
+              #endif
+                      }
+              
+C51 COMPILER V9.06   DNSCTAB                                                               03/13/2013 09:32:24 PAGE 3   
+
+                      return DNSC_STATE_FREE;
+              
+              } /* End of DNSCTAB_Query() */
+              
+              /*
+               * ----------------------------------------------------------------------------
+               * Function Name: DNSCTAB_GetState
+               * Purpose: 
+               * Params:
+               * Returns:
+               * Note:
+               * ----------------------------------------------------------------------------
+               */
+              U8_T DNSCTAB_GetState(void)
+              {
+                      return DNSC_GetState();
+              
+              } /* End of DNSCTAB_Receive() */
+              
+              /*
+               * ----------------------------------------------------------------------------
+               * Function Name: DNSCTAB_GetIP
+               * Purpose: 
+               * Params:
+               * Returns:
+               * Note:
+               * ----------------------------------------------------------------------------
+               */
+              U32_T DNSCTAB_GetIP(void)
+              {
+                      if (DNSC_GetState() == DNSC_STATE_RESPONSED)
+                      {
+                              // Store the new record and overwrite the oldest record if needed)
+                              if (dnsctab_OldestRecord >= DNSCTAB_MAX_RECORD)
+                                      dnsctab_OldestRecord = 0;
+                      
+                              strcpy(dnsctab_HostNameTable[dnsctab_OldestRecord], dnsctab_HostName);
+                              dnsctab_HostIpTable[dnsctab_OldestRecord] = DNSC_GetIp();
+              
+                              return dnsctab_HostIpTable[dnsctab_OldestRecord++];
+                      }
+                      else
+                      {
+                              return 0;
+                      }
+                      
+              } /* End of DNSCTAB_GetIP() */
+              
+              /*
+               * ----------------------------------------------------------------------------
+               * Function Name: DNSCTAB_SetDnsIP
+               * Purpose: 
+               * Params:
+               * Returns:
+               * Note:
+               * ----------------------------------------------------------------------------
+               */
+              void DNSCTAB_SetDnsIP(U32_T ip)
+              {
+                      DNSC_SetDnsIP(ip);      
+              } /* End of DNSCTAB_SetDnsIP() */
+              
+C51 COMPILER V9.06   DNSCTAB                                                               03/13/2013 09:32:24 PAGE 4   
+
+              #endif /* INCLUDE_DNS_CLIENT */
+ 176          
+ 177          /* End of dnsctab.c */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

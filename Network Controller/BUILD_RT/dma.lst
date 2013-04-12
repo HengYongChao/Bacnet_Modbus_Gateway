@@ -1,0 +1,412 @@
+C51 COMPILER V9.06   DMA                                                                   03/13/2013 09:32:21 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE DMA
+OBJECT MODULE PLACED IN .\dma.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\swdma\dma.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) INC
+                    -DIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\S
+                    -RC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buff
+                    -er\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\Sr
+                    -c\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\dma.lst) OBJECT(.\dma.obj)
+
+line level    source
+
+   1          /*
+   2           ******************************************************************************
+   3           *     Copyright (c) 2006       ASIX Electronic Corporation      All rights reserved.
+   4           *
+   5           *     This is unpublished proprietary source code of ASIX Electronic Corporation
+   6           *
+   7           *     The copyright notice above does not evidence any actual or intended
+   8           *     publication of such source code.
+   9           ******************************************************************************
+  10           */
+  11          /*=============================================================================
+  12           * Module Name: dma.c
+  13           * Purpose:
+  14           * Author:
+  15           * Date:
+  16           * Notes:
+  17           * $Log: dma.c,v $
+  18           * Revision 1.1  2006/05/12 14:24:19  robin6633
+  19           * no message
+  20           *
+  21           * Revision 1.1.1.1  2006/02/23 00:55:10  borbin
+  22           * no message
+  23           *
+  24           *=============================================================================
+  25           */
+  26          
+  27          /* INCLUDE FILE DECLARATIONS */
+  28          #include "reg80390.h"
+  29          #include "dma.h"
+  30          #if (DMA_INCLUDE_ETHERNET_MODULE ==     DMA_YES)
+  31          #include "stoe.h"
+  32          #endif
+  33          #include <intrins.h>
+  34          
+  35          
+  36          /*
+  37           * ----------------------------------------------------------------------------
+  38           * Function Name: DMA_ReadReg
+  39           * Purpose: Read software-dma register.
+  40           * Params:
+  41           * Returns:
+  42           * Note:
+  43           * ----------------------------------------------------------------------------
+  44           */
+  45          void DMA_ReadReg(U8_T regaddr, U8_T XDATA* pbuf, U8_T length)
+  46          {
+  47   1              U8_T    isr;
+  48   1      
+  49   1              isr = EA;
+  50   1              EA = 0;
+  51   1              _nop_();
+C51 COMPILER V9.06   DMA                                                                   03/13/2013 09:32:21 PAGE 2   
+
+  52   1              DCIR = regaddr;
+  53   1              while (length--)
+  54   1                      pbuf[length] = DDR;
+  55   1              EA = isr;
+  56   1      
+  57   1      } /* End of DMA_ReadReg */
+  58          
+  59          /*
+  60           * ----------------------------------------------------------------------------
+  61           * Function Name: DMA_WriteReg
+  62           * Purpose: Set software-dma register.
+  63           * Params:
+  64           * Returns:
+  65           * Note:
+  66           * ----------------------------------------------------------------------------
+  67           */
+  68          void DMA_WriteReg(U8_T regaddr, U8_T XDATA* pbuf, U8_T length)
+  69          {
+  70   1              U8_T    isr;
+  71   1      
+  72   1              isr = EA;
+  73   1              EA = 0;
+  74   1              while (length--)
+  75   1                      DDR = pbuf[length];
+  76   1              DCIR = regaddr;
+  77   1              EA = isr;
+  78   1      
+  79   1      } /* End of STOE_DMA_WriteReg */
+  80          
+  81          /*
+  82           * ----------------------------------------------------------------------------
+  83           * Function Name: DMA_Init
+  84           * Purpose: Initial software-dma module.
+  85           * Params:
+  86           * Returns:
+  87           * Note:
+  88           * ----------------------------------------------------------------------------
+  89           */
+  90          void DMA_Init(void)
+  91          {
+  92   1              /*set DMA gap*/
+  93   1              TDR = DMA_GAP;
+  94   1              TCIR = 0x24;
+  95   1      
+  96   1      } /* End of DMA_Init */
+  97          
+  98          /*
+  99           * ----------------------------------------------------------------------------
+ 100           * Function Name: DMA_Start
+ 101           * Purpose: Start software-dma module.
+ 102           * Params:
+ 103           * Returns:
+ 104           * Note:
+ 105           * ----------------------------------------------------------------------------
+ 106           */
+ 107          void DMA_Start(void)
+ 108          {
+ 109   1              EINT2 = 1;      /* Enable INT2 interrupt for DMA request. */
+ 110   1      
+ 111   1      } /* End of DMA_Start */
+ 112          
+ 113          /*
+C51 COMPILER V9.06   DMA                                                                   03/13/2013 09:32:21 PAGE 3   
+
+ 114           * ----------------------------------------------------------------------------
+ 115           * Function Name: dma_CheckStatus
+ 116           * Purpose: Wait software-dma to complete, and check if dma error happened or not?
+ 117           * Params: 
+ 118           * Returns: 0 : dma error had happened, so set DMA_FORCE_STOP bit for
+ 119           *                              dma can work next time.
+ 120           *                      1 :     dma had completed.
+ 121           * Note:
+ 122           * ----------------------------------------------------------------------------
+ 123           */
+ 124          U8_T dma_CheckStatus(void)
+ 125          {
+ 126   1              U8_T XDATA      temp;
+ 127   1      
+ 128   1              while (1)
+ 129   1              {
+ 130   2                      DMA_ReadReg(SW_DMA_CMD_REG, &temp, 1);
+ 131   2                      if (temp & 0x37)
+ 132   2                      {
+ 133   3                              if (temp & DMA_ERROR_BIT)
+ 134   3                              {
+ 135   4                                      temp &= ~0x7f;
+ 136   4                                      temp |= DMA_FORCE_STOP;
+ 137   4                                      DMA_WriteReg(SW_DMA_CMD_REG, &temp, 1);
+ 138   4      
+ 139   4                                      return 0;
+ 140   4                              }
+ 141   3                      }
+ 142   2                      else
+ 143   2                              return 1;
+ 144   2              }
+ 145   1      
+ 146   1      } /* End of dma_CheckStatus */
+ 147          
+ 148          #if (DMA_INCLUDE_ETHERNET_MODULE == DMA_YES)
+ 149          /*
+ 150          * -----------------------------------------------------------------------------
+ 151           * Function Name: DMA_GrantXdata
+ 152           * Purpose: Use sw-dma doing memory copy. The scope of source and destination
+ 153           *                              target must     be smaller than 64k sram memory.
+ 154           *                      If the scope of either source or destination target is large than
+ 155           *                              64k memory,     the programmers can call DMA_Grant() instead of
+ 156           *                              this function.
+ 157           *                      DMA_GrantXdata() can run faster than DMA_Grant() function.
+ 158           * Params: 
+ 159           * Returns: A address of XDATA memory that point to the next address of
+ 160           *                              the end address of the scope of destination target.
+ 161           * Note:
+ 162           * ----------------------------------------------------------------------------
+ 163           */
+ 164          U8_T XDATA* DMA_GrantXdata(U8_T XDATA* pdest, U8_T XDATA* psour, U16_T length)
+ 165          {
+ 166   1              U8_T XDATA              temp[3];
+ 167   1              U16_T XDATA*    ptempshort = (U16_T XDATA*)&temp[1];
+ 168   1              U8_T                    dmatype = 0;
+ 169   1      
+ 170   1              temp[0] = 0;
+ 171   1              *ptempshort = psour;
+ 172   1              DMA_WriteReg(SW_DMA_SOUR_ADDR_REG, temp, 3);
+ 173   1              *ptempshort = pdest;
+ 174   1              DMA_WriteReg(SW_DMA_TARGET_ADDR_REG, temp, 3);
+ 175   1              *ptempshort = length;
+C51 COMPILER V9.06   DMA                                                                   03/13/2013 09:32:21 PAGE 4   
+
+ 176   1              DMA_WriteReg(SW_DMA_BYTE_COUNT_REG, temp + 1, 2);
+ 177   1      
+ 178   1              if ((psour >= PBDP->RcvStartAddr) && (psour <= PBDP->RcvEndAddr))
+ 179   1                      dmatype = DMA_FROM_RPBR;
+ 180   1              if ((pdest >= PBDP->XmtStartAddr) && (pdest <= PBDP->XmtEndAddr))
+ 181   1                      dmatype |= DMA_TO_TPBR;
+ 182   1      
+ 183   1              temp[0] = (DMA_CMD_GO | dmatype);
+ 184   1              DMA_WriteReg(SW_DMA_CMD_REG, temp, 1);
+ 185   1      
+ 186   1              if (dmatype | DMA_TO_TPBR)
+ 187   1              {
+ 188   2                      pdest += length;
+ 189   2                      if (pdest > PBDP->XmtEndAddr)
+ 190   2                              pdest -= STOE_XMIT_BUF_SIZE;
+ 191   2              }
+ 192   1      
+ 193   1              /* check software dma had completed. */
+ 194   1              if (dma_CheckStatus())
+ 195   1                      return pdest;
+ 196   1              else
+ 197   1                      return 0;
+ 198   1      
+ 199   1      } /* DMA_GrantXdata */
+ 200          
+ 201          #if (DMA_SRAM_RANGE == DMA_COPY_LARGE_THAN_64K)
+ 202          /*
+ 203          * -----------------------------------------------------------------------------
+ 204           * Function Name: DMA_Grant
+ 205           * Purpose: Use sw-dma doing memory copy. 
+ 206           * Params: 
+ 207           * Returns: A address of sram memory that point to the next address of
+ 208           *                              the end address of the scope of destination target.
+ 209           * Note:
+ 210           * ----------------------------------------------------------------------------
+ 211           */
+ 212          U8_T* DMA_Grant(U8_T* pdest, U8_T* psour, U16_T length)
+ 213          {
+ 214   1              U8_T XDATA              sourtemp[4];
+ 215   1              U8_T XDATA              desttemp[4];
+ 216   1              U32_T XDATA*    psourtemplong = (U32_T XDATA*)&sourtemp[0];
+ 217   1              U32_T XDATA*    pdesttemplong = (U32_T XDATA*)&desttemp[0];
+ 218   1              U16_T XDATA*    ptempshort;
+ 219   1              U8_T                    dmatype = 0;
+ 220   1              U8_T*                   ptemp;
+ 221   1      
+ 222   1              *psourtemplong = (U32_T)psour;
+ 223   1              *pdesttemplong = (U32_T)pdest;
+ 224   1      
+ 225   1              sourtemp[1]--;  /* for Keil C memory type */
+ 226   1              DMA_WriteReg(SW_DMA_SOUR_ADDR_REG, &sourtemp[1], 3);
+ 227   1      
+ 228   1              if (sourtemp[1] == 0)
+ 229   1              {
+ 230   2                      ptempshort = (U16_T XDATA*)&sourtemp[2];
+ 231   2                      if ((*ptempshort >= (U16_T)PBDP->RcvStartAddr) && (*ptempshort <= (U16_T)PBDP->RcvEndAddr))
+ 232   2                              dmatype = DMA_FROM_RPBR;
+ 233   2              }
+ 234   1      
+ 235   1              desttemp[1]--;  /* for Keil C memory type */
+ 236   1              DMA_WriteReg(SW_DMA_TARGET_ADDR_REG, &desttemp[1], 3);
+ 237   1      
+C51 COMPILER V9.06   DMA                                                                   03/13/2013 09:32:21 PAGE 5   
+
+ 238   1              if (desttemp[1] == 0)
+ 239   1              {
+ 240   2                      ptempshort = (U16_T XDATA*)&desttemp[2];
+ 241   2                      if ((*ptempshort >= (U16_T)PBDP->XmtStartAddr) && (*ptempshort <= (U16_T)PBDP->XmtEndAddr))
+ 242   2                              dmatype |= DMA_TO_TPBR;
+ 243   2              }
+ 244   1      
+ 245   1              ptempshort = (U16_T XDATA*)&sourtemp[0];
+ 246   1              *ptempshort = length;
+ 247   1              DMA_WriteReg(SW_DMA_BYTE_COUNT_REG, sourtemp, 2);
+ 248   1      
+ 249   1              sourtemp[0] = (DMA_CMD_GO | dmatype);
+ 250   1              DMA_WriteReg(SW_DMA_CMD_REG, sourtemp, 1);
+ 251   1      
+ 252   1              if (dmatype | DMA_TO_TPBR)
+ 253   1              {
+ 254   2                      ptemp = pdest;
+ 255   2                      pdest += length;
+ 256   2      /* for KEIL */
+ 257   2                      if (ptemp > pdest)
+ 258   2                              pdest += 0x10000;
+ 259   2      /* end */
+ 260   2                      ptempshort = (U16_T XDATA*)&desttemp[2];
+ 261   2                      (*ptempshort) += length;
+ 262   2                      if (*ptempshort > (U16_T)PBDP->XmtEndAddr)
+ 263   2                              pdest -= STOE_XMIT_BUF_SIZE;
+ 264   2              }
+ 265   1      
+ 266   1              /* check software dma had completed. */
+ 267   1              if (dma_CheckStatus())
+ 268   1                      return pdest;
+ 269   1              else
+ 270   1                      return 0;
+ 271   1      
+ 272   1      } /* DMA_Grant */
+ 273          #endif /* End of #if (DMA_SRAM_RANGE == DMA_COPY_LARGE_THAN_64K)*/
+ 274          #else
+              /*
+              * -----------------------------------------------------------------------------
+               * Function Name: DMA_GrantXdata
+               * Purpose: Use sw-dma doing memory copy. The scope of source and destination
+               *                              target must     be smaller than 64k sram memory.
+               *                      If the scope of either source or destination target is large than
+               *                              64k memory,     the programmers can call DMA_Grant() instead of
+               *                              this function.
+               *                      DMA_GrantXdata() can run faster than DMA_Grant() function.
+               * Params: 
+               * Returns:  A address of XDATA memory that point to the next address of
+               *                              the end address of the scope of destination target.
+               * Note:
+               * ----------------------------------------------------------------------------
+               */
+              U8_T XDATA* DMA_GrantXdata(U8_T XDATA* pdest, U8_T XDATA* psour, U16_T length)
+              {
+                      U8_T XDATA              temp[3];
+                      U16_T XDATA*    ptempshort = (U16_T XDATA*)&temp[1];
+                              
+                      temp[0] = 0;
+                      *ptempshort = psour;
+                      DMA_WriteReg(SW_DMA_SOUR_ADDR_REG, temp, 3);
+                      *ptempshort = pdest;
+                      DMA_WriteReg(SW_DMA_TARGET_ADDR_REG, temp, 3);
+C51 COMPILER V9.06   DMA                                                                   03/13/2013 09:32:21 PAGE 6   
+
+                      *ptempshort = length;
+                      DMA_WriteReg(SW_DMA_BYTE_COUNT_REG, temp + 1, 2);
+              
+                      temp[0] = DMA_CMD_GO;
+                      DMA_WriteReg(SW_DMA_CMD_REG, temp, 1);
+              
+                      pdest += length;
+              
+                      /* check software dma had completed. */
+                      if (dma_CheckStatus())
+                              return pdest;
+                      else
+                              return 0;
+              
+              } /* DMA_GrantXdata */
+              
+              #if (DMA_SRAM_RANGE == DMA_COPY_LARGE_THAN_64K)
+              /*
+              * -----------------------------------------------------------------------------
+               * Function Name: DMA_Grant
+               * Purpose: Use dma doing memory copy. 
+               * Params:
+               * Returns:  A address of sram memory that point to the next address of
+               *                              the end address of the scope of destination target.
+               * Note:
+               * ----------------------------------------------------------------------------
+               */
+              U8_T* DMA_Grant(U8_T* pdest, U8_T* psour, U16_T length)
+              {
+                      U8_T XDATA              temp[4];
+                      U32_T XDATA*    ptemplong = (U32_T XDATA*)&temp[0];
+                      U16_T XDATA*    ptempshort;
+                      U8_T*                   ptemp;
+              
+                      *ptemplong = (U32_T)psour;
+                      temp[1]--;      /* for Keil C memory type */
+                      DMA_WriteReg(SW_DMA_SOUR_ADDR_REG, &temp[1], 3);
+              
+                      *ptemplong = (U32_T)pdest;
+                      temp[1]--;      /* for Keil C memory type */
+                      DMA_WriteReg(SW_DMA_TARGET_ADDR_REG, &temp[1], 3);
+              
+                      ptempshort = (U16_T XDATA*)&temp[0];
+                      *ptempshort = length;
+                      DMA_WriteReg(SW_DMA_BYTE_COUNT_REG, temp, 2);
+              
+                      temp[0] = DMA_CMD_GO;
+                      DMA_WriteReg(SW_DMA_CMD_REG, temp, 1);
+              
+                      ptemp = pdest;
+                      pdest += length;
+              /* for KEIL */
+                      if (ptemp > pdest)
+                              pdest += 0x10000;
+              /* end */
+                      /* check software dma had completed. */
+                      if (dma_CheckStatus())
+                              return pdest;
+                      else
+                              return 0;
+              
+              } /* DMA_Grant */
+C51 COMPILER V9.06   DMA                                                                   03/13/2013 09:32:21 PAGE 7   
+
+              #endif /* End of #if (DMA_SRAM_RANGE == DMA_COPY_LARGE_THAN_64K) */
+              
+              
+              #endif /* End of #if (DMA_INCLUDE_ETHERNET_MODULE == DMA_YES)*/
+ 366          
+ 367          
+ 368          /* End of dma.c */
+ 369          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1243    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----      38
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,837 @@
+C51 COMPILER V9.06   WEB_FUN                                                               03/13/2013 09:32:26 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE WEB_FUN
+OBJECT MODULE PLACED IN .\web_fun.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\web\web_fun.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) I
+                    -NCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..
+                    -\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\bu
+                    -ffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\
+                    -Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\web_fun.lst) OBJECT(.\web_fu
+                    -n.obj)
+
+line level    source
+
+   1          /*=============================================================================
+   2           * Module Name: web_fun.c
+   3           * Purpose:
+   4           * Author:
+   5           * Date:
+   6           * Notes:
+   7           * $Log: web_fun.c,v $
+   8           *=============================================================================
+   9           */
+  10          
+  11          /* INCLUDE FILE DECLARATIONS */
+  12          #include "filesys.h"
+  13          #include "httpd.h"
+  14          
+  15          #include "reg80390.h"
+  16          #include "adapter.h"
+  17          #include "temperature.h"
+  18          #include "printd.h"
+  19          #include "mstimer.h"
+  20          #include <stdio.h>
+  21          #include <string.h>
+  22          
+  23          /* GLOBAL VARIABLE DECLARATIONS */
+  24          const void *fun_tbl[] =
+  25          {
+  26                  FUN_RADIO_p0,
+  27                  FUN_RADIO_p1,
+  28                  FUN_RADIO_p2,
+  29                  FUN_RADIO_p3,
+  30                  FUN_RADIO_p4,
+  31                  FUN_RADIO_p5,
+  32                  FUN_RADIO_p6,
+  33                  FUN_RADIO_p7,
+  34                  NULL,
+  35                  FUN_SELECT_p0,
+  36                  FUN_SELECT_p1,
+  37                  FUN_SELECT_p2,
+  38                  FUN_SELECT_p3,
+  39                  FUN_SELECT_p4,
+  40                  FUN_SELECT_p5,
+  41                  FUN_SELECT_p6,
+  42                  FUN_SELECT_p7,
+  43                  FUN_TEXT_temperature,
+  44                  FUN_TEXT_p0,
+  45                  FUN_TEXT_p1,
+  46                  FUN_TEXT_p2,
+  47                  FUN_TEXT_p3,
+  48                  FUN_TEXT_p4,
+  49                  FUN_TEXT_p5,
+  50                  FUN_TEXT_p6,
+C51 COMPILER V9.06   WEB_FUN                                                               03/13/2013 09:32:26 PAGE 2   
+
+  51                  FUN_TEXT_p7
+  52          };
+  53          
+  54          
+  55          /* STATIC VARIABLE DECLARATIONS */
+  56          
+  57          
+  58          /* LOCAL SUBPROGRAM DECLARATIONS */
+  59          /*
+  60           * ----------------------------------------------------------------------------
+  61           * Function Name: FUN_RADIO_p0
+  62           * Purpose:
+  63           * Params:
+  64           * Returns:
+  65           * Note:
+  66           * ----------------------------------------------------------------------------
+  67           */
+  68          void FUN_RADIO_p0 (void *pWebData)
+  69          {
+  70   1              // TODO: Add your specialized code here
+  71   1              if (*((U8_T *)pWebData) == 0)
+  72   1              {
+  73   2                      P3 &= ~0x01;
+  74   2      
+  75   2                      BUF_Text[1].CurrValue[0] = '1';
+  76   2                      BUF_Select[0].CurrentSet = 1;
+  77   2              }
+  78   1              else
+  79   1              {
+  80   2                      P3 |= 0x01;
+  81   2      
+  82   2                      BUF_Text[1].CurrValue[0] = '0';
+  83   2                      BUF_Select[0].CurrentSet = 0;
+  84   2              }
+  85   1      }
+  86          
+  87          /*
+  88           * ----------------------------------------------------------------------------
+  89           * Function Name: FUN_RADIO_p1
+  90           * Purpose:
+  91           * Params:
+  92           * Returns:
+  93           * Note:
+  94           * ----------------------------------------------------------------------------
+  95           */
+  96          void FUN_RADIO_p1 (void *pWebData)
+  97          {
+  98   1              // TODO: Add your specialized code here
+  99   1              if (*((U8_T *)pWebData) == 0)
+ 100   1              {
+ 101   2                      P3 &= ~0x02;
+ 102   2      
+ 103   2                      BUF_Text[2].CurrValue[0] = '1';
+ 104   2                      BUF_Select[1].CurrentSet = 1;
+ 105   2              }
+ 106   1              else
+ 107   1              {
+ 108   2                      P3 |= 0x02;
+ 109   2      
+ 110   2                      BUF_Text[2].CurrValue[0] = '0';
+ 111   2                      BUF_Select[1].CurrentSet = 0;
+ 112   2              }
+C51 COMPILER V9.06   WEB_FUN                                                               03/13/2013 09:32:26 PAGE 3   
+
+ 113   1      }
+ 114          
+ 115          /*
+ 116           * ----------------------------------------------------------------------------
+ 117           * Function Name: FUN_RADIO_p2
+ 118           * Purpose:
+ 119           * Params:
+ 120           * Returns:
+ 121           * Note:
+ 122           * ----------------------------------------------------------------------------
+ 123           */
+ 124          void FUN_RADIO_p2 (void *pWebData)
+ 125          {
+ 126   1              // TODO: Add your specialized code here
+ 127   1              if (*((U8_T *)pWebData) == 0)
+ 128   1              {
+ 129   2                      P3 &= ~0x04;
+ 130   2      
+ 131   2                      BUF_Text[3].CurrValue[0] = '1';
+ 132   2                      BUF_Select[2].CurrentSet = 1;
+ 133   2              }
+ 134   1              else
+ 135   1              {
+ 136   2                      P3 |= 0x04;
+ 137   2      
+ 138   2                      BUF_Text[3].CurrValue[0] = '0';
+ 139   2                      BUF_Select[2].CurrentSet = 0;
+ 140   2              }
+ 141   1      }
+ 142          
+ 143          /*
+ 144           * ----------------------------------------------------------------------------
+ 145           * Function Name: FUN_RADIO_p3
+ 146           * Purpose:
+ 147           * Params:
+ 148           * Returns:
+ 149           * Note:
+ 150           * ----------------------------------------------------------------------------
+ 151           */
+ 152          void FUN_RADIO_p3 (void *pWebData)
+ 153          {
+ 154   1              // TODO: Add your specialized code here
+ 155   1              if (*((U8_T *)pWebData) == 0)
+ 156   1              {
+ 157   2                      P3 &= ~0x08;
+ 158   2      
+ 159   2                      BUF_Text[4].CurrValue[0] = '1';
+ 160   2                      BUF_Select[3].CurrentSet = 1;
+ 161   2              }
+ 162   1              else
+ 163   1              {
+ 164   2                      P3 |= 0x08;
+ 165   2      
+ 166   2                      BUF_Text[4].CurrValue[0] = '0';
+ 167   2                      BUF_Select[3].CurrentSet = 0;
+ 168   2              }
+ 169   1      }
+ 170          
+ 171          /*
+ 172           * ----------------------------------------------------------------------------
+ 173           * Function Name: FUN_RADIO_p4
+ 174           * Purpose:
+C51 COMPILER V9.06   WEB_FUN                                                               03/13/2013 09:32:26 PAGE 4   
+
+ 175           * Params:
+ 176           * Returns:
+ 177           * Note:
+ 178           * ----------------------------------------------------------------------------
+ 179           */
+ 180          void FUN_RADIO_p4 (void *pWebData)
+ 181          {
+ 182   1              // TODO: Add your specialized code here
+ 183   1              if (*((U8_T *)pWebData) == 0)
+ 184   1              {
+ 185   2                      P3 &= ~0x10;
+ 186   2      
+ 187   2                      BUF_Text[5].CurrValue[0] = '1';
+ 188   2                      BUF_Select[4].CurrentSet = 1;
+ 189   2              }
+ 190   1              else
+ 191   1              {
+ 192   2                      P3 |= 0x10;
+ 193   2      
+ 194   2                      BUF_Text[5].CurrValue[0] = '0';
+ 195   2                      BUF_Select[4].CurrentSet = 0;
+ 196   2              }
+ 197   1      }
+ 198          
+ 199          /*
+ 200           * ----------------------------------------------------------------------------
+ 201           * Function Name: FUN_RADIO_p5
+ 202           * Purpose:
+ 203           * Params:
+ 204           * Returns:
+ 205           * Note:
+ 206           * ----------------------------------------------------------------------------
+ 207           */
+ 208          void FUN_RADIO_p5 (void *pWebData)
+ 209          {
+ 210   1              // TODO: Add your specialized code here
+ 211   1              if (*((U8_T *)pWebData) == 0)
+ 212   1              {
+ 213   2                      P3 &= ~0x20;
+ 214   2      
+ 215   2                      BUF_Text[6].CurrValue[0] = '1';
+ 216   2                      BUF_Select[5].CurrentSet = 1;
+ 217   2              }
+ 218   1              else
+ 219   1              {
+ 220   2                      P3 |= 0x20;
+ 221   2      
+ 222   2                      BUF_Text[6].CurrValue[0] = '0';
+ 223   2                      BUF_Select[5].CurrentSet = 0;
+ 224   2              }
+ 225   1      }
+ 226          
+ 227          /*
+ 228           * ----------------------------------------------------------------------------
+ 229           * Function Name: FUN_RADIO_p6
+ 230           * Purpose:
+ 231           * Params:
+ 232           * Returns:
+ 233           * Note:
+ 234           * ----------------------------------------------------------------------------
+ 235           */
+ 236          void FUN_RADIO_p6 (void *pWebData)
+C51 COMPILER V9.06   WEB_FUN                                                               03/13/2013 09:32:26 PAGE 5   
+
+ 237          {
+ 238   1              // TODO: Add your specialized code here
+ 239   1              if (*((U8_T *)pWebData) == 0)
+ 240   1              {
+ 241   2                      P3 &= ~0x40;
+ 242   2      
+ 243   2                      BUF_Text[7].CurrValue[0] = '1';
+ 244   2                      BUF_Select[6].CurrentSet = 1;
+ 245   2              }
+ 246   1              else
+ 247   1              {
+ 248   2                      P3 |= 0x40;
+ 249   2      
+ 250   2                      BUF_Text[7].CurrValue[0] = '0';
+ 251   2                      BUF_Select[6].CurrentSet = 0;
+ 252   2              }
+ 253   1      }
+ 254          
+ 255          /*
+ 256           * ----------------------------------------------------------------------------
+ 257           * Function Name: FUN_RADIO_p7
+ 258           * Purpose:
+ 259           * Params:
+ 260           * Returns:
+ 261           * Note:
+ 262           * ----------------------------------------------------------------------------
+ 263           */
+ 264          void FUN_RADIO_p7 (void *pWebData)
+ 265          {
+ 266   1              // TODO: Add your specialized code here
+ 267   1      if (*((U8_T *)pWebData) == 0)
+ 268   1              {
+ 269   2                      P3 &= ~0x80;
+ 270   2      
+ 271   2                      BUF_Text[8].CurrValue[0] = '1';
+ 272   2                      BUF_Select[7].CurrentSet = 1;
+ 273   2              }
+ 274   1              else
+ 275   1              {
+ 276   2                      P3 |= 0x80;
+ 277   2      
+ 278   2                      BUF_Text[8].CurrValue[0] = '0';
+ 279   2                      BUF_Select[7].CurrentSet = 0;
+ 280   2              }
+ 281   1      }
+ 282          
+ 283          /*
+ 284           * ----------------------------------------------------------------------------
+ 285           * Function Name:  FUN_SELECT_p0
+ 286           * Purpose:
+ 287           * Params:
+ 288           * Returns:
+ 289           * Note:
+ 290           * ----------------------------------------------------------------------------
+ 291           */
+ 292          void FUN_SELECT_p0 (void *pWebData)
+ 293          {
+ 294   1              // TODO: Add your specialized code here
+ 295   1              if (*((U8_T *)pWebData) == 1)
+ 296   1              {
+ 297   2                      P3 &= ~0x01;
+ 298   2                      
+C51 COMPILER V9.06   WEB_FUN                                                               03/13/2013 09:32:26 PAGE 6   
+
+ 299   2                      BUF_Text[1].CurrValue[0] = '1';
+ 300   2                      BUF_Radio[0].CurrentSet = 0;
+ 301   2              }
+ 302   1              else
+ 303   1              {
+ 304   2                      P3 |= 0x01;
+ 305   2      
+ 306   2                      BUF_Text[1].CurrValue[0] = '0';
+ 307   2                      BUF_Radio[0].CurrentSet = 1;
+ 308   2              }
+ 309   1      }
+ 310          
+ 311          /*
+ 312           * ----------------------------------------------------------------------------
+ 313           * Function Name:  FUN_SELECT_p1
+ 314           * Purpose:
+ 315           * Params:
+ 316           * Returns:
+ 317           * Note:
+ 318           * ----------------------------------------------------------------------------
+ 319           */
+ 320          void FUN_SELECT_p1 (void *pWebData)
+ 321          {
+ 322   1              // TODO: Add your specialized code here
+ 323   1              if (*((U8_T *)pWebData) == 1)
+ 324   1              {
+ 325   2                      P3 &= ~0x02;
+ 326   2                      
+ 327   2                      BUF_Text[2].CurrValue[0] = '1';
+ 328   2                      BUF_Radio[1].CurrentSet = 0;
+ 329   2              }
+ 330   1              else
+ 331   1              {
+ 332   2                      P3 |= 0x02;
+ 333   2      
+ 334   2                      BUF_Text[2].CurrValue[0] = '0';
+ 335   2                      BUF_Radio[1].CurrentSet = 1;
+ 336   2              }
+ 337   1      }
+ 338          
+ 339          /*
+ 340           * ----------------------------------------------------------------------------
+ 341           * Function Name:  FUN_SELECT_p2
+ 342           * Purpose:
+ 343           * Params:
+ 344           * Returns:
+ 345           * Note:
+ 346           * ----------------------------------------------------------------------------
+ 347           */
+ 348          void FUN_SELECT_p2 (void *pWebData)
+ 349          {
+ 350   1              // TODO: Add your specialized code here
+ 351   1              if (*((U8_T *)pWebData) == 1)
+ 352   1              {
+ 353   2                      P3 &= ~0x04;
+ 354   2                      
+ 355   2                      BUF_Text[3].CurrValue[0] = '1';
+ 356   2                      BUF_Radio[2].CurrentSet = 0;
+ 357   2              }
+ 358   1              else
+ 359   1              {
+ 360   2                      P3 |= 0x04;
+C51 COMPILER V9.06   WEB_FUN                                                               03/13/2013 09:32:26 PAGE 7   
+
+ 361   2      
+ 362   2                      BUF_Text[3].CurrValue[0] = '0';
+ 363   2                      BUF_Radio[2].CurrentSet = 1;
+ 364   2              }
+ 365   1      }
+ 366          
+ 367          /*
+ 368           * ----------------------------------------------------------------------------
+ 369           * Function Name:  FUN_SELECT_p3
+ 370           * Purpose:
+ 371           * Params:
+ 372           * Returns:
+ 373           * Note:
+ 374           * ----------------------------------------------------------------------------
+ 375           */
+ 376          void FUN_SELECT_p3 (void *pWebData)
+ 377          {
+ 378   1              // TODO: Add your specialized code here
+ 379   1              if (*((U8_T *)pWebData) == 1)
+ 380   1              {
+ 381   2                      P3 &= ~0x08;
+ 382   2                      
+ 383   2                      BUF_Text[4].CurrValue[0] = '1';
+ 384   2                      BUF_Radio[3].CurrentSet = 0;
+ 385   2              }
+ 386   1              else
+ 387   1              {
+ 388   2                      P3 |= 0x08;
+ 389   2      
+ 390   2                      BUF_Text[4].CurrValue[0] = '0';
+ 391   2                      BUF_Radio[3].CurrentSet = 1;
+ 392   2              }
+ 393   1      }
+ 394          
+ 395          /*
+ 396           * ----------------------------------------------------------------------------
+ 397           * Function Name:  FUN_SELECT_p4
+ 398           * Purpose:
+ 399           * Params:
+ 400           * Returns:
+ 401           * Note:
+ 402           * ----------------------------------------------------------------------------
+ 403           */
+ 404          void FUN_SELECT_p4 (void *pWebData)
+ 405          {
+ 406   1              // TODO: Add your specialized code here
+ 407   1              if (*((U8_T *)pWebData) == 1)
+ 408   1              {
+ 409   2                      P3 &= ~0x10;
+ 410   2                      
+ 411   2                      BUF_Text[5].CurrValue[0] = '1';
+ 412   2                      BUF_Radio[4].CurrentSet = 0;
+ 413   2              }
+ 414   1              else
+ 415   1              {
+ 416   2                      P3 |= 0x10;
+ 417   2      
+ 418   2                      BUF_Text[5].CurrValue[0] = '0';
+ 419   2                      BUF_Radio[4].CurrentSet = 1;
+ 420   2              }
+ 421   1      }
+ 422          
+C51 COMPILER V9.06   WEB_FUN                                                               03/13/2013 09:32:26 PAGE 8   
+
+ 423          /*
+ 424           * ----------------------------------------------------------------------------
+ 425           * Function Name:  FUN_SELECT_p5
+ 426           * Purpose:
+ 427           * Params:
+ 428           * Returns:
+ 429           * Note:
+ 430           * ----------------------------------------------------------------------------
+ 431           */
+ 432          void FUN_SELECT_p5 (void *pWebData)
+ 433          {
+ 434   1              // TODO: Add your specialized code here
+ 435   1              if (*((U8_T *)pWebData) == 1)
+ 436   1              {
+ 437   2                      P3 &= ~0x20;
+ 438   2      
+ 439   2                      BUF_Text[6].CurrValue[0] = '1';
+ 440   2                      BUF_Radio[5].CurrentSet = 0;
+ 441   2              }
+ 442   1              else
+ 443   1              {
+ 444   2                      P3 |= 0x20;
+ 445   2      
+ 446   2                      BUF_Text[6].CurrValue[0] = '0';
+ 447   2                      BUF_Radio[5].CurrentSet = 1;
+ 448   2              }
+ 449   1      }
+ 450          
+ 451          /*
+ 452           * ----------------------------------------------------------------------------
+ 453           * Function Name:  FUN_SELECT_p6
+ 454           * Purpose:
+ 455           * Params:
+ 456           * Returns:
+ 457           * Note:
+ 458           * ----------------------------------------------------------------------------
+ 459           */
+ 460          void FUN_SELECT_p6 (void *pWebData)
+ 461          {
+ 462   1              // TODO: Add your specialized code here
+ 463   1              if (*((U8_T *)pWebData) == 1)
+ 464   1              {
+ 465   2                      P3 &= ~0x40;
+ 466   2      
+ 467   2                      BUF_Text[7].CurrValue[0] = '1';
+ 468   2                      BUF_Radio[6].CurrentSet = 0;
+ 469   2              }
+ 470   1              else
+ 471   1              {
+ 472   2                      P3 |= 0x40;
+ 473   2      
+ 474   2                      BUF_Text[7].CurrValue[0] = '0';
+ 475   2                      BUF_Radio[6].CurrentSet = 1;
+ 476   2              }
+ 477   1      }
+ 478          
+ 479          /*
+ 480           * ----------------------------------------------------------------------------
+ 481           * Function Name:  FUN_SELECT_p7
+ 482           * Purpose:
+ 483           * Params:
+ 484           * Returns:
+C51 COMPILER V9.06   WEB_FUN                                                               03/13/2013 09:32:26 PAGE 9   
+
+ 485           * Note:
+ 486           * ----------------------------------------------------------------------------
+ 487           */
+ 488          void FUN_SELECT_p7 (void *pWebData)
+ 489          {
+ 490   1              // TODO: Add your specialized code here
+ 491   1              if (*((U8_T *)pWebData) == 1)
+ 492   1              {
+ 493   2                      P3 &= ~0x80;
+ 494   2      
+ 495   2                      BUF_Text[8].CurrValue[0] = '1';
+ 496   2                      BUF_Radio[7].CurrentSet = 0;
+ 497   2              }
+ 498   1              else
+ 499   1              {
+ 500   2                      P3 |= 0x80;
+ 501   2      
+ 502   2                      BUF_Text[8].CurrValue[0] = '0';
+ 503   2                      BUF_Radio[7].CurrentSet = 1;
+ 504   2              }
+ 505   1      }
+ 506          
+ 507          /*
+ 508           * ----------------------------------------------------------------------------
+ 509           * Function Name: FUN_TEXT_temperature
+ 510           * Purpose:
+ 511           * Params:
+ 512           * Returns:
+ 513           * Note:
+ 514           * ----------------------------------------------------------------------------
+ 515           */
+ 516          void FUN_TEXT_temperature (void *pWebData)
+ 517          {
+ 518   1              // TODO: Add your specialized code here
+ 519   1              BUF_TEXT        XDATA*  pText = (BUF_TEXT *)pWebData;
+ 520   1              U8_T            XDATA*  pExpanSour;
+ 521   1              U8_T            XDATA   index;
+ 522   1      
+ 523   1              pExpanSour = OW_Temprature_GET();
+ 524   1      
+ 525   1              index = 0;
+ 526   1              while (*pExpanSour)
+ 527   1              {
+ 528   2                      pText->CurrValue[index]= *pExpanSour++;
+ 529   2                      index++;
+ 530   2                      if (index > 10)
+ 531   2                              break;
+ 532   2              }
+ 533   1              pText->CurrValue[index] = '"';
+ 534   1              pText->CurrLength = index + 1;
+ 535   1      
+ 536   1      //      printd ("temperature length = %bx\n\r", index);
+ 537   1      }
+ 538          
+ 539          /*
+ 540           * ----------------------------------------------------------------------------
+ 541           * Function Name: FUN_TEXT_p0
+ 542           * Purpose:
+ 543           * Params:
+ 544           * Returns:
+ 545           * Note:
+ 546           * ----------------------------------------------------------------------------
+C51 COMPILER V9.06   WEB_FUN                                                               03/13/2013 09:32:26 PAGE 10  
+
+ 547           */
+ 548          void FUN_TEXT_p0 (void *pWebData)
+ 549          {
+ 550   1              // TODO: Add your specialized code here
+ 551   1              BUF_TEXT XDATA          *pText = (BUF_TEXT *)pWebData;
+ 552   1      
+ 553   1              if(pText->CurrValue[0] == '0')
+ 554   1              {
+ 555   2                      P3 |= 0x01;
+ 556   2      
+ 557   2                      BUF_Select[0].CurrentSet = 0;
+ 558   2                      BUF_Radio[0].CurrentSet = 1;            
+ 559   2              }
+ 560   1              else
+ 561   1              {
+ 562   2                      P3 &= ~0x01;
+ 563   2      
+ 564   2                      BUF_Select[0].CurrentSet = 1;
+ 565   2                      BUF_Radio[0].CurrentSet = 0;
+ 566   2              }
+ 567   1      }
+ 568          
+ 569          /*
+ 570           * ----------------------------------------------------------------------------
+ 571           * Function Name: FUN_TEXT_p1
+ 572           * Purpose:
+ 573           * Params:
+ 574           * Returns:
+ 575           * Note:
+ 576           * ----------------------------------------------------------------------------
+ 577           */
+ 578          void FUN_TEXT_p1 (void *pWebData)
+ 579          {
+ 580   1              // TODO: Add your specialized code here
+ 581   1              BUF_TEXT XDATA          *pText = (BUF_TEXT *)pWebData;
+ 582   1      
+ 583   1              if(pText->CurrValue[0] == '0')
+ 584   1              {
+ 585   2                      P3 |= 0x02;
+ 586   2      
+ 587   2                      BUF_Select[1].CurrentSet = 0;
+ 588   2                      BUF_Radio[1].CurrentSet = 1;            
+ 589   2              }
+ 590   1              else
+ 591   1              {
+ 592   2                      P3 &= ~0x02;
+ 593   2      
+ 594   2                      BUF_Select[1].CurrentSet = 1;
+ 595   2                      BUF_Radio[1].CurrentSet = 0;
+ 596   2              }
+ 597   1      }
+ 598          
+ 599          /*
+ 600           * ----------------------------------------------------------------------------
+ 601           * Function Name: FUN_TEXT_p2
+ 602           * Purpose:
+ 603           * Params:
+ 604           * Returns:
+ 605           * Note:
+ 606           * ----------------------------------------------------------------------------
+ 607           */
+ 608          void FUN_TEXT_p2 (void *pWebData)
+C51 COMPILER V9.06   WEB_FUN                                                               03/13/2013 09:32:26 PAGE 11  
+
+ 609          {
+ 610   1              // TODO: Add your specialized code here
+ 611   1              BUF_TEXT XDATA          *pText = (BUF_TEXT *)pWebData;
+ 612   1      
+ 613   1              if(pText->CurrValue[0] == '0')
+ 614   1              {
+ 615   2                      P3 |= 0x04;
+ 616   2      
+ 617   2                      BUF_Select[2].CurrentSet = 0;
+ 618   2                      BUF_Radio[2].CurrentSet = 1;            
+ 619   2              }
+ 620   1              else
+ 621   1              {
+ 622   2                      P3 &= ~0x04;
+ 623   2      
+ 624   2                      BUF_Select[2].CurrentSet = 1;
+ 625   2                      BUF_Radio[2].CurrentSet = 0;
+ 626   2              }
+ 627   1      }
+ 628          
+ 629          /*
+ 630           * ----------------------------------------------------------------------------
+ 631           * Function Name: FUN_TEXT_p3
+ 632           * Purpose:
+ 633           * Params:
+ 634           * Returns:
+ 635           * Note:
+ 636           * ----------------------------------------------------------------------------
+ 637           */
+ 638          void FUN_TEXT_p3 (void *pWebData)
+ 639          {
+ 640   1              // TODO: Add your specialized code here
+ 641   1              BUF_TEXT XDATA          *pText = (BUF_TEXT *)pWebData;
+ 642   1      
+ 643   1              if(pText->CurrValue[0] == '0')
+ 644   1              {
+ 645   2                      P3 |= 0x08;
+ 646   2      
+ 647   2                      BUF_Select[3].CurrentSet = 0;
+ 648   2                      BUF_Radio[3].CurrentSet = 1;            
+ 649   2              }
+ 650   1              else
+ 651   1              {
+ 652   2                      P3 &= ~0x08;
+ 653   2      
+ 654   2                      BUF_Select[3].CurrentSet = 1;
+ 655   2                      BUF_Radio[3].CurrentSet = 0;
+ 656   2              }
+ 657   1      }
+ 658          
+ 659          /*
+ 660           * ----------------------------------------------------------------------------
+ 661           * Function Name: FUN_TEXT_p4
+ 662           * Purpose:
+ 663           * Params:
+ 664           * Returns:
+ 665           * Note:
+ 666           * ----------------------------------------------------------------------------
+ 667           */
+ 668          void FUN_TEXT_p4 (void *pWebData)
+ 669          {
+ 670   1              // TODO: Add your specialized code here
+C51 COMPILER V9.06   WEB_FUN                                                               03/13/2013 09:32:26 PAGE 12  
+
+ 671   1              BUF_TEXT XDATA          *pText = (BUF_TEXT *)pWebData;
+ 672   1      
+ 673   1              if(pText->CurrValue[0] == '0')
+ 674   1              {
+ 675   2                      P3 |= 0x10;
+ 676   2      
+ 677   2                      BUF_Select[4].CurrentSet = 0;
+ 678   2                      BUF_Radio[4].CurrentSet = 1;            
+ 679   2              }
+ 680   1              else
+ 681   1              {
+ 682   2                      P3 &= ~0x10;
+ 683   2      
+ 684   2                      BUF_Select[4].CurrentSet = 1;
+ 685   2                      BUF_Radio[4].CurrentSet = 0;
+ 686   2              }
+ 687   1      }
+ 688          
+ 689          /*
+ 690           * ----------------------------------------------------------------------------
+ 691           * Function Name: FUN_TEXT_p5
+ 692           * Purpose:
+ 693           * Params:
+ 694           * Returns:
+ 695           * Note:
+ 696           * ----------------------------------------------------------------------------
+ 697           */
+ 698          void FUN_TEXT_p5 (void *pWebData)
+ 699          {
+ 700   1              // TODO: Add your specialized code here
+ 701   1              BUF_TEXT XDATA          *pText = (BUF_TEXT *)pWebData;
+ 702   1      
+ 703   1              if(pText->CurrValue[0] == '0')
+ 704   1              {
+ 705   2                      P3 |= 0x20;
+ 706   2      
+ 707   2                      BUF_Select[5].CurrentSet = 0;
+ 708   2                      BUF_Radio[5].CurrentSet = 1;            
+ 709   2              }
+ 710   1              else
+ 711   1              {
+ 712   2                      P3 &= ~0x20;
+ 713   2      
+ 714   2                      BUF_Select[5].CurrentSet = 1;
+ 715   2                      BUF_Radio[5].CurrentSet = 0;
+ 716   2              }
+ 717   1      }
+ 718          
+ 719          /*
+ 720           * ----------------------------------------------------------------------------
+ 721           * Function Name: FUN_TEXT_p6
+ 722           * Purpose:
+ 723           * Params:
+ 724           * Returns:
+ 725           * Note:
+ 726           * ----------------------------------------------------------------------------
+ 727           */
+ 728          void FUN_TEXT_p6 (void *pWebData)
+ 729          {
+ 730   1              // TODO: Add your specialized code here
+ 731   1              BUF_TEXT XDATA          *pText = (BUF_TEXT *)pWebData;
+ 732   1      
+C51 COMPILER V9.06   WEB_FUN                                                               03/13/2013 09:32:26 PAGE 13  
+
+ 733   1              if(pText->CurrValue[0] == '0')
+ 734   1              {
+ 735   2                      P3 |= 0x40;
+ 736   2      
+ 737   2                      BUF_Select[6].CurrentSet = 0;
+ 738   2                      BUF_Radio[6].CurrentSet = 1;            
+ 739   2              }
+ 740   1              else
+ 741   1              {
+ 742   2                      P3 &= ~0x40;
+ 743   2      
+ 744   2                      BUF_Select[6].CurrentSet = 1;
+ 745   2                      BUF_Radio[6].CurrentSet = 0;
+ 746   2              }
+ 747   1      }
+ 748          
+ 749          /*
+ 750           * ----------------------------------------------------------------------------
+ 751           * Function Name: FUN_TEXT_p7
+ 752           * Purpose:
+ 753           * Params:
+ 754           * Returns:
+ 755           * Note:
+ 756           * ----------------------------------------------------------------------------
+ 757           */
+ 758          void FUN_TEXT_p7 (void *pWebData)
+ 759          {
+ 760   1              // TODO: Add your specialized code here
+ 761   1              BUF_TEXT XDATA          *pText = (BUF_TEXT *)pWebData;
+ 762   1      
+ 763   1              if(pText->CurrValue[0] == '0')
+ 764   1              {
+ 765   2                      P3 |= 0x80;
+ 766   2      
+ 767   2                      BUF_Select[7].CurrentSet = 0;
+ 768   2                      BUF_Radio[7].CurrentSet = 1;            
+ 769   2              }
+ 770   1              else
+ 771   1              {
+ 772   2                      P3 &= ~0x80;
+ 773   2      
+ 774   2                      BUF_Select[7].CurrentSet = 1;
+ 775   2                      BUF_Radio[7].CurrentSet = 0;
+ 776   2              }
+ 777   1      }
+ 778          
+ 779          /* End of web_fun.c */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1232    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     78       4
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+C51 COMPILER V9.06   WEB_FUN                                                               03/13/2013 09:32:26 PAGE 14  
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

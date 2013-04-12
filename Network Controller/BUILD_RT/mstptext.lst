@@ -1,0 +1,127 @@
+C51 COMPILER V9.06   MSTPTEXT                                                              03/13/2013 09:32:30 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE MSTPTEXT
+OBJECT MODULE PLACED IN .\mstptext.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\mstptext.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X602
+                    -0) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur
+                    -\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SR
+                    -C\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\
+                    -;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\mstptext.lst) OBJECT(.\m
+                    -stptext.obj)
+
+line level    source
+
+   1          /*####COPYRIGHTBEGIN####
+   2           -------------------------------------------
+   3           Copyright (C) 2007 Steve Karg
+   4          
+   5           This program is free software; you can redistribute it and/or
+   6           modify it under the terms of the GNU General Public License
+   7           as published by the Free Software Foundation; either version 2
+   8           of the License, or (at your option) any later version.
+   9          
+  10           This program is distributed in the hope that it will be useful,
+  11           but WITHOUT ANY WARRANTY; without even the implied warranty of
+  12           MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  13           GNU General Public License for more details.
+  14          
+  15           You should have received a copy of the GNU General Public License
+  16           along with this program; if not, write to:
+  17           The Free Software Foundation, Inc.
+  18           59 Temple Place - Suite 330
+  19           Boston, MA  02111-1307, USA.
+  20          
+  21           As a special exception, if other files instantiate templates or
+  22           use macros or inline functions from this file, or you compile
+  23           this file and link it with other works to produce a work based
+  24           on this file, this file does not by itself cause the resulting
+  25           work to be covered by the GNU General Public License. However
+  26           the source code for this file must still be made available in
+  27           accordance with section (3) of the GNU General Public License.
+  28          
+  29           This exception does not invalidate any other reasons why a work
+  30           based on this file might be covered by the GNU General Public
+  31           License.
+  32           -------------------------------------------
+  33          ####COPYRIGHTEND####*/
+  34          #include <stdio.h>
+  35          #include "../include/mstp.h"
+  36          #include "../include/indtext.h"
+  37          #include "../include/bacenum.h"
+  38          #include "../include/mstptext.h"
+  39          
+  40          /** @file mstptext.c  Text mapping functions for BACnet MS/TP */
+  41          
+  42          static INDTEXT_DATA mstp_receive_state_text[] = {
+  43              {MSTP_RECEIVE_STATE_IDLE, "IDLE"},
+  44              {MSTP_RECEIVE_STATE_PREAMBLE, "PREAMBLE"},
+  45              {MSTP_RECEIVE_STATE_HEADER, "HEADER"},
+  46              {MSTP_RECEIVE_STATE_DATA, "DATA"},
+  47              {0, NULL}
+  48          };
+  49          
+  50          const char *mstptext_receive_state(
+C51 COMPILER V9.06   MSTPTEXT                                                              03/13/2013 09:32:30 PAGE 2   
+
+  51              unsigned index)
+  52          {
+  53   1          return indtext_by_index_default(mstp_receive_state_text, index, "unknown");
+  54   1      }
+  55          
+  56          static INDTEXT_DATA mstp_master_state_text[] = {
+  57              {MSTP_MASTER_STATE_INITIALIZE, "INITIALIZE"},
+  58              {MSTP_MASTER_STATE_IDLE, "IDLE"},
+  59              {MSTP_MASTER_STATE_USE_TOKEN, "USE_TOKEN"},
+  60              {MSTP_MASTER_STATE_WAIT_FOR_REPLY, "WAIT_FOR_REPLY"},
+  61              {MSTP_MASTER_STATE_DONE_WITH_TOKEN, "DONE_WITH_TOKEN"},
+  62              {MSTP_MASTER_STATE_PASS_TOKEN, "PASS_TOKEN"},
+  63              {MSTP_MASTER_STATE_NO_TOKEN, "NO_TOKEN"},
+  64              {MSTP_MASTER_STATE_POLL_FOR_MASTER, "POLL_FOR_MASTER"},
+  65              {MSTP_MASTER_STATE_ANSWER_DATA_REQUEST, "ANSWER_DATA_REQUEST"},
+  66              {0, NULL}
+  67          };
+  68          
+  69          const char *mstptext_master_state(
+  70              unsigned index)
+  71          {
+  72   1          return indtext_by_index_default(mstp_master_state_text, index, "unknown");
+  73   1      }
+  74          
+  75          static INDTEXT_DATA mstp_frame_type_text[] = {
+  76              {FRAME_TYPE_TOKEN, "TOKEN"},
+  77              {FRAME_TYPE_POLL_FOR_MASTER, "POLL_FOR_MASTER"},
+  78              {FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER, "REPLY_TO_POLL_FOR_MASTER"},
+  79              {FRAME_TYPE_TEST_REQUEST, "TEST_REQUEST"},
+  80              {FRAME_TYPE_TEST_RESPONSE, "TEST_RESPONSE"},
+  81              {FRAME_TYPE_BACNET_DATA_EXPECTING_REPLY, "BACNET_DATA_EXPECTING_REPLY"},
+  82              {FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY,
+  83                  "BACNET_DATA_NOT_EXPECTING_REPLY"},
+  84              {FRAME_TYPE_REPLY_POSTPONED, "REPLY_POSTPONED"},
+  85              {0, NULL}
+  86          };
+  87          
+  88          const char *mstptext_frame_type(
+  89              unsigned index)
+  90          {
+  91   1          return indtext_by_index_split_default(mstp_frame_type_text, index,
+  92   1              FRAME_TYPE_PROPRIETARY_MIN, "UNKNOWN", "PROPRIETARY");
+  93   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    109    ----
+   CONSTANT SIZE    =    296    ----
+   XDATA SIZE       =    120    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,173 @@
+C51 COMPILER V9.06   E2PROM                                                                03/13/2013 09:32:25 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE E2PROM
+OBJECT MODULE PLACED IN .\E2prom.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\i2c\E2prom.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) IN
+                    -CDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\
+                    -SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buf
+                    -fer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\S
+                    -rc\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\E2prom.lst) OBJECT(.\E2prom.o
+                    -bj)
+
+line level    source
+
+   1          
+   2          #include "e2prom.h"
+   3          #include "../cpu/ax11000.h"
+   4          extern void test_run(U8_T dat);
+   5          //  -------------
+   6          //  note:       
+   7          //      1. every time use new chip, should initial e2prom using WINDOWS ISP
+   8          //      2. make sure the I2C interrupt vector is turned on.
+   9          //  -------------
+  10          
+  11          #define         USER_BASE_ADDR  0x30   // if use 24c02, the usable range is 0x30 - 0xff, 208 bytes
+  12          
+  13          #if 1
+  14          
+  15          I2C_BUF Read_Data;
+  16          
+  17          static U16_T ADDROFDEV = 0x50;
+  18          static U16_T delay_count = 2000;
+  19          
+  20          void E2prom_Initial(void)
+  21          {
+  22   1              U16_T   i2cpreclk = 0;
+  23   1              U8_T    sysclk = 0;
+  24   1              U32_T   Sysclk;
+  25   1              sysclk = AX11000_GetSysClk();
+  26   1              switch (sysclk)
+  27   1              {
+  28   2                      case SYS_CLK_100M :
+  29   2                              Sysclk = 100000000;
+  30   2                              i2cpreclk = I2C_STD_100M;
+  31   2                              break;
+  32   2                      case SYS_CLK_50M :
+  33   2                              Sysclk = 50000000;
+  34   2                              i2cpreclk = I2C_STD_50M;
+  35   2                              break;
+  36   2                      case SYS_CLK_25M :
+  37   2                              Sysclk = 25000000;
+  38   2                              i2cpreclk = I2C_STD_25M;
+  39   2                              break;
+  40   2              }
+  41   1              I2C_Setup(I2C_ENB|I2C_STANDARD|I2C_MST_IE|I2C_7BIT|I2C_MASTER_MODE, i2cpreclk, 0x005A);
+  42   1              //E2prom_Erase();
+  43   1      }
+  44          
+  45          U8_T E2prom_Read_Byte(U8_T addr, U8_T *value)
+  46          {
+  47   1              I2C_RdmRead(ADDROFDEV, USER_BASE_ADDR + addr, &Read_Data, 1, I2C_STOP_COND);
+  48   1              *value = Read_Data.I2cData[0];
+  49   1              return 1;
+  50   1      }
+C51 COMPILER V9.06   E2PROM                                                                03/13/2013 09:32:25 PAGE 2   
+
+  51          
+  52          U8_T E2prom_Read_Byte_From_Absolute_Address(U8_T addr, U8_T *value)
+  53          {
+  54   1      
+  55   1              I2C_RdmRead(ADDROFDEV, addr, &Read_Data, 1, I2C_STOP_COND);
+  56   1              
+  57   1      
+  58   1              *value = Read_Data.I2cData[0];
+  59   1              return 1;
+  60   1      }
+  61          
+  62          
+  63          U8_T E2prom_Read_Int(U8_T addr, U16_T *value)
+  64          {
+  65   1      //      U8_T temp,temp1;
+  66   1      //      E2prom_Read_Byte(addr,&temp);
+  67   1      //      E2prom_Read_Byte(addr + 1,&temp1);
+  68   1      //      *value = temp + temp1 * 256;
+  69   1              I2C_RdmRead(ADDROFDEV, USER_BASE_ADDR + addr, &Read_Data, 2, I2C_STOP_COND);
+  70   1              *value = Read_Data.I2cData[0];
+  71   1                                 
+  72   1              return 1;
+  73   1      }
+  74          
+  75          U8_T E2prom_Write_Byte(U8_T addr, U8_T dat)
+  76          {
+  77   1              U8_T result;
+  78   1              U16_T i;
+  79   1              result = I2C_ByteWrite(ADDROFDEV, USER_BASE_ADDR + addr, dat, I2C_STOP_COND);
+  80   1              for(i = 0; i < delay_count; i++)                        _nop_ ();
+  81   1              return result;
+  82   1      }
+  83          
+  84          U8_T E2prom_Write_Byte_To_Absolute_Address(U8_T addr, U8_T dat)
+  85          {
+  86   1              U8_T result;
+  87   1              U16_T i;
+  88   1              result = I2C_ByteWrite(ADDROFDEV, addr, dat, I2C_STOP_COND);
+  89   1              for(i = 0; i < delay_count; i++)                        _nop_ ();
+  90   1              return result;
+  91   1      }
+  92          
+  93          
+  94          U8_T E2prom_Write_Int(U8_T addr, U16_T dat)
+  95          {       
+  96   1              U16_T i;
+  97   1              U8_T temp;
+  98   1              temp = (U8_T)dat;   // first low byte
+  99   1              I2C_ByteWrite(ADDROFDEV, USER_BASE_ADDR + addr, temp, I2C_STOP_COND);   
+ 100   1              for(i = 0; i < delay_count; i++)                        _nop_ ();
+ 101   1              temp = dat >> 8;
+ 102   1              I2C_ByteWrite(ADDROFDEV, USER_BASE_ADDR + addr + 1, temp, I2C_STOP_COND);       
+ 103   1              for(i = 0; i < delay_count; i++)                        _nop_ ();
+ 104   1              return 1;
+ 105   1      }
+ 106          
+ 107          // erase e2prom
+ 108          U8_T E2prom_Erase(void)
+ 109          {
+ 110   1              U8_T result;
+ 111   1              U16_T j,i;
+ 112   1              for(j = 0; j < 208; j++) 
+C51 COMPILER V9.06   E2PROM                                                                03/13/2013 09:32:25 PAGE 3   
+
+ 113   1              {
+ 114   2                      result = I2C_ByteWrite(ADDROFDEV, USER_BASE_ADDR + j, 0xFF, I2C_STOP_COND);
+ 115   2                      if(!result)     return result;
+ 116   2                      for(i = 0; i < delay_count; i++)        _nop_ ();
+ 117   2              }
+ 118   1      
+ 119   1      
+ 120   1              return result;
+ 121   1      }
+ 122          
+ 123          
+ 124          #endif
+ 125          
+ 126          
+ 127          
+ 128          
+ 129          
+ 130          
+ 131          
+ 132          
+ 133          
+ 134          
+ 135          
+ 136          
+ 137          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    733    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     74      22
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

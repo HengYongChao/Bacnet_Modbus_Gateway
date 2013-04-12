@@ -1,0 +1,298 @@
+C51 COMPILER V9.06   DESCRIPTOR_COM                                                        03/13/2013 09:32:29 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE DESCRIPTOR_COM
+OBJECT MODULE PLACED IN .\descriptor_COM.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\USB\descriptor_COM.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X
+                    -6020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\h
+                    -sur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..
+                    -\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX110
+                    -00\;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\descriptor_COM.lst) O
+                    -BJECT(.\descriptor_COM.obj)
+
+line level    source
+
+   1          
+   2          #include "descriptor_COM.h"
+   3          /*Éè±¸µÄ¸÷ÖÖÃèÊö·û*/
+   4          /*°üÀ¨Éè±¸ÃèÊö·û¡¢ÅäÖÃÃèÊö·û¡¢½Ó¿ÚÃèÊö·û¡¢¶ËµãÃèÊö·û¡¢×Ö·û´®Ãè·û¡¢ÒÔ¼°CDCÀàµÄ¹¦ÄÜÃèÊö·û*/
+   5          
+   6          
+   7          /*Éè±¸ÃèÊö·û*/
+   8          unsigned char DevDes[] = {
+   9                  0X12,                                                   // bLength            1    Éè±¸ÃèÊö·ûµÄ×Ö½ÚÊý
+  10                  0X01,                                                   // bDecriptorType     1    ÃèÊö±íÖÖÀàÎªÉè±¸0x01
+  11          
+  12                  0X10,                                                   // bcdUSB             2    ´ËÉè±¸ÓëÃèÊö±í¼æÈÝµÄUSBÉè±¸ËµÃ÷°æ±¾ºÅBCDÂë,µ±Ç°Îª1.1
+  13                  0X01,
+  14                          
+  15                  0X02,                                                   // bDeviceClass       1    Éè±¸ÀàÂë   CDC Class
+  16                  0X00,                                                   // bDeviceSubClass    1    ×ÓÀàÂë
+  17                  0X00,                                                   // bDevicePortocol    1    Ð­ÒéÂë
+  18          
+  19                  CH375_EP0_SIZE,                                 // bMaxPacketSize0    1    ¶Ëµã0µÄ×î´ó°ü´óÐ¡,½ö8,16,32,64ÎªºÏ·¨Öµ;µ±Ç°×î´óÖµÎª8
+  20                                                                                  // idVendor           2    ³§ÉÌ±êÖ¾(ÓÉUSB±ê×¼¸¶Öµ)
+  21                  0XC0,                                                   // VendorId-L 
+  22                  0x16,                                                   // VendorId-H
+  23                                                                                  // idProduct          2    ²úÆ·±êÖ¾(ÓÉ³§ÉÌ¸¶Öµ)
+  24                  0xE1,                                                   // ProductId-L
+  25                  0x05,                                                   // ProductId-H
+  26                                                          
+  27                  0X00,                                                   // bcdDevice          2    Éè±¸·¢ÐÐºÅBCD Âë
+  28                  0X01,
+  29                                                                  
+  30                  0X01,                                                   // iManufacturer      1    Ë÷Òý£ºÃèÊö³§ÉÌÐÅÏ¢µÄ×Ö´®µÄË÷Òý
+  31                  0X02,                                                   // iProduct           1    Ë÷Òý£ºÃèÊö²úÆ·ÐÅÏ¢µÄ×Ö´®µÄË÷Òý
+  32                  0X03,                                                   // iSerialNumber      1    Ë÷Òý£ºÃèÊöÉè±¸ÐòÁÐºÅÐÅÏ¢µÄ×Ö´®µÄË÷Òý
+  33          
+  34                  0X01                                                    // bNumConfigurations 1    ¿ÉÄÜµÄÉèÖÃÊý                 
+  35          };
+  36          
+  37          /*ÅäÖÃÃèÊö·û*/
+  38          unsigned char ConDes[9+9+5+4+5+5+7+9+7+7] = {                   
+  39                  /*ÅäÖÃÃèÊö·û*/
+  40                  0X09,                                                   // bLength            1    ÅäÖÃÃèÊö·ûµÄ×Ö½ÚÊý
+  41                  0X02,                                                   // bDescriptorType    1    ÅäÖÃÃèÊö±íÀàÐÍ0X02
+  42                  sizeof(ConDes) & 0xFF,                  // wTotalLength       2    ´ËÅäÖÃÐÅÏ¢µÄ×Ü³¤£¬°üÀ¨ÅäÖÃ½Ó¿Ú¶ËµãºÍÉè±¸Àà¼°³§ÉÌ¶¨Òåµ
+             -ÄÃèÊö±í
+  43                  (sizeof(ConDes) >> 8) & 0xFF,
+  44          //      0x43,
+  45          //      0x00,
+  46                        
+  47                  0X02,                                   // bNumInterfaces     1    ´ËÅäÖÃËùÖ§³ÖµÄ½Ó¿Ú¸öÊý
+  48                  0X01,                                   // bCongfigurationValue 1  ÔÚSetConfiguration()ÇëÇóÖÐÓÃ×÷²ÎÊýÀ´Ñ¡¶¨´ËÅäÖÃ
+  49                  0X00,                                   // iConfiguration     1    Ë÷Òý£ºÃèÊö´ËÅäÖÃµÄ×Ö´®ÃèÊö±íË÷Òý
+C51 COMPILER V9.06   DESCRIPTOR_COM                                                        03/13/2013 09:32:29 PAGE 2   
+
+  50                  0Xc0,                                   // bmAttributes       1    ÅäÖÃÌØÐÔ
+  51                  0X19,                                   // MaxPower           1    ÔÚ´ËÅäÖÃÏÂµÄ×ÜÏßµçÔ´ºÄ·ÑÁ¿ÒÔ 2mA ÎªÒ»¸öµ¥Î», 50mA
+  52                                                          
+  53                  /*¿ØÖÆ½Ó¿ÚÃèÊö·û*/
+  54                  0X09,                                   // bLength            1    ½Ó¿Ú0ÃèÊö·ûµÄ×Ö½ÚÊý
+  55                  0X04,                                   // bDescriptorType    1    ½Ó¿ÚÃèÊö±íÀà0x04
+  56                  0X00,                                   // bInterfaceNumber   1    ½Ó¿ÚºÅµ±Ç°ÅäÖÃÖ§³ÖµÄ½Ó¿ÚÊý×éË÷Òý£¨´ÓÁã¿ªÊ¼£©
+  57                  0X00,                                   // bAlternateSetting  1    ¿ÉÑ¡ÉèÖÃµÄË÷ÒýÖµ
+  58                  0X01,                                   // bNumEndpoints      1    ´Ë½Ó¿ÚÓÃµÄ¶ËµãÊýÁ¿£¬Èç¹ûÊÇÁãÔòËµÃ÷´Ë½Ó¿ÚÖ»ÓÃÈ±Ê¡¿
+             -ØÖÆ¹ÜµÀ
+  59                  0X02,                                   // bInterfaceClass    1    ÀàÖµ, CDCÀà
+  60                  0X02,                                   // bInterfaceSubClass 1     
+  61                  0X01,                                   // bInterfaceProtocol 1    Ð­ÒéÂë,±íÊ¾CDCÀà
+  62                  0X00,                                   // iInterface         1    ÃèÊö´Ë½Ó¿ÚµÄ×Ö´®ÃèÊö±íµÄË÷ÒýÖµ
+  63          
+  64                  /*Class-Specific Functional Descriptors*/
+  65                  0X05,                                   // bFunctionLength
+  66                  0X24,                                   // bDescriptorType           CS_INTERFACE
+  67                  0X00,                                   // bDescriptorSubtype        Header
+  68                  0X10,                                   // bcdCDC
+  69                  0X01,
+  70                  
+  71                  0X04,                                                   // bFunctionLength
+  72                  0X24,                                                   // bDescriptorType           CS_INTERFACE
+  73                  0X02,                                                   // bDescriptorSubtype        Abstract Control Management
+  74                  0X02,                                                   // bmCapabilities
+  75                                                                                  //   D7..D4: RESERVED (Reset to zero)
+  76                                                                                  //   D3: 1 - Device supports the notification Network_Connection.
+  77                                                                                  //   D2: 1 - Device supports the request Send_Break
+  78                                                                                  //   D1: 1 - Device supports the request combination of
+  79                                                                                  //   Set_Line_Coding,Set_Control_Line_State,Get_Line_Coding, and the notification Serial_State.
+  80                                                                                  //   D0: 1 - Device supports the request combination of
+  81                                                                                  //   Set_Comm_Feature,
+  82                                                                                  //   Clear_Comm_Feature, and
+  83                                                                                  //   Get_Comm_Feature.
+  84          
+  85                  0X05,                                                   // bFunctionLength
+  86                  0x24,                                                   // bDescriptorType          CS_INTERFACE
+  87                  0X06,                                                   // bDescriptorSubtype        union functional descriptor 
+  88                  0X00,                                                   // bMasterInterface
+  89                  0X01,                                                   // bSlaveInterface0       
+  90                  
+  91                  0X05,                                                   // bFunctionLength
+  92                  0X24,                                                   // bDescriptorType           CS_INTERFACE
+  93                  0X01,                                                   // bDescriptorSubtype        Call Management Functional Descriptor
+  94                  0X03,                                                   // bmCapabilities
+  95                                                                                  //    D7..D2: RESERVED (Reset to zero)
+  96                                                                                  //    D1: 0 - Device sends/receives call management information only over the Communication Class
+             - interface.                                                                                                                
+  97                                                                                  //        1 - Device can send/receive call management information over a  Data Class interface.
+  98                                                                                  //    D0: 0 - Device does not handle call management itself.
+  99                                                                                  //        1 - Device handles call  management itself.                                                       
+ 100                  0X01,                                                   // bDataInterface            Interface number of Data Class interface optionally used for cal
+             -l management.                                                                                                                                                        
+ 101          
+ 102                  /*¿ØÖÆ½Ó¿ÚËù¶ÔÓ¦µÄ¶ËµãÃèÊö·û*/
+ 103                  0X07,                                   // bLength            1    ¶ËµãÃèÊö±íµÄ×Ö½ÚÊý
+ 104                  0X05,                                   // bDescriptorType    1    ¶ËµãÃèÊö±íÀà0x05
+ 105                  0X81,                                   // bEndpointAddress   1    ´ËÃèÊö±íËùÃèÊöµÄ¶ËµãµÄµØÖ·  
+ 106                  0X03,                                   // bmAttributes       1    ´Ë¶ËµãÎªÖÐ¶Ï´«ËÍ 
+ 107                  0X08,                                   // wMaxPacketSize     2    µ±Ç°ÅäÖÃÏÂ´Ë¶ËµãÄÜ¹»½ÓÊÕ»ò·¢ËÍµÄ×î´óÊý¾Ý°üµÄ´óÐ¡
+ 108                  0X00,
+C51 COMPILER V9.06   DESCRIPTOR_COM                                                        03/13/2013 09:32:29 PAGE 3   
+
+ 109                  0X14,                                   // bInterval          1    ÂÖÑ°Êý¾Ý´«ËÍ¶ËµãµÄÊ±¼ä¼äÏ¶ 20ms
+ 110          
+ 111                  /*Êý¾Ý½Ó¿ÚÃèÊö·û*/
+ 112                  0X09,                                   // bLength            1    ½Ó¿Ú0ÃèÊö·ûµÄ×Ö½ÚÊý
+ 113                  0X04,                                   // bDescriptorType    1    ½Ó¿ÚÃèÊö±íÀà0x04
+ 114                  0X01,                                   // bInterfaceNumber   1    ½Ó¿ÚºÅµ±Ç°ÅäÖÃÖ§³ÖµÄ½Ó¿ÚÊý×éË÷Òý£¨´ÓÁã¿ªÊ¼£©
+ 115                  0X00,                                   // bAlternateSetting  1    ¿ÉÑ¡ÉèÖÃµÄË÷ÒýÖµ
+ 116                  0X02,                                   // bNumEndpoints      1    ´Ë½Ó¿ÚÓÃµÄ¶ËµãÊýÁ¿£¬Èç¹ûÊÇÁãÔòËµÃ÷´Ë½Ó¿ÚÖ»ÓÃÈ±Ê¡¿
+             -ØÖÆ¹ÜµÀ
+ 117                  0X0A,                                   // bInterfaceClass    1    ÀàÖµ, CDCÀà
+ 118                  0X00,                                   // bInterfaceSubClass 1    ×ÓÀàÂë
+ 119                  0X00,                                   // bInterfaceProtocol 1    Ð­ÒéÂë,±íÊ¾CDCÀà
+ 120                  0X00,
+ 121          
+ 122                  /*Êý¾Ý½Ó¿ÚËù¶ÔÓ¦µÄ¶ËµãÃèÊö·û--ÅúÁ¿ÊäÈë¶Ëµã2ÃèÊö·û*/
+ 123                  0X07,                                   // bLength            1    ¶ËµãÃèÊö±íµÄ×Ö½ÚÊý
+ 124                  0X05,                                   // bDescriptorType    1    ¶ËµãÃèÊö±íÀà0x05
+ 125                  0X02,                                   // bEndpointAddress   1    ´ËÃèÊö±íËùÃèÊöµÄ¶ËµãµÄµØÖ·  
+ 126                  0X02,                                   // bmAttributes       1    ´Ë¶ËµãÎªÖÐ¶Ï´«ËÍ 
+ 127                  BULK_OUT_ENDP_MAX_SIZE,                 // wMaxPacketSize     2    µ±Ç°ÅäÖÃÏÂ´Ë¶ËµãÄÜ¹»½ÓÊÕ»ò·¢ËÍµÄ×î´óÊý¾Ý°üµÄ´óÐ¡
+ 128                  0X00,
+ 129                  0X00,                                   // bInterval          1    ÂÖÑ°Êý¾Ý´«ËÍ¶ËµãµÄÊ±¼ä¼äÏ¶, ¶ÔÅúÁ¿¶ËµãÎÞÐ§
+ 130                  /*Êý¾Ý½Ó¿ÚËù¶ÔÓ¦µÄ¶ËµãÃèÊö·û--ÅúÁ¿ÊäÈë¶Ëµã2ÃèÊö·û*/
+ 131                  0X07,                                   // bLength            1    ¶ËµãÃèÊö±íµÄ×Ö½ÚÊý
+ 132                  0X05,                                   // bDescriptorType    1    ¶ËµãÃèÊö±íÀà0x05
+ 133                  0X82,                                   // bEndpointAddress   1    ´ËÃèÊö±íËùÃèÊöµÄ¶ËµãµÄµØÖ·  
+ 134                  0X02,                                   // bmAttributes       1    ´Ë¶ËµãÎªÖÐ¶Ï´«ËÍ 
+ 135                  BULK_OUT_ENDP_MAX_SIZE,                 // wMaxPacketSize     2    µ±Ç°ÅäÖÃÏÂ´Ë¶ËµãÄÜ¹»½ÓÊÕ»ò·¢ËÍµÄ×î´óÊý¾Ý°üµÄ´óÐ¡
+ 136                  0X00,
+ 137                  0X00,                                   // bInterval          1    ÂÖÑ°Êý¾Ý´«ËÍ¶ËµãµÄÊ±¼ä¼äÏ¶, ¶ÔÅúÁ¿¶ËµãÎÞÐ§
+ 138          };              
+ 139          
+ 140          
+ 141          /* ÓïÑÔÃèÊö·û */
+ 142          unsigned char LangDes[] = {
+ 143                  0X04,           // bLength
+ 144                  0X03,           // bDescriptorType
+ 145                  0X09,
+ 146                  0X04
+ 147          };
+ 148          
+ 149          /* ³§ÉÌ×Ö·û´®ÃèÊö·û */
+ 150          unsigned char MANUFACTURER_Des[] = {
+ 151                  0X2C,           // bLength 
+ 152                  0X03,           // bDescriptorType
+ 153                  'w',            // "www.temcocontrols.com"
+ 154                  0X00,
+ 155                  'w',
+ 156                  0X00,
+ 157                  'w',
+ 158                  0X00,
+ 159                  '.',
+ 160                  0X00,
+ 161                  't',
+ 162                  0X00,
+ 163                  'e',
+ 164                  0X00,
+ 165                  'm',
+ 166                  0X00,
+ 167                  'c',
+ 168                  0X00,
+ 169                  'o',
+C51 COMPILER V9.06   DESCRIPTOR_COM                                                        03/13/2013 09:32:29 PAGE 4   
+
+ 170                  0X00,
+ 171                  'c',
+ 172                  0X00,
+ 173                  'o',
+ 174                  0X00,
+ 175                  'n',
+ 176                  0X00,
+ 177                  't',
+ 178                  0X00,
+ 179                  'r',
+ 180                  0X00,
+ 181                  'o',
+ 182                  0X00,
+ 183                  'l',
+ 184                  0X00,
+ 185                  's',
+ 186                  0X00,
+ 187                  '.',
+ 188                  0X00,
+ 189                  'c',
+ 190                  0X00,
+ 191                  'o',
+ 192                  0X00,
+ 193                  'm',
+ 194                  0X00
+ 195          };              
+ 196          
+ 197          /* ²úÆ·×Ö·û´®ÃèÊö·û */
+ 198          unsigned char PRODUCER_Des[] = {
+ 199                  0X26,           // bLength 
+ 200                  0X03,           // bDescriptorType
+ 201                  'N',            // "Network Controller"
+ 202                  0X00,
+ 203                  'e',
+ 204                  0X00,
+ 205                  't',
+ 206                  0X00,
+ 207                  'w',
+ 208                  0X00,
+ 209                  'o',
+ 210                  0X00,
+ 211                  'r',
+ 212                  0X00,
+ 213                  'k',
+ 214                  0X00,
+ 215                  ' ',
+ 216                  0X00,
+ 217                  'C',
+ 218                  0X00,
+ 219                  'o',
+ 220                  0X00,
+ 221                  'n',
+ 222                  0X00,
+ 223                  't',
+ 224                  0X00,
+ 225                  'r',
+ 226                  0X00,
+ 227                  'o',
+ 228                  0X00,
+ 229                  'l',
+ 230                  0X00,
+ 231                  'l',
+C51 COMPILER V9.06   DESCRIPTOR_COM                                                        03/13/2013 09:32:29 PAGE 5   
+
+ 232                  0X00,
+ 233                  'e',
+ 234                  0X00,
+ 235                  'r',
+ 236                  0X00
+ 237          };
+ 238          
+ 239          /* ²úÆ·ÐòÁÐºÅ×Ö·û´®ÃèÊö·û */
+ 240          unsigned char PRODUCER_SN_Des[] = {
+ 241                  0X16,                   // bLength 
+ 242                  0X03,                   // bDescriptorType
+ 243                  '2', 0x00,              // "2012-04-27"
+ 244                  '0', 0x00,
+ 245                  '1', 0x00,
+ 246                  '2', 0x00,
+ 247                  '-', 0x00,
+ 248                  '0', 0x00,
+ 249                  '5', 0x00,
+ 250                  '-', 0x00,
+ 251                  '1', 0x00,
+ 252                  '1', 0x00
+ 253          };
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    193    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

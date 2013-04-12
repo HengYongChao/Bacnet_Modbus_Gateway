@@ -1,0 +1,393 @@
+C51 COMPILER V9.06   PORT                                                                  03/13/2013 09:32:28 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE PORT
+NO OBJECT MODULE REQUESTED
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\portable\Keil\AX11000\port.c LARGE OMF2 ROM(D1
+                    -6M) BROWSE INTVECTOR(0X6020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\
+                    -;..\SRC\tcpip\;..\SRC\hsur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SR
+                    -C\i2c\;..\SRC\flash\;..\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSou
+                    -rce\portable\Keil\AX11000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(
+                    -.\port.lst) SRC(.\port.SRC)
+
+line level    source
+
+   1          /*
+   2                  FreeRTOS V2.6.0 - Copyright (C) 2003 - 2005 Richard Barry.
+   3          
+   4                  This file is part of the FreeRTOS distribution.
+   5          
+   6                  FreeRTOS is free software; you can redistribute it and/or modify
+   7                  it under the terms of the GNU General Public License as published by
+   8                  the Free Software Foundation; either version 2 of the License, or
+   9                  (at your option) any later version.
+  10          
+  11                  FreeRTOS is distributed in the hope that it will be useful,
+  12                  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  13                  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  14                  GNU General Public License for more details.
+  15          
+  16                  You should have received a copy of the GNU General Public License
+  17                  along with FreeRTOS; if not, write to the Free Software
+  18                  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  19          
+  20                  A special exception to the GPL can be applied should you wish to distribute
+  21                  a combined work that includes FreeRTOS, without being obliged to provide
+  22                  the source code for any proprietary components.  See the licensing section 
+  23                  of http://www.FreeRTOS.org for full details of how and when the exception
+  24                  can be applied.
+  25          
+  26                  ***************************************************************************
+  27                  See http://www.FreeRTOS.org for documentation, latest information, license 
+  28                  and contact details.  Please ensure to read the configuration and relevant 
+  29                  port sections of the online documentation.
+  30                  ***************************************************************************
+  31          */
+  32          
+  33          /*-----------------------------------------------------------
+  34           * Implementation of functions defined in portable.h for the Cygnal port.
+  35           *----------------------------------------------------------*/
+  36          //#pragma SRC   
+  37          /* Standard includes. */
+  38          #include <string.h>
+  39          
+  40          /* Scheduler includes. */
+  41          #include "projdefs.h"
+  42          #include "portable.h"
+  43          #include "task.h"
+  44          #include "queue.h"
+  45          #include "mstimer.h"
+  46          #include "interrupt.h"
+  47          #include "dma.h"
+  48          
+  49          #include "hsuart.h"
+  50          #include "uart.h"
+C51 COMPILER V9.06   PORT                                                                  03/13/2013 09:32:28 PAGE 2   
+
+  51          #include "../../../../USB/ch375_com.h"
+  52          #include "../../../../gsm/gsm.h"
+  53          #include "../include/mstp.h"
+  54          
+  55          U8_T siltime = 0;
+  56          //U8_T frame_gap = 0;
+  57          BOOL timegasflag = 0;
+  58          /* Constants required to setup timer 2 to produce the RTOS tick. */
+  59          //#define portCLOCK_DIVISOR                             ( ( unsigned portLONG ) 12 )
+  60          //#define portMAX_TIMER_VALUE                           ( ( unsigned portLONG ) 0xffff )
+  61          //#define portENABLE_TIMER                              ( ( unsigned portCHAR ) 0x04 )
+  62          //#define portTIMER_2_INTERRUPT_ENABLE  ( ( unsigned portCHAR ) 0x20 )
+  63          
+  64          /* The value used in the IE register when a task first starts. */
+  65          #define portGLOBAL_INTERRUPT_BIT        ( ( portSTACK_TYPE ) 0x80 )
+  66          
+  67          /* The value used in the PSW register when a task first starts. */
+  68          #define portINITIAL_PSW                         ( ( portSTACK_TYPE ) 0x00 )
+  69          
+  70          /* Macro to clear the timer 2 interrupt flag. */
+  71          #define portCLEAR_INTERRUPT_FLAG()      {                                       \
+  72                                                                                          EINT5 = 0;              \
+  73                                                                                          EIF &= ~INT5F;  \
+  74                                                                                          EINT5 = 1;              \
+  75                                                                                  }
+  76                                                                                                  
+  77          /* Used during a context switch to store the size of the stack being copied
+  78          to or from XRAM. */
+  79          //data static unsigned portCHAR ucStackBytes;
+  80          //data  unsigned portCHAR ucStackBytes;
+  81          
+  82          /* Used during a context switch to point to the next byte in XRAM from/to which
+  83          a RAM byte is to be copied. */
+  84          //xdata static portSTACK_TYPE * data pxXRAMStack;
+  85          //static portSTACK_TYPE xdata * data pxXRAMStack;
+  86          
+  87          /* Used during a context switch to point to the next byte in RAM from/to which
+  88          an XRAM byte is to be copied. */
+  89          //data static portSTACK_TYPE * data pxRAMStack;
+  90          //static  portSTACK_TYPE data * data pxRAMStack;
+  91          
+  92          /* We require the address of the pxCurrentTCB variable, but don't want to know
+  93          any details of its type. */
+  94          //typedef void tskTCB;
+  95          //extern volatile tskTCB * volatile pxCurrentTCB;
+  96          
+  97          void LoadCtx() reentrant;   /* Save the current working registers to stack, defined in OS_CPU_A.ASM */
+  98          extern INT8U xdata * data C_XBP, TICK_INT;
+  99          
+ 100          
+ 101          /*
+ 102           * Setup the hardware to generate an interrupt off timer 2 at the required 
+ 103           * frequency.
+ 104           */
+ 105          static void prvSetupTimerInterrupt( void );
+ 106          
+ 107          
+ 108          /* 
+ 109           * See header file for description. 
+ 110           */
+ 111          portSTACK_TYPE *pxPortInitialiseStack( portSTACK_TYPE *pxTopOfStack, pdTASK_CODE pxCode, void *pvParameter
+             -s ) reentrant
+C51 COMPILER V9.06   PORT                                                                  03/13/2013 09:32:28 PAGE 3   
+
+ 112          {
+ 113   1          portSTACK_TYPE * stk;
+ 114   1      
+ 115   1          stk    = (portSTACK_TYPE *) pxTopOfStack;        /* Load stack pointer                                
+             -      */
+ 116   1      
+ 117   1              stk                             -= sizeof(void *);              /* Save the pvParameters to external stack */
+ 118   1              *(void**)stk     = pvParameters;        /*                               */
+ 119   1      
+ 120   1              stk                             -= sizeof(INT16U);                                              /* The value should be loaded to PC    */
+ 121   1              *(INT16U*)stk    = (INT16U) pxCode;                                             /* next time when this task is running */
+ 122   1      
+ 123   1              *--stk                   = (portSTACK_TYPE )(((INT32U) pxCode>>16)+0x7F);      /* Third byte of PC for dallas 390 */
+ 124   1      
+ 125   1      /* Following is the registers pushed into hardware stack */
+ 126   1              *--stk                   = 'A';                 /* ACC */
+ 127   1              *--stk                   = 'B';                 /* B   */
+ 128   1              *--stk                   = 'X';                 /* DPX */
+ 129   1              *--stk                   = 'H';                 /* DPH */
+ 130   1              *--stk                   = 'L';                 /* DPL */
+ 131   1      //      *--stk                   = 'X';                 /* DPX1 for second DPTR */
+ 132   1      //      *--stk                   = 'H';                 /* DPH1 for second DPTR */
+ 133   1      //      *--stk                   = 'L';                 /* DPL1 for second DPTR */
+ 134   1      //      *--stk                   = DPS;                 /* DPS for second DPTR */
+ 135   1              *--stk                   = PSW;                                 /* PSW */
+ 136   1              *--stk                   = 0;                   /* R0  */
+ 137   1      /*
+ 138   1              *--stk                   = 1;                   // should be R1
+ 139   1              *--stk                   = 2;                   // should be R2
+ 140   1              *--stk                   = 3;                   // should be R3
+ 141   1      */
+ 142   1              stk                             -= sizeof(void *);      /* Keil C uses R1,R2,R3 to pass the */
+ 143   1              *(void**)stk     = pvParameters;                  /* arguments of functions.          */
+ 144   1      
+ 145   1              *--stk                   = 4;                   /* R4  */
+ 146   1              *--stk                   = 5;                   /* R5  */
+ 147   1              *--stk                   = 6;                   /* R6  */
+ 148   1              *--stk                   = 7;                   /* R7  */
+ 149   1      /* Following is the registers pushed into hardware stack manually to support the dallas 390 */
+ 150   1          *--stk           = 0x80;                /* IE, EA is enabled  */
+ 151   1      
+ 152   1      /*
+ 153   1          Next is calculating the hardware stack pointer.
+ 154   1      */
+ 155   1          *--stk                       = (INT8U) portSTACK_START-1      /* Initial value when main was called    */
+ 156   1                                 +1                   /* IE */
+ 157   1                                 +8                   /* R0-R7, eight registers was saved      */
+ 158   1                             +5                   /* ACC, B, DPH, DPL, PSW, five registers */
+ 159   1                             +1                   /* Dallas 390 extra registers DPX1 */
+ 160   1      //                       +4                   /* Dallas 390 extra registers for second DPTR - DPL1 DPH1 DP
+             -X1 DPS */
+ 161   1                             +sizeof(INT16U)      /* The PC value to be loaded             */
+ 162   1                             +sizeof(INT8U)       /* The third byte of PC value to be loaded for dallas 390  */
+ 163   1                                                 ;
+ 164   1          return ((void *)stk);
+ 165   1      
+ 166   1      }
+ 167          
+ 168          /* 
+ 169           * See header file for description. 
+ 170           */
+ 171          portSHORT sPortStartScheduler( portSHORT sUsePreemption ) reentrant
+C51 COMPILER V9.06   PORT                                                                  03/13/2013 09:32:28 PAGE 4   
+
+ 172          {
+ 173   1              /* Stop compiler warnings.  This port uses a constant defined in
+ 174   1              portmacro.h to specify whether or not preemption is used. */
+ 175   1              sUsePreemption = sUsePreemption;
+ 176   1      
+ 177   1              /* Setup timer 2 to generate the RTOS tick. */
+ 178   1              prvSetupTimerInterrupt();       
+ 179   1      
+ 180   1          prvSetCurrentTCB_XBP();
+ 181   1              LoadCtx();
+ 182   1                                                                                      /* Should never get here! */
+ 183   1              return pdTRUE;
+ 184   1      }
+ 185          
+ 186          /*-----------------------------------------------------------*/
+ 187          
+ 188          void vPortEndScheduler(void) reentrant
+ 189          {
+ 190   1      
+ 191   1              /* Not implemented for this port. */
+ 192   1      }
+ 193          /*-----------------------------------------------------------*/
+ 194          
+ 195          
+ 196          /*********************************************************************************************************
+             -*
+ 197          * C_OSCtxSw is the c part of OSCtxSw.
+ 198          * When control passes to this function, the processor registers have been saved in external stack
+ 199          **********************************************************************************************************
+             -*/
+ 200          void vPortContextSwitch(void) reentrant
+ 201          {
+ 202   1      
+ 203   1      /*      Save processor registers; DONE in the OSCtxSw part in OS_CPU_ASM.ASM                                  *
+             -/
+ 204   1      
+ 205   1      /*      Save the current task's stack pointer into the current task's OS_TCB:  
+ 206   1                      prvGetCurrentTCB_XBP();
+ 207   1              Call vTaskSwitchContext();                                    
+ 208   1              Get the stack pointer of the task to resume:                           
+ 209   1                      prvSetCurrentTCB_XBP;
+ 210   1              Restore all processor registers from the new task's stack;             
+ 211   1              Execute a return from interrupt instruction;                           */
+ 212   1          prvGetCurrentTCB_XBP();
+ 213   1          
+ 214   1              vTaskSwitchContext();
+ 215   1      
+ 216   1          prvSetCurrentTCB_XBP();
+ 217   1          LoadCtx();
+ 218   1      
+ 219   1      }
+ 220          
+ 221          
+ 222          INT8U data SaveSP;
+ 223          
+ 224          void OSIntCtxSw(void) reentrant
+ 225          {
+ 226   1      
+ 227   1              EA=0;
+ 228   1          SP=SaveSP;
+ 229   1      
+ 230   1          prvSetCurrentTCB_XBP();
+C51 COMPILER V9.06   PORT                                                                  03/13/2013 09:32:28 PAGE 5   
+
+ 231   1      
+ 232   1      #pragma ASM
+ 233   1              EXTRN   CODE(_?KCOSCtxSw)
+ 234   1              MOV             A, #BYTE0( _?KCOSCtxSw)
+ 235   1              PUSH    ACC
+ 236   1              MOV             A, #BYTE1(_?KCOSCtxSw)
+ 237   1              PUSH    ACC
+ 238   1              MOV             A, #BYTE2(_?KCOSCtxSw)
+ 239   1              PUSH    ACC
+ 240   1              RETI
+ 241   1      #pragma ENDASM
+ 242   1      
+ 243   1      }
+ 244          
+ 245          
+ 246          void vIntPortContextSwitch(void) reentrant
+ 247          {
+ 248   1      
+ 249   1      /*      Save processor registers; DONE in the OSCtxSw part in OS_CPU_ASM.ASM                                  *
+             -/
+ 250   1      
+ 251   1      /*      Save the current task's stack pointer into the current task's OS_TCB:  
+ 252   1                      prvGetCurrentTCB_XBP();
+ 253   1              Call vTaskSwitchContext();                                    
+ 254   1              Get the stack pointer of the task to resume:                           
+ 255   1                      prvSetCurrentTCB_XBP;
+ 256   1              Restore all processor registers from the new task's stack;             
+ 257   1              Execute a return from interrupt instruction;                           */
+ 258   1          prvGetCurrentTCB_XBP();
+ 259   1      
+ 260   1              if ( TICK_INT == 1 )
+ 261   1              {
+ 262   2                      vTaskIncrementTick();
+ 263   2                      TICK_INT = 0;
+ 264   2              }
+ 265   1              vTaskSwitchContext();
+ 266   1                      
+ 267   1              portCLEAR_INTERRUPT_FLAG();
+ 268   1      
+ 269   1          prvSetCurrentTCB_XBP();
+ 270   1          LoadCtx();
+ 271   1              return;
+ 272   1      
+ 273   1      }
+ 274          
+ 275          /*-----------------------------------------------------------*/
+ 276          
+ 277          #if portUSE_PREEMPTION == 1
+ 278          
+ 279          /*-----------------------------------------------------------*/
+ 280          
+ 281          void vTimer2ISR( void ) interrupt 10
+ 282          {
+ 283   1              unsigned portCHAR isr;
+ 284   1      #pragma ASM
+ 285   1                      PUSH IE
+ 286   1      #pragma ENDASM                                             
+ 287   1                      isr = EA;
+ 288   1                      EA = 0;
+ 289   1                      if(uart2_timeout)
+ 290   1                              uart2_timeout--;
+ 291   1                      if(uart1_timeout)
+C51 COMPILER V9.06   PORT                                                                  03/13/2013 09:32:28 PAGE 6   
+
+ 292   1                              uart1_timeout--;
+ 293   1                      if(uart0_timeout)
+ 294   1                              uart0_timeout--;
+ 295   1                      if(USB_timeout)
+ 296   1                              USB_timeout--;
+ 297   1                      if(gsm_timeout)
+ 298   1                              gsm_timeout--;
+ 299   1              
+ 300   1      
+ 301   1      
+ 302   1                      siltime++;
+ 303   1                      if(siltime >= 1){
+ 304   2                              siltime = 0;
+ 305   2                              SilenceTime += 10;
+ 306   2                              }
+ 307   1                      
+ 308   1      
+ 309   1      //              SilenceTime++;
+ 310   1      
+ 311   1      //              P1 = ~P1;
+ 312   1      
+ 313   1                      TICK_INT = 1;
+ 314   1                      SaveSP=SP;
+ 315   1              prvGetCurrentTCB_XBP();
+ 316   1                      EA = isr;
+ 317   1      
+ 318   1                      OSIntCtxSw();
+ 319   1      }
+ 320          
+ 321          #endif
+ 322          
+ 323          /*-----------------------------------------------------------*/
+ 324          static void prvSetupTimerInterrupt( void )
+ 325          {
+ 326   1              /* using MS_TIMER */
+ 327   1              U8_T XDATA      temp[2];
+ 328   1      
+ 329   1              /* set software timer */
+ 330   1              temp[1] = (U8_T)SWTIMER_INTERVAL;
+ 331   1              temp[0] = (U8_T)(SWTIMER_INTERVAL >> 8) + SWTIMER_START + SWTIMER_INT_ENABLE;
+ 332   1              DMA_WriteReg(SWTIMER_REG, temp, 2);
+ 333   1      
+ 334   1              EXTINT5(ON);    /* Enable INT5 interrupt for software timer. */
+ 335   1      
+ 336   1      }
+ 337          
+ 338          #if ( configUSE_TICK_HOOK == 1 )
+              void vApplicationTickHook( void )
+              {
+              }
+              #endif
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1064    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      3       3
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+C51 COMPILER V9.06   PORT                                                                  03/13/2013 09:32:28 PAGE 7   
+
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

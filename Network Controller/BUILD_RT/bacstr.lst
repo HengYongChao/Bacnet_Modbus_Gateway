@@ -1,0 +1,1102 @@
+C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE BACSTR
+OBJECT MODULE PLACED IN .\bacstr.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\bacstr.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020)
+                    - INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;
+                    -..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\
+                    -buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;.
+                    -.\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\bacstr.lst) OBJECT(.\bacst
+                    -r.obj)
+
+line level    source
+
+   1          /*####COPYRIGHTBEGIN####
+   2           -------------------------------------------
+   3           Copyright (C) 2004 Steve Karg
+   4          
+   5           This program is free software; you can redistribute it and/or
+   6           modify it under the terms of the GNU General Public License
+   7           as published by the Free Software Foundation; either version 2
+   8           of the License, or (at your option) any later version.
+   9          
+  10           This program is distributed in the hope that it will be useful,
+  11           but WITHOUT ANY WARRANTY; without even the implied warranty of
+  12           MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  13           GNU General Public License for more details.
+  14          
+  15           You should have received a copy of the GNU General Public License
+  16           along with this program; if not, write to:
+  17           The Free Software Foundation, Inc.
+  18           59 Temple Place - Suite 330
+  19           Boston, MA  02111-1307, USA.
+  20          
+  21           As a special exception, if other files instantiate templates or
+  22           use macros or inline functions from this file, or you compile
+  23           this file and link it with other works to produce a work based
+  24           on this file, this file does not by itself cause the resulting
+  25           work to be covered by the GNU General Public License. However
+  26           the source code for this file must still be made available in
+  27           accordance with section (3) of the GNU General Public License.
+  28          
+  29           This exception does not invalidate any other reasons why a work
+  30           based on this file might be covered by the GNU General Public
+  31           License.
+  32           -------------------------------------------
+  33          ####COPYRIGHTEND####*/
+  34          
+  35          #include <stdbool.h>
+  36          #include <stdint.h>
+  37          #include <string.h>     /* for strlen */
+  38          #include "../include/config.h"
+  39          #include "../include/bacstr.h"
+  40          #include "../include/bits.h"
+  41          //#if PRINT_ENABLED
+  42          //#include <stdlib.h>     /* for strtol */
+  43          //#include <ctype.h>      /* for isalnum */
+  44          //#endif
+  45          
+  46          /** @file bacstr.c  Manipulate Bit/Char/Octet Strings */
+  47          
+  48          void bitstring_init(
+  49              BACNET_BIT_STRING * bit_string)
+  50          {
+C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 2   
+
+  51   1          int i;
+  52   1      
+  53   1          bit_string->bits_used = 0;
+  54   1          for (i = 0; i < MAX_BITSTRING_BYTES; i++) {
+  55   2              bit_string->value[i] = 0;
+  56   2          }
+  57   1      }
+  58          
+  59          void bitstring_set_bit(
+  60              BACNET_BIT_STRING * bit_string,
+  61              uint8_t bit_number,
+  62              bool value)
+  63          {
+  64   1          uint8_t byte_number = bit_number / 8;
+  65   1          uint8_t bit_mask = 1;
+  66   1      
+  67   1          if (byte_number < MAX_BITSTRING_BYTES) {
+  68   2              /* set max bits used */
+  69   2              if (bit_string->bits_used < (bit_number + 1)) {
+  70   3                  bit_string->bits_used = bit_number + 1;
+  71   3              }
+  72   2              bit_mask = bit_mask << (bit_number - (byte_number * 8));
+  73   2              if (value) {
+  74   3                  bit_string->value[byte_number] |= bit_mask;
+  75   3              } else {
+  76   3                  bit_string->value[byte_number] &= (~(bit_mask));
+  77   3              }
+  78   2          }
+  79   1      }
+  80          
+  81          bool bitstring_bit(
+  82              BACNET_BIT_STRING * bit_string,
+  83              uint8_t bit_number)
+  84          {
+  85   1          bool value = false;
+  86   1          uint8_t byte_number = bit_number / 8;
+  87   1          uint8_t bit_mask = 1;
+  88   1      
+  89   1          if (bit_number < (MAX_BITSTRING_BYTES * 8)) {
+  90   2              bit_mask = bit_mask << (bit_number - (byte_number * 8));
+  91   2              if (bit_string->value[byte_number] & bit_mask) {
+  92   3                  value = true;
+  93   3              }
+  94   2          }
+  95   1      
+  96   1          return value;
+  97   1      }
+  98          
+  99          uint8_t bitstring_bits_used(
+ 100              BACNET_BIT_STRING * bit_string)
+ 101          {
+ 102   1          return bit_string->bits_used;
+ 103   1      }
+ 104          
+ 105          /* returns the number of bytes that a bit string is using */
+ 106          uint8_t bitstring_bytes_used(
+ 107              BACNET_BIT_STRING * bit_string)
+ 108          {
+ 109   1          uint8_t len = 0;    /* return value */
+ 110   1          uint8_t used_bytes = 0;
+ 111   1          uint8_t last_bit = 0;
+ 112   1      
+C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 3   
+
+ 113   1          if (bit_string->bits_used) {
+ 114   2              last_bit = bit_string->bits_used - 1;
+ 115   2              used_bytes = last_bit / 8;
+ 116   2              /* add one for the first byte */
+ 117   2              used_bytes++;
+ 118   2              len = used_bytes;
+ 119   2          }
+ 120   1      
+ 121   1          return len;
+ 122   1      }
+ 123          
+ 124          uint8_t bitstring_octet(
+ 125              BACNET_BIT_STRING * bit_string,
+ 126              uint8_t octet_index)
+ 127          {
+ 128   1          uint8_t octet = 0;
+ 129   1      
+ 130   1          if (bit_string) {
+ 131   2              if (octet_index < MAX_BITSTRING_BYTES) {
+ 132   3                  octet = bit_string->value[octet_index];
+ 133   3              }
+ 134   2          }
+ 135   1      
+ 136   1          return octet;
+ 137   1      }
+ 138          
+ 139          bool bitstring_set_octet(
+ 140              BACNET_BIT_STRING * bit_string,
+ 141              uint8_t index,
+ 142              uint8_t octet)
+ 143          {
+ 144   1          bool status = false;
+ 145   1      
+ 146   1          if (bit_string) {
+ 147   2              if (index < MAX_BITSTRING_BYTES) {
+ 148   3                  bit_string->value[index] = octet;
+ 149   3                  status = true;
+ 150   3              }
+ 151   2          }
+ 152   1      
+ 153   1          return status;
+ 154   1      }
+ 155          
+ 156          bool bitstring_set_bits_used(
+ 157              BACNET_BIT_STRING * bit_string,
+ 158              uint8_t bytes_used,
+ 159              uint8_t unused_bits)
+ 160          {
+ 161   1          bool status = false;
+ 162   1      
+ 163   1          if (bit_string) {
+ 164   2              /* FIXME: check that bytes_used is at least one? */
+ 165   2              bit_string->bits_used = bytes_used * 8;
+ 166   2              bit_string->bits_used -= unused_bits;
+ 167   2              status = true;
+ 168   2          }
+ 169   1      
+ 170   1          return status;
+ 171   1      }
+ 172          
+ 173          uint8_t bitstring_bits_capacity(
+ 174              BACNET_BIT_STRING * bit_string)
+C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 4   
+
+ 175          {
+ 176   1          if (bit_string) {
+ 177   2              return (MAX_BITSTRING_BYTES * 8);
+ 178   2          } else {
+ 179   2              return 0;
+ 180   2          }
+ 181   1      }
+ 182          
+ 183          bool bitstring_copy(
+ 184              BACNET_BIT_STRING * dest,
+ 185              BACNET_BIT_STRING * src)
+ 186          {
+ 187   1          unsigned i;
+ 188   1          bool status = false;
+ 189   1      
+ 190   1          if (dest && src) {
+ 191   2              dest->bits_used = src->bits_used;
+ 192   2              for (i = 0; i < MAX_BITSTRING_BYTES; i++) {
+ 193   3                  dest->value[i] = src->value[i];
+ 194   3              }
+ 195   2              status = true;
+ 196   2          }
+ 197   1      
+ 198   1          return status;
+ 199   1      }
+ 200          
+ 201          /* returns true if the same length and contents */
+ 202          bool bitstring_same(
+ 203              BACNET_BIT_STRING * bitstring1,
+ 204              BACNET_BIT_STRING * bitstring2)
+ 205          {
+ 206   1          int i = 0;  /* loop counter */
+ 207   1          int bytes_used = 0;
+ 208   1          uint8_t compare_mask = 0;
+ 209   1      
+ 210   1          if (bitstring1 && bitstring1) {
+ 211   2              if ((bitstring1->bits_used == bitstring2->bits_used) &&
+ 212   2                  (bitstring1->bits_used / 8 <= MAX_BITSTRING_BYTES)) {
+ 213   3                  bytes_used = (int) (bitstring1->bits_used / 8);
+ 214   3                  compare_mask = 0xFF >> (8 - (bitstring1->bits_used % 8));
+ 215   3      
+ 216   3                  for (i = 0; i < bytes_used; i++) {
+ 217   4                      if (bitstring1->value[i] != bitstring2->value[i]) {
+ 218   5                          return false;
+ 219   5                      }
+ 220   4                  }
+ 221   3                  if ((bitstring1->value[bytes_used] & compare_mask) !=
+ 222   3                      (bitstring2->value[bytes_used] & compare_mask)) {
+ 223   4                      return false;
+ 224   4                  } else {
+ 225   4                      return true;
+ 226   4                  }
+ 227   3              }
+ 228   2          }
+ 229   1      
+ 230   1          return false;
+ 231   1      }
+ 232          
+ 233          #define CHARACTER_STRING_CAPACITY (MAX_CHARACTER_STRING_BYTES - 1)
+ 234          /* returns false if the string exceeds capacity
+ 235             initialize by using value=NULL */
+ 236          bool characterstring_init(
+C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 5   
+
+ 237              BACNET_CHARACTER_STRING * char_string,
+ 238              uint8_t encoding,
+ 239              const char *value,
+ 240              size_t length)
+ 241          {
+ 242   1          bool status = false;        /* return value */
+ 243   1          size_t i;   /* counter */
+ 244   1      
+ 245   1          if (char_string) {
+ 246   2              char_string->length = 0;
+ 247   2              char_string->encoding = encoding;
+ 248   2              /* save a byte at the end for NULL -
+ 249   2                 note: assumes printable characters */
+ 250   2              if (length <= CHARACTER_STRING_CAPACITY) {
+ 251   3                  if (value) {
+ 252   4                      for (i = 0; i < MAX_CHARACTER_STRING_BYTES; i++) {
+ 253   5                          if (i < length) {
+ 254   6                              char_string->value[char_string->length] = value[i];
+ 255   6                              char_string->length++;
+ 256   6                          } else {
+ 257   6                              char_string->value[i] = 0;
+ 258   6                          }
+ 259   5                      }
+ 260   4                  } else {
+ 261   4                      for (i = 0; i < MAX_CHARACTER_STRING_BYTES; i++) {
+ 262   5                          char_string->value[i] = 0;
+ 263   5                      }
+ 264   4                  }
+ 265   3                  status = true;
+ 266   3              }
+ 267   2          }
+ 268   1      
+ 269   1          return status;
+ 270   1      }
+ 271          
+ 272          bool characterstring_init_ansi(
+ 273              BACNET_CHARACTER_STRING * char_string,
+ 274              const char *value)
+ 275          {
+ 276   1          return characterstring_init(char_string, CHARACTER_ANSI_X34, value,
+ 277   1              value ? strlen(value) : 0);
+ 278   1      }
+ 279          
+ 280          bool characterstring_copy(
+ 281              BACNET_CHARACTER_STRING * dest,
+ 282              BACNET_CHARACTER_STRING * src)
+ 283          {
+ 284   1          return characterstring_init(dest, characterstring_encoding(src),
+ 285   1              characterstring_value(src), characterstring_length(src));
+ 286   1      }
+ 287          
+ 288          bool characterstring_ansi_copy(
+ 289              char *dest,
+ 290              size_t dest_max_len,
+ 291              BACNET_CHARACTER_STRING * src)
+ 292          {
+ 293   1          size_t i;   /* counter */
+ 294   1      
+ 295   1          if (dest && src && (src->encoding == CHARACTER_ANSI_X34) &&
+ 296   1              (src->length < dest_max_len)) {
+ 297   2              for (i = 0; i < src->length; i++) {
+ 298   3                  dest[i] = src->value[i];
+C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 6   
+
+ 299   3              }
+ 300   2              return true;
+ 301   2          }
+ 302   1      
+ 303   1          return false;
+ 304   1      }
+ 305          
+ 306          /* returns true if the character encoding and string contents are the same */
+ 307          bool characterstring_same(
+ 308              BACNET_CHARACTER_STRING * dest,
+ 309              BACNET_CHARACTER_STRING * src)
+ 310          {
+ 311   1          size_t i;   /* counter */
+ 312   1          bool same_status = false;
+ 313   1      
+ 314   1          if (src && dest) {
+ 315   2              if ((src->length == dest->length) && (src->encoding == dest->encoding)) {
+ 316   3                  same_status = true;
+ 317   3                  for (i = 0; (i < src->length) && same_status; i++) {
+ 318   4                      if (src->value[i] != dest->value[i]) {
+ 319   5                          same_status = false;
+ 320   5                      }
+ 321   4                  }
+ 322   3              }
+ 323   2          } else if (src) {
+ 324   2              if (src->length == 0) {
+ 325   3                  same_status = true;
+ 326   3              }
+ 327   2          } else if (dest) {
+ 328   2              if (dest->length == 0) {
+ 329   3                  same_status = true;
+ 330   3              }
+ 331   2          }
+ 332   1      
+ 333   1          return same_status;
+ 334   1      }
+ 335          
+ 336          bool characterstring_ansi_same(
+ 337              BACNET_CHARACTER_STRING * dest,
+ 338              const char *src)
+ 339          {
+ 340   1          size_t i;   /* counter */
+ 341   1          bool same_status = false;
+ 342   1      
+ 343   1          if (src && dest) {
+ 344   2              if ((dest->length == strlen(src)) &&
+ 345   2                  (dest->encoding == CHARACTER_ANSI_X34)) {
+ 346   3                  same_status = true;
+ 347   3                  for (i = 0; (i < dest->length) && same_status; i++) {
+ 348   4                      if (src[i] != dest->value[i]) {
+ 349   5                          same_status = false;
+ 350   5                      }
+ 351   4                  }
+ 352   3              }
+ 353   2          }
+ 354   1          /* NULL matches an empty string in our world */
+ 355   1          else if (src) {
+ 356   2              if (strlen(src) == 0) {
+ 357   3                  same_status = true;
+ 358   3              }
+ 359   2          } else if (dest) {
+ 360   2              if (dest->length == 0) {
+C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 7   
+
+ 361   3                  same_status = true;
+ 362   3              }
+ 363   2          }
+ 364   1      
+ 365   1          return same_status;
+ 366   1      }
+ 367          
+ 368          /* returns false if the string exceeds capacity */
+ 369          bool characterstring_append(
+ 370              BACNET_CHARACTER_STRING * char_string,
+ 371              const char *value,
+ 372              size_t length)
+ 373          {
+ 374   1          size_t i;   /* counter */
+ 375   1          bool status = false;        /* return value */
+ 376   1      
+ 377   1          if (char_string) {
+ 378   2              if ((length + char_string->length) <= CHARACTER_STRING_CAPACITY) {
+ 379   3                  for (i = 0; i < length; i++) {
+ 380   4                      char_string->value[char_string->length] = value[i];
+ 381   4                      char_string->length++;
+ 382   4                  }
+ 383   3                  status = true;
+ 384   3              }
+ 385   2          }
+ 386   1      
+ 387   1          return status;
+ 388   1      }
+ 389          
+ 390          /* This function sets a new length without changing the value.
+ 391             If length exceeds capacity, no modification happens and
+ 392             function returns false.  */
+ 393          bool characterstring_truncate(
+ 394              BACNET_CHARACTER_STRING * char_string,
+ 395              size_t length)
+ 396          {
+ 397   1          bool status = false;        /* return value */
+ 398   1      
+ 399   1          if (char_string) {
+ 400   2              if (length <= CHARACTER_STRING_CAPACITY) {
+ 401   3                  char_string->length = length;
+ 402   3                  status = true;
+ 403   3              }
+ 404   2          }
+ 405   1      
+ 406   1          return status;
+ 407   1      }
+ 408          
+ 409          /* Returns the value. */
+ 410          char *characterstring_value(
+ 411              BACNET_CHARACTER_STRING * char_string)
+ 412          {
+ 413   1          char *value = NULL;
+ 414   1      
+ 415   1          if (char_string) {
+ 416   2              value = char_string->value;
+ 417   2          }
+ 418   1      
+ 419   1          return value;
+ 420   1      }
+ 421          
+ 422          /* returns the length. */
+C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 8   
+
+ 423          size_t characterstring_length(
+ 424              BACNET_CHARACTER_STRING * char_string)
+ 425          {
+ 426   1          size_t length = 0;
+ 427   1      
+ 428   1          if (char_string) {
+ 429   2              /* FIXME: validate length is within bounds? */
+ 430   2              length = char_string->length;
+ 431   2          }
+ 432   1      
+ 433   1          return length;
+ 434   1      }
+ 435          
+ 436          size_t characterstring_capacity(
+ 437              BACNET_CHARACTER_STRING * char_string)
+ 438          {
+ 439   1          size_t length = 0;
+ 440   1      
+ 441   1          if (char_string) {
+ 442   2              length = CHARACTER_STRING_CAPACITY;
+ 443   2          }
+ 444   1      
+ 445   1          return length;
+ 446   1      }
+ 447          
+ 448          /* returns the encoding. */
+ 449          uint8_t characterstring_encoding(
+ 450              BACNET_CHARACTER_STRING * char_string)
+ 451          {
+ 452   1          uint8_t encoding = 0;
+ 453   1      
+ 454   1          if (char_string) {
+ 455   2              encoding = char_string->encoding;
+ 456   2          }
+ 457   1      
+ 458   1          return encoding;
+ 459   1      }
+ 460          
+ 461          /* returns true if string is printable */
+ 462          /* used to assist in the requirement that
+ 463             "The set of characters used in the Object_Name shall be
+ 464             restricted to printable characters." */
+ 465          /* printable character: a character that represents a printable
+ 466          symbol as opposed to a device control character. These
+ 467          include, but are not limited to, upper- and lowercase letters,
+ 468          punctuation marks, and mathematical symbols. The exact set
+ 469          depends upon the character set being used. In ANSI X3.4 the
+ 470          printable characters are represented by single octets in the range
+ 471          X'20' - X'7E'.*/
+ 472          bool characterstring_printable(
+ 473              BACNET_CHARACTER_STRING * char_string)
+ 474          {
+ 475   1          bool status = false;        /* return value */
+ 476   1          size_t i;   /* counter */
+ 477   1      
+ 478   1          if (char_string) {
+ 479   2              if (char_string->encoding == CHARACTER_ANSI_X34) {
+ 480   3                  status = true;
+ 481   3                  for (i = 0; i < MAX_CHARACTER_STRING_BYTES; i++) {
+ 482   4                      if (i < char_string->length) {
+ 483   5                          if ((char_string->value[i] < 0x20) ||
+ 484   5                              (char_string->value[i] > 0x7E)) {
+C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 9   
+
+ 485   6                              status = false;
+ 486   6                          }
+ 487   5                      } else {
+ 488   5                          break;
+ 489   5                      }
+ 490   4                  }
+ 491   3              } else {
+ 492   3                  status = true;
+ 493   3              }
+ 494   2          }
+ 495   1      
+ 496   1          return status;
+ 497   1      }
+ 498          
+ 499          /* Basic UTF-8 manipulation routines
+ 500            by Jeff Bezanson
+ 501            placed in the public domain Fall 2005 */
+ 502          static const char trailingBytesForUTF8[256] = {
+ 503              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 504              0, 0, 0, 0, 0, 0, 0,
+ 505              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 506              0, 0, 0, 0, 0, 0, 0,
+ 507              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 508              0, 0, 0, 0, 0, 0, 0,
+ 509              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 510              0, 0, 0, 0, 0, 0, 0,
+ 511              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 512              0, 0, 0, 0, 0, 0, 0,
+ 513              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 514              0, 0, 0, 0, 0, 0, 0,
+ 515              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+ 516              1, 1, 1, 1, 1, 1, 1,
+ 517              2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4,
+ 518              4, 4, 4, 5, 5, 5, 5
+ 519          };
+ 520          
+ 521          /* based on the valid_utf8 routine from the PCRE library by Philip Hazel
+ 522             length is in bytes, since without knowing whether the string is valid
+ 523             it's hard to know how many characters there are! */
+ 524          bool utf8_isvalid(
+ 525              const char *str,
+ 526              size_t length)
+ 527          {
+ 528   1          const unsigned char *p, *pend = (unsigned char *) str + length;
+ 529   1          unsigned char c;
+ 530   1          size_t ab;
+ 531   1      
+ 532   1          /* empty string is valid */
+ 533   1          if (length == 0) {
+ 534   2              return true;
+ 535   2          }
+ 536   1          for (p = (unsigned char *) str; p < pend; p++) {
+ 537   2              c = *p;
+ 538   2              /* null in middle of string */
+ 539   2              if (c == 0) {
+ 540   3                  return false;
+ 541   3              }
+ 542   2              /* ASCII character */
+ 543   2              if (c < 128) {
+ 544   3                  continue;
+ 545   3              }
+ 546   2              if ((c & 0xc0) != 0xc0) {
+C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 10  
+
+ 547   3                  return false;
+ 548   3              }
+ 549   2              ab = (size_t) trailingBytesForUTF8[c];
+ 550   2              if (length < ab) {
+ 551   3                  return false;
+ 552   3              }
+ 553   2              length -= ab;
+ 554   2      
+ 555   2              p++;
+ 556   2              /* Check top bits in the second byte */
+ 557   2              if ((*p & 0xc0) != 0x80) {
+ 558   3                  return false;
+ 559   3              }
+ 560   2              /* Check for overlong sequences for each different length */
+ 561   2              switch (ab) {
+ 562   3                      /* Check for xx00 000x */
+ 563   3                  case 1:
+ 564   3                      if ((c & 0x3e) == 0)
+ 565   3                          return false;
+ 566   3                      continue;       /* We know there aren't any more bytes to check */
+ 567   3      
+ 568   3                      /* Check for 1110 0000, xx0x xxxx */
+ 569   3                  case 2:
+ 570   3                      if (c == 0xe0 && (*p & 0x20) == 0)
+ 571   3                          return false;
+ 572   3                      break;
+ 573   3      
+ 574   3                      /* Check for 1111 0000, xx00 xxxx */
+ 575   3                  case 3:
+ 576   3                      if (c == 0xf0 && (*p & 0x30) == 0)
+ 577   3                          return false;
+ 578   3                      break;
+ 579   3      
+ 580   3                      /* Check for 1111 1000, xx00 0xxx */
+ 581   3                  case 4:
+ 582   3                      if (c == 0xf8 && (*p & 0x38) == 0)
+ 583   3                          return false;
+ 584   3                      break;
+ 585   3      
+ 586   3                      /* Check for leading 0xfe or 0xff,
+ 587   3                         and then for 1111 1100, xx00 00xx */
+ 588   3                  case 5:
+ 589   3                      if (c == 0xfe || c == 0xff || (c == 0xfc && (*p & 0x3c) == 0))
+ 590   3                          return false;
+ 591   3                      break;
+ 592   3              }
+ 593   2      
+ 594   2              /* Check for valid bytes after the 2nd, if any; all must start 10 */
+ 595   2              while (--ab > 0) {
+ 596   3                  if ((*(++p) & 0xc0) != 0x80)
+ 597   3                      return false;
+ 598   3              }
+ 599   2          }
+ 600   1      
+ 601   1          return true;
+ 602   1      }
+ 603          
+ 604          bool characterstring_valid(
+ 605              BACNET_CHARACTER_STRING * char_string)
+ 606          {
+ 607   1          bool valid = false; /* return value */
+ 608   1      
+C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 11  
+
+ 609   1          if (char_string->encoding < MAX_CHARACTER_STRING_ENCODING) {
+ 610   2              if (char_string->encoding == CHARACTER_UTF8) {
+ 611   3                  if (utf8_isvalid(char_string->value, char_string->length)) {
+ 612   4                      valid = true;
+ 613   4                  }
+ 614   3              } else {
+ 615   3                  valid = true;
+ 616   3              }
+ 617   2          }
+ 618   1      
+ 619   1          return valid;
+ 620   1      }
+ 621          
+ 622          #if BACNET_USE_OCTETSTRING
+ 623          /* returns false if the string exceeds capacity
+ 624             initialize by using value=NULL */
+ 625          bool octetstring_init(
+ 626              BACNET_OCTET_STRING * octet_string,
+ 627              uint8_t * value,
+ 628              size_t length)
+ 629          {
+ 630   1          bool status = false;        /* return value */
+ 631   1          size_t i;   /* counter */
+ 632   1      
+ 633   1          if (octet_string) {
+ 634   2              octet_string->length = 0;
+ 635   2              if (length <= MAX_OCTET_STRING_BYTES) {
+ 636   3                  if (value) {
+ 637   4                      for (i = 0; i < length; i++) {
+ 638   5                          if (i < length) {
+ 639   6                              octet_string->value[octet_string->length] = value[i];
+ 640   6                              octet_string->length++;
+ 641   6                          } else {
+ 642   6                              octet_string->value[i] = 0;
+ 643   6                          }
+ 644   5                      }
+ 645   4                  } else {
+ 646   4                      for (i = 0; i < MAX_OCTET_STRING_BYTES; i++) {
+ 647   5                          octet_string->value[i] = 0;
+ 648   5                      }
+ 649   4                  }
+ 650   3                  status = true;
+ 651   3              }
+ 652   2          }
+ 653   1      
+ 654   1          return status;
+ 655   1      }
+ 656          
+ 657          #if PRINT_ENABLED
+              /* converts an null terminated ASCII Hex string to an octet string.
+                 returns true if successfully converted and fits; false if too long */
+              bool octetstring_init_ascii_hex(
+                  BACNET_OCTET_STRING * octet_string,
+                  const char *ascii_hex)
+              {
+                  bool status = false;        /* return value */
+                  unsigned index = 0; /* offset into buffer */
+                  uint8_t value = 0;
+                  char hex_pair_string[3] = "";
+              
+                  if (octet_string) {
+                      octet_string->length = 0;
+C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 12  
+
+                      if (ascii_hex[0] == 0) {
+                          /* nothing to decode, so success! */
+                          status = true;
+                      } else {
+                          while (ascii_hex[index] != 0) {
+                              if (!isalnum(ascii_hex[index])) {
+                                  /* skip non-numeric or alpha */
+                                  index++;
+                                  continue;
+                              }
+                              if (ascii_hex[index + 1] == 0) {
+                                  break;
+                              }
+                              hex_pair_string[0] = ascii_hex[index];
+                              hex_pair_string[1] = ascii_hex[index + 1];
+                              value = (uint8_t) strtol(hex_pair_string, NULL, 16);
+                              if (octet_string->length <= MAX_OCTET_STRING_BYTES) {
+                                  octet_string->value[octet_string->length] = value;
+                                  octet_string->length++;
+                                  /* at least one pair was decoded */
+                                  status = true;
+                              } else {
+                                  break;
+                                  status = false;
+                              }
+                              /* set up for next pair */
+                              index += 2;
+                          }
+                      }
+                  }
+              
+                  return status;
+              }
+              #endif
+ 705          
+ 706          bool octetstring_copy(
+ 707              BACNET_OCTET_STRING * dest,
+ 708              BACNET_OCTET_STRING * src)
+ 709          {
+ 710   1          return octetstring_init(dest, octetstring_value(src),
+ 711   1              octetstring_length(src));
+ 712   1      }
+ 713          
+ 714          /* returns false if the string exceeds capacity */
+ 715          bool octetstring_append(
+ 716              BACNET_OCTET_STRING * octet_string,
+ 717              uint8_t * value,
+ 718              size_t length)
+ 719          {
+ 720   1          size_t i;   /* counter */
+ 721   1          bool status = false;        /* return value */
+ 722   1      
+ 723   1          if (octet_string) {
+ 724   2              if ((length + octet_string->length) <= MAX_OCTET_STRING_BYTES) {
+ 725   3                  for (i = 0; i < length; i++) {
+ 726   4                      octet_string->value[octet_string->length] = value[i];
+ 727   4                      octet_string->length++;
+ 728   4                  }
+ 729   3                  status = true;
+ 730   3              }
+ 731   2          }
+ 732   1      
+C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 13  
+
+ 733   1          return status;
+ 734   1      }
+ 735          
+ 736          /* This function sets a new length without changing the value.
+ 737             If length exceeds capacity, no modification happens and
+ 738             function returns false.  */
+ 739          bool octetstring_truncate(
+ 740              BACNET_OCTET_STRING * octet_string,
+ 741              size_t length)
+ 742          {
+ 743   1          bool status = false;        /* return value */
+ 744   1      
+ 745   1          if (octet_string) {
+ 746   2              if (length <= MAX_OCTET_STRING_BYTES) {
+ 747   3                  octet_string->length = length;
+ 748   3                  status = true;
+ 749   3              }
+ 750   2          }
+ 751   1      
+ 752   1          return status;
+ 753   1      }
+ 754          
+ 755          /* returns a pointer to the value. */
+ 756          uint8_t *octetstring_value(
+ 757              BACNET_OCTET_STRING * octet_string)
+ 758          {
+ 759   1          uint8_t *value = NULL;
+ 760   1      
+ 761   1          if (octet_string) {
+ 762   2              value = octet_string->value;
+ 763   2          }
+ 764   1      
+ 765   1          return value;
+ 766   1      }
+ 767          
+ 768          /* returns the length. */
+ 769          size_t octetstring_length(
+ 770              BACNET_OCTET_STRING * octet_string)
+ 771          {
+ 772   1          size_t length = 0;
+ 773   1      
+ 774   1          if (octet_string) {
+ 775   2              /* FIXME: validate length is within bounds? */
+ 776   2              length = octet_string->length;
+ 777   2          }
+ 778   1      
+ 779   1          return length;
+ 780   1      }
+ 781          
+ 782          /* returns the maximum capacity. */
+ 783          size_t octetstring_capacity(
+ 784              BACNET_OCTET_STRING * octet_string)
+ 785          {
+ 786   1          size_t length = 0;
+ 787   1      
+ 788   1          if (octet_string) {
+ 789   2              /* FIXME: validate length is within bounds? */
+ 790   2              length = MAX_OCTET_STRING_BYTES;
+ 791   2          }
+ 792   1      
+ 793   1          return length;
+ 794   1      }
+C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 14  
+
+ 795          
+ 796          /* returns true if the same length and contents */
+ 797          bool octetstring_value_same(
+ 798              BACNET_OCTET_STRING * octet_string1,
+ 799              BACNET_OCTET_STRING * octet_string2)
+ 800          {
+ 801   1          size_t i = 0;       /* loop counter */
+ 802   1      
+ 803   1          if (octet_string1 && octet_string2) {
+ 804   2              if ((octet_string1->length == octet_string2->length) &&
+ 805   2                  (octet_string1->length <= MAX_OCTET_STRING_BYTES)) {
+ 806   3                  for (i = 0; i < octet_string1->length; i++) {
+ 807   4                      if (octet_string1->value[i] != octet_string2->value[i]) {
+ 808   5                          return false;
+ 809   5                      }
+ 810   4                  }
+ 811   3                  return true;
+ 812   3              }
+ 813   2          }
+ 814   1      
+ 815   1          return false;
+ 816   1      }
+ 817          #endif
+ 818          
+ 819          #ifdef TEST
+              #include <assert.h>
+              #include <string.h>
+              #include <stdlib.h>
+              #include <time.h>
+              #include "ctest.h"
+              
+              void testBitString(
+                  Test * pTest)
+              {
+                  uint8_t bit = 0;
+                  int max_bit;
+                  BACNET_BIT_STRING bit_string;
+                  BACNET_BIT_STRING bit_string2;
+                  BACNET_BIT_STRING bit_string3;
+              
+                  bitstring_init(&bit_string);
+                  /* verify initialization */
+                  ct_test(pTest, bitstring_bits_used(&bit_string) == 0);
+                  for (bit = 0; bit < (MAX_BITSTRING_BYTES * 8); bit++) {
+                      ct_test(pTest, bitstring_bit(&bit_string, bit) == false);
+                  }
+              
+                  /* test for true */
+                  for (bit = 0; bit < (MAX_BITSTRING_BYTES * 8); bit++) {
+                      bitstring_set_bit(&bit_string, bit, true);
+                      ct_test(pTest, bitstring_bits_used(&bit_string) == (bit + 1));
+                      ct_test(pTest, bitstring_bit(&bit_string, bit) == true);
+                  }
+                  /* test for false */
+                  bitstring_init(&bit_string);
+                  for (bit = 0; bit < (MAX_BITSTRING_BYTES * 8); bit++) {
+                      bitstring_set_bit(&bit_string, bit, false);
+                      ct_test(pTest, bitstring_bits_used(&bit_string) == (bit + 1));
+                      ct_test(pTest, bitstring_bit(&bit_string, bit) == false);
+                  }
+              
+                  /* test for compare equals */
+C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 15  
+
+                  srand(time(NULL));
+                  for (max_bit = 0; max_bit < (MAX_BITSTRING_BYTES * 8); max_bit++) {
+                      bitstring_init(&bit_string);
+                      bitstring_init(&bit_string2);
+                      for (bit = 0; bit < max_bit; bit++) {
+                          bool bit_value = rand() % 2;
+                          bitstring_set_bit(&bit_string, bit, bit_value);
+                          bitstring_set_bit(&bit_string2, bit, bit_value);
+                      }
+                      ct_test(pTest, bitstring_same(&bit_string, &bit_string2));
+                  }
+                  /* test for compare not equals */
+                  for (max_bit = 1; max_bit < (MAX_BITSTRING_BYTES * 8); max_bit++) {
+                      bitstring_init(&bit_string);
+                      bitstring_init(&bit_string2);
+                      bitstring_init(&bit_string3);
+                      for (bit = 0; bit < max_bit; bit++) {
+                          bool bit_value = rand() % 2;
+                          bitstring_set_bit(&bit_string, bit, bit_value);
+                          bitstring_set_bit(&bit_string2, bit, bit_value);
+                          bitstring_set_bit(&bit_string3, bit, bit_value);
+                      }
+                      /* Set the first bit of bit_string2 and the last bit of bit_string3 to be different */
+                      bitstring_set_bit(&bit_string2, 0, !bitstring_bit(&bit_string, 0));
+                      bitstring_set_bit(&bit_string3, max_bit - 1,
+                          !bitstring_bit(&bit_string, max_bit - 1));
+                      ct_test(pTest, !bitstring_same(&bit_string, &bit_string2));
+                      ct_test(pTest, !bitstring_same(&bit_string, &bit_string3));
+                  }
+              }
+              
+              void testCharacterString(
+                  Test * pTest)
+              {
+                  BACNET_CHARACTER_STRING bacnet_string;
+                  char *value = "Joshua,Mary,Anna,Christopher";
+                  char test_value[MAX_APDU] = "Patricia";
+                  char test_append_value[MAX_APDU] = " and the Kids";
+                  char test_append_string[MAX_APDU] = "";
+                  bool status = false;
+                  size_t length = 0;
+                  size_t test_length = 0;
+                  size_t i = 0;
+              
+                  /* verify initialization */
+                  status = characterstring_init(&bacnet_string, CHARACTER_ANSI_X34, NULL, 0);
+                  ct_test(pTest, status == true);
+                  ct_test(pTest, characterstring_length(&bacnet_string) == 0);
+                  ct_test(pTest,
+                      characterstring_encoding(&bacnet_string) == CHARACTER_ANSI_X34);
+                  /* bounds check */
+                  status =
+                      characterstring_init(&bacnet_string, CHARACTER_ANSI_X34, NULL,
+                      characterstring_capacity(&bacnet_string) + 1);
+                  ct_test(pTest, status == false);
+                  status =
+                      characterstring_truncate(&bacnet_string,
+                      characterstring_capacity(&bacnet_string) + 1);
+                  ct_test(pTest, status == false);
+                  status =
+                      characterstring_truncate(&bacnet_string,
+                      characterstring_capacity(&bacnet_string));
+C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 16  
+
+                  ct_test(pTest, status == true);
+              
+                  test_length = strlen(test_value);
+                  status =
+                      characterstring_init(&bacnet_string, CHARACTER_ANSI_X34,
+                      &test_value[0], test_length);
+                  ct_test(pTest, status == true);
+                  value = characterstring_value(&bacnet_string);
+                  length = characterstring_length(&bacnet_string);
+                  ct_test(pTest, length == test_length);
+                  for (i = 0; i < test_length; i++) {
+                      ct_test(pTest, value[i] == test_value[i]);
+                  }
+                  test_length = strlen(test_append_value);
+                  status =
+                      characterstring_append(&bacnet_string, &test_append_value[0],
+                      test_length);
+                  strcat(test_append_string, test_value);
+                  strcat(test_append_string, test_append_value);
+                  test_length = strlen(test_append_string);
+                  ct_test(pTest, status == true);
+                  length = characterstring_length(&bacnet_string);
+                  value = characterstring_value(&bacnet_string);
+                  ct_test(pTest, length == test_length);
+                  for (i = 0; i < test_length; i++) {
+                      ct_test(pTest, value[i] == test_append_string[i]);
+                  }
+              }
+              
+              void testOctetString(
+                  Test * pTest)
+              {
+                  BACNET_OCTET_STRING bacnet_string;
+                  uint8_t *value = NULL;
+                  uint8_t test_value[MAX_APDU] = "Patricia";
+                  uint8_t test_append_value[MAX_APDU] = " and the Kids";
+                  uint8_t test_append_string[MAX_APDU] = "";
+                  bool status = false;
+                  size_t length = 0;
+                  size_t test_length = 0;
+                  size_t i = 0;
+              
+                  /* verify initialization */
+                  status = octetstring_init(&bacnet_string, NULL, 0);
+                  ct_test(pTest, status == true);
+                  ct_test(pTest, octetstring_length(&bacnet_string) == 0);
+                  value = octetstring_value(&bacnet_string);
+                  for (i = 0; i < octetstring_capacity(&bacnet_string); i++) {
+                      ct_test(pTest, value[i] == 0);
+                  }
+                  /* bounds check */
+                  status =
+                      octetstring_init(&bacnet_string, NULL,
+                      octetstring_capacity(&bacnet_string) + 1);
+                  ct_test(pTest, status == false);
+                  status =
+                      octetstring_init(&bacnet_string, NULL,
+                      octetstring_capacity(&bacnet_string));
+                  ct_test(pTest, status == true);
+                  status =
+                      octetstring_truncate(&bacnet_string,
+                      octetstring_capacity(&bacnet_string) + 1);
+C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 17  
+
+                  ct_test(pTest, status == false);
+                  status =
+                      octetstring_truncate(&bacnet_string,
+                      octetstring_capacity(&bacnet_string));
+                  ct_test(pTest, status == true);
+              
+                  test_length = strlen((char *) test_value);
+                  status = octetstring_init(&bacnet_string, &test_value[0], test_length);
+                  ct_test(pTest, status == true);
+                  length = octetstring_length(&bacnet_string);
+                  value = octetstring_value(&bacnet_string);
+                  ct_test(pTest, length == test_length);
+                  for (i = 0; i < test_length; i++) {
+                      ct_test(pTest, value[i] == test_value[i]);
+                  }
+              
+                  test_length = strlen((char *) test_append_value);
+                  status =
+                      octetstring_append(&bacnet_string, &test_append_value[0], test_length);
+                  strcat((char *) test_append_string, (char *) test_value);
+                  strcat((char *) test_append_string, (char *) test_append_value);
+                  test_length = strlen((char *) test_append_string);
+                  ct_test(pTest, status == true);
+                  length = octetstring_length(&bacnet_string);
+                  value = octetstring_value(&bacnet_string);
+                  ct_test(pTest, length == test_length);
+                  for (i = 0; i < test_length; i++) {
+                      ct_test(pTest, value[i] == test_append_string[i]);
+                  }
+              }
+              
+              #ifdef TEST_BACSTR
+              int main(
+                  void)
+              {
+                  Test *pTest;
+                  bool rc;
+              
+                  pTest = ct_create("BACnet Strings", NULL);
+                  /* individual tests */
+                  rc = ct_addTestFunction(pTest, testBitString);
+                  assert(rc);
+                  rc = ct_addTestFunction(pTest, testCharacterString);
+                  assert(rc);
+                  rc = ct_addTestFunction(pTest, testOctetString);
+                  assert(rc);
+                  /* configure output */
+                  ct_setStream(pTest, stdout);
+                  ct_run(pTest);
+                  (void) ct_report(pTest);
+                  ct_destroy(pTest);
+              
+                  return 0;
+              }
+              #endif /* TEST_BACSTR */
+              #endif /* TEST */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   4634    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    256     182
+C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 18  
+
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

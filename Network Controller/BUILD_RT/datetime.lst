@@ -1,0 +1,1003 @@
+C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE DATETIME
+OBJECT MODULE PLACED IN .\datetime.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\datetime.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X602
+                    -0) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur
+                    -\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SR
+                    -C\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\
+                    -;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\datetime.lst) OBJECT(.\d
+                    -atetime.obj)
+
+line level    source
+
+   1          /*####COPYRIGHTBEGIN####
+   2           -------------------------------------------
+   3           Copyright (C) 2007 Steve Karg <skarg@users.sourceforge.net>
+   4          
+   5           This program is free software; you can redistribute it and/or
+   6           modify it under the terms of the GNU General Public License
+   7           as published by the Free Software Foundation; either version 2
+   8           of the License, or (at your option) any later version.
+   9          
+  10           This program is distributed in the hope that it will be useful,
+  11           but WITHOUT ANY WARRANTY; without even the implied warranty of
+  12           MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  13           GNU General Public License for more details.
+  14          
+  15           You should have received a copy of the GNU General Public License
+  16           along with this program; if not, write to:
+  17           The Free Software Foundation, Inc.
+  18           59 Temple Place - Suite 330
+  19           Boston, MA  02111-1307, USA.
+  20          
+  21           As a special exception, if other files instantiate templates or
+  22           use macros or inline functions from this file, or you compile
+  23           this file and link it with other works to produce a work based
+  24           on this file, this file does not by itself cause the resulting
+  25           work to be covered by the GNU General Public License. However
+  26           the source code for this file must still be made available in
+  27           accordance with section (3) of the GNU General Public License.
+  28          
+  29           This exception does not invalidate any other reasons why a work
+  30           based on this file might be covered by the GNU General Public
+  31           License.
+  32           -------------------------------------------
+  33          ####COPYRIGHTEND####*/
+  34          #include <stdint.h>
+  35          #include <stdbool.h>
+  36          #include <string.h>
+  37          #include <stdio.h>
+  38          #include <stdlib.h>
+  39          #include <ctype.h>
+  40          #include "../include/datetime.h"
+  41          #include "../include/bacdcode.h"
+  42          
+  43          /** @file datetime.c  Manipulate BACnet Date and Time values */
+  44          
+  45          /* BACnet Date */
+  46          /* year = years since 1900 */
+  47          /* month 1=Jan */
+  48          /* day = day of month 1..31 */
+  49          /* wday 1=Monday...7=Sunday */
+  50          
+C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 2   
+
+  51          /* Wildcards:
+  52            A value of X'FF' in any of the four octets 
+  53            shall indicate that the value is unspecified.
+  54            If all four octets = X'FF', the corresponding
+  55            time or date may be interpreted as "any" or "don't care"
+  56          */
+  57          
+  58          
+  59          static bool is_leap_year(
+  60              uint16_t year)
+  61          {
+  62   1          if ((year % 4) == 0 && ((year % 100) != 0 || (year % 400) == 0))
+  63   1              return (true);
+  64   1          else
+  65   1              return (false);
+  66   1      }
+  67          
+  68          static uint8_t month_days(
+  69              uint16_t year,
+  70              uint8_t month)
+  71          {
+  72   1          /* note: start with a zero in the first element to save us from a
+  73   1             month - 1 calculation in the lookup */
+  74   1          int month_days[13] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+  75   1      
+  76   1          /* February */
+  77   1          if ((month == 2) && is_leap_year(year))
+  78   1              return 29;
+  79   1          else if (month >= 1 && month <= 12)
+  80   1              return (uint8_t) month_days[month];
+  81   1          else
+  82   1              return 0;
+  83   1      }
+  84          
+  85          static uint32_t days_since_epoch(
+  86              uint16_t year,
+  87              uint8_t month,
+  88              uint8_t day)
+  89          {
+  90   1          uint32_t days = 0;  /* return value */
+  91   1          uint8_t monthdays;  /* days in a month */
+  92   1          uint16_t years = 0; /* loop counter for years */
+  93   1          uint8_t months = 0; /* loop counter for months */
+  94   1      
+  95   1          monthdays = month_days(year, month);
+  96   1          if ((year >= 1900) && (monthdays) && (day >= 1) && (day <= monthdays)) {
+  97   2              for (years = 1900; years < year; years++) {
+  98   3                  days += 365;
+  99   3                  if (is_leap_year(years))
+ 100   3                      days++;
+ 101   3              }
+ 102   2              for (months = 1; months < month; months++) {
+ 103   3                  days += month_days(years, months);
+ 104   3              }
+ 105   2              days += (day - 1);
+ 106   2          }
+ 107   1      
+ 108   1          return (days);
+ 109   1      }
+ 110          
+ 111          static void days_since_epoch_into_ymd(
+ 112              uint32_t days,
+C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 3   
+
+ 113              uint16_t * pYear,
+ 114              uint8_t * pMonth,
+ 115              uint8_t * pDay)
+ 116          {
+ 117   1          uint16_t year = 1900;
+ 118   1          uint8_t month = 1;
+ 119   1          uint8_t day = 1;
+ 120   1      
+ 121   1          while (days >= 365) {
+ 122   2              if ((is_leap_year(year)) && (days == 365))
+ 123   2                  break;
+ 124   2              days -= 365;
+ 125   2              if (is_leap_year(year))
+ 126   2                  --days;
+ 127   2              year++;
+ 128   2          }
+ 129   1      
+ 130   1          while (days >= (uint32_t) month_days(year, month)) {
+ 131   2              days -= month_days(year, month);
+ 132   2              month++;
+ 133   2          }
+ 134   1      
+ 135   1          day = (uint8_t) (day + days);
+ 136   1      
+ 137   1          if (pYear)
+ 138   1              *pYear = year;
+ 139   1          if (pMonth)
+ 140   1              *pMonth = month;
+ 141   1          if (pDay)
+ 142   1              *pDay = day;
+ 143   1      
+ 144   1          return;
+ 145   1      }
+ 146          
+ 147          
+ 148          /* Jan 1, 1900 is a Monday */
+ 149          /* wday 1=Monday...7=Sunday */
+ 150          static uint8_t day_of_week(
+ 151              uint16_t year,
+ 152              uint8_t month,
+ 153              uint8_t day)
+ 154          {
+ 155   1          return (uint8_t) ((days_since_epoch(year, month, day) % 7) + 1);
+ 156   1      }
+ 157          
+ 158          /* if the date1 is the same as date2, return is 0
+ 159             if date1 is after date2, returns positive
+ 160             if date1 is before date2, returns negative */
+ 161          int datetime_compare_date(
+ 162              BACNET_DATE * date1,
+ 163              BACNET_DATE * date2)
+ 164          {
+ 165   1          int diff = 0;
+ 166   1      
+ 167   1          if (date1 && date2) {
+ 168   2              diff = (int) date1->year - (int) date2->year;
+ 169   2              if (diff == 0) {
+ 170   3                  diff = (int) date1->month - (int) date2->month;
+ 171   3                  if (diff == 0) {
+ 172   4                      diff = (int) date1->day - (int) date2->day;
+ 173   4                  }
+ 174   3              }
+C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 4   
+
+ 175   2          }
+ 176   1      
+ 177   1          return diff;
+ 178   1      }
+ 179          
+ 180          /* if the time1 is the same as time2, return is 0
+ 181             if time1 is after time2, returns positive
+ 182             if time1 is before time2, returns negative */
+ 183          int datetime_compare_time(
+ 184              BACNET_TIME * time1,
+ 185              BACNET_TIME * time2)
+ 186          {
+ 187   1          int diff = 0;
+ 188   1      
+ 189   1          if (time1 && time2) {
+ 190   2              diff = (int) time1->hour - (int) time2->hour;
+ 191   2              if (diff == 0) {
+ 192   3                  diff = (int) time1->min - (int) time2->min;
+ 193   3                  if (diff == 0) {
+ 194   4                      diff = (int) time1->sec - (int) time2->sec;
+ 195   4                      if (diff == 0) {
+ 196   5                          diff = (int) time1->hundredths - (int) time2->hundredths;
+ 197   5                      }
+ 198   4                  }
+ 199   3              }
+ 200   2          }
+ 201   1      
+ 202   1          return diff;
+ 203   1      }
+ 204          
+ 205          /* if the datetime1 is the same as datetime2, return is 0
+ 206             if datetime1 is before datetime2, returns negative
+ 207             if datetime1 is after datetime2, returns positive */
+ 208          int datetime_compare(
+ 209              BACNET_DATE_TIME * datetime1,
+ 210              BACNET_DATE_TIME * datetime2)
+ 211          {
+ 212   1          int diff = 0;
+ 213   1      
+ 214   1          diff = datetime_compare_date(&datetime1->date, &datetime2->date);
+ 215   1          if (diff == 0) {
+ 216   2              diff = datetime_compare_time(&datetime1->time, &datetime2->time);
+ 217   2          }
+ 218   1      
+ 219   1          return diff;
+ 220   1      }
+ 221          
+ 222          void datetime_copy_date(
+ 223              BACNET_DATE * dest_date,
+ 224              BACNET_DATE * src_date)
+ 225          {
+ 226   1          if (dest_date && src_date) {
+ 227   2              dest_date->year = src_date->year;
+ 228   2              dest_date->month = src_date->month;
+ 229   2              dest_date->day = src_date->day;
+ 230   2              dest_date->wday = src_date->wday;
+ 231   2          }
+ 232   1      }
+ 233          
+ 234          void datetime_copy_time(
+ 235              BACNET_TIME * dest_time,
+ 236              BACNET_TIME * src_time)
+C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 5   
+
+ 237          {
+ 238   1          if (dest_time && src_time) {
+ 239   2              dest_time->hour = src_time->hour;
+ 240   2              dest_time->min = src_time->min;
+ 241   2              dest_time->sec = src_time->sec;
+ 242   2              dest_time->hundredths = src_time->hundredths;
+ 243   2          }
+ 244   1      }
+ 245          
+ 246          void datetime_copy(
+ 247              BACNET_DATE_TIME * dest_datetime,
+ 248              BACNET_DATE_TIME * src_datetime)
+ 249          {
+ 250   1          datetime_copy_time(&dest_datetime->time, &src_datetime->time);
+ 251   1          datetime_copy_date(&dest_datetime->date, &src_datetime->date);
+ 252   1      }
+ 253          
+ 254          void datetime_set_date(
+ 255              BACNET_DATE * bdate,
+ 256              uint16_t year,
+ 257              uint8_t month,
+ 258              uint8_t day)
+ 259          {
+ 260   1          if (bdate) {
+ 261   2              bdate->year = year;
+ 262   2              bdate->month = month;
+ 263   2              bdate->day = day;
+ 264   2              bdate->wday = day_of_week(year, month, day);
+ 265   2          }
+ 266   1      }
+ 267          
+ 268          void datetime_set_time(
+ 269              BACNET_TIME * btime,
+ 270              uint8_t hour,
+ 271              uint8_t minute,
+ 272              uint8_t seconds,
+ 273              uint8_t hundredths)
+ 274          {
+ 275   1          if (btime) {
+ 276   2              btime->hour = hour;
+ 277   2              btime->min = minute;
+ 278   2              btime->sec = seconds;
+ 279   2              btime->hundredths = hundredths;
+ 280   2          }
+ 281   1      }
+ 282          
+ 283          void datetime_set(
+ 284              BACNET_DATE_TIME * bdatetime,
+ 285              BACNET_DATE * bdate,
+ 286              BACNET_TIME * btime)
+ 287          {
+ 288   1          if (bdate && btime && bdatetime) {
+ 289   2              bdatetime->time.hour = btime->hour;
+ 290   2              bdatetime->time.min = btime->min;
+ 291   2              bdatetime->time.sec = btime->sec;
+ 292   2              bdatetime->time.hundredths = btime->hundredths;
+ 293   2              bdatetime->date.year = bdate->year;
+ 294   2              bdatetime->date.month = bdate->month;
+ 295   2              bdatetime->date.day = bdate->day;
+ 296   2              bdatetime->date.wday = bdate->wday;
+ 297   2          }
+ 298   1      }
+C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 6   
+
+ 299          
+ 300          void datetime_set_values(
+ 301              BACNET_DATE_TIME * bdatetime,
+ 302              uint16_t year,
+ 303              uint8_t month,
+ 304              uint8_t day,
+ 305              uint8_t hour,
+ 306              uint8_t minute,
+ 307              uint8_t seconds,
+ 308              uint8_t hundredths)
+ 309          {
+ 310   1          if (bdatetime) {
+ 311   2              bdatetime->date.year = year;
+ 312   2              bdatetime->date.month = month;
+ 313   2              bdatetime->date.day = day;
+ 314   2              bdatetime->date.wday = day_of_week(year, month, day);
+ 315   2              bdatetime->time.hour = hour;
+ 316   2              bdatetime->time.min = minute;
+ 317   2              bdatetime->time.sec = seconds;
+ 318   2              bdatetime->time.hundredths = hundredths;
+ 319   2          }
+ 320   1      }
+ 321          
+ 322          static uint32_t seconds_since_midnight(
+ 323              uint8_t hours,
+ 324              uint8_t minutes,
+ 325              uint8_t seconds)
+ 326          {
+ 327   1          return ((hours * 60 * 60) + (minutes * 60) + seconds);
+ 328   1      }
+ 329          
+ 330          static void seconds_since_midnight_into_hms(
+ 331              uint32_t seconds,
+ 332              uint8_t * pHours,
+ 333              uint8_t * pMinutes,
+ 334              uint8_t * pSeconds)
+ 335          {
+ 336   1          uint8_t hour = 0;
+ 337   1          uint8_t minute = 0;
+ 338   1      
+ 339   1          hour = (uint8_t) (seconds / (60 * 60));
+ 340   1          seconds -= (hour * 60 * 60);
+ 341   1          minute = (uint8_t) (seconds / 60);
+ 342   1          seconds -= (minute * 60);
+ 343   1      
+ 344   1          if (pHours)
+ 345   1              *pHours = hour;
+ 346   1          if (pMinutes)
+ 347   1              *pMinutes = minute;
+ 348   1          if (pSeconds)
+ 349   1              *pSeconds = (uint8_t) seconds;
+ 350   1      }
+ 351          
+ 352          void datetime_add_minutes(
+ 353              BACNET_DATE_TIME * bdatetime,
+ 354              uint32_t minutes)
+ 355          {
+ 356   1          uint32_t bdatetime_minutes = 0;
+ 357   1          uint32_t bdatetime_days = 0;
+ 358   1          uint32_t days = 0;
+ 359   1      
+ 360   1          /* convert bdatetime to seconds and days */
+C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 7   
+
+ 361   1          bdatetime_minutes =
+ 362   1              seconds_since_midnight(bdatetime->time.hour, bdatetime->time.min,
+ 363   1              bdatetime->time.sec) / 60;
+ 364   1          bdatetime_days =
+ 365   1              days_since_epoch(bdatetime->date.year, bdatetime->date.month,
+ 366   1              bdatetime->date.day);
+ 367   1      
+ 368   1          /* add */
+ 369   1          days = minutes / (24 * 60);
+ 370   1          bdatetime_days += days;
+ 371   1          minutes -= (days * 24 * 60);
+ 372   1          bdatetime_minutes += minutes;
+ 373   1          days = bdatetime_minutes / (24 * 60);
+ 374   1          bdatetime_days += days;
+ 375   1      
+ 376   1          /* convert bdatetime from seconds and days */
+ 377   1          seconds_since_midnight_into_hms(bdatetime_minutes * 60,
+ 378   1              &bdatetime->time.hour, &bdatetime->time.min, &bdatetime->time.sec);
+ 379   1          days_since_epoch_into_ymd(bdatetime_days, &bdatetime->date.year,
+ 380   1              &bdatetime->date.month, &bdatetime->date.day);
+ 381   1          bdatetime->date.wday =
+ 382   1              day_of_week(bdatetime->date.year, bdatetime->date.month,
+ 383   1              bdatetime->date.day);
+ 384   1      }
+ 385          
+ 386          bool datetime_wildcard(
+ 387              BACNET_DATE_TIME * bdatetime)
+ 388          {
+ 389   1          bool wildcard_present = false;
+ 390   1      
+ 391   1          if (bdatetime) {
+ 392   2              if ((bdatetime->date.year == (1900 + 0xFF)) &&
+ 393   2                  (bdatetime->date.month == 0xFF) && (bdatetime->date.day == 0xFF) &&
+ 394   2                  (bdatetime->date.wday == 0xFF) && (bdatetime->time.hour == 0xFF) &&
+ 395   2                  (bdatetime->time.min == 0xFF) && (bdatetime->time.sec == 0xFF) &&
+ 396   2                  (bdatetime->time.hundredths == 0xFF)) {
+ 397   3                  wildcard_present = true;
+ 398   3              }
+ 399   2          }
+ 400   1      
+ 401   1          return wildcard_present;
+ 402   1      }
+ 403          
+ 404          /* Returns true if any type of wildcard is present except for day of week 
+ 405           * on it's own. 
+ 406           */
+ 407          bool datetime_wildcard_present(
+ 408              BACNET_DATE_TIME * bdatetime)
+ 409          {
+ 410   1          bool wildcard_present = false;
+ 411   1      
+ 412   1          if (bdatetime) {
+ 413   2              if ((bdatetime->date.year == (1900 + 0xFF)) ||
+ 414   2                  (bdatetime->date.month > 12) || (bdatetime->date.day > 31) ||
+ 415   2                  (bdatetime->time.hour == 0xFF) || (bdatetime->time.min == 0xFF) ||
+ 416   2                  (bdatetime->time.sec == 0xFF) ||
+ 417   2                  (bdatetime->time.hundredths == 0xFF)) {
+ 418   3                  wildcard_present = true;
+ 419   3              }
+ 420   2          }
+ 421   1      
+ 422   1          return wildcard_present;
+C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 8   
+
+ 423   1      }
+ 424          
+ 425          void datetime_date_wildcard_set(
+ 426              BACNET_DATE * bdate)
+ 427          {
+ 428   1          if (bdate) {
+ 429   2              bdate->year = 1900 + 0xFF;
+ 430   2              bdate->month = 0xFF;
+ 431   2              bdate->day = 0xFF;
+ 432   2              bdate->wday = 0xFF;
+ 433   2          }
+ 434   1      }
+ 435          
+ 436          void datetime_time_wildcard_set(
+ 437              BACNET_TIME * btime)
+ 438          {
+ 439   1          if (btime) {
+ 440   2              btime->hour = 0xFF;
+ 441   2              btime->min = 0xFF;
+ 442   2              btime->sec = 0xFF;
+ 443   2              btime->hundredths = 0xFF;
+ 444   2          }
+ 445   1      }
+ 446          
+ 447          void datetime_wildcard_set(
+ 448              BACNET_DATE_TIME * bdatetime)
+ 449          {
+ 450   1          if (bdatetime) {
+ 451   2              datetime_date_wildcard_set(&bdatetime->date);
+ 452   2              datetime_time_wildcard_set(&bdatetime->time);
+ 453   2          }
+ 454   1      }
+ 455          
+ 456          int bacapp_encode_datetime(
+ 457              uint8_t * apdu,
+ 458              BACNET_DATE_TIME * value)
+ 459          {
+ 460   1          int len = 0;
+ 461   1          int apdu_len = 0;
+ 462   1      
+ 463   1      
+ 464   1          if (apdu && value) {
+ 465   2              len = encode_application_date(&apdu[0], &value->date);
+ 466   2              apdu_len += len;
+ 467   2      
+ 468   2              len = encode_application_time(&apdu[apdu_len], &value->time);
+ 469   2              apdu_len += len;
+ 470   2          }
+ 471   1          return apdu_len;
+ 472   1      }
+ 473          
+ 474          
+ 475          int bacapp_encode_context_datetime(
+ 476              uint8_t * apdu,
+ 477              uint8_t tag_number,
+ 478              BACNET_DATE_TIME * value)
+ 479          {
+ 480   1          int len = 0;
+ 481   1          int apdu_len = 0;
+ 482   1      
+ 483   1      
+ 484   1          if (apdu && value) {
+C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 9   
+
+ 485   2              len = encode_opening_tag(&apdu[apdu_len], tag_number);
+ 486   2              apdu_len += len;
+ 487   2      
+ 488   2              len = bacapp_encode_datetime(&apdu[apdu_len], value);
+ 489   2              apdu_len += len;
+ 490   2      
+ 491   2              len = encode_closing_tag(&apdu[apdu_len], tag_number);
+ 492   2              apdu_len += len;
+ 493   2          }
+ 494   1          return apdu_len;
+ 495   1      }
+ 496          
+ 497          int bacapp_decode_datetime(
+ 498              uint8_t * apdu,
+ 499              BACNET_DATE_TIME * value)
+ 500          {
+ 501   1          int len = 0;
+ 502   1          int section_len;
+ 503   1      
+ 504   1          if (-1 == (section_len =
+ 505   1                  decode_application_date(&apdu[len], &value->date))) {
+ 506   2              return -1;
+ 507   2          }
+ 508   1          len += section_len;
+ 509   1      
+ 510   1          if (-1 == (section_len =
+ 511   1                  decode_application_time(&apdu[len], &value->time))) {
+ 512   2              return -1;
+ 513   2          }
+ 514   1      
+ 515   1          len += section_len;
+ 516   1      
+ 517   1          return len;
+ 518   1      }
+ 519          
+ 520          int bacapp_decode_context_datetime(
+ 521              uint8_t * apdu,
+ 522              uint8_t tag_number,
+ 523              BACNET_DATE_TIME * value)
+ 524          {
+ 525   1          int apdu_len = 0;
+ 526   1          int len;
+ 527   1      
+ 528   1          if (decode_is_opening_tag_number(&apdu[apdu_len], tag_number)) {
+ 529   2              apdu_len++;
+ 530   2          } else {
+ 531   2              return -1;
+ 532   2          }
+ 533   1      
+ 534   1          if (-1 == (len = bacapp_decode_datetime(&apdu[apdu_len], value))) {
+ 535   2              return -1;
+ 536   2          } else {
+ 537   2              apdu_len += len;
+ 538   2          }
+ 539   1      
+ 540   1          if (decode_is_closing_tag_number(&apdu[apdu_len], tag_number)) {
+ 541   2              apdu_len++;
+ 542   2          } else {
+ 543   2              return -1;
+ 544   2          }
+ 545   1          return apdu_len;
+ 546   1      }
+C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 10  
+
+ 547          
+ 548          
+ 549          
+ 550          
+ 551          #ifdef TEST
+              #include <assert.h>
+              #include <string.h>
+              #include "ctest.h"
+              
+              void testBACnetDateTimeWildcard(
+                  Test * pTest)
+              {
+                  BACNET_DATE_TIME bdatetime;
+                  bool status = false;
+              
+                  datetime_set_values(&bdatetime, 1900, 1, 1, 0, 0, 0, 0);
+                  status = datetime_wildcard(&bdatetime);
+                  ct_test(pTest, status == false);
+              
+                  datetime_wildcard_set(&bdatetime);
+                  status = datetime_wildcard(&bdatetime);
+                  ct_test(pTest, status == true);
+              }
+              
+              void testBACnetDateTimeAdd(
+                  Test * pTest)
+              {
+                  BACNET_DATE_TIME bdatetime, test_bdatetime;
+                  uint32_t minutes = 0;
+                  int diff = 0;
+              
+                  datetime_set_values(&bdatetime, 1900, 1, 1, 0, 0, 0, 0);
+                  datetime_copy(&test_bdatetime, &bdatetime);
+                  datetime_add_minutes(&bdatetime, minutes);
+                  diff = datetime_compare(&test_bdatetime, &bdatetime);
+                  ct_test(pTest, diff == 0);
+              
+                  datetime_set_values(&bdatetime, 1900, 1, 1, 0, 0, 0, 0);
+                  datetime_add_minutes(&bdatetime, 60);
+                  datetime_set_values(&test_bdatetime, 1900, 1, 1, 1, 0, 0, 0);
+                  diff = datetime_compare(&test_bdatetime, &bdatetime);
+                  ct_test(pTest, diff == 0);
+              
+                  datetime_set_values(&bdatetime, 1900, 1, 1, 0, 0, 0, 0);
+                  datetime_add_minutes(&bdatetime, (24 * 60));
+                  datetime_set_values(&test_bdatetime, 1900, 1, 2, 0, 0, 0, 0);
+                  diff = datetime_compare(&test_bdatetime, &bdatetime);
+                  ct_test(pTest, diff == 0);
+              
+                  datetime_set_values(&bdatetime, 1900, 1, 1, 0, 0, 0, 0);
+                  datetime_add_minutes(&bdatetime, (31 * 24 * 60));
+                  datetime_set_values(&test_bdatetime, 1900, 2, 1, 0, 0, 0, 0);
+                  diff = datetime_compare(&test_bdatetime, &bdatetime);
+                  ct_test(pTest, diff == 0);
+              }
+              
+              
+              
+              void testBACnetDateTimeSeconds(
+                  Test * pTest)
+              {
+                  uint8_t hour = 0, minute = 0, second = 0;
+C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 11  
+
+                  uint8_t test_hour = 0, test_minute = 0, test_second = 0;
+                  uint32_t seconds = 0, test_seconds;
+              
+                  for (hour = 0; hour < 24; hour++) {
+                      for (minute = 0; minute < 60; minute += 3) {
+                          for (second = 0; second < 60; second += 17) {
+                              seconds = seconds_since_midnight(hour, minute, second);
+                              seconds_since_midnight_into_hms(seconds, &test_hour,
+                                  &test_minute, &test_second);
+                              test_seconds =
+                                  seconds_since_midnight(test_hour, test_minute,
+                                  test_second);
+                              ct_test(pTest, seconds == test_seconds);
+                          }
+                      }
+                  }
+              }
+              
+              void testBACnetDate(
+                  Test * pTest)
+              {
+                  BACNET_DATE bdate1, bdate2;
+                  int diff = 0;
+              
+                  datetime_set_date(&bdate1, 1900, 1, 1);
+                  datetime_copy_date(&bdate2, &bdate1);
+                  diff = datetime_compare_date(&bdate1, &bdate2);
+                  ct_test(pTest, diff == 0);
+                  datetime_set_date(&bdate2, 1900, 1, 2);
+                  diff = datetime_compare_date(&bdate1, &bdate2);
+                  ct_test(pTest, diff < 0);
+                  datetime_set_date(&bdate2, 1900, 2, 1);
+                  diff = datetime_compare_date(&bdate1, &bdate2);
+                  ct_test(pTest, diff < 0);
+                  datetime_set_date(&bdate2, 1901, 1, 1);
+                  diff = datetime_compare_date(&bdate1, &bdate2);
+                  ct_test(pTest, diff < 0);
+              
+                  /* midpoint */
+                  datetime_set_date(&bdate1, 2007, 7, 15);
+                  datetime_copy_date(&bdate2, &bdate1);
+                  diff = datetime_compare_date(&bdate1, &bdate2);
+                  ct_test(pTest, diff == 0);
+                  datetime_set_date(&bdate2, 2007, 7, 14);
+                  diff = datetime_compare_date(&bdate1, &bdate2);
+                  ct_test(pTest, diff > 0);
+                  datetime_set_date(&bdate2, 2007, 7, 1);
+                  diff = datetime_compare_date(&bdate1, &bdate2);
+                  ct_test(pTest, diff > 0);
+                  datetime_set_date(&bdate2, 2007, 7, 31);
+                  diff = datetime_compare_date(&bdate1, &bdate2);
+                  ct_test(pTest, diff < 0);
+                  datetime_set_date(&bdate2, 2007, 8, 15);
+                  diff = datetime_compare_date(&bdate1, &bdate2);
+                  ct_test(pTest, diff < 0);
+                  datetime_set_date(&bdate2, 2007, 12, 15);
+                  diff = datetime_compare_date(&bdate1, &bdate2);
+                  ct_test(pTest, diff < 0);
+                  datetime_set_date(&bdate2, 2007, 6, 15);
+                  diff = datetime_compare_date(&bdate1, &bdate2);
+                  ct_test(pTest, diff > 0);
+                  datetime_set_date(&bdate2, 2007, 1, 15);
+C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 12  
+
+                  diff = datetime_compare_date(&bdate1, &bdate2);
+                  ct_test(pTest, diff > 0);
+                  datetime_set_date(&bdate2, 2006, 7, 15);
+                  diff = datetime_compare_date(&bdate1, &bdate2);
+                  ct_test(pTest, diff > 0);
+                  datetime_set_date(&bdate2, 1900, 7, 15);
+                  diff = datetime_compare_date(&bdate1, &bdate2);
+                  ct_test(pTest, diff > 0);
+                  datetime_set_date(&bdate2, 2008, 7, 15);
+                  diff = datetime_compare_date(&bdate1, &bdate2);
+                  ct_test(pTest, diff < 0);
+                  datetime_set_date(&bdate2, 2154, 7, 15);
+                  diff = datetime_compare_date(&bdate1, &bdate2);
+                  ct_test(pTest, diff < 0);
+              
+                  return;
+              }
+              
+              void testBACnetTime(
+                  Test * pTest)
+              {
+                  BACNET_TIME btime1, btime2;
+                  int diff = 0;
+              
+                  datetime_set_time(&btime1, 0, 0, 0, 0);
+                  datetime_copy_time(&btime2, &btime1);
+                  diff = datetime_compare_time(&btime1, &btime2);
+                  ct_test(pTest, diff == 0);
+              
+                  datetime_set_time(&btime1, 23, 59, 59, 99);
+                  datetime_copy_time(&btime2, &btime1);
+                  diff = datetime_compare_time(&btime1, &btime2);
+                  ct_test(pTest, diff == 0);
+              
+                  /* midpoint */
+                  datetime_set_time(&btime1, 12, 30, 30, 50);
+                  datetime_copy_time(&btime2, &btime1);
+                  diff = datetime_compare_time(&btime1, &btime2);
+                  ct_test(pTest, diff == 0);
+                  datetime_set_time(&btime2, 12, 30, 30, 51);
+                  diff = datetime_compare_time(&btime1, &btime2);
+                  ct_test(pTest, diff < 0);
+                  datetime_set_time(&btime2, 12, 30, 31, 50);
+                  diff = datetime_compare_time(&btime1, &btime2);
+                  ct_test(pTest, diff < 0);
+                  datetime_set_time(&btime2, 12, 31, 30, 50);
+                  diff = datetime_compare_time(&btime1, &btime2);
+                  ct_test(pTest, diff < 0);
+                  datetime_set_time(&btime2, 13, 30, 30, 50);
+                  diff = datetime_compare_time(&btime1, &btime2);
+                  ct_test(pTest, diff < 0);
+              
+                  datetime_set_time(&btime2, 12, 30, 30, 49);
+                  diff = datetime_compare_time(&btime1, &btime2);
+                  ct_test(pTest, diff > 0);
+                  datetime_set_time(&btime2, 12, 30, 29, 50);
+                  diff = datetime_compare_time(&btime1, &btime2);
+                  ct_test(pTest, diff > 0);
+                  datetime_set_time(&btime2, 12, 29, 30, 50);
+                  diff = datetime_compare_time(&btime1, &btime2);
+                  ct_test(pTest, diff > 0);
+                  datetime_set_time(&btime2, 11, 30, 30, 50);
+C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 13  
+
+                  diff = datetime_compare_time(&btime1, &btime2);
+                  ct_test(pTest, diff > 0);
+              
+                  return;
+              }
+              
+              void testBACnetDateTime(
+                  Test * pTest)
+              {
+                  BACNET_DATE_TIME bdatetime1, bdatetime2;
+                  BACNET_DATE bdate;
+                  BACNET_TIME btime;
+                  int diff = 0;
+              
+                  datetime_set_values(&bdatetime1, 1900, 1, 1, 0, 0, 0, 0);
+                  datetime_copy(&bdatetime2, &bdatetime1);
+                  diff = datetime_compare(&bdatetime1, &bdatetime2);
+                  ct_test(pTest, diff == 0);
+                  datetime_set_time(&btime, 0, 0, 0, 0);
+                  datetime_set_date(&bdate, 1900, 1, 1);
+                  datetime_set(&bdatetime1, &bdate, &btime);
+                  diff = datetime_compare(&bdatetime1, &bdatetime2);
+                  ct_test(pTest, diff == 0);
+              
+                  /* midpoint */
+                  /* if datetime1 is before datetime2, returns negative */
+                  datetime_set_values(&bdatetime1, 2000, 7, 15, 12, 30, 30, 50);
+                  datetime_set_values(&bdatetime2, 2000, 7, 15, 12, 30, 30, 51);
+                  diff = datetime_compare(&bdatetime1, &bdatetime2);
+                  ct_test(pTest, diff < 0);
+                  datetime_set_values(&bdatetime2, 2000, 7, 15, 12, 30, 31, 50);
+                  diff = datetime_compare(&bdatetime1, &bdatetime2);
+                  ct_test(pTest, diff < 0);
+                  datetime_set_values(&bdatetime2, 2000, 7, 15, 12, 31, 30, 50);
+                  diff = datetime_compare(&bdatetime1, &bdatetime2);
+                  ct_test(pTest, diff < 0);
+                  datetime_set_values(&bdatetime2, 2000, 7, 15, 13, 30, 30, 50);
+                  diff = datetime_compare(&bdatetime1, &bdatetime2);
+                  ct_test(pTest, diff < 0);
+                  datetime_set_values(&bdatetime2, 2000, 7, 16, 12, 30, 30, 50);
+                  diff = datetime_compare(&bdatetime1, &bdatetime2);
+                  ct_test(pTest, diff < 0);
+                  datetime_set_values(&bdatetime2, 2000, 8, 15, 12, 30, 30, 50);
+                  diff = datetime_compare(&bdatetime1, &bdatetime2);
+                  ct_test(pTest, diff < 0);
+                  datetime_set_values(&bdatetime2, 2001, 7, 15, 12, 30, 30, 50);
+                  diff = datetime_compare(&bdatetime1, &bdatetime2);
+                  ct_test(pTest, diff < 0);
+                  datetime_set_values(&bdatetime2, 2000, 7, 15, 12, 30, 30, 49);
+                  diff = datetime_compare(&bdatetime1, &bdatetime2);
+                  ct_test(pTest, diff > 0);
+                  datetime_set_values(&bdatetime2, 2000, 7, 15, 12, 30, 29, 50);
+                  diff = datetime_compare(&bdatetime1, &bdatetime2);
+                  ct_test(pTest, diff > 0);
+                  datetime_set_values(&bdatetime2, 2000, 7, 15, 12, 29, 30, 50);
+                  diff = datetime_compare(&bdatetime1, &bdatetime2);
+                  ct_test(pTest, diff > 0);
+                  datetime_set_values(&bdatetime2, 2000, 7, 15, 11, 30, 30, 50);
+                  diff = datetime_compare(&bdatetime1, &bdatetime2);
+                  ct_test(pTest, diff > 0);
+                  datetime_set_values(&bdatetime2, 2000, 7, 14, 12, 30, 30, 50);
+                  diff = datetime_compare(&bdatetime1, &bdatetime2);
+C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 14  
+
+                  ct_test(pTest, diff > 0);
+                  datetime_set_values(&bdatetime2, 2000, 6, 15, 12, 30, 30, 50);
+                  diff = datetime_compare(&bdatetime1, &bdatetime2);
+                  ct_test(pTest, diff > 0);
+                  datetime_set_values(&bdatetime2, 1999, 7, 15, 12, 30, 30, 50);
+                  diff = datetime_compare(&bdatetime1, &bdatetime2);
+                  ct_test(pTest, diff > 0);
+              
+              
+                  return;
+              }
+              
+              void testDateEpoch(
+                  Test * pTest)
+              {
+                  uint32_t days = 0;
+                  uint16_t year = 0, test_year = 0;
+                  uint8_t month = 0, test_month = 0;
+                  uint8_t day = 0, test_day = 0;
+              
+                  days = days_since_epoch(1900, 1, 1);
+                  ct_test(pTest, days == 0);
+                  days_since_epoch_into_ymd(days, &year, &month, &day);
+                  ct_test(pTest, year == 1900);
+                  ct_test(pTest, month == 1);
+                  ct_test(pTest, day == 1);
+              
+              
+                  for (year = 1900; year <= 2154; year++) {
+                      for (month = 1; month <= 12; month++) {
+                          for (day = 1; day <= month_days(year, month); day++) {
+                              days = days_since_epoch(year, month, day);
+                              days_since_epoch_into_ymd(days, &test_year, &test_month,
+                                  &test_day);
+                              ct_test(pTest, year == test_year);
+                              ct_test(pTest, month == test_month);
+                              ct_test(pTest, day == test_day);
+                          }
+                      }
+                  }
+              }
+              
+              void testBACnetDayOfWeek(
+                  Test * pTest)
+              {
+                  uint8_t dow = 0;
+              
+                  /* 1/1/1900 is a Monday */
+                  dow = day_of_week(1900, 1, 1);
+                  ct_test(pTest, dow == 1);
+              
+                  /* 1/1/2007 is a Monday */
+                  dow = day_of_week(2007, 1, 1);
+                  ct_test(pTest, dow == 1);
+                  dow = day_of_week(2007, 1, 2);
+                  ct_test(pTest, dow == 2);
+                  dow = day_of_week(2007, 1, 3);
+                  ct_test(pTest, dow == 3);
+                  dow = day_of_week(2007, 1, 4);
+                  ct_test(pTest, dow == 4);
+                  dow = day_of_week(2007, 1, 5);
+                  ct_test(pTest, dow == 5);
+C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 15  
+
+                  dow = day_of_week(2007, 1, 6);
+                  ct_test(pTest, dow == 6);
+                  dow = day_of_week(2007, 1, 7);
+                  ct_test(pTest, dow == 7);
+              
+                  dow = day_of_week(2007, 1, 31);
+                  ct_test(pTest, dow == 3);
+              }
+              
+              void testDatetimeCodec(
+                  Test * pTest)
+              {
+                  uint8_t apdu[MAX_APDU];
+                  BACNET_DATE_TIME datetimeIn;
+                  BACNET_DATE_TIME datetimeOut;
+                  int inLen;
+                  int outLen;
+              
+                  datetimeIn.date.day = 1;
+                  datetimeIn.date.month = 2;
+                  datetimeIn.date.wday = 3;
+                  datetimeIn.date.year = 1904;
+              
+                  datetimeIn.time.hour = 5;
+                  datetimeIn.time.min = 6;
+                  datetimeIn.time.sec = 7;
+                  datetimeIn.time.hundredths = 8;
+              
+                  inLen = bacapp_encode_context_datetime(apdu, 10, &datetimeIn);
+                  outLen = bacapp_decode_context_datetime(apdu, 10, &datetimeOut);
+              
+                  ct_test(pTest, inLen == outLen);
+              
+                  ct_test(pTest, datetimeIn.date.day == datetimeOut.date.day);
+                  ct_test(pTest, datetimeIn.date.month == datetimeOut.date.month);
+                  ct_test(pTest, datetimeIn.date.wday == datetimeOut.date.wday);
+                  ct_test(pTest, datetimeIn.date.year == datetimeOut.date.year);
+              
+                  ct_test(pTest, datetimeIn.time.hour == datetimeOut.time.hour);
+                  ct_test(pTest, datetimeIn.time.min == datetimeOut.time.min);
+                  ct_test(pTest, datetimeIn.time.sec == datetimeOut.time.sec);
+                  ct_test(pTest, datetimeIn.time.hundredths == datetimeOut.time.hundredths);
+              
+              }
+              
+              
+              #ifdef TEST_DATE_TIME
+              int main(
+                  void)
+              {
+                  Test *pTest;
+                  bool rc;
+              
+                  pTest = ct_create("BACnet Date Time", NULL);
+                  /* individual tests */
+                  rc = ct_addTestFunction(pTest, testBACnetDate);
+                  assert(rc);
+                  rc = ct_addTestFunction(pTest, testBACnetTime);
+                  assert(rc);
+                  rc = ct_addTestFunction(pTest, testBACnetDateTime);
+                  assert(rc);
+                  rc = ct_addTestFunction(pTest, testBACnetDayOfWeek);
+C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 16  
+
+                  assert(rc);
+                  rc = ct_addTestFunction(pTest, testDateEpoch);
+                  assert(rc);
+                  rc = ct_addTestFunction(pTest, testBACnetDateTimeSeconds);
+                  assert(rc);
+                  rc = ct_addTestFunction(pTest, testBACnetDateTimeAdd);
+                  assert(rc);
+                  rc = ct_addTestFunction(pTest, testBACnetDateTimeWildcard);
+                  assert(rc);
+                  rc = ct_addTestFunction(pTest, testDatetimeCodec);
+                  assert(rc);
+              
+                  ct_setStream(pTest, stdout);
+                  ct_run(pTest);
+                  (void) ct_report(pTest);
+                  ct_destroy(pTest);
+              
+                  return 0;
+              }
+              
+              
+              #endif /* TEST_DATE_TIME */
+              #endif /* TEST */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   5559    ----
+   CONSTANT SIZE    =     26    ----
+   XDATA SIZE       =   ----     211
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

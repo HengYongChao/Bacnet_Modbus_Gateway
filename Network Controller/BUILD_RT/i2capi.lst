@@ -1,0 +1,408 @@
+C51 COMPILER V9.06   I2CAPI                                                                03/13/2013 09:32:25 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE I2CAPI
+OBJECT MODULE PLACED IN .\i2capi.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\i2c\i2capi.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) IN
+                    -CDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\
+                    -SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buf
+                    -fer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\S
+                    -rc\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\i2capi.lst) OBJECT(.\i2capi.o
+                    -bj)
+
+line level    source
+
+   1          /*
+   2           *********************************************************************************
+   3           *     Copyright (c) 2005       ASIX Electronic Corporation      All rights reserved.
+   4           *
+   5           *     This is unpublished proprietary source code of ASIX Electronic Corporation
+   6           *
+   7           *     The copyright notice above does not evidence any actual or intended
+   8           *     publication of such source code.
+   9           *********************************************************************************
+  10           */
+  11          /*================================================================================
+  12           * Module Name : i2capi.c
+  13           * Purpose     : API functions invovle I2C driver functions.
+  14           *               To transmit and to reveive packet by these functions.
+  15           * Author      : Robin Lee
+  16           * Date        : 2006-01-10
+  17           * Notes       :
+  18           * $Log: i2capi.c,v $
+  19           * Revision 1.1  2006/04/07 11:38:34  robin6633
+  20           * no message
+  21           *
+  22           *================================================================================
+  23           */
+  24          
+  25          /* INCLUDE FILE DECLARATIONS */
+  26          #include        <stdio.h>
+  27          #include        "reg80390.h"
+  28          #include        "types.h"
+  29          #include        "buffer.h"
+  30          #include        "i2c.h"
+  31          #include        "i2capi.h"
+  32          
+  33          
+  34          /* STATIC VARIABLE DECLARATIONS */
+  35          
+  36          
+  37          /* LOCAL SUBPROGRAM DECLARATIONS */
+  38          
+  39          
+  40          /* LOCAL SUBPROGRAM BODIES */
+  41          
+  42          
+  43          /* EXPORTED SUBPROGRAM BODIES */
+  44          extern void test_run(U8_T dat);
+  45          
+  46          /*
+  47           *--------------------------------------------------------------------------------
+  48           * BOOL I2C_ByteWrite(U16_T addrOfDev, U16_T addrOfMem, U8_T byteData, U8_T endCond)
+  49           * Purpose : i2c master send a packet for write one data to a device
+  50           * Params  : addrOfDev : id address of a device
+C51 COMPILER V9.06   I2CAPI                                                                03/13/2013 09:32:25 PAGE 2   
+
+  51           *           addrOfMem : address for accessing in a device
+  52           *           byteData  : data for writing
+  53           *           endCond   : packet condition after transmitting
+  54           * Returns : TRUE : this accessing is successful
+  55           *           FALSE: this accessing is failed
+  56           * Note    :
+  57           *--------------------------------------------------------------------------------
+  58           */
+  59          BOOL I2C_ByteWrite(U16_T addrOfDev, U16_T addrOfMem, U8_T byteData, U8_T endCond)
+  60          {
+  61   1              I2C_BUF         *ptTxPkt = NULL;
+  62   1              U8_T            addrMode = 0;
+  63   1      
+  64   1              /* Get buffer of this packet */
+  65   1              ptTxPkt = (I2C_BUF *)GetPktBuf();
+  66   1              /* The end condition after transfer complete */
+  67   1              ptTxPkt->I2cEnd = endCond;
+  68   1              /* Indicate the packet's direction to master transmit */
+  69   1              ptTxPkt->I2cDir = I2C_MST_XMIT;
+  70   1              /* Data length exclude device address */
+  71   1              ptTxPkt->DataLen = 0x02;
+  72   1      
+  73   1              /* Device Address with 10-bit or 7-bit */
+  74   1              I2C_Cmd(SI_RD, I2CCTL, &addrMode);
+  75   1              if (addrMode & I2C_10BIT)
+  76   1              {
+  77   2                      ptTxPkt->I2cAddr.TenBitAddr = (U16_T)(addrOfDev | ((addrOfMem & 0x0700) >> 8));
+  78   2              }
+  79   1              else
+  80   1              {
+  81   2                      ptTxPkt->I2cAddr.SevenBitAddr = (U8_T)(addrOfDev | ((addrOfMem & 0x0700) >> 8));
+  82   2              }
+  83   1              /* Register word Address */
+  84   1              ptTxPkt->I2cData[0] = (U8_T)(addrOfMem & 0x00FF);
+  85   1              /* Access Data */
+  86   1              ptTxPkt->I2cData[1] = byteData;
+  87   1      
+  88   1              /* To send packet and i2c bus will be busy for this transfer */
+  89   1              I2C_FlagEnb(I2C_BUSY);
+  90   1              I2C_PktBuf(ptTxPkt);
+  91   1              /* Waiting for transfer completely */
+  92   1              while (I2C_FlagChk(I2C_BUSY)) {}
+  93   1              /* If the packet does not have any ACK echoed, this transfer fail */
+  94   1              if (I2C_FlagChk(I2C_NACK))
+  95   1              {
+  96   2                      I2C_FlagClr(I2C_NACK);
+  97   2                      return FALSE;
+  98   2              }
+  99   1      
+ 100   1              return TRUE;
+ 101   1      }
+ 102          
+ 103          /*
+ 104           *--------------------------------------------------------------------------------
+ 105           * BOOL I2C_PageWrite(U16_T addrOfDev, U16_T addrOfMem, U8_T*ptPageData, U16_T writeLen, U8_T endCond)
+ 106           * Purpose : i2c master send a packet for writing more data to a device
+ 107           * Params  : addrOfDev : id address of a device
+ 108           *           addrOfMem : address for accessing in a device
+ 109           *           ptPageData: data string for writing
+ 110           *           writeLen  : data length for transmitting include addrOfMem and data string
+ 111           *           endCond   : packet condition after transmitting
+ 112           * Returns : TRUE : this accessing is successful
+C51 COMPILER V9.06   I2CAPI                                                                03/13/2013 09:32:25 PAGE 3   
+
+ 113           *           FALSE: this accessing is failed
+ 114           * Note    :
+ 115           *--------------------------------------------------------------------------------
+ 116           */
+ 117          BOOL I2C_PageWrite(U16_T addrOfDev, U16_T addrOfMem, U8_T *ptPageData, U16_T writeLen, U8_T endCond)
+ 118          {
+ 119   1              
+ 120   1              I2C_BUF XDATA   *ptTxPkt = NULL;
+ 121   1              U16_T                   i;
+ 122   1              U8_T XDATA              addrMode = 0;
+ 123   1              
+ 124   1              /* Get buffer of this packet */
+ 125   1              ptTxPkt = (I2C_BUF *)GetPktBuf();
+ 126   1              /* The end condition after transfer complete */
+ 127   1              ptTxPkt->I2cEnd = endCond;
+ 128   1              /* Indicate the packet's direction to master transmit */
+ 129   1              ptTxPkt->I2cDir = I2C_MST_XMIT;
+ 130   1              /* Data length exclude device address */
+ 131   1              ptTxPkt->DataLen = writeLen + 1;
+ 132   1              /* Device Address with 10-bit or 7-bit */
+ 133   1              I2C_Cmd(SI_RD, I2CCTL, &addrMode);
+ 134   1              if (addrMode & I2C_10BIT)
+ 135   1              {
+ 136   2                      ptTxPkt->I2cAddr.TenBitAddr = (U16_T)(addrOfDev | ((addrOfMem & 0x0700) >> 8));
+ 137   2              }
+ 138   1              else
+ 139   1              {
+ 140   2                      ptTxPkt->I2cAddr.SevenBitAddr = (U8_T)(addrOfDev | ((addrOfMem & 0x0700) >> 8));
+ 141   2              }
+ 142   1              /* Register word Address */
+ 143   1              ptTxPkt->I2cData[0] = (U8_T)(addrOfMem & 0x00FF);
+ 144   1              /* Access Data */
+ 145   1              for (i = 0 ; i < writeLen ; i ++)
+ 146   1              {
+ 147   2                      ptTxPkt->I2cData[i + 1] = *(ptPageData + i);
+ 148   2              }
+ 149   1              /* To send packet and i2c bus will be busy for this transfer */
+ 150   1              I2C_FlagEnb(I2C_BUSY);
+ 151   1              I2C_PktBuf(ptTxPkt);
+ 152   1              /* Waiting for transfer completely */
+ 153   1              while (I2C_FlagChk(I2C_BUSY)) {}
+ 154   1              /* If the packet does not have any ACK echoed, this transfer fail */
+ 155   1              if (I2C_FlagChk(I2C_NACK))
+ 156   1              {
+ 157   2                      I2C_FlagClr(I2C_NACK);
+ 158   2                      return FALSE;
+ 159   2              }
+ 160   1      
+ 161   1              return TRUE;
+ 162   1      }
+ 163          
+ 164          /*
+ 165           *--------------------------------------------------------------------------------
+ 166           * BOOL I2C_RdmRead(U16_T addrOfDev, U16_T addrOfMem ,I2C_BUF *ptPktTemp, U16_T readLen, U8_T endCond)
+ 167           * Purpose : i2c master send a packet for reading data from a device
+ 168           * Params  : addrOfDev : id address of a device
+ 169           *           addrOfMem : address for accessing in a device
+ 170           *           ptPktTemp : read data buffer pointer
+ 171           *           readLen   : data length for reading
+ 172           *           endCond   : packet condition after transfer
+ 173           * Returns : TRUE : this accessing is successful
+ 174           *           FALSE: this accessing is failed
+C51 COMPILER V9.06   I2CAPI                                                                03/13/2013 09:32:25 PAGE 4   
+
+ 175           * Note    :
+ 176           *--------------------------------------------------------------------------------
+ 177           */
+ 178          BOOL I2C_RdmRead(U16_T addrOfDev, U16_T addrOfMem ,I2C_BUF *ptPktTemp, U16_T readLen, U8_T endCond)
+ 179          {
+ 180   1              I2C_BUF         *ptRxPkt = NULL;
+ 181   1              U16_T           i;
+ 182   1              U8_T            addrMode = 0;
+ 183   1      
+ 184   1              /* Get buffer of this packet */
+ 185   1              ptRxPkt = (I2C_BUF *)GetPktBuf();
+ 186   1              /* The end condition after transfer complete */
+ 187   1              ptRxPkt->I2cEnd = I2C_STOP_COND;
+ 188   1              /* Indicate the packet's direction to master receive */
+ 189   1              ptRxPkt->I2cDir = I2C_MST_RCVR;
+ 190   1              /* Data length exclude device address */
+ 191   1              ptRxPkt->DataLen = readLen;
+ 192   1              /* Device Address with 10-bit or 7-bit */
+ 193   1      
+ 194   1      
+ 195   1              
+ 196   1      
+ 197   1              I2C_Cmd(SI_RD, I2CCTL, &addrMode);
+ 198   1      
+ 199   1      
+ 200   1      
+ 201   1      
+ 202   1              if (addrMode & I2C_10BIT)
+ 203   1              {
+ 204   2                      ptRxPkt->I2cAddr.TenBitAddr = (U16_T)(addrOfDev | ((addrOfMem & 0x0700) >> 8));
+ 205   2              }
+ 206   1              else
+ 207   1              {
+ 208   2                      ptRxPkt->I2cAddr.SevenBitAddr = (U8_T)(addrOfDev | ((addrOfMem & 0x0700) >> 8));
+ 209   2              }
+ 210   1              
+ 211   1              
+ 212   1              
+ 213   1              
+ 214   1              /* Send a dummy packet to indicate the internal address of devices */
+ 215   1              if (endCond & I2C_STOP_COND)
+ 216   1              {
+ 217   2      
+ 218   2                  
+ 219   2      
+ 220   2                      if (I2C_DummyWrite(addrOfDev, addrOfMem, I2C_STOP_COND))
+ 221   2                      {
+ 222   3                      
+ 223   3                               
+ 224   3                      
+ 225   3                              /* To send packet and i2c bus will be busy for this transfer */
+ 226   3                              I2C_FlagEnb(I2C_BUSY);
+ 227   3                              I2C_PktBuf(ptRxPkt);
+ 228   3                              /* Waiting for transfer completely */
+ 229   3                              while (I2C_FlagChk(I2C_BUSY)) {}
+ 230   3                              /* If the packet does not have any ACK echoed, this transfer fail */
+ 231   3                              if (I2C_FlagChk(I2C_NACK))
+ 232   3                              {
+ 233   4                                      I2C_FlagClr(I2C_NACK);
+ 234   4                                      return FALSE;
+ 235   4                              }
+ 236   3                              /* Get data received in this transfer */
+C51 COMPILER V9.06   I2CAPI                                                                03/13/2013 09:32:25 PAGE 5   
+
+ 237   3                              for (i=0 ; i<=readLen ; i++)
+ 238   3                              {
+ 239   4                                      ptPktTemp->I2cData[i] = ptRxPkt->I2cData[i+1];
+ 240   4                              }
+ 241   3                              return TRUE;
+ 242   3                      }
+ 243   2                      else
+ 244   2                              
+ 245   2                      
+ 246   2                              
+ 247   2                              
+ 248   2                              
+ 249   2                              return FALSE;
+ 250   2              }
+ 251   1              else
+ 252   1              {
+ 253   2                       
+ 254   2                
+ 255   2              
+ 256   2                      if (I2C_DummyWrite(addrOfDev, addrOfMem, endCond))
+ 257   2                      {
+ 258   3                              /* To check the packet has a restart condition for next access */
+ 259   3                              while (!I2C_FlagChk(I2C_RESTART)) {}
+ 260   3                              /* To send packet and i2c bus will be busy for this transfer */
+ 261   3                              I2C_FlagClr(I2C_RESTART);
+ 262   3                              I2C_FlagEnb(I2C_BUSY);
+ 263   3                              I2C_PktBuf(ptRxPkt);
+ 264   3                              /* Waiting for transfer completely */
+ 265   3                              while (I2C_FlagChk(I2C_BUSY)) {}
+ 266   3                              /* If the packet does not have any ACK echoed, this transfer fail */
+ 267   3                              if (I2C_FlagChk(I2C_NACK))
+ 268   3                              {
+ 269   4                                      I2C_FlagClr(I2C_NACK);
+ 270   4                                      return FALSE;
+ 271   4                              }
+ 272   3                              /* Get data received in this transfer */
+ 273   3                              for (i=0 ; i<=readLen ; i++)
+ 274   3                              {
+ 275   4                                      ptPktTemp->I2cData[i] = ptRxPkt->I2cData[i];
+ 276   4                              }
+ 277   3                              return TRUE;
+ 278   3                      }
+ 279   2                      else
+ 280   2                              return FALSE;
+ 281   2              }
+ 282   1      }
+ 283          
+ 284          /*
+ 285           *--------------------------------------------------------------------------------
+ 286           * BOOL I2C_DummyWrite(U16_T addrOfDev, U16_T addrOfMem, U8_T endCond)
+ 287           * Purpose : i2c master send a dummy packet for accessing a device
+ 288           * Params  : addrOfDev : id address of a device
+ 289           *           addrOfMem : address for accessing in a device
+ 290           *           endCond   : packet condition after transmitting
+ 291           * Returns : TRUE : this accessing is successful
+ 292           *           FALSE: this accessing is failed
+ 293           * Note    : this function only transmit the address of accessing,
+ 294           *           it does not have any data
+ 295           *--------------------------------------------------------------------------------
+ 296           */
+ 297          BOOL I2C_DummyWrite(U16_T addrOfDev, U16_T addrOfMem, U8_T endCond)
+ 298          {
+C51 COMPILER V9.06   I2CAPI                                                                03/13/2013 09:32:25 PAGE 6   
+
+ 299   1              I2C_BUF         *ptTxPkt = NULL;
+ 300   1              U8_T            addrMode = 0;
+ 301   1      
+ 302   1              /* Get buffer of this packet */
+ 303   1              ptTxPkt = (I2C_BUF *)GetPktBuf();
+ 304   1              /* The end condition after transfer complete */
+ 305   1              ptTxPkt->I2cEnd = endCond;
+ 306   1              /* Indicate the packet's direction to master transmit */
+ 307   1              ptTxPkt->I2cDir = I2C_MST_XMIT;
+ 308   1              /* Data length exclude device address */
+ 309   1              ptTxPkt->DataLen = 0x01;
+ 310   1              /* Device Address with 10-bit or 7-bit */
+ 311   1      
+ 312   1      
+ 313   1      
+ 314   1              I2C_Cmd(SI_RD, I2CCTL, &addrMode);
+ 315   1      
+ 316   1               
+ 317   1      
+ 318   1              if (addrMode & I2C_10BIT)
+ 319   1              {
+ 320   2                      ptTxPkt->I2cAddr.TenBitAddr = (U16_T)(addrOfDev | ((addrOfMem & 0x0700) >> 8));
+ 321   2              }
+ 322   1              else
+ 323   1              {
+ 324   2                      ptTxPkt->I2cAddr.SevenBitAddr = (U8_T)(addrOfDev | ((addrOfMem & 0x0700) >> 8));
+ 325   2              }
+ 326   1      
+ 327   1         
+ 328   1      
+ 329   1              /* Register word Address */
+ 330   1              ptTxPkt->I2cData[0] = (U8_T)(addrOfMem & 0x00FF);
+ 331   1              /* No Access Data */
+ 332   1              /* To send packet and i2c bus will be busy for this transfer */
+ 333   1              I2C_FlagEnb(I2C_BUSY);
+ 334   1              
+ 335   1              
+ 336   1              I2C_FlagClr(I2C_RESTART);
+ 337   1      
+ 338   1              
+ 339   1      
+ 340   1              I2C_PktBuf(ptTxPkt);
+ 341   1              
+ 342   1               
+ 343   1       //  test_run(5);
+ 344   1         
+ 345   1      
+ 346   1              /* Waiting for transfer completely */
+ 347   1              while (I2C_FlagChk(I2C_BUSY)) {}
+ 348   1      
+ 349   1              
+ 350   1      
+ 351   1      
+ 352   1              /* If the packet does not have any ACK echoed, this transfer fail */
+ 353   1      
+ 354   1              if (I2C_FlagChk(I2C_NACK))
+ 355   1              {
+ 356   2                      I2C_FlagClr(I2C_NACK);
+ 357   2                      return FALSE;
+ 358   2              }
+ 359   1      
+ 360   1              return TRUE;
+C51 COMPILER V9.06   I2CAPI                                                                03/13/2013 09:32:25 PAGE 7   
+
+ 361   1      }
+ 362          
+ 363          
+ 364          /* End of i2capi.c */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1643    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----      50
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

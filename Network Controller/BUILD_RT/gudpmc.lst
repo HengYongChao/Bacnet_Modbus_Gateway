@@ -1,0 +1,1692 @@
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE GUDPMC
+OBJECT MODULE PLACED IN .\gudpmc.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\gudpmc.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020)
+                    - INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;
+                    -..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\
+                    -buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;.
+                    -.\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\gudpmc.lst) OBJECT(.\gudpm
+                    -c.obj)
+
+line level    source
+
+   1          /*
+   2           ******************************************************************************
+   3           *     Copyright (c) 2011       ASIX Electronic Corporation      All rights reserved.
+   4           *
+   5           *     This is unpublished proprietary source code of ASIX Electronic Corporation
+   6           *
+   7           *     The copyright notice above does not evidence any actual or intended
+   8           *     publication of such source code.
+   9           ******************************************************************************
+  10           */
+  11           /*============================================================================
+  12           * Module Name: gudpmc.c
+  13           * Purpose:     bacnet
+  14           * Author: hyc
+  15           * Date: 2012/06/28
+  16           * Notes:
+  17           * $Log: gudpmc.c,v $
+  18           *
+  19           *=============================================================================
+  20           */
+  21          /* INCLUDE FILE DECLARATIONS */
+  22          #include "reg80390.h"
+  23          #include "adapter.h"
+  24          #include "gudpmc.h"
+  25          #include "device.h"
+  26          #include "tcpip.h"
+  27          #include "mstimer.h"
+  28          #include "stoe.h"
+  29          #include "uart.h"
+  30          #include "gconfig.h"
+  31          #include "ax11000.h"
+  32          #include "mac.h"
+  33          #include "flash.h"
+  34          #include "i2c.h"
+  35          #include "i2capi.h"
+  36          #include "printd.h"
+  37          #include "main.h"
+  38          #include "types.h"
+  39          #include "delay.h"
+  40          #include <string.h>
+  41          
+  42          /* NAMING CONSTANT DECLARATIONS */
+  43          #define GUDPMC_MAX_CONNS                        4
+  44          #define GUDPMC_NO_NEW_CONN                      0xFF
+  45          
+  46          #define GUDPMC_STATE_FREE                       0
+  47          #define GUDPMC_STATE_WAIT                       1
+  48          #define GUDPMC_STATE_CONNECTED          2
+  49          /*---- PDU Type ----*/
+  50          #define PDU_TYPE_CONFIRMED_SERVICE_REQUEST     0x00
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 2   
+
+  51          #define PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST   0x10
+  52          #define PDU_TYPE_SIMPLE_ACK                                0x20
+  53          #define PDU_TYPE_COMPLEX_ACK                               0x30
+  54          #define PDU_TYPE_SEGMENT_ACK                               0x40
+  55          #define PDU_TYPE_ERROR                                             0x50
+  56          #define PDU_TYPE_REJECT                                            0x60
+  57          #define PDU_TYPE_ABORT                                             0x70
+  58          /*----- BVLC_Function_Code ----*/
+  59          #define BVLC_RESULT                                                                0
+  60          #define BVLC_WRITE_BROADCAST_DISTRIBUTION_TABLE    1
+  61          #define BVLC_READ_BROADCAST_DIST_TABLE                     2
+  62          #define BVLC_READ_BROADCAST_DIST_TABLE_ACK                 3
+  63          #define BVLC_FORWARDED_NPDU                                                4
+  64          #define BVLC_REGISTER_FOREIGN_DEVICE                       5
+  65          #define BVLC_READ_FOREIGN_DEVICE_TABLE                     6
+  66          #define BVLC_READ_FOREIGN_DEVICE_TABLE_ACK                 7
+  67          #define BVLC_DELETE_FOREIGN_DEVICE_TABLE_ENTRY     8
+  68          #define BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK       9
+  69          #define BVLC_ORIGINAL_UNICAST_NPDU                                 0x0a
+  70          #define BVLC_ORIGINAL_BROADCAST_NPDU                       0x0b
+  71          
+  72          /*-- BACnetconfirmedserviceChoice --*/
+  73          #define READPROPERTY            0X0C
+  74          #define WRITEPROPERTY           0x0F
+  75          #define CREATEOBJECT            0X0A
+  76          #define DELETEOBJECT            0X0B
+  77          
+  78          
+  79          #define who_is_request          8
+  80          
+  81          /*---  Standard Object Type ------*/
+  82          #define Analog_Input            0x0000
+  83          #define Analog_Output           0x0001
+  84          #define Analog_Value            0x0002
+  85          #define Binary_Input            0x0003
+  86          #define Binary_Output           0x0004
+  87          #define Binary_Value        0x0005
+  88          #define Calender                        0x0006
+  89          #define Command                         0x0007
+  90          #define Device                          0x0008
+  91          #define Event_Enrollment        0x0009
+  92          #define File                            0x000a
+  93          #define Group                           0x000b
+  94          #define Loop                            0x000c
+  95          #define Multistate_Input        0x000d
+  96          #define Multistate_Output       0x000e
+  97          #define Notification_Class      0x000f
+  98          #define Program                         0x0010
+  99          #define Schedule                        0x0011
+ 100          
+ 101          
+ 102          
+ 103          #define BACNET_PROTOCOL_VERSION   0X01     /* ASHRAE 135 - 2004 */
+ 104          
+ 105          
+ 106          #define BVLC_TYPE_BACNET_IP             0x81
+ 107          #define VENDOR_ID       148
+ 108          #define HOP_COUNT_DEFAULT 255
+ 109          
+ 110          #define bvlc_length  4
+ 111          #define bvlc_head  0
+ 112          #define bvlc_type  0
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 3   
+
+ 113          #define bvlc_function  1
+ 114          #define npdu_head  4
+ 115          #define npdu_length  6
+ 116          //#define apdu_head     0x0a
+ 117          
+ 118          #define opening_context_tag             0x3e
+ 119          #define closing_context_tag             0x3f
+ 120          #define modbus_read_fun         3
+ 121          
+ 122          /* GLOBAL VARIABLES DECLARATIONS */
+ 123          //extern GCONFIG_CFG_PKT gudpuc_ConfigRxPkt;
+ 124          /* a simple table for crossing the services supported */
+ 125          
+ 126          
+ 127          /* LOCAL VARIABLES DECLARATIONS */
+ 128          static GUDPMC_CONN gudpmc_Conns[GUDPMC_MAX_CONNS];
+ 129          static U8_T gudpmc_InterAppId;
+ 130          
+ 131          static  U8_T    iam_first_head  ;
+ 132          static  U8_T    iam_request ;
+ 133          static  U8_T    device_identifier_app_tag ;
+ 134          static  U32_T   BACNET_Object_identifier  ;
+ 135          static  U32_T   ReadObjectIdentifier  ;
+ 136          static  U8_T    max_npdu_length_accepted_app_tag ;
+ 137          static  U16_T   max_npdu_length_accepted_value ;
+ 138          static  U8_T    segmentation_supported_app_tag ;
+ 139          static  U8_T    segmentation_supported_value ;
+ 140          static  U16_T   vendor_id  ;
+ 141          
+ 142          static  U16_T   revice_length ;
+ 143          
+ 144          static  U8_T    Instance_length ;
+ 145          static  U32_T   Instance_range_low ;
+ 146          static  U32_T   Instance_range_high ;
+ 147          
+ 148          
+ 149          static  U8_T    Unconfirmed_Request_service ;
+ 150          static  U16_T   max_apdu_legth = 0x0400 ;
+ 151          static  U8_T    segmentation_support = 0x03 ;
+ 152          
+ 153          static  U16_T   Object_Type = 0 ;                               //REAL 10BITS
+ 154          static  U32_T   Instance_Number = 0 ;                   //REAL 22BITS
+ 155          static  U32_T   BACnetObjectIdentifier   ;              //32bit
+ 156          static  U32_T   ObjectIdentifier ;                              //32bit
+ 157          static  U32_T   device_object_identifier = 0x02004e20 ;
+ 158          
+ 159          /*-----------     analog value object  ------------*/
+ 160          static  U32_T   ObjectIdentifier_av1 = 0x00800001       ;
+ 161          static  U32_T   ObjectIdentifier_av2 = 0x00800002       ;
+ 162          static  U32_T   ObjectIdentifier_av3 = 0x00800003       ;
+ 163          static  U32_T   ObjectIdentifier_av4 = 0x00800004       ;
+ 164          static  U32_T   ObjectIdentifier_av5 = 0x00800005       ;
+ 165          static  U32_T   ObjectIdentifier_av6 = 0x00800006       ;
+ 166          static  U32_T   ObjectIdentifier_av7 = 0x00800007       ;
+ 167          static  U32_T   ObjectIdentifier_av8 = 0x00800008       ;
+ 168          static  U32_T   ObjectIdentifier_av9 = 0x00800009       ;
+ 169          static  U32_T   ObjectIdentifier_av10 = 0x0080000a      ;
+ 170          static  U32_T   ObjectIdentifier_av11 = 0x0080000b      ;
+ 171          
+ 172          /*-----------     analog input object  ------------*/
+ 173          static  U32_T   ObjectIdentifier_ai1 = 0x00000001  ;
+ 174          static  U32_T   ObjectIdentifier_ai2 = 0x00000002  ; 
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 4   
+
+ 175          static  U32_T   ObjectIdentifier_ai3 = 0x00000003  ; 
+ 176          static  U32_T   ObjectIdentifier_ai4 = 0x00000004  ;
+ 177          static  U32_T   ObjectIdentifier_ai5 = 0x00000005  ;
+ 178          static  U32_T   ObjectIdentifier_ai6 = 0x00000006  ;
+ 179          static  U32_T   ObjectIdentifier_ai7 = 0x00000007  ; 
+ 180          static  U32_T   ObjectIdentifier_ai8 = 0x00000008  ; 
+ 181          static  U32_T   ObjectIdentifier_ai9 = 0x00000009  ; 
+ 182          static  U32_T   ObjectIdentifier_ai10 = 0x0000000a  ; 
+ 183          
+ 184          /*-----------     binary output object  ------------*/
+ 185          static  U32_T   ObjectIdentifier_bo1 = 0x01000001  ;
+ 186          static  U32_T   ObjectIdentifier_bo2 = 0x01000002  ;
+ 187          static  U32_T   ObjectIdentifier_bo3 = 0x01000003  ;
+ 188          static  U32_T   ObjectIdentifier_bo4 = 0x01000004  ;
+ 189          static  U32_T   ObjectIdentifier_bo5 = 0x01000005  ;
+ 190          static  U32_T   ObjectIdentifier_bo6 = 0x01000006  ;
+ 191          static  U32_T   ObjectIdentifier_bo7 = 0x01000007  ;
+ 192          static  U32_T   ObjectIdentifier_bo8 = 0x01000008  ;
+ 193          static  U32_T   ObjectIdentifier_bo9 = 0x01000009  ;
+ 194          static  U32_T   ObjectIdentifier_bo10 = 0x0100000a  ;
+ 195          
+ 196          
+ 197          
+ 198          
+ 199          static  U16_T   PropertyIdentifier ; 
+ 200          static  U8_T    PropertyValue;
+ 201          static  U8_T    First_Head_Octet;                               //APDU FIRST HEAD OCTET
+ 202          U8_T    modbus_id ;
+ 203          U16_T   modbus_addr ;
+ 204          U16_T   modbus_length ;
+ 205          
+ 206          static  U8_T  send_apdu_head ;
+ 207          static  U16_T send_len ;
+ 208          
+ 209          static  U16_T   len ;
+ 210          static  U8_T    apdu_head ;
+ 211          //      U8_T test_iam = 0 ;
+ 212          static  U8_T Invoke_Id ;
+ 213          static  U8_T system_status = 0 ;
+ 214          static  U8_T Service_Choice ;
+ 215          static  U8_T Service_Request ;
+ 216          char  device_object_name[] = "Network Controller"       ;
+ 217          char  vendor_name[] = "Temco Controls, Ltd." ;
+ 218          BOOL    send_flag ;
+ 219          BOOL    flag_answer_whois ;     
+ 220          BOOL    point_flag ;  // 小数点flag     
+ 221          U8_T    str_len ;
+ 222          
+ 223          extern U8_T forward_buffer[300];
+ 224          extern U16_T far hsurRxCount ;
+ 225          extern void InitCRC16(void);
+ 226          extern void CRC16_Tstat(unsigned char ch);
+ 227          extern U8_T far CRClo;
+ 228          extern U8_T far CRChi;
+ 229          extern U8_T bacnet_id ;
+ 230          
+ 231          U8_T temp[1] = {0};
+ 232          U8_T far send_arry[200] = {0} ;
+ 233          U8_T far Edata_arry[300] = {0};
+ 234          
+ 235          //U8_T far iam_arry[50] = {0x81,0x0b,0x00,0x18,0x01,0x20,0xff,0xff,0x00,0xff,
+ 236          //                                        0x10,0x00,0xc4,0x02,0x00,0x00,0x0c,0x22,0x04,0x00,0x91,0x03,0x21,0x94};
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 5   
+
+ 237          
+ 238          
+ 239          
+ 240          //U8_T UART_ARRY1[10] = {0xfe,0x03,0x00,0x79,0x00,0x01,0x41,0xdc};
+ 241          U8_T UART_ARRY1[10] = {0} ;
+ 242          
+ 243          //U8_T data_save_arry[100] = {0};
+ 244          U8_T bvlc[4];
+ 245          U8_T npdu[6];
+ 246          //U8_T apdu[100];
+ 247          
+ 248          
+ 249          
+ 250          
+ 251          
+ 252          /* LOCAL SUBPROGRAM DECLARATIONS */
+ 253          
+ 254          
+ 255          /*=================================*/
+ 256          U32_T Decimalist_to_real(U16_T temp)
+ 257          {
+ 258   1              U8_T  bef_integer, aft_integer ;
+ 259   1              U8_T  i , j;
+ 260   1              U16_T  a , b ;
+ 261   1              U32_T  bint = 0 ;
+ 262   1      //      bit       Sign ;
+ 263   1              U8_T  Exponent  ;
+ 264   1              U32_T   Mantissa ;
+ 265   1              U32_T   Real = 0 ;
+ 266   1              
+ 267   1      /*-----------------------------------------*/
+ 268   1      if(point_flag)            //带小数点实数处理
+ 269   1       {
+ 270   2              a = temp;
+ 271   2              a = a & 0x7fff ;
+ 272   2      
+ 273   2              b = 1 ;
+ 274   2              while(1)
+ 275   2              {       a = a - 0x000a ;
+ 276   3                      if(a >= 10)
+ 277   3                              b++;
+ 278   3                      else
+ 279   3                              break ;   }
+ 280   2              bef_integer = (U8_T) b ;
+ 281   2              aft_integer = (U8_T) a ;
+ 282   2      
+ 283   2              for(i = 0 ; i < 31 ; i++)                       /*-- 小数点处理 --*/
+ 284   2                      {          
+ 285   3                         aft_integer *= 2  ;
+ 286   3                         if(aft_integer >= 0x0a){
+ 287   4                                      bint = bint | 0x00000001 ;
+ 288   4                                      bint = bint << 1 ;
+ 289   4                                      aft_integer = aft_integer/10 ;
+ 290   4                                      aft_integer = B ;
+ 291   4                              }               
+ 292   3                              else {
+ 293   4                                      bint = bint & 0xfffffffe ;
+ 294   4                                      bint = bint << 1 ;        }
+ 295   3                  }
+ 296   2      /*===================================================*/
+ 297   2                        if(bef_integer & 0x80)
+ 298   2                              {       j = 7 ;
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 6   
+
+ 299   3                                      bef_integer = 0x7f & bef_integer ;
+ 300   3                                   }
+ 301   2                       else if(bef_integer & 0x40)
+ 302   2                              {       j = 6 ;
+ 303   3                                      bef_integer = 0x3f & bef_integer ;
+ 304   3                                       }
+ 305   2                       else if(bef_integer & 0x20)
+ 306   2                              {       j = 5 ;
+ 307   3                                      bef_integer = 0x1f & bef_integer ;
+ 308   3                                       }
+ 309   2                       else if(bef_integer & 0x10)
+ 310   2                              {       j = 4 ;
+ 311   3                                      bef_integer = 0x0f & bef_integer ;
+ 312   3                                       }
+ 313   2                       else if(bef_integer & 0x08)
+ 314   2                              {       j = 3 ;
+ 315   3                                      bef_integer = 0x07 & bef_integer ;
+ 316   3                               }
+ 317   2                       else if(bef_integer & 0x04)
+ 318   2                              {       j = 2 ;
+ 319   3                                      bef_integer = 0x03 & bef_integer ;
+ 320   3                                               }
+ 321   2                       else if(bef_integer & 0x02)
+ 322   2                              {       j = 1 ;
+ 323   3                                      bef_integer = 0x01 & bef_integer ;
+ 324   3                                       }
+ 325   2                       else if(bef_integer & 0x01)
+ 326   2                              {       j = 0 ;
+ 327   3                                      bef_integer = 0x00 & bef_integer ;
+ 328   3                                      }
+ 329   2      
+ 330   2                Exponent = j + 127 ;  
+ 331   2               
+ 332   2                Mantissa = (U32_T) bef_integer ;
+ 333   2                Mantissa = Mantissa << (32 - j) ;
+ 334   2                 
+ 335   2                Mantissa = Mantissa | (bint >> j) ;
+ 336   2              
+ 337   2                Real = (U32_T) Exponent ;
+ 338   2                Real = Real << 23 ;
+ 339   2      
+ 340   2      /*-----------------------------------------*/
+ 341   2               Real = Real | (Mantissa >> 9)  ;
+ 342   2        
+ 343   2               if(0x8000 & temp)                /*正负符号*/
+ 344   2                      Real = 80000000 | Real ;        
+ 345   2      
+ 346   2      //              return Real;
+ 347   2           }
+ 348   1        
+ 349   1      else                      // 不带小数点的实数处理
+ 350   1              {
+ 351   2               a = temp ;
+ 352   2               if(a & 0x4000)
+ 353   2                      {       j = 14 ;
+ 354   3                              a = 0x3fff & a ;
+ 355   3                           }
+ 356   2               else if(a & 0x2000)
+ 357   2                      {       j = 13 ;
+ 358   3                              a = 0x1fff & a ;
+ 359   3                               }
+ 360   2               else if(a & 0x1000)
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 7   
+
+ 361   2                      {       j = 12 ;
+ 362   3                              a = 0x0fff & a ;
+ 363   3                               }
+ 364   2               else if(a & 0x0800)
+ 365   2                      {       j = 11 ;
+ 366   3                              a = 0x07ff & a ;
+ 367   3                           }
+ 368   2               else if(a & 0x0400)
+ 369   2                      {       j = 10 ;
+ 370   3                              a = 0x03ff & a ;
+ 371   3                               }
+ 372   2               else if(a & 0x0200)
+ 373   2                      {       j = 9 ;
+ 374   3                              a = 0x01ff & a ;
+ 375   3                               }
+ 376   2               else if(a & 0x0100)
+ 377   2                      {       j = 8 ;
+ 378   3                              a = 0x00ff & a ;
+ 379   3                           }
+ 380   2               else if(a & 0x0080)
+ 381   2                      {       j = 7 ;
+ 382   3                              a = 0x007f & a ;
+ 383   3                           }
+ 384   2               else if(a & 0x0040)
+ 385   2                      {       j = 6 ;
+ 386   3                              a = 0x003f & a ;
+ 387   3                               }
+ 388   2               else if(a & 0x0020)
+ 389   2                      {       j = 5 ;
+ 390   3                              a = 0x001f & a ;
+ 391   3                               }
+ 392   2               else if(a & 0x0010)
+ 393   2                      {       j = 4 ;
+ 394   3                              a = 0x0000f & a ;
+ 395   3                           }
+ 396   2               else if(a & 0x0008)
+ 397   2                      {       j = 3 ;
+ 398   3                              a = 0x0007 & a ;
+ 399   3                           }
+ 400   2               else if(a & 0x0004)
+ 401   2                      {       j = 2 ;
+ 402   3                              a = 0x0003 & a ;
+ 403   3                               }
+ 404   2               else if(a & 0x0002)
+ 405   2                      {       j = 1 ;
+ 406   3                              a = 0x0001 & a ;
+ 407   3                               }
+ 408   2               else if(a & 0x0001)
+ 409   2                      {       j = 0 ;
+ 410   3                              a = 0x0000 & a ;
+ 411   3                           }
+ 412   2      
+ 413   2          Exponent = j + 127 ;
+ 414   2              
+ 415   2      //      Edata_arry[0]=Exponent ;
+ 416   2      //      Uart0_Tx(&Edata_arry[0],1) ;  
+ 417   2                      
+ 418   2              Mantissa = (U32_T) a ;
+ 419   2              Mantissa = Mantissa << (32 - j) ;
+ 420   2      
+ 421   2              
+ 422   2              Real = (U32_T) Exponent ;
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 8   
+
+ 423   2              Real = Real << 23 ;
+ 424   2              Real = Real | (Mantissa >> 9)  ;
+ 425   2      
+ 426   2      //      Edata_arry[0]=(U8_T) (Real >> 24) ;
+ 427   2      //      Uart0_Tx(&Edata_arry[0],1) ;  
+ 428   2      //      Edata_arry[0]=(U8_T) (Real >> 16) ;
+ 429   2      //      Uart0_Tx(&Edata_arry[0],1) ;  
+ 430   2      //      Edata_arry[0]=(U8_T) (Real >> 8) ;
+ 431   2      //      Uart0_Tx(&Edata_arry[0],1) ;  
+ 432   2      //      Edata_arry[0]=(U8_T) Real  ;
+ 433   2      //      Uart0_Tx(&Edata_arry[0],1) ;  
+ 434   2      
+ 435   2      
+ 436   2              
+ 437   2              if(0x8000 & temp)                 /*正负符号*/
+ 438   2                      Real = 80000000 | Real ;        
+ 439   2      
+ 440   2      //              return Real;
+ 441   2              }
+ 442   1                      
+ 443   1              return Real;
+ 444   1      
+ 445   1      }
+ 446          
+ 447          
+ 448          
+ 449          device_object_id_got(void)
+ 450          {
+ 451   1              
+ 452   1      //      U8_T i ;
+ 453   1      //      U8_T temp[8] = {0xff,0x03,0x00,0x06,0x00,0x01};
+ 454   1      //      
+ 455   1      //      InitCRC16();
+ 456   1      //      for(i = 0; i < 6; i++)
+ 457   1      //      CRC16_Tstat(temp[i]);
+ 458   1      //      temp[i] = CRChi;                        
+ 459   1      //      temp[i + 1] = CRClo;
+ 460   1      //      
+ 461   1      //      for(i = 0 ; i < 8 ; i ++)
+ 462   1      //      Uart0_Tx(&temp[i],1) ;
+ 463   1      //
+ 464   1      //      Tx_To_Tstat(temp,8);                     
+ 465   1      //      hsurRxCount=0;
+ 466   1      //
+ 467   1      //      DELAY_Ms(2)     ;
+ 468   1      //      for(i=0;i<8;i++) 
+ 469   1      //      Uart0_Tx(&forward_buffer[i],1) ; 
+ 470   1      
+ 471   1         return device_object_identifier;
+ 472   1      
+ 473   1      }       
+ 474          
+ 475          
+ 476          
+ 477          
+ 478          
+ 479          
+ 480          
+ 481          
+ 482          /*=======================================*/
+ 483          void  modbus_uart_arry(void)
+ 484          {
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 9   
+
+ 485   1              U8_T i;
+ 486   1      //      U8_T temp[8] = {0xff,0x03,0x1b,0x66,0x00,0x01};
+ 487   1      //      
+ 488   1      //      InitCRC16();
+ 489   1      //      for(i = 0; i < 6; i++)
+ 490   1      //      CRC16_Tstat(temp[i]);
+ 491   1      //      temp[i] = CRChi;                        
+ 492   1      //      temp[i + 1] = CRClo;
+ 493   1      //      
+ 494   1      //      for(i = 0 ; i < 8 ; i ++)
+ 495   1      //      Uart0_Tx(&temp[i],1) ;
+ 496   1      //
+ 497   1      //      Tx_To_Tstat(UART_ARRY1,8);                       
+ 498   1      //      hsurRxCount=0;
+ 499   1      //
+ 500   1      //
+ 501   1      //      for(i=0;i<8;i++) 
+ 502   1      //      Uart0_Tx(&forward_buffer[i],1) ; 
+ 503   1      
+ 504   1      
+ 505   1      
+ 506   1      
+ 507   1              modbus_id = bacnet_id ;//(U8_T) (BACnetObjectIdentifier >> 8);
+ 508   1              UART_ARRY1[0] = modbus_id ;
+ 509   1              UART_ARRY1[1] = modbus_read_fun ;
+ 510   1              UART_ARRY1[2] = (U8_T) (modbus_addr     >> 8) ;
+ 511   1              UART_ARRY1[3] = (U8_T)  modbus_addr      ;
+ 512   1              UART_ARRY1[4] = (U8_T) (modbus_length >> 8) ;
+ 513   1              UART_ARRY1[5] = (U8_T)  modbus_length    ;
+ 514   1      
+ 515   1              InitCRC16();
+ 516   1              for(i = 0; i < 6; i++)
+ 517   1              CRC16_Tstat(UART_ARRY1[i]);
+ 518   1              UART_ARRY1[i] = CRChi;                        
+ 519   1              UART_ARRY1[i + 1] = CRClo;
+ 520   1      }
+ 521          //============================================
+ 522          
+ 523          
+ 524          
+ 525          
+ 526          
+ 527          /*
+ 528           * ----------------------------------------------------------------------------
+ 529           * Function Name: GUDPBC_Receive
+ 530           * Purpose: 
+ 531           * Params:
+ 532           * Returns:
+ 533           * Note:
+ 534           * ----------------------------------------------------------------------------
+ 535           */
+ 536          void GUDPMC_Receive(U8_T XDATA* pData, U16_T length, U8_T id)
+ 537          {
+ 538   1              U8_T i;
+ 539   1              U32_T f;
+ 540   1              U16_T   modbus_data;
+ 541   1              
+ 542   1      ////*==========================================*/
+ 543   1      //      Tx_To_Tstat(UART_ARRY1,8);
+ 544   1      //      hsurRxCount=0;
+ 545   1      ////    DELAY_Ms(2)     ;
+ 546   1      //      for(i=0;i<203;i++) {
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 10  
+
+ 547   1      //      Edata_arry[i]=forward_buffer[i] ;
+ 548   1      //      Uart0_Tx(&Edata_arry[i],1) ;  }
+ 549   1      //      f = Decimalist_to_real(forward_buffer[47]);
+ 550   1      ////*==========================================*/
+ 551   1              
+ 552   1              length = length ;
+ 553   1              send_flag = 0 ;
+ 554   1      
+ 555   1      
+ 556   1       if(1) 
+ 557   1       {
+ 558   2              /*-------  bvlc  ----------*/
+ 559   2               if(pData[bvlc_type] == BVLC_TYPE_BACNET_IP)                               //(B/IP)
+ 560   2                      {
+ 561   3                                switch(pData[bvlc_function])
+ 562   3                                      {
+ 563   4                                              case  BVLC_RESULT:                                                                                                       //0
+ 564   4                                                        break;                                                                                                                 
+ 565   4                                              case  BVLC_WRITE_BROADCAST_DISTRIBUTION_TABLE:                                           //1
+ 566   4                                                        break;
+ 567   4                                              case  BVLC_READ_BROADCAST_DIST_TABLE:                                                            //2
+ 568   4                                                        break;
+ 569   4                                              case  BVLC_READ_BROADCAST_DIST_TABLE_ACK:                                                        //3
+ 570   4                                                        break;
+ 571   4                                              case  BVLC_FORWARDED_NPDU:                                                                                       //4
+ 572   4                                                        break;
+ 573   4                                              case  BVLC_REGISTER_FOREIGN_DEVICE:                                                                      //5
+ 574   4                                                        break;
+ 575   4                                              case  BVLC_READ_FOREIGN_DEVICE_TABLE:                                                            //6
+ 576   4                                                        break;
+ 577   4                                              case  BVLC_READ_FOREIGN_DEVICE_TABLE_ACK:                                                        //7
+ 578   4                                                        break;
+ 579   4                                              case  BVLC_DELETE_FOREIGN_DEVICE_TABLE_ENTRY:                                            //8
+ 580   4                                                        break;
+ 581   4                                              case  BVLC_DISTRIBUTE_BROADCAST_TO_NETWORK:                                                      //9
+ 582   4                                                        break;
+ 583   4                                              case  BVLC_ORIGINAL_UNICAST_NPDU:                                                                        //A
+ 584   4      
+ 585   4                                                        send_arry[bvlc_head] = BVLC_TYPE_BACNET_IP ;   //ANNEX-J
+ 586   4                                                        send_arry[bvlc_head + 1] = BVLC_ORIGINAL_UNICAST_NPDU;        // NPDU UNICAST          
+ 587   4                                                        len = 4;
+ 588   4                                                        send_len = len ;
+ 589   4                                                        break;
+ 590   4                                              case  BVLC_ORIGINAL_BROADCAST_NPDU:                                                                      //B
+ 591   4                                                        
+ 592   4                                                        send_arry[bvlc_head] = BVLC_TYPE_BACNET_IP;   //ANNEX-J
+ 593   4                                                        send_arry[bvlc_head + 1] = BVLC_ORIGINAL_BROADCAST_NPDU;      // NPDU BROADCAST       
+ 594   4                                                        len = 4;
+ 595   4                                                        send_len = len ;
+ 596   4      
+ 597   4                                                        
+ 598   4      
+ 599   4                                                        break;
+ 600   4                                      default:
+ 601   4                                          break;
+ 602   4      
+ 603   4                                      }
+ 604   3                                         revice_length = (pData[bvlc_function + 1] << 8) + pData[bvlc_function + 2] ;
+ 605   3      
+ 606   3      
+ 607   3                      if(pData[npdu_head])
+ 608   3                               {      
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 11  
+
+ 609   4                                      /* protocol version */
+ 610   4                                      send_arry[npdu_head] = BACNET_PROTOCOL_VERSION;
+ 611   4                                      /* initialize the control octet */
+ 612   4                                      send_arry[npdu_head + 1] = 0;
+ 613   4                              /* Bit 7: 1 indicates that the NSDU conveys a network layer message. */
+ 614   4                              /*          Message Type field is present. */
+ 615   4                              /*        0 indicates that the NSDU contains a BACnet APDU. */
+ 616   4                              /*          Message Type field is absent. */
+ 617   4      //                      if (npdu_data->network_layer_message)
+ 618   4      //                          send_arry[npdu_head + 1] |= BIT7;
+ 619   4                              /*Bit 6: Reserved. Shall be zero. */
+ 620   4                              /*Bit 5: Destination specifier where: */
+ 621   4                              /* 0 = DNET, DLEN, DADR, and Hop Count absent */
+ 622   4                              /* 1 = DNET, DLEN, and Hop Count present */
+ 623   4                              /* DLEN = 0 denotes broadcast MAC DADR and DADR field is absent */
+ 624   4                              /* DLEN > 0 specifies length of DADR field */
+ 625   4      //                      if (dest && dest->net)
+ 626   4      //                          send_arry[npdu_head + 1] |= BIT5;
+ 627   4                              /* Bit 4: Reserved. Shall be zero. */
+ 628   4                              /* Bit 3: Source specifier where: */
+ 629   4                              /* 0 =  SNET, SLEN, and SADR absent */
+ 630   4                              /* 1 =  SNET, SLEN, and SADR present */
+ 631   4                              /* SLEN = 0 Invalid */
+ 632   4                              /* SLEN > 0 specifies length of SADR field */
+ 633   4      //                      if (src && src->net && src->len)
+ 634   4      //                          send_arry[npdu_head + 1] |= BIT3;
+ 635   4                              /* Bit 2: The value of this bit corresponds to the */
+ 636   4                              /* data_expecting_reply parameter in the N-UNITDATA primitives. */
+ 637   4                              /* 1 indicates that a BACnet-Confirmed-Request-PDU, */
+ 638   4                              /* a segment of a BACnet-ComplexACK-PDU, */
+ 639   4                              /* or a network layer message expecting a reply is present. */
+ 640   4                              /* 0 indicates that other than a BACnet-Confirmed-Request-PDU, */
+ 641   4                              /* a segment of a BACnet-ComplexACK-PDU, */
+ 642   4                              /* or a network layer message expecting a reply is present. */
+ 643   4      //                      if (npdu_data->data_expecting_reply)
+ 644   4      //                          send_arry[npdu_head + 1] |= BIT2;
+ 645   4                              /* Bits 1,0: Network priority where: */
+ 646   4                              /* B'11' = Life Safety message */
+ 647   4                              /* B'10' = Critical Equipment message */
+ 648   4                              /* B'01' = Urgent message */
+ 649   4                              /* B'00' = Normal message */
+ 650   4      //                      send_arry[npdu_head + 1] |= (npdu_data->priority & 0x03);
+ 651   4      //                      len += 2;
+ 652   4      
+ 653   4                                      if(pData[npdu_head + 1] & 0x20)
+ 654   4                                                      len += 6 ;                
+ 655   4                                       else
+ 656   4                                                      len += 2;
+ 657   4      
+ 658   4                                       send_len += 2 ;
+ 659   4      
+ 660   4                               }
+ 661   3      
+ 662   3      /*---------------   apdu  -------------------------------*/
+ 663   3              apdu_head = (U8_T) len ;
+ 664   3              send_apdu_head =  send_len ;
+ 665   3          switch (pData[apdu_head] & 0xF0)    /* APDU Type */
+ 666   3              {
+ 667   4              case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:                //有证实请求PDU
+ 668   4                               
+ 669   4                               First_Head_Octet = PDU_TYPE_COMPLEX_ACK;
+ 670   4      //                                       First_Head_Octet = First_Head_Octet << 4;        //BACnet-ComplexACK-pdu
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 12  
+
+ 671   4                               send_arry[send_apdu_head] = First_Head_Octet ;
+ 672   4                               send_len++;
+ 673   4      
+ 674   4                               /*-------  invoke id ------*/
+ 675   4                               Invoke_Id =  pData[apdu_head + 2] ;
+ 676   4                               send_arry[send_apdu_head + 1] =  Invoke_Id ;      //invoke-id
+ 677   4                               send_len++;
+ 678   4      
+ 679   4                              /*-----  Service_Choice  ------*/                                        
+ 680   4                               if(pData[apdu_head] & BIT3)                                            //if segmented message = 1
+ 681   4                                      Service_Choice = pData[apdu_head + 5] ;
+ 682   4                               else
+ 683   4                                      Service_Choice = pData[apdu_head + 3] ;
+ 684   4                              
+ 685   4                              /*-----  Service_Request  ------*/   
+ 686   4                               if(Service_Choice == READPROPERTY)                     //readproperty func       /*读*/
+ 687   4                                      {
+ 688   5                                               send_arry[send_apdu_head + 2] = READPROPERTY ;
+ 689   5                                               send_len++;
+ 690   5                                               if((pData[apdu_head + 4] & 0x07) != 0x05)                      // < 4 bytes
+ 691   5                                                      {
+ 692   6                                                              if((pData[apdu_head + 4] & 0x07) == 0x04 )         //means 4 bytes
+ 693   6                                                                      {
+ 694   7                                                                              send_arry[send_apdu_head + 3] = pData[apdu_head + 4];
+ 695   7                                                                              send_len++;
+ 696   7                                                                              
+ 697   7                                                                              Object_Type = (pData[apdu_head + 5] << 8) + pData[apdu_head + 6] ;
+ 698   7                                                                              Object_Type &= 0xFFC0 ;
+ 699   7                                                                              Object_Type = Object_Type >> 6;
+ 700   7      
+ 701   7                                                                              /*-------  BACnetObjectIdentifier  ---------*/
+ 702   7                                                                              ReadObjectIdentifier = 0;
+ 703   7      //                                                                                      ReadObjectIdentifier =   (pData[apdu_head + 5] << 24) +
+ 704   7      //                                                                                                                                       (pData[apdu_head + 6] << 16) +
+ 705   7      //                                                                                                                                       (pData[apdu_head + 7] << 8) +
+ 706   7      //                                                                                                                                        pData[apdu_head + 8] ;
+ 707   7                                                                              ReadObjectIdentifier = ReadObjectIdentifier | ((U32_T) pData[apdu_head + 5]) ;
+ 708   7                                                                              ReadObjectIdentifier = ReadObjectIdentifier << 8 ;
+ 709   7                                                                              ReadObjectIdentifier = ReadObjectIdentifier | ((U32_T) pData[apdu_head + 6]) ;
+ 710   7                                                                              ReadObjectIdentifier = ReadObjectIdentifier << 8 ;
+ 711   7                                                                              ReadObjectIdentifier = ReadObjectIdentifier | ((U32_T) pData[apdu_head + 7]) ;
+ 712   7                                                                              ReadObjectIdentifier = ReadObjectIdentifier << 8 ;
+ 713   7                                                                              ReadObjectIdentifier = ReadObjectIdentifier | ((U32_T) pData[apdu_head + 8]) ;
+ 714   7      
+ 715   7      
+ 716   7                                                              //              ReadObjectIdentifier = BACnetObjectIdentifier ;
+ 717   7                                                                              BACnetObjectIdentifier = ReadObjectIdentifier ;
+ 718   7      
+ 719   7                                                                              Instance_Number = 0 ;
+ 720   7                                                                              Instance_Number = (U8_T) (ReadObjectIdentifier << 16) +
+ 721   7                                                                                                                (U8_T) (ReadObjectIdentifier << 8) +
+ 722   7                                                                                                                (U8_T) ReadObjectIdentifier ;
+ 723   7      
+ 724   7      
+ 725   7                                                              //              if(BACnetObjectIdentifier == ReadObjectIdentifier )
+ 726   7                                                              //                 {
+ 727   7                                                                                      send_arry[send_apdu_head + 4] = (U8_T) (BACnetObjectIdentifier >> 24);
+ 728   7                                                                                      send_arry[send_apdu_head + 5] = (U8_T) (BACnetObjectIdentifier >> 16);
+ 729   7                                                                                      send_arry[send_apdu_head + 6] = (U8_T) (BACnetObjectIdentifier >> 8);
+ 730   7                                                                                      send_arry[send_apdu_head + 7] = (U8_T)  BACnetObjectIdentifier ;
+ 731   7                                                                                      send_len += 4;
+ 732   7      
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 13  
+
+ 733   7      
+ 734   7                                                                                      PropertyIdentifier = (pData[apdu_head + 9] << 8) + pData[apdu_head + 10];
+ 735   7                                                                                      PropertyValue = pData[apdu_head + 10] ;
+ 736   7      
+ 737   7                                                                                      send_arry[send_apdu_head + 8] = (U8_T) (PropertyIdentifier >> 8) ;
+ 738   7                                                                                      send_arry[send_apdu_head + 9] = (U8_T)  PropertyIdentifier ;
+ 739   7                                                                                      send_len += 2;
+ 740   7      
+ 741   7      
+ 742   7                                                                                      //PropertyValueHead = send_len ;
+ 743   7      
+ 744   7      
+ 745   7                         switch(Object_Type)
+ 746   7                                {
+ 747   8                                      case    Analog_Input:
+ 748   8      //                                              if((PropertyValue == 75) || (PropertyValue == 77) ||
+ 749   8      //                                                 (PropertyValue == 79) || (PropertyValue == 76) ||    
+ 750   8      //                                                 (PropertyValue == 120) || (PropertyValue == 121) ||
+ 751   8      //                                                 (PropertyValue == 112))
+ 752   8      //                                                                       goto   DEVICE_LOOP     ;
+ 753   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_ai1)
+ 754   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_ai1;
+ 755   9                                                                goto   analog_value ;  }
+ 756   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_ai2)
+ 757   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_ai2;
+ 758   9                                                                goto   analog_value ;  }
+ 759   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_ai3)
+ 760   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_ai3;
+ 761   9                                                                goto   analog_value ;  }
+ 762   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_ai4)
+ 763   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_ai4;
+ 764   9                                                                goto   analog_value ;  }
+ 765   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_ai5)
+ 766   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_ai5;
+ 767   9                                                                goto   analog_value ;  }
+ 768   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_ai6)
+ 769   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_ai6;
+ 770   9                                                                goto   analog_value ;  }
+ 771   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_ai7)
+ 772   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_ai7;
+ 773   9                                                                goto   analog_value ;  }
+ 774   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_ai8)
+ 775   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_ai8;
+ 776   9                                                                goto   analog_value ;  }
+ 777   8                                                      else 
+ 778   8                                                              break;
+ 779   8      
+ 780   8                                                      break;             
+ 781   8                                      case    Analog_Output: 
+ 782   8                                                      if((PropertyValue == 75) || (PropertyValue == 77) ||
+ 783   8                                                         (PropertyValue == 79) || (PropertyValue == 76) ||    
+ 784   8                                                         (PropertyValue == 120) || (PropertyValue == 121) ||
+ 785   8                                                         (PropertyValue == 112))
+ 786   8                                                       goto   DEVICE_LOOP;
+ 787   8      
+ 788   8      
+ 789   8      
+ 790   8      
+ 791   8                                                      break; 
+ 792   8                                      case    Analog_Value:
+ 793   8      
+ 794   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_av1)
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 14  
+
+ 795   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_av1;
+ 796   9                                                                goto   analog_value ;  }
+ 797   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_av2)
+ 798   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_av2;
+ 799   9                                                                goto   analog_value ;  }
+ 800   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_av3)
+ 801   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_av3;
+ 802   9                                                                goto   analog_value ;  }
+ 803   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_av4)
+ 804   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_av4;
+ 805   9                                                                goto   analog_value ;  }
+ 806   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_av5)
+ 807   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_av5;
+ 808   9                                                                goto   analog_value ;  }
+ 809   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_av6)
+ 810   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_av6;
+ 811   9                                                                goto   analog_value ;  }
+ 812   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_av7)
+ 813   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_av7;
+ 814   9                                                                goto   analog_value ;  }
+ 815   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_av8)
+ 816   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_av8;
+ 817   9                                                                goto   analog_value ;  }
+ 818   8                                                      else 
+ 819   8                                                              break;
+ 820   8      analog_value:                                                                                                           
+ 821   8                                                      if((PropertyValue == 75) || (PropertyValue == 77) ||
+ 822   8                                                         (PropertyValue == 79) || (PropertyValue == 76) ||    
+ 823   8                                                         (PropertyValue == 120) || (PropertyValue == 121) ||
+ 824   8                                                         (PropertyValue == 112))
+ 825   8                                                       goto   DEVICE_LOOP;
+ 826   8      
+ 827   8                                                      if(PropertyValue == 85)  //present value
+ 828   8                                                              {
+ 829   9                                                               point_flag = 0 ;       
+ 830   9      /*----------------------------------------------------------------------------------*/
+ 831   9      /*-----------------------------   ANALOG VALUE  ------------------------------------*/
+ 832   9                                                               if( BACnetObjectIdentifier == ObjectIdentifier_av2)    
+ 833   9                                                                 {
+ 834  10                                                              //*==========================================*/
+ 835  10                                                                 modbus_addr = 0x0079;                                        //Modbus 121 temperature
+ 836  10                                                                 modbus_length = 0x0001;
+ 837  10                                                                 point_flag = 1 ;
+ 838  10                                                                 goto  real_data ;
+ 839  10                                                                 }
+ 840   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_av1)
+ 841   9                                                                      {                                                                                 //bacnet 485-id
+ 842  10      //                                                          modbus_addr = 0x0111;                                       
+ 843  10      //                                                          modbus_length = 0x0001;
+ 844  10      //                                                              goto real_data ;
+ 845  10      
+ 846  10                                                                      modbus_data     = (U16_T) bacnet_id ;
+ 847  10                                                                      goto direct_data_loop;
+ 848  10                                                                      }
+ 849   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_av3)
+ 850   9                                                                      {
+ 851  10                                                                  modbus_addr = 0x0111;                                        //Modbus 273 fan speed
+ 852  10                                                                  modbus_length = 0x0001;
+ 853  10                                                                                                                                                      
+ 854  10                                                                      goto real_data ;
+ 855  10                                                                      }
+ 856   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_av4)
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 15  
+
+ 857   9                                                                      {
+ 858  10                                                                  modbus_addr = 0x0066;                                       //Mode of Tstat
+ 859  10                                                                  modbus_length = 0x0001;
+ 860  10                                                                       
+ 861  10                                                                      goto real_data ;
+ 862  10                                                                      }
+ 863   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_av5)
+ 864   9                                                                      {
+ 865  10                                                                  modbus_addr = 0x015B;                                       //setpoint
+ 866  10                                                                  modbus_length = 0x0001;
+ 867  10                                                                       
+ 868  10                                                                      goto real_data ;
+ 869  10                                                                      }
+ 870   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_av6)
+ 871   9                                                                      {
+ 872  10                                                                  modbus_addr = 0x015a;                                       //cooling deaband
+ 873  10                                                                  modbus_length = 0x0001;
+ 874  10                                                                       
+ 875  10                                                                      goto real_data ;
+ 876  10                                                                      }
+ 877   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_av7)
+ 878   9                                                                      {
+ 879  10                                                                  modbus_addr = 0x0159;                                       //heating deaband
+ 880  10                                                                  modbus_length = 0x0001;
+ 881  10                                                                       
+ 882  10                                                                      goto real_data ;
+ 883  10                                                                      }
+ 884   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_av8)
+ 885   9                                                                      {
+ 886  10                                                                  modbus_addr = 0x015e;                                       //night setpoint
+ 887  10                                                                  modbus_length = 0x0001;
+ 888  10                                                                       
+ 889  10                                                                      goto real_data ;
+ 890  10                                                                      }
+ 891   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_av9)
+ 892   9                                                                      {
+ 893  10                                                                  modbus_addr = 0x0161;                                       // NIGHT_COOLING_DEADBAND
+ 894  10                                                                  modbus_length = 0x0001;
+ 895  10                                                                       
+ 896  10                                                                      goto real_data ;
+ 897  10                                                                      }
+ 898   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_av10)
+ 899   9                                                                      {
+ 900  10                                                                  modbus_addr = 0x0162;                                       // NIGHT_HEATING_DEADBAND
+ 901  10                                                                  modbus_length = 0x0001;
+ 902  10                                                                       
+ 903  10                                                                      goto real_data ;
+ 904  10                                                                      }
+ 905   9      
+ 906   9      
+ 907   9      
+ 908   9      /***************************************************************************************/
+ 909   9      ////////////////////////////////     ANALOG INPUT     ////////////////////////////////////
+ 910   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_ai1)
+ 911   9                                                                      {
+ 912  10                                                                  modbus_addr = 0x0083;                                       //Modbus 131 ANALOG INPUT 
+ 913  10                                                                  modbus_length = 0x0001;
+ 914  10                                                                      goto real_data ;
+ 915  10                                                                      }
+ 916   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_ai2)
+ 917   9                                                                      {
+ 918  10                                                                  modbus_addr = 0x0084;                                       //Modbus 132  ANALOG INPUT
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 16  
+
+ 919  10                                                                  modbus_length = 0x0001;
+ 920  10                                                                      
+ 921  10                                                                      goto real_data ;
+ 922  10                                                                      }
+ 923   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_ai3)
+ 924   9                                                                      {
+ 925  10                                                                  modbus_addr = 0x0085;                                       //Modbus 133 ANALOG INPUT 
+ 926  10                                                                  modbus_length = 0x0001;
+ 927  10                                                                      
+ 928  10                                                                      goto real_data ;
+ 929  10                                                                      }
+ 930   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_ai4)
+ 931   9                                                                      {
+ 932  10                                                                  modbus_addr = 0x0086;                                       //Modbus 134  ANALOG INPUT
+ 933  10                                                                  modbus_length = 0x0001;
+ 934  10                                                                      
+ 935  10                                                                      goto real_data ;
+ 936  10                                                                      }
+ 937   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_ai5)
+ 938   9                                                                      {
+ 939  10                                                                  modbus_addr = 0x0087;                                       //Modbus 135 ANALOG INPUT 
+ 940  10                                                                  modbus_length = 0x0001;
+ 941  10                                                                      
+ 942  10                                                                      goto real_data ;
+ 943  10                                                                      }
+ 944   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_ai6)
+ 945   9                                                                      {
+ 946  10                                                                  modbus_addr = 0x0088;                                       //Modbus 136  ANALOG INPUT
+ 947  10                                                                  modbus_length = 0x0001;
+ 948  10                                                                      
+ 949  10                                                                      goto real_data ;
+ 950  10                                                                      }
+ 951   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_ai7)
+ 952   9                                                                      {
+ 953  10                                                                  modbus_addr = 0x0089;                                       //Modbus 137 ANALOG INPUT 
+ 954  10                                                                  modbus_length = 0x0001;
+ 955  10                                                                      
+ 956  10                                                                      goto real_data ;
+ 957  10                                                                      }
+ 958   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_ai8)
+ 959   9                                                                      {
+ 960  10                                                                  modbus_addr = 0x008a;                                       //Modbus 138  ANALOG INPUT
+ 961  10                                                                  modbus_length = 0x0001;
+ 962  10                                                                      
+ 963  10                                                                      goto real_data ;
+ 964  10                                                                      }
+ 965   9      
+ 966   9      /***************************************************************************************/
+ 967   9      //=============================  binary output ========================================
+ 968   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_bo1)
+ 969   9                                                                      {
+ 970  10                                                                  modbus_addr = 0x00ff;                                       //Modbus 255 BINARY OUTPUT 
+ 971  10                                                                  modbus_length = 0x0001;
+ 972  10      
+ 973  10                                                                      goto enumerated_data ;
+ 974  10                                                                      }
+ 975   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_bo2)
+ 976   9                                                                      {
+ 977  10                                                                  modbus_addr = 0x0100;                                       //Modbus 256 BINARY OUTPUT 
+ 978  10                                                                  modbus_length = 0x0001;
+ 979  10      
+ 980  10                                                                      goto enumerated_data ;
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 17  
+
+ 981  10                                                                      }
+ 982   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_bo3)
+ 983   9                                                                      {
+ 984  10                                                                  modbus_addr = 0x0101;                                       //Modbus 257 BINARY OUTPUT  
+ 985  10                                                                  modbus_length = 0x0001;
+ 986  10                                                                      goto enumerated_data ;
+ 987  10                                                                      }
+ 988   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_bo4)
+ 989   9                                                                      {
+ 990  10                                                                  modbus_addr = 0x0102;                                       //Modbus 258 BINARY OUTPUT 
+ 991  10                                                                  modbus_length = 0x0001;
+ 992  10                                                                      goto enumerated_data ;
+ 993  10                                                                      }
+ 994   9                                                                if( BACnetObjectIdentifier == ObjectIdentifier_bo5)
+ 995   9                                                                      {
+ 996  10                                                                  modbus_addr = 0x0103;                                       //Modbus 259 BINARY OUTPUT 
+ 997  10                                                                  modbus_length = 0x0001;
+ 998  10                                                                      goto enumerated_data ;
+ 999  10                                                                      }
+1000   9      
+1001   9      
+1002   9                                                                 else 
+1003   9                                                                              break;
+1004   9      
+1005   9      enumerated_data:
+1006   9                                                                  modbus_uart_arry();
+1007   9      
+1008   9      //                                                              for(i = 0 ; i < 8 ; i ++)
+1009   9      //                                                              Uart0_Tx(&UART_ARRY1[i],1) ;
+1010   9      
+1011   9                                                                      Tx_To_Tstat(UART_ARRY1,8);                       
+1012   9                                                                      hsurRxCount=0;
+1013   9      
+1014   9                                                                      send_arry[send_apdu_head + 10] =  opening_context_tag;
+1015   9                                                                      send_arry[send_apdu_head + 11] =  0x91 ;
+1016   9                                                                      
+1017   9                                                                      if(forward_buffer[4] == 0x01)
+1018   9                                                                      send_arry[send_apdu_head + 12] = 0x01 ;
+1019   9                                                                      else if(forward_buffer[4] == 0x00)
+1020   9                                                                      send_arry[send_apdu_head + 12] = 0x00 ;
+1021   9      
+1022   9                                                                      send_arry[send_apdu_head + 13] =  closing_context_tag;
+1023   9                                                                      send_len += 4;
+1024   9                                                                      send_arry[bvlc_function + 1] = (U8_T) (send_len >> 8);
+1025   9                                                                      send_arry[bvlc_function + 2] = (U8_T) send_len;  
+1026   9                                                                      send_flag = 1;
+1027   9                                                                      break;  
+1028   9      
+1029   9      real_data:
+1030   9                                                                      modbus_uart_arry();
+1031   9      
+1032   9      //                                                              for(i = 0 ; i < 8 ; i ++)
+1033   9      //                                                              Uart0_Tx(&UART_ARRY1[i],1);
+1034   9      
+1035   9      
+1036   9                                                                      Tx_To_Tstat(UART_ARRY1,8);                       
+1037   9                                                                      hsurRxCount=0;
+1038   9                                                                      
+1039   9      //                                                              for(i = 0 ; i < 8 ; i ++)
+1040   9      //                                                              Uart0_Tx(&forward_buffer[i],1);
+1041   9      
+1042   9                                                                      if(forward_buffer[0] != bacnet_id)         //check 
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 18  
+
+1043   9                                                              //      if(forward_buffer[1] != 0x03)      //check 
+1044   9                                                                      {break;}
+1045   9      
+1046   9                                                                      modbus_data = ((U16_T) (forward_buffer[3] << 8)) | ((U16_T) forward_buffer[4]);
+1047   9      
+1048   9                                                                  forward_buffer[0] = 0;
+1049   9                                                                      forward_buffer[1] = 0;
+1050   9      
+1051   9      //                                                              Edata_arry[0]= (U8_T) (modbus_data >> 8);
+1052   9      //                                                              Uart0_Tx(&Edata_arry[0],1) ; 
+1053   9      //                                                              Edata_arry[0]= (U8_T) modbus_data ;
+1054   9      //                                                              Uart0_Tx(&Edata_arry[0],1) ; 
+1055   9      
+1056   9      direct_data_loop:
+1057   9                                                                      f = Decimalist_to_real(modbus_data);
+1058   9                                                              //*==========================================*/
+1059   9                                                                      send_arry[send_apdu_head + 10] =  opening_context_tag;
+1060   9                                                                      send_arry[send_apdu_head + 11] =  0x44 ;
+1061   9                                                                      send_arry[send_apdu_head + 12] =  (U8_T)(f >> 24);
+1062   9                                                                      send_arry[send_apdu_head + 13] =  (U8_T)(f >> 16);
+1063   9                                                                      send_arry[send_apdu_head + 14] =  (U8_T)(f >> 8);
+1064   9                                                                      send_arry[send_apdu_head + 15] =  (U8_T) f ;
+1065   9                                                                      send_arry[send_apdu_head + 16] =  closing_context_tag;
+1066   9                                                                      send_len += 7;
+1067   9                                                                      send_arry[bvlc_function + 1] = (U8_T) (send_len >> 8);
+1068   9                                                                      send_arry[bvlc_function + 2] = (U8_T) send_len;  
+1069   9                                                                      send_flag = 1;
+1070   9                                                                      break;  
+1071   9      
+1072   9      
+1073   9                                                              }
+1074   8                                                       if(PropertyValue == 117)       //units
+1075   8                                                              {
+1076   9                                                              
+1077   9                                                                  modbus_addr = 0x0068;                                       //Modbus 137 ANALOG INPUT 
+1078   9                                                                  modbus_length = 0x0001;
+1079   9                                                                      
+1080   9                                                                  modbus_uart_arry();
+1081   9                                                                      Tx_To_Tstat(UART_ARRY1,8);                       
+1082   9                                                                      hsurRxCount=0;
+1083   9      
+1084   9                                                              
+1085   9                                                                      send_arry[send_apdu_head + 10] =  opening_context_tag;
+1086   9                                                                      send_arry[send_apdu_head + 11] =  0x91 ;
+1087   9      
+1088   9                                                                      if(forward_buffer[4] == 0x00)
+1089   9                                                                      send_arry[send_apdu_head + 12] =  0x3e;                                  //degrees-Celsius
+1090   9                                                                      else if(forward_buffer[4] == 0x01)
+1091   9                                                                      send_arry[send_apdu_head + 12] =  0x40;                                 //degrees-Fahrenheit
+1092   9      
+1093   9                                                                      send_arry[send_apdu_head + 13] =  closing_context_tag;
+1094   9                                                                      send_len += 4;
+1095   9                                                                      send_arry[bvlc_function + 1] = (U8_T) (send_len >> 8) ;
+1096   9                                                                      send_arry[bvlc_function + 2] = (U8_T) send_len;  
+1097   9                                                                      send_flag = 1;
+1098   9                                                                      break;
+1099   9                                                              }
+1100   8      
+1101   8      
+1102   8                                                      break;
+1103   8                                      case    Binary_Input:
+1104   8                                                      break;             
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 19  
+
+1105   8                                      case    Binary_Output: 
+1106   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_bo1)
+1107   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_bo1;
+1108   9                                                                goto   analog_value ;  }
+1109   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_bo2)
+1110   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_bo2;
+1111   9                                                                goto   analog_value ;  }
+1112   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_bo3)
+1113   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_bo3;
+1114   9                                                                goto   analog_value ;  }
+1115   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_bo4)
+1116   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_bo4;
+1117   9                                                                goto   analog_value ;  }
+1118   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_bo5)
+1119   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_bo5;
+1120   9                                                                goto   analog_value ;  }
+1121   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_bo6)
+1122   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_bo6;
+1123   9                                                                goto   analog_value ;  }
+1124   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_bo7)
+1125   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_bo7;
+1126   9                                                                goto   analog_value ;  }
+1127   8                                                      if(ReadObjectIdentifier == ObjectIdentifier_bo8)
+1128   8                                                              { BACnetObjectIdentifier = ObjectIdentifier_bo8;
+1129   9                                                                goto   analog_value ;  }
+1130   8                                                      else 
+1131   8                                                              break;
+1132   8      
+1133   8                                                      break;
+1134   8                                      case    Binary_Value:
+1135   8                                                      if((PropertyValue == 75) || (PropertyValue == 77) ||
+1136   8                                                         (PropertyValue == 79) || (PropertyValue == 76) ||    
+1137   8                                                         (PropertyValue == 120) || (PropertyValue == 121) ||
+1138   8                                                         (PropertyValue == 112))
+1139   8                                                       goto   DEVICE_LOOP     ;
+1140   8      
+1141   8      
+1142   8                                                      break;
+1143   8                                      case    Calender:       
+1144   8                                                      break;     
+1145   8                                      case    Command:  
+1146   8                                                      break;
+1147   8                                      case    Device:
+1148   8      
+1149   8                                                      device_object_id_got();
+1150   8      
+1151   8                                                      BACnetObjectIdentifier = device_object_identifier ;
+1152   8      
+1153   8                                                      if(BACnetObjectIdentifier == ReadObjectIdentifier)
+1154   8                                                              {
+1155   9      DEVICE_LOOP:                                                                                    
+1156   9                                                              if(PropertyValue == 75)    //object-identifier
+1157   9                                                                      {       
+1158  10                                                                              send_arry[send_apdu_head + 10] =  opening_context_tag;
+1159  10                                                                              send_arry[send_apdu_head + 11] =  0xc4 ;
+1160  10                                                                              send_arry[send_apdu_head + 12] = (U8_T) (BACnetObjectIdentifier >> 24);
+1161  10                                                                              send_arry[send_apdu_head + 13] = (U8_T) (BACnetObjectIdentifier >> 16);
+1162  10                                                                              send_arry[send_apdu_head + 14] = (U8_T) (BACnetObjectIdentifier >> 8);
+1163  10                                                                              send_arry[send_apdu_head + 15] = (U8_T)  BACnetObjectIdentifier ;
+1164  10                                                                              send_arry[send_apdu_head + 16] =  closing_context_tag;
+1165  10                                                                              send_len += 7;
+1166  10                                                                              send_arry[bvlc_function + 1] = (U8_T) (send_len >> 8) ;
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 20  
+
+1167  10                                                                              send_arry[bvlc_function + 2] = (U8_T) send_len;  
+1168  10                                                                              send_flag = 1;
+1169  10                                                                              break;
+1170  10                                                                      }
+1171   9      //                                                                      Uart0_Tx(&send_arry[bvlc_function + 1],1);
+1172   9      //                                                                      Uart0_Tx(&send_arry[bvlc_function + 2],1);
+1173   9                                                               if(PropertyValue == 77)           //object-name
+1174   9                                                                      {
+1175  10                                                                         send_arry[send_apdu_head + 10] =  opening_context_tag;
+1176  10                                                                         str_len = strlen(device_object_name) ;
+1177  10                                                                         //if(str_len) > 0x04  {
+1178  10                                                                         send_arry[send_apdu_head + 11] =  0x75 ; 
+1179  10                                                                         //}
+1180  10                                                                         send_arry[send_apdu_head + 12] =     strlen(device_object_name) + 1;
+1181  10                                                                         send_arry[send_apdu_head + 13] =     0x00 ; //ASSIC Character Encoding
+1182  10                                                                        
+1183  10                                                                         for(i = 0 ; i <str_len; i++ )
+1184  10                                                                         {    
+1185  11                                                                                 send_arry[send_apdu_head + 14 + i] = device_object_name[i] ; 
+1186  11                                                                         }
+1187  10                                                                         send_arry[send_apdu_head + 14 + str_len] = closing_context_tag ;
+1188  10      
+1189  10                                                                         send_len = send_len + str_len + 5 ;   //open,close,
+1190  10                                                                         send_flag = 1 ;
+1191  10                                                                         break;
+1192  10                                                                      }
+1193   9                                                               if(PropertyValue == 79)         //object type
+1194   9                                                                      {
+1195  10                                                                         send_arry[send_apdu_head + 10] =  opening_context_tag;
+1196  10                                                                         send_arry[send_apdu_head + 11] = 0x91 ;      //Enumerated one byte
+1197  10                                                                         send_arry[send_apdu_head + 12] = 0x08;       //device-object
+1198  10                                                                         send_arry[send_apdu_head + 13] = closing_context_tag ;
+1199  10                                                                         send_len += 4 ;
+1200  10                                                                         send_flag = 1 ;
+1201  10                                                                         break; 
+1202  10                                                                      }
+1203   9                                                               if(PropertyValue == 76)         // object list
+1204   9                                                                      {
+1205  10                                                                              send_arry[send_apdu_head + 10] =  opening_context_tag;
+1206  10                                                                              send_arry[send_apdu_head + 11] =  0xc4 ;
+1207  10                                                                              send_arry[send_apdu_head + 12] = (U8_T) (BACnetObjectIdentifier >> 24);
+1208  10                                                                              send_arry[send_apdu_head + 13] = (U8_T) (BACnetObjectIdentifier >> 16);
+1209  10                                                                              send_arry[send_apdu_head + 14] = (U8_T) (BACnetObjectIdentifier >> 8);
+1210  10                                                                              send_arry[send_apdu_head + 15] = (U8_T)  BACnetObjectIdentifier ;
+1211  10                                                                              
+1212  10                                                                              
+1213  10                                                                              
+1214  10                                                                              
+1215  10                                                                              
+1216  10                                                                              
+1217  10                                                                              send_arry[send_apdu_head + 16] =  closing_context_tag;
+1218  10                                                                              send_len += 7;
+1219  10                                                                              send_arry[bvlc_function + 1] = (U8_T) (send_len >> 8) ;
+1220  10                                                                              send_arry[bvlc_function + 2] = (U8_T) send_len;  
+1221  10                                                                              send_flag = 1;
+1222  10                                                                              break;
+1223  10      
+1224  10                                                                      }
+1225   9                                                              if(PropertyValue == 120) //vendor id
+1226   9                                                                      {
+1227  10                                                                         send_arry[send_apdu_head + 10] = opening_context_tag;
+1228  10                                                                         send_arry[send_apdu_head + 11] = 0x21 ; //unsigned integer one byte
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 21  
+
+1229  10                                                                         send_arry[send_apdu_head + 12] = VENDOR_ID ;
+1230  10                                                                         send_arry[send_apdu_head + 13] = closing_context_tag ;
+1231  10                                                                         send_len += 4 ;
+1232  10                                                                         send_flag = 1 ;
+1233  10                                                                         break; 
+1234  10                                                                      }
+1235   9                                                              if(PropertyValue == 121) //vendor name
+1236   9                                                                      {
+1237  10                                                                         send_arry[send_apdu_head + 10] =  opening_context_tag;
+1238  10                                                                         str_len = strlen(vendor_name) ;
+1239  10                                                                         send_arry[send_apdu_head + 11] =  0x75 ; 
+1240  10                                                                         send_arry[send_apdu_head + 12] =     strlen(vendor_name) + 1;
+1241  10                                                                         send_arry[send_apdu_head + 13] =     0x00 ; //ASSIC Character Encoding
+1242  10                                                                        
+1243  10                                                                         for(i = 0 ; i <str_len; i++ )
+1244  10                                                                         {    
+1245  11                                                                                 send_arry[send_apdu_head + 14 + i] = vendor_name[i] ; 
+1246  11                                                                         }
+1247  10                                                                         send_arry[send_apdu_head + 14 + str_len] = closing_context_tag ;
+1248  10                                                                         send_len = send_len + str_len + 5 ;   //open,close,lengthofdata,ASSIC
+1249  10                                                                         send_flag = 1 ;
+1250  10                                                                         break;
+1251  10                                                                      }
+1252   9                                                              if(PropertyValue == 112) //system status                system_status
+1253   9                                                                      {
+1254  10                                                                         send_arry[send_apdu_head + 10] = opening_context_tag;
+1255  10                                                                         send_arry[send_apdu_head + 11] = 0x91 ; //Enumerated 1 byte
+1256  10                                                                         send_arry[send_apdu_head + 12] = system_status ;
+1257  10                                                                         send_arry[send_apdu_head + 13] = closing_context_tag ;
+1258  10                                                                         send_len += 4 ;
+1259  10                                                                         send_flag = 1 ;
+1260  10                                                                         break; 
+1261  10                                                                      }
+1262   9                                                         }
+1263   8      
+1264   8                                                      break;
+1265   8                                      case    Event_Enrollment:                  
+1266   8                                                      break;
+1267   8                                      case    File:  
+1268   8                                                      break;
+1269   8                                      case    Group: 
+1270   8                                                      break;
+1271   8                                      case    Loop:
+1272   8                                                      break;             
+1273   8                                      case    Multistate_Input:  
+1274   8                                                      break;
+1275   8                                      case    Multistate_Output:
+1276   8                                                      break;
+1277   8                                      case    Notification_Class:
+1278   8                                                      break;             
+1279   8                                      case    Program:  
+1280   8                                                      break;
+1281   8                                      case    Schedule:
+1282   8      
+1283   8      
+1284   8      
+1285   8      
+1286   8      
+1287   8      
+1288   8      
+1289   8      
+1290   8      
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 22  
+
+1291   8                                                      break;
+1292   8                                      default:
+1293   8                                                      send_flag = 0 ;
+1294   8                                      
+1295   8                                      break;
+1296   8                                               }
+1297   7                                      }
+1298   6                                if((pData[apdu_head + 4] & 0x07) == 0x01 )             //1byte
+1299   6                                      {
+1300   7      
+1301   7                                              }
+1302   6                                      }
+1303   5                                if((pData[apdu_head + 4] & 0x07) == 0x05)        // 
+1304   5                                       {
+1305   6      
+1306   6                                       }
+1307   5      
+1308   5                               }
+1309   4                              break;
+1310   4      
+1311   4                                      case PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST:       //无证实请求PDU
+1312   4      
+1313   4      //                                       Edata_arry[3] = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST ;
+1314   4      //                                       Uart0_Tx(&Edata_arry[3],1);
+1315   4      
+1316   4                                                if(pData[apdu_head + 1] == 0x00)                      //i-am
+1317   4                                                      {
+1318   5      /*                                                 apdu_head = (U8_T) len ;
+1319   5      //                                                 send_arry[apdu_head] = IAM_SERVICE->first_head ;
+1320   5      //                                                 send_arry[apdu_head + 1]     = IAM_SERVICE->iam_request;
+1321   5      //                                                 send_arry[apdu_head + 2]     = device_identifier->application_tag;
+1322   5      //                                                 send_arry[apdu_head + 3]     = (U8_T) (((device_identifier->BACNET_Object_identifier) >> 24) & 0x
+             -000000FF) ;
+1323   5      //                                                 send_arry[apdu_head + 4]     = (U8_T) (((device_identifier->BACNET_Object_identifier) >> 16) & 0x
+             -000000FF) ;
+1324   5      //                                                 send_arry[apdu_head + 5]     = (U8_T) (((device_identifier->BACNET_Object_identifier) >> 8) & 0x0
+             -00000FF) ;
+1325   5      //                                                 send_arry[apdu_head + 6]     = (U8_T) ((device_identifier->BACNET_Object_identifier) & 0x000000FF
+             -) ;
+1326   5      //                                                 send_arry[apdu_head + 7]     =  max_npdu_length_accepted->application_tag;
+1327   5      //                                                 send_arry[apdu_head + 8]     = (U8_T) (((max_npdu_length_accepted->value) >> 8) & 0x00FF);
+1328   5      //                                                 send_arry[apdu_head + 9]     = (U8_T) ((max_npdu_length_accepted->value) & 0x00FF);
+1329   5      //                                                 send_arry[apdu_head + 10] = segmentation_supported->application_tag;
+1330   5      //                                                 send_arry[apdu_head + 11] = segmentation_supported->value;
+1331   5      //                                                 send_arry[apdu_head + 12] = (U8_T) ((IAM_SERVICE->vendor_id) >> 8) ;
+1332   5      //                                                 send_arry[apdu_head + 13] = (U8_T) (IAM_SERVICE->vendor_id)  ;
+1333   5                                                      for(i = 0;i < 24; i++)                                    
+1334   5                                                         {
+1335   5                                                                send_arry[i] = iam_arry[i] ;          // i-am
+1336   5                                                                len = 24 ;
+1337   5                                                         }
+1338   5      */
+1339   5                                                      break; }
+1340   4                                                if(pData[apdu_head + 1] == 0x01)       // i-have
+1341   4                                                      break;
+1342   4                                                if(pData[apdu_head + 1] == 0x02)       // uncomfirmedCOVNotification
+1343   4                                                      break;
+1344   4                                                if(pData[apdu_head + 1] == 0x03)       //     unconfirmedEventNotification
+1345   4                                                      break;
+1346   4                                                if(pData[apdu_head + 1] == 0x04)       //     unconfirmedPrivateTransfer
+1347   4                                                      break;
+1348   4                                                if(pData[apdu_head + 1] == 0x05)       //     unconfirmedTextMessage
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 23  
+
+1349   4                                                       break;
+1350   4                                                if(pData[apdu_head + 1] == 0x06)       //     timeSynchronizaion
+1351   4                                                       break;
+1352   4                                                if(pData[apdu_head + 1] == 0x07)       //     who-has
+1353   4                                                       break;
+1354   4                                                if(pData[apdu_head + 1] == 0x08)       //     who-is
+1355   4                                                      {       
+1356   5                                                               flag_answer_whois = 0 ;
+1357   5      
+1358   5                                                               device_object_id_got();
+1359   5      
+1360   5                                                               BACnetObjectIdentifier = device_object_identifier ;
+1361   5      //                                                       temp[0] = (U8_T) revice_length ; 
+1362   5      //                                                       Uart0_Tx(&temp[0],1);
+1363   5      
+1364   5                                                               if(revice_length > 0x000c)
+1365   5                                                                      {
+1366   6                                                                              Instance_length = (pData[apdu_head + 2] & 0x07) ;
+1367   6                                                                              if(Instance_length == 0x01)
+1368   6                                                                                      {
+1369   7                                                                                        Instance_range_low = pData[apdu_head + 3]     ;
+1370   7                                                                                        Instance_length = (pData[apdu_head + 4] & 0x07) ;
+1371   7                                                                                        if(Instance_length == 0x01)
+1372   7                                                                                              {
+1373   8                                                                                                      Instance_range_high = pData[apdu_head + 5];     
+1374   8                                                                                                      if((Instance_range_high >= Instance_range_low) && 
+1375   8                                                                                                        ((BACnetObjectIdentifier & 0x003fffff) <= Instance_range_high) &&
+1376   8                                                                                                         (BACnetObjectIdentifier & 0x003fffff) >= Instance_range_low)
+1377   8                                                                                                              flag_answer_whois = 1;          
+1378   8                                                                                              }
+1379   7                                                                                        if (Instance_length == 0x02)
+1380   7                                                                                              {
+1381   8                                                                                                      Instance_range_high = (pData[apdu_head + 5] << 8) + pData[apdu_head + 6] ;
+1382   8                                                                                                      if((Instance_range_high >= Instance_range_low) && 
+1383   8                                                                                                        ((BACnetObjectIdentifier & 0x003fffff) <= Instance_range_high) &&
+1384   8                                                                                                         (BACnetObjectIdentifier & 0x003fffff) >= Instance_range_low)
+1385   8                                                                                                              flag_answer_whois = 1;          
+1386   8                                                                                              }
+1387   7                                                                                        if(Instance_length == 0x03)
+1388   7                                                                                              {
+1389   8                                                                                                      Instance_range_high = (pData[apdu_head + 5] << 16) + (pData[apdu_head + 6] << 8) + pData[apdu_
+             -head + 7] ;
+1390   8                                                                                                      if((Instance_range_high >= Instance_range_low) && 
+1391   8                                                                                                        ((BACnetObjectIdentifier & 0x003fffff) <= Instance_range_high) &&
+1392   8                                                                                                         (BACnetObjectIdentifier & 0x003fffff) >= Instance_range_low)
+1393   8                                                                                                              flag_answer_whois = 1;          
+1394   8                                                                                              }
+1395   7      
+1396   7                                                                                      }
+1397   6                                                                              if(Instance_length == 0x02)
+1398   6                                                                                      {
+1399   7                                                                                        Instance_range_low = (pData[apdu_head + 3] << 8) + pData[apdu_head + 4] ;
+1400   7                                                                                        Instance_length = (pData[apdu_head + 5] & 0x07) ;
+1401   7                                                                                        if (Instance_length == 0x02)
+1402   7                                                                                              {
+1403   8                                                                                                      Instance_range_high = (pData[apdu_head + 6] << 8) + pData[apdu_head + 7] ;
+1404   8                                                                                                      if((Instance_range_high >= Instance_range_low) && 
+1405   8                                                                                                        ((BACnetObjectIdentifier & 0x003fffff) <= Instance_range_high) &&
+1406   8                                                                                                         (BACnetObjectIdentifier & 0x003fffff) >= Instance_range_low)
+1407   8                                                                                                              flag_answer_whois = 1;          
+1408   8                                                                                              }
+1409   7                                                                                        if(Instance_length == 0x03)
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 24  
+
+1410   7                                                                                              {
+1411   8                                                                                                      Instance_range_high = (pData[apdu_head + 6] << 16) + (pData[apdu_head + 7] << 8) + pData[apdu_
+             -head + 8] ;
+1412   8                                                                                                      if((Instance_range_high >= Instance_range_low) && 
+1413   8                                                                                                        ((BACnetObjectIdentifier & 0x003fffff) <= Instance_range_high) &&
+1414   8                                                                                                         (BACnetObjectIdentifier & 0x003fffff) >= Instance_range_low)
+1415   8                                                                                                              flag_answer_whois = 1;          
+1416   8                                                                                              }
+1417   7      
+1418   7                                                                                      }
+1419   6                                                                              if(Instance_length == 0x03)
+1420   6                                                                                      {
+1421   7                                                                                        Instance_range_low = (pData[apdu_head + 3] << 16) + (pData[apdu_head + 4] << 8) + pData[apdu_h
+             -ead + 5] ;
+1422   7                                                                                        Instance_length =  (pData[apdu_head + 6] & 0x07) ;
+1423   7      
+1424   7                                                                                        if(Instance_length == 0x03)
+1425   7                                                                                              {
+1426   8                                                                                                      Instance_range_high = (pData[apdu_head + 7] << 16) + (pData[apdu_head + 8] << 8) + pData[apdu_
+             -head + 9] ;
+1427   8                                                                                                      if((Instance_range_high >= Instance_range_low) && 
+1428   8                                                                                                        ((BACnetObjectIdentifier & 0x003fffff) <= Instance_range_high) &&
+1429   8                                                                                                         (BACnetObjectIdentifier & 0x003fffff) >= Instance_range_low)
+1430   8                                                                                                              flag_answer_whois = 1;          
+1431   8                                                                                              }
+1432   7                                                                                      }
+1433   6                                                                              
+1434   6                                                                              
+1435   6                                                                      }
+1436   5                                                               if(revice_length == 0x000c)
+1437   5                                                                      flag_answer_whois = 1 ; 
+1438   5                                                      
+1439   5                                                      
+1440   5                                                      if(flag_answer_whois)
+1441   5                                                              {       
+1442   6                                                                      First_Head_Octet = PDU_TYPE_UNCONFIRMED_SERVICE_REQUEST ;                  //unconfirmed service
+1443   6              //                                                      First_Head_Octet = First_Head_Octet << 4 ;
+1444   6                                                                      send_arry[send_apdu_head] = First_Head_Octet ;
+1445   6                                                                      send_len++;
+1446   6                                                                      /*---------  I-AM Request Service  -------*/
+1447   6                                                                      Unconfirmed_Request_service = 0x00 ;    //i-am request 
+1448   6                                                                 
+1449   6                                                                      send_arry[0] = 0x81;
+1450   6                                                                      send_arry[1] = 0x0b;
+1451   6                                                                      send_arry[2] = 0x00;
+1452   6                                                                      send_arry[3] = 0x14;
+1453   6                                                                 
+1454   6                                                                      send_arry[send_apdu_head + 1] = Unconfirmed_Request_service ;
+1455   6                                                                      send_len++;
+1456   6                                                                      /*--------  I AM DEVICE IDENTIFIER -------*/
+1457   6                                                                      send_arry[send_apdu_head + 2] =  0xc4 ;
+1458   6                                                                      send_arry[send_apdu_head + 3] = (U8_T) (BACnetObjectIdentifier >> 24);
+1459   6                                                                      send_arry[send_apdu_head + 4] = (U8_T) (BACnetObjectIdentifier >> 16);
+1460   6                                                                      send_arry[send_apdu_head + 5] = (U8_T) (BACnetObjectIdentifier >> 8);
+1461   6                                                                      send_arry[send_apdu_head + 6] = (U8_T)  BACnetObjectIdentifier ;
+1462   6                                                                      send_len += 5;
+1463   6                                                                      /*--------  max APDU length accepted  -----*/
+1464   6                                                                      send_arry[send_apdu_head + 7] = 0x22;  //unsigned integer 2byte
+1465   6                                                                      send_arry[send_apdu_head + 8] = (U8_T) (max_apdu_legth >> 8) ;
+1466   6                                                                      send_arry[send_apdu_head + 9] = (U8_T) max_apdu_legth ;
+1467   6                                                                      send_len += 3; 
+1468   6                                                                      /*--------  segmentation_support  -----*/
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 25  
+
+1469   6                                                                      send_arry[send_apdu_head + 10] = 0x91;  // Enumberated 1 byte
+1470   6                                                                      send_arry[send_apdu_head + 11] = segmentation_support ;
+1471   6                                                                      send_len += 2; 
+1472   6                                                                      /*----------  Vendor ID  ---------*/
+1473   6                                                                      send_arry[send_apdu_head + 12] = 0x21 ;   //     unsigned integer 1 byte
+1474   6                                                                      send_arry[send_apdu_head + 13] = VENDOR_ID ;
+1475   6                                                                      send_len += 2;
+1476   6                                                                      send_flag = 1 ;
+1477   6                                                                      break;
+1478   6                                                              }
+1479   5                                                      }
+1480   4      
+1481   4                                      case PDU_TYPE_SIMPLE_ACK:                                  
+1482   4                                               break;
+1483   4                                      case PDU_TYPE_COMPLEX_ACK:
+1484   4                                               break;
+1485   4                                      case PDU_TYPE_SEGMENT_ACK:
+1486   4                                               break;
+1487   4                                      case PDU_TYPE_ERROR:
+1488   4                                               break;
+1489   4                                      case PDU_TYPE_REJECT:
+1490   4                                               break;
+1491   4                                      case PDU_TYPE_ABORT:
+1492   4                                               break;
+1493   4                          default:
+1494   4                              break;
+1495   4                              }
+1496   3                      }
+1497   2         }     
+1498   1      
+1499   1      
+1500   1      //      for(i = 0; i < send_len; i++)
+1501   1      //      Uart0_Tx(&send_arry[i],1);
+1502   1      
+1503   1              if(send_flag) {
+1504   2              TCPIP_UdpSend(gudpmc_Conns[id].UdpSocket, 0, 0, send_arry, send_len);
+1505   2          TCPIP_UdpClose(gudpmc_Conns[id].UdpSocket);
+1506   2              }
+1507   1      }
+1508          /* End of GUDPBC_Receive() */
+1509          
+1510          //void init_iam(void)
+1511          //{
+1512          //      iam_first_head = 0x10 ;
+1513          //      iam_request = 0x00;
+1514          //      device_identifier_app_tag = 0xc4;
+1515          //      BACNET_Object_identifier = 0x0200000c ;
+1516          //      max_npdu_length_accepted_app_tag = 0x22;
+1517          //      max_npdu_length_accepted_value = 0x0400;
+1518          //      segmentation_supported_app_tag = 0x91;
+1519          //      segmentation_supported_value = 0x03;
+1520          //      vendor_id = 0x2194 ;
+1521          //
+1522          //}
+1523          
+1524          
+1525          
+1526          
+1527          /*
+1528           * ----------------------------------------------------------------------------
+1529           * Function Name: GUDPBC_Init()
+1530           * Purpose: Initialization
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 26  
+
+1531           * Params:
+1532           * Returns:
+1533           * Note:
+1534           * ----------------------------------------------------------------------------
+1535           */
+1536          void GUDPMC_Init(U16_T bacnetPort)
+1537          {
+1538   1              U8_T    i;
+1539   1      
+1540   1      
+1541   1      //      init_iam();
+1542   1      
+1543   1      //      Uart0_Tx("UDP broadcast init ok.\n\r", 24);
+1544   1      
+1545   1              for (i = 0; i < GUDPMC_MAX_CONNS; i++)
+1546   1                      gudpmc_Conns[i].State = GUDPMC_STATE_FREE;
+1547   1      
+1548   1              gudpmc_InterAppId = TCPIP_Bind(GUDPMC_NewConn, GUDPMC_Event, GUDPMC_Receive);
+1549   1              
+1550   1              /* unicast packet */
+1551   1              TCPIP_UdpListen(bacnetPort, gudpmc_InterAppId);
+1552   1      } /* End of GUDPBC_Init() */
+1553          
+1554          /*
+1555           * ----------------------------------------------------------------------------
+1556           * Function Name: GUDPBC_NewConn
+1557           * Purpose: 
+1558           * Params:
+1559           * Returns:
+1560           * Note:
+1561           * ----------------------------------------------------------------------------
+1562           */
+1563          U8_T GUDPMC_NewConn(U32_T XDATA* pip, U16_T remotePort, U8_T socket)
+1564          {
+1565   1              U8_T    i;
+1566   1      
+1567   1              pip = pip;
+1568   1              remotePort = remotePort;
+1569   1      
+1570   1      
+1571   1              for (i = 0; i < GUDPMC_MAX_CONNS; i++)
+1572   1              {
+1573   2                      gudpmc_Conns[i].State = GUDPMC_STATE_CONNECTED;
+1574   2                      gudpmc_Conns[i].UdpSocket = socket;
+1575   2      
+1576   2                      return i;
+1577   2              }
+1578   1              
+1579   1              return GUDPMC_NO_NEW_CONN;
+1580   1      
+1581   1      } /* End of GUDPBC_NewConn() */
+1582          
+1583          /*
+1584           * ----------------------------------------------------------------------------
+1585           * Function Name: GUDPBC_Event
+1586           * Purpose: 
+1587           * Params:
+1588           * Returns:
+1589           * Note:
+1590           * ----------------------------------------------------------------------------
+1591           */
+1592          void GUDPMC_Event(U8_T id, U8_T event)
+C51 COMPILER V9.06   GUDPMC                                                                03/13/2013 09:32:29 PAGE 27  
+
+1593          {
+1594   1              gudpmc_Conns[id].State = event;
+1595   1      
+1596   1      } /* End of GUDPBC_Event() */
+1597          
+1598          
+1599          
+1600          /* End of gudpbc.c */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =  10205    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    271      31
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =    500    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

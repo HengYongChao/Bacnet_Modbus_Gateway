@@ -1,0 +1,72 @@
+//======================================================================
+// AX11000 Firmware Revision History
+// Module Name: ETHERNET
+//
+// This document describes the major changes, additions and bug fixes made 
+// to the AX11000 Firmware between released versions. 
+//======================================================================
+Version 1.0.8  (2008-07-17)
+1. To fix the issue that after user set the "upgrade" command through web or ASIX Device Finder,
+   bootloader upgraded the new run-time code and then executed the new firmware. But driver
+   could not get the first ethernet link-up interrupt event.
+
+Version 1.0.7  (2008-07-09)
+1. After Ethernet Linking, software total delays about 200m to wait embedded phy stable, and then
+   exits the medium-check function.
+
+Version 1.0.6  (2008-06-30)
+
+1. Support a new option that programmer can force the embedded Ethernet PHY to operate in 
+   10Mbps half-duplex mode. At this option, software does not set reset, enable and restart
+   auto-negotiation bits in PHY register-0. The EEPROM address 0x01(Flag) BIT-0 must be set to 1.
+
+Version 1.0.5  (2008-06-04)
+
+1. Modified the initialization procedure of embedded Ethernet PHY to make sure it could be
+   powered up and initialized stably every time.
+2. When the Ethernet cable was unplugged and detected by software, the ethernet module shall
+   disable the receive operation of Ethernet MAC (by setting SFR MSMR RE bit to 0), then clear
+   all the packets in both hardware Ethernet MAC buffer and software RX buffer ring, and finally
+   sets Ethernet MAC to enter Reset Mode (by setting SFR RCR SO bit to 0). This procedure could
+   avoid storing some broken fragment of a packet in hardware Ethernet MAC buffer during
+   Ethernet cable unplug.
+3. When software driver detects the Ethernet link up event again, the ethernet module shall
+   enable the receive operation of Ethernet MAC (by setting SFR MSMR RE bit to 1), then check
+   the link speed of Ethernet PHY (after auto-negotiation) and finally set Ethernet MAC to exit
+   Reset Mode (by setting SFR RCR SO bit to 1).
+
+Version 1.0.4  (2007-06-25)
+
+1. Add _nop_ instruction to fix interrupt issue.
+2. When hardware works with transparent mode, If software should do with DHCP client
+   to get a IP address from DHCP server, software must disable hardware IP filter function
+   (because IP address has not been set into hardware register at this time).
+   This new module supports both STOE_EnableIpFilter()/STOE_DisableIpFilter() functions,
+   so up-layer modules could call the two functions to enable/disable hardware IP filter function.
+   The IP filter function default is enable by hardware, so software must disable this function
+   before doing with DHCP client function, and after get assigned IP address, driver must disable
+   hardware IP filter function immediately. 
+
+Version 1.0.3  (2007-01-18)
+
+1. Add STOE_AddArpTable subroutine. User can call this routine to add static arp entry.
+
+Version 1.0.2  (2006-12-08)
+
+1. Modified phy.c file that local parameter phy_Control was changed from U8_T to U16_T.
+
+Version 1.0.1  (2006-11-08)
+
+1. Change the default setting of receiving buffer from 8k to 6k.
+2. Change the default setting of processing transfer packets type from
+   STOE_NON_TRANSPARENT_MODE to STOE_TRANSPARENT_MODE.
+3. Change the default setting of processing multicast packets from
+   MAC_NOT_SUPPORT to MAC_SUPPORT.
+4. Add MAC_GetMacAddr() function to support uplayer module to get the MAC address of hardware.
+5. Add PHY_WatchDog() function. The main function must call this function per 2 second
+   to make sure that phy is working right.
+
+Version 1.0.0  (2006-04-14)
+
+1. Initial release
+

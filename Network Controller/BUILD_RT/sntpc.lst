@@ -1,0 +1,375 @@
+C51 COMPILER V9.06   SNTPC                                                                 03/13/2013 09:32:27 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE SNTPC
+OBJECT MODULE PLACED IN .\sntpc.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\AX110xx_SNTP_v100\sntpc.c LARGE OMF2 ROM(D16M) BROWSE INTVECT
+                    -OR(0X6020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\
+                    -SRC\hsur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flas
+                    -h\;..\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\
+                    -AX11000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\sntpc.lst) OBJEC
+                    -T(.\sntpc.obj)
+
+line level    source
+
+   1          /*
+   2          *********************************************************************************
+   3          *     Copyright (c) 2006   ASIX Electronic Corporation      All rights reserved.
+   4          *
+   5          *     This is unpublished proprietary source code of ASIX Electronic Corporation
+   6          *
+   7          *     The copyright notice above does not evidence any actual or intended
+   8          *
+   9          *     publication of such source code.
+  10          *********************************************************************************
+  11          
+  12          
+  13          /* INCLUDE FILE DECLARATIONS */
+  14          #include "adapter.h"
+  15          
+  16          #if 1
+  17          #include "sntpc.h"
+  18          #include "tcpip.h"
+  19          #include "uart.h"
+  20          #include "mstimer.h"
+  21          #include "printd.h"
+  22          #include <stdio.h>
+  23          
+  24          /* NAMING CONSTANT DECLARATIONS */
+  25          
+  26          /* GLOBAL VARIABLES DECLARATIONS */
+  27          
+  28          /* LOCAL VARIABLES DECLARATIONS */
+  29          static TimeInfo t;
+  30          static SNTPHeader *psntpcpMsg;
+  31          static U16_T timetickinfo;
+  32          static S16_T GMT;
+  33          static U8_T     Month[12] = {31,28,31,30,31,30,31,31,30,31,30,31};
+  34          static U8_T     AddMonth[12] = {31,29,31,30,31,30,31,31,30,31,30,31};
+  35          static SNTPC_CONN sntpc_Conns;
+  36          static U8_T sntpc_InterAppId;
+  37          static U8_T     sntp_Buf[48];
+  38          static U8_T sntp_Retry = 0;
+  39          
+  40          extern U8_T  far Para[400]; 
+  41          
+  42          /* LOCAL SUBPROGRAM DECLARATIONS */
+  43          
+  44          
+  45          /*
+  46           * ----------------------------------------------------------------------------
+  47           * Function Name: SNTPC_Init
+  48           * Purpose: to initial the SNTP client connection information.
+  49           * Params:
+  50           * Returns:
+C51 COMPILER V9.06   SNTPC                                                                 03/13/2013 09:32:27 PAGE 2   
+
+  51           * Note:
+  52           * ----------------------------------------------------------------------------
+  53           */
+  54          void SNTPC_Init(void)
+  55          {
+  56   1              sntpc_Conns.State = SNTP_STATE_INITIAL;
+  57   1              sntpc_InterAppId = TCPIP_Bind(NULL, SNTPC_Event, SNTPC_Receive);
+  58   1      //      printd("sntp init...\n\r");
+  59   1      
+  60   1      } /* End of SNTPC_Init() */
+  61          
+  62          /*
+  63           * ----------------------------------------------------------------------------
+  64           * Function Name: SNTPC_Event
+  65           * Purpose: 
+  66           * Params:
+  67           * Returns:
+  68           * Note:
+  69           * ----------------------------------------------------------------------------
+  70           */
+  71          void SNTPC_Event(U8_T id, U8_T event)
+  72          {
+  73   1              if (id != 0)
+  74   1                      return;
+  75   1      
+  76   1              if (event == TCPIP_CONNECT_CANCEL)
+  77   1              {
+  78   2                      TCPIP_UdpClose(sntpc_Conns.UdpSocket);
+  79   2                      sntpc_Conns.State = SNTP_STATE_INITIAL;
+  80   2              }
+  81   1      
+  82   1      } /* End of SNTPC_Event() */
+  83          
+  84          /*
+  85           * ----------------------------------------------------------------------------
+  86           * Function Name: SNTPC_Receive
+  87           * Purpose: 
+  88           * Params:
+  89           * Returns:
+  90           * Note:
+  91           * ----------------------------------------------------------------------------
+  92           */
+  93          void SNTPC_Receive(U8_T XDATA* pData, U16_T length, U8_T id)
+  94          {
+  95   1              U8_T    i = 0;
+  96   1              S8_T    signhour, signmin;
+  97   1              U8_T    hour, min;
+  98   1      
+  99   1      //      printd("UDP received!\n\r");
+ 100   1      
+ 101   1          
+ 102   1      
+ 103   1              if (id != 0)
+ 104   1                      return;
+ 105   1              length = length;
+ 106   1      
+ 107   1              signhour = GMT / 100;
+ 108   1              signmin = GMT % 100;
+ 109   1      
+ 110   1              t.sntpcPktPtr = (SNTPHeader*)pData;
+ 111   1              psntpcpMsg = (SNTPHeader*)t.sntpcPktPtr;
+ 112   1              t.timestamp = psntpcpMsg->receive_time1;
+C51 COMPILER V9.06   SNTPC                                                                 03/13/2013 09:32:27 PAGE 3   
+
+ 113   1      
+ 114   1              if (signhour < 0)
+ 115   1              {
+ 116   2                      hour = -signhour;
+ 117   2                      min = -signmin;
+ 118   2              t.timestamp -= (hour*3600 + min*60);
+ 119   2              }
+ 120   1              else
+ 121   1              {
+ 122   2                      hour = signhour;
+ 123   2                      min = signmin;
+ 124   2                      t.timestamp += (hour*3600 + min*60);
+ 125   2              }
+ 126   1      
+ 127   1              t.second_remain = t.timestamp % 86400;
+ 128   1              t.day_total = t.timestamp / 86400;
+ 129   1              t.HH = t.second_remain / 3600;
+ 130   1              t.MI_r = t.second_remain % 3600;
+ 131   1              t.MI = t.MI_r / 60;
+ 132   1              t.SS = t.MI_r % 60;
+ 133   1              t.YY = t.day_total / 365.2425;
+ 134   1      
+ 135   1              if((t.YY % 4) == 0)
+ 136   1              {       
+ 137   2                      t.DD_r = t.day_total-(t.YY*365)-(t.YY/4);
+ 138   2                      t.DD_r++;
+ 139   2                      t.DD_r++;       
+ 140   2                      while(t.DD_r>0)
+ 141   2                      {
+ 142   3                              t.DD = t.DD_r;
+ 143   3                              t.DD_r -= AddMonth[i];
+ 144   3                              i++;
+ 145   3                      }
+ 146   2              }
+ 147   1              else
+ 148   1              {
+ 149   2                      t.DD_r = t.day_total-(t.YY*365)-(t.YY/4);
+ 150   2                      t.DD_r++;
+ 151   2                      if(t.DD_r>365){
+ 152   3                              t.DD_r = 1;
+ 153   3                              t.YY++;
+ 154   3                      }
+ 155   2                      while(t.DD_r>0)
+ 156   2                      {
+ 157   3                              t.DD = t.DD_r;
+ 158   3                              t.DD_r -= Month[i];
+ 159   3                              i++;
+ 160   3                      }
+ 161   2              }
+ 162   1              t.MM = i;
+ 163   1              t.YY += 1900;
+ 164   1      
+ 165   1      
+ 166   1              //      printd("\r\n %d/%.2bd/%.2d  %.2bd:%.2bd:%.2bd \r\n",t.YY,t.MM
+ 167   1                      //                                                                                                      ,t.DD,t.HH
+ 168   1                              //                                                                                              ,t.MI,t.SS);
+ 169   1      //printd("\r\n %d/%2bd/%2d  %2bd:%2bd:%2bd \r\n",t.YY,t.MM
+ 170   1                                                                                      //                                      ,t.DD,t.HH
+ 171   1                                                                                              //                              ,t.MI,t.SS);
+ 172   1      Para[200*2]=t.YY/100;
+ 173   1      Para[200*2+1]=t.YY%100;
+ 174   1      Para[200*2+2]=t.MM;
+C51 COMPILER V9.06   SNTPC                                                                 03/13/2013 09:32:27 PAGE 4   
+
+ 175   1      Para[200*2+3]=t.DD;
+ 176   1      Para[200*2+4]=t.HH;
+ 177   1      Para[200*2+5]=t.MI;
+ 178   1      Para[200*2+6]=t.SS;
+ 179   1      
+ 180   1        //  Para[43]=1;
+ 181   1      //      TCPIP_UdpClose(sntpc_Conns.UdpSocket);
+ 182   1      //      sntpc_Conns.State = SNTP_STATE_GET_DONE;
+ 183   1         // sntpc_Conns.State = SNTP_STATE_WAIT; 
+ 184   1      
+ 185   1      } /* End of SNTPC_Receive() */
+ 186          
+ 187          /*
+ 188           * ----------------------------------------------------------------------------
+ 189           * Function Name: SNTPC_GetTime
+ 190           * Purpose: 
+ 191           * Params:
+ 192           * Returns:
+ 193           * Note:
+ 194           * ----------------------------------------------------------------------------
+ 195           */
+ 196          U8_T* SNTP_GetTime(void)
+ 197          {
+ 198   1              if (sntpc_Conns.State != SNTP_STATE_GET_DONE)
+ 199   1                      return NULL;
+ 200   1      
+ 201   1              sntpc_Conns.State = SNTP_STATE_INITIAL;
+ 202   1              sprintf (sntp_Buf, "%d/%.2bd/%.2bd %.2bd:%.2bd:%.2bd",
+ 203   1                      t.YY, t.MM, (U8_T)t.DD, t.HH, t.MI, t.SS);
+ 204   1              sntp_Buf[20] = 0;
+ 205   1      
+ 206   1              return sntp_Buf;
+ 207   1      
+ 208   1      } /* End of SNTP_GetTime() */
+ 209          
+ 210          /*
+ 211           * ----------------------------------------------------------------------------
+ 212           * Function Name: sntpc_Send
+ 213           * Purpose: 
+ 214           * Params:
+ 215           * Returns:
+ 216           * Note:
+ 217           * ----------------------------------------------------------------------------
+ 218           */
+ 219          void sntpc_Send(U8_T InterUdpId)
+ 220          {
+ 221   1              U8_T len = 48;
+ 222   1              U8_T i;
+ 223   1      
+ 224   1              sntp_Buf[0] = 0x0b;
+ 225   1              for (i = 1; i < len; i++)
+ 226   1                      sntp_Buf[i] = 0;
+ 227   1              
+ 228   1              TCPIP_UdpSend(InterUdpId, 0, 0, sntp_Buf, len);
+ 229   1      //      printd("sntp send...\n\r");
+ 230   1      
+ 231   1      } /* End of sntpc_Send() */
+ 232          
+ 233          /*
+ 234           * ----------------------------------------------------------------------------
+ 235           * Function Name: SNTPC_Start
+ 236           * Purpose: 
+C51 COMPILER V9.06   SNTPC                                                                 03/13/2013 09:32:27 PAGE 5   
+
+ 237           * Params:
+ 238           * Returns:
+ 239           * Note:
+ 240           * ----------------------------------------------------------------------------
+ 241           */
+ 242          U8_T SNTPC_Start(S16_T gmt, U32_T timesrIP)
+ 243          {
+ 244   1      /*      if (sntpc_Conns.State != SNTP_STATE_INITIAL)
+ 245   1                      return SNTP_STATE_NOTREADY;             */
+ 246   1      
+ 247   1              sntpc_Conns.ServerIp = timesrIP;
+ 248   1              GMT = gmt;
+ 249   1      
+ 250   1              /* Create SNTP client port */
+ 251   1              if ((sntpc_Conns.UdpSocket = TCPIP_UdpNew(sntpc_InterAppId, 0, sntpc_Conns.ServerIp,
+ 252   1                      0, SNTP_SERVER_PORT)) == TCPIP_NO_NEW_CONN)
+ 253   1              {
+ 254   2      
+ 255   2      //              printd ("Allocate SNTPC socket port fail.\n\r");
+ 256   2      
+ 257   2                      return SNTP_STATE_NOTREADY;
+ 258   2              }
+ 259   1      
+ 260   1              sntpc_Send(sntpc_Conns.UdpSocket);
+ 261   1              sntpc_Conns.State = SNTP_STATE_WAIT;
+ 262   1              timetickinfo = (U16_T)SWTIMER_Tick();
+ 263   1              sntp_Retry = 0;
+ 264   1      //      printd("sntp start...\n\r");
+ 265   1              return SNTP_STATE_WAIT;
+ 266   1      } /* End of SNTPC_Start() */
+ 267          
+ 268          /*
+ 269           * ----------------------------------------------------------------------------
+ 270           * Function Name: SNTPC_Stop
+ 271           * Purpose: 
+ 272           * Params:
+ 273           * Returns:
+ 274           * Note:
+ 275           * ----------------------------------------------------------------------------
+ 276           */
+ 277          void SNTPC_Stop(void)
+ 278          {
+ 279   1              if (sntpc_Conns.State != SNTP_STATE_INITIAL)
+ 280   1              {
+ 281   2                      TCPIP_UdpClose(sntpc_Conns.UdpSocket);
+ 282   2                      sntpc_Conns.State = SNTP_STATE_INITIAL;
+ 283   2              }
+ 284   1      
+ 285   1      } /* End of SNTPC_Stop() */
+ 286          
+ 287          /*
+ 288           * ----------------------------------------------------------------------------
+ 289           * Function Name: SNTPC_GetState
+ 290           * Purpose: 
+ 291           * Params:SNTPC_Debug(void)
+ 292           * Returns:
+ 293           * Note:
+ 294           * ----------------------------------------------------------------------------
+ 295           */
+ 296          U8_T SNTPC_GetState(void)
+ 297          {
+ 298   1              if(sntpc_Conns.State == SNTP_STATE_WAIT)
+C51 COMPILER V9.06   SNTPC                                                                 03/13/2013 09:32:27 PAGE 6   
+
+ 299   1              {
+ 300   2                      U16_T   CurTime = (U16_T)SWTIMER_Tick();
+ 301   2                if(1)
+ 302   2              //      if ((CurTime - timetickinfo) >= SNTPC_REQUEST_TIMEOUT)//SNTPC_REQUEST_TIMEOUT bigger to 5
+ 303   2                      {  /** printd ("SNTP >timeout\n\r");
+ 304   3                              if (++sntp_Retry >= SNTPC_MAX_RETRY)//SNTPC_MAX_RETRY bigger to 6
+ 305   3                              { printd ("SNTP retry exceed\n\r");
+ 306   3                                      TCPIP_UdpClose(sntpc_Conns.UdpSocket);
+ 307   3                                      sntpc_Conns.State = SNTP_STATE_INITIAL;
+ 308   3      
+ 309   3                                      return SNTP_STATE_TIMEOUT;
+ 310   3                              }***/
+ 311   3                 
+ 312   3                              sntpc_Send(sntpc_Conns.UdpSocket);
+ 313   3                 // printd ("SNTP send in while\n\r");
+ 314   3                              timetickinfo = (U16_T)SWTIMER_Tick();
+ 315   3                  sntp_Retry=0;
+ 316   3                      }
+ 317   2           // else
+ 318   2                 // printd ("SNTP <timeout\n\r");
+ 319   2              }
+ 320   1              return sntpc_Conns.State;
+ 321   1      }
+ 322          
+ 323          /* only for debug */
+ 324          void SNTPC_Debug(void)
+ 325          {
+ 326   1      //      printd ("SNTPC Connection state: %bx\n\r", sntpc_Conns.State);
+ 327   1      }
+ 328          
+ 329          
+ 330          #endif /* #if (INCLUDE_SNTP_CLIENT) */
+ 331          
+ 332          
+ 333          /* End of sntpc.c */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1521    ----
+   CONSTANT SIZE    =     33    ----
+   XDATA SIZE       =    114      15
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,26 @@
+//======================================================================
+// AX11000 Firmware Revision History
+// Module Name: TCPIP
+//
+// This document describes the major changes, additions and bug fixes made 
+// to the AX11000 Firmware between released versions. 
+//======================================================================
+Version 1.0.4  (2008-07-22)
+1. Modified the release type of this module.
+
+Version 1.0.3  (2008-06-03)
+1. Fixed lib's bug that the lib can not reset the tcp socket when this tcp
+   socket is in re-transmit state.
+
+Version 1.0.2  (2008-04-22)
+1. Fixed a issue of tcpip stack that tcpip module does not handle the tcpip data
+   frames with FIN+PSH+ACK in tcp flag.
+
+Version 1.0.1  (2008-04-09)
+1. Use one dummy byte to occupy xdata memory at address 0 to avoid the tcpip
+   module allocates a tcp or udp socket for applications, but the socket
+   start address is at address 0.
+
+Version 1.0.0  (2006-11-13)
+1. Initial release
+

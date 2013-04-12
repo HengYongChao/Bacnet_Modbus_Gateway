@@ -1,0 +1,1339 @@
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE UART
+OBJECT MODULE PLACED IN .\uart.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\uart\uart.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) INC
+                    -DIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\S
+                    -RC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buff
+                    -er\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\Sr
+                    -c\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\uart.lst) OBJECT(.\uart.obj)
+
+line level    source
+
+   1          /*
+   2           *********************************************************************************
+   3           *     Copyright (c) 2005       ASIX Electronic Corporation      All rights reserved.
+   4           *
+   5           *     This is unpublished proprietary source code of ASIX Electronic Corporation
+   6           *
+   7           *     The copyright notice above does not evidence any actual or intended
+   8           *     publication of such source code.
+   9           *********************************************************************************
+  10           */
+  11          /*================================================================================
+  12           * Module Name : uart.c
+  13           * Purpose     : The UART module driver. It manages the character
+  14           *               buffer and handles the ISR. This driver includes UART0 and UART1.
+  15           * Author      : Robin Lee
+  16           * Date        : 2006-01-10
+  17           * Notes       : None.
+  18           * $Log: uart.c,v $
+  19           * Revision 1.3  2006/05/18 02:15:34  robin6633
+  20           * 1.Add UART1 disable definition.
+  21           *
+  22           * Revision 1.2  2006/05/17 08:31:32  robin6633
+  23           * 1. Changed the default baudrate to 115200.
+  24           *
+  25           * Revision 1.1  2006/05/12 14:24:47  robin6633
+  26           * no message
+  27           *
+  28           * Revision 1.3  2006/05/03 02:45:55  robin6633
+  29           * Changed the the function name UART_GetBufCount()
+  30           * to UART_GetRxBufCount() .
+  31           *
+  32           * Revision 1.2  2006/05/02 01:43:40  robin6633
+  33           * Add an expanding function to get the counter value of UART software buffer.
+  34           *
+  35           * Revision 1.1  2006/04/07 11:39:14  robin6633
+  36           * no message
+  37           *
+  38           *================================================================================
+  39           */
+  40          
+  41          /* INCLUDE FILE DECLARATIONS */
+  42          #include        "reg80390.h"
+  43          #include        "types.h"
+  44          #include        "uart.h"
+  45          #include        "ax11000_cfg.h"
+  46          
+  47          
+  48          #if HSUR_ENABLE
+  49          #include        "hsuart.h"
+  50          #endif
+  51          #include        "adapter_cfg.h"
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 2   
+
+  52          #include "../include/mstp.h"
+  53          #include "../include/mstptext.h"
+  54          #include "../include/crc.h"
+  55          
+  56          #include "delay.h"
+  57          
+  58          // #include "Main.h"
+  59          // #include <string.h>
+  60          
+  61          
+  62          uart_frame rsv_msg;                     // LJ 6/11/2012
+  63          extern void test_run(U8_T);
+  64          
+  65          /* STATIC VARIABLE DECLARATIONS */
+  66          #if UART0_ENABLE
+  67          U8_T uart0_TxBuf[MAX_TX_UART0_BUF_SIZE] = {0}; //  lihengning static
+  68          static U16_T uart0_TxHead = 0;
+  69          static U16_T uart0_TxTail = 0;
+  70          U16_T uart0_TxCount = 0;
+  71          static U8_T     uart0_TxFlag = 0;
+  72          U8_T uart0_RxBuf[MAX_RX_UART0_BUF_SIZE] = {0};  
+  73          static U16_T uart0_RxHead = 0;
+  74          static U16_T uart0_RxTail = 0;
+  75          static U8_T     uart0_Mode = 0;
+  76          U16_T uart0_RxCount = 0;
+  77          #endif
+  78          
+  79          #if UART1_ENABLE
+  80           U8_T           uart1_TxBuf[MAX_TX_UART1_BUF_SIZE]; //  lihengning static
+  81          static U16_T    uart1_TxHead = 0;
+  82          static U16_T    uart1_TxTail = 0;
+  83           U16_T  uart1_TxCount = 0;
+  84          static U8_T             uart1_TxFlag = 0;
+  85           U8_T           uart1_RxBuf[MAX_RX_UART1_BUF_SIZE]; //  lihengning static
+  86          static U16_T    uart1_RxHead = 0;
+  87          static U16_T    uart1_RxTail = 0;
+  88          static U8_T             uart1_Mode = 0;
+  89          U16_T uart1_RxCount = 0;
+  90          U8_T uart1_rec_size = 8;
+  91          U8_T uart1_dealwithTag = 0;
+  92          #endif
+  93          static U8_T             uartPort = 0;
+  94          
+  95          U8_T far uart1_timeout = UART1_TIMEOUT;
+  96          U8_T far uart0_timeout = UART0_TIMEOUT;
+  97          
+  98          /* LOCAL SUBPROGRAM DECLARATIONS */
+  99          #if UART0_ENABLE
+ 100          static void             uart0_ISR(void);
+ 101           void           uart0_Init(void);
+ 102          static S8_T             uart0_PutChar(S8_T c);
+ 103          static S8_T             uart0_GetKey(void);
+ 104          static S8_T             UART0_NoBlockGetkey(void);
+ 105          #endif
+ 106          #if UART1_ENABLE
+ 107          static void             uart1_ISR(void);
+ 108           void           uart1_Init(void);  //lihengning static
+ 109          static S8_T             uart1_PutChar(S8_T c);
+ 110          static S8_T             uart1_GetKey(void);
+ 111          static S8_T             uart1_NoBlockGetkey(void);
+ 112          #endif
+ 113          
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 3   
+
+ 114          
+ 115          //void test_uart0_tx(U8_T buf, U8_T len);
+ 116          
+ 117          U8_T far UartRev[8] ;
+ 118          
+ 119          U8_T far UartSend[255];
+ 120          U8_T far UartRevNum=0;
+ 121          U8_T far UartSendNum=0;
+ 122          //U8_T far FlagRev=0;// receive finished flag 0=unfinished 1=read 2= reset
+ 123          U8_T data FlagSend0 = 0;
+ 124          U8_T far FlagSend1 = 0;
+ 125          
+ 126          U8_T GetNum=0;
+ 127          U8_T TypeData=0;
+ 128          U8_T SerialFlag=0;
+ 129          
+ 130          extern U8_T far Para[400];
+ 131          extern unsigned char  auchCRCHi[256];
+ 132          extern unsigned char  auchCRCLo[256];
+ 133          extern void InitCRC16(void);
+ 134          extern void CRC16_Tstat(unsigned char ch);
+ 135          extern  unsigned char far  CRClo;
+ 136          extern unsigned  char far  CRChi;
+ 137          extern BOOL MODBUS_OR_BACNET_FUNCTION_SELECT_ON_UART0;
+ 138          extern void Led_485RxD();
+ 139          //extern volatile struct mstp_port_struct_t UMSTP_Port;
+ 140          U8_T far begin=0;
+ 141          U8_T far  buf[255]={0};
+ 142          //U8_T far  buf1[255]={0};
+ 143          
+ 144          extern enum ledState LED;
+ 145          
+ 146          
+ 147          extern  U16_T SilenceTime;
+ 148          
+ 149          extern volatile struct mstp_port_struct_t *mstp_port ;
+ 150          
+ 151          U8_T receivenodataframe  ;
+ 152          U8_T tempdata;
+ 153          U8_T undefinedata;
+ 154          
+ 155          
+ 156          
+ 157          /* LOCAL SUBPROGRAM BODIES */
+ 158          #if UART0_ENABLE
+ 159          /*
+ 160           * ----------------------------------------------------------------------------
+ 161           * static void UART0_ISR(void)
+ 162           * Purpose : UART0 interrupt service routine. For sending out, it puts data
+ 163           *           from software buffer into hardware serial buffer register (SBUF0).
+ 164           *           For receiving, it gets data from hardware serial buffer register
+ 165           *           (SBUF0) and stores into software buffer.
+ 166           * Params  : none
+ 167           * Returns : none
+ 168           * Note    : none
+ 169           * ----------------------------------------------------------------------------
+ 170           */
+ 171          static void UART0_ISR(void) interrupt 4
+ 172          {
+ 173   1              if (RI0)
+ 174   1              {
+ 175   2                      EA = 0;
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 4   
+
+ 176   2      
+ 177   2                      RI0 = 0;
+ 178   2      
+ 179   2                      uart0_RxBuf[uart0_RxCount++] = SBUF0;
+ 180   2      
+ 181   2                      mstp_port->DataRegister = SBUF0;
+ 182   2      
+ 183   2                      if(uart0_RxCount >= MAX_RX_UART0_BUF_SIZE)
+ 184   2                              uart0_RxCount = 0;
+ 185   2                              
+ 186   2                      uart0_timeout = UART0_TIMEOUT;
+ 187   2      
+ 188   2                      mstp_port->DataAvailable = true;
+ 189   2                                 
+ 190   2                      EA = 1;
+ 191   2      
+ 192   2      //       if((LED != S485_OK)&&(LED != Ethnet_OK)&&(LED != S485_ERR))
+ 193   2      //       {
+ 194   2      //         LED = S485_OK;
+ 195   2      //       }
+ 196   2                              
+ 197   2              /* end of RI0*/
+ 198   2              } 
+ 199   1              if (TI0)
+ 200   1              {
+ 201   2                      TI0 = 0;
+ 202   2                      FlagSend0 = 1;// finishing sending flag
+ 203   2      
+ 204   2              } /* End of if(TI0) */
+ 205   1      
+ 206   1               
+ 207   1                                                                        
+ 208   1      #if 1
+ 209   1      if(MODBUS_OR_BACNET_FUNCTION_SELECT_ON_UART0){
+ 210   2              /* STASTE MACHINE code by "heng@temcocontrols.com" */
+ 211   2      switch (mstp_port->receive_state) {
+ 212   3              /* In the IDLE state, the node waits for the beginning of a frame. */
+ 213   3      
+ 214   3          case MSTP_RECEIVE_STATE_IDLE:
+ 215   3                      /* EatAnError */
+ 216   3      
+ 217   3              if (mstp_port->ReceiveError == true){ 
+ 218   4                  mstp_port->ReceiveError = false;
+ 219   4                  mstp_port->SilenceTimerReset();
+ 220   4                  INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
+ 221   4                  /* wait for the start of a frame. */
+ 222   4                      } 
+ 223   3                      else if (mstp_port->DataAvailable == true){ 
+ 224   4                  /* Preamble1 */
+ 225   4                  if (mstp_port->DataRegister == 0x55){ 
+ 226   5                      /* receive the remainder of the frame. */
+ 227   5                      mstp_port->receive_state = MSTP_RECEIVE_STATE_PREAMBLE;
+ 228   5      
+ 229   5                      }
+ 230   4                  /* EatAnOctet */
+ 231   4                  else {
+ 232   5      //                  printf_receive_data("\n");
+ 233   5                      /* wait for the start of a frame. */
+ 234   5                      }
+ 235   4                  mstp_port->DataAvailable = false;
+ 236   4                  mstp_port->SilenceTimerReset();
+ 237   4                  INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 5   
+
+ 238   4      
+ 239   4                      }
+ 240   3              break;
+ 241   3              /* In the PREAMBLE state, the node waits for the second octet of the preamble. */
+ 242   3          case MSTP_RECEIVE_STATE_PREAMBLE:
+ 243   3              /* Timeout */   
+ 244   3                        
+ 245   3                        
+ 246   3                                         
+ 247   3                  if (SilenceTime > Tframe_abort) {             
+ 248   4                  /* a correct preamble has not been received */
+ 249   4                  /* wait for the start of a frame. */
+ 250   4                  mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+ 251   4              }
+ 252   3              /* Error */
+ 253   3              else if (mstp_port->ReceiveError == true) {
+ 254   4                  mstp_port->ReceiveError = false;
+ 255   4                  mstp_port->SilenceTimerReset();
+ 256   4                  INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
+ 257   4                  /* wait for the start of a frame. */
+ 258   4                  mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+ 259   4      
+ 260   4              } else if (mstp_port->DataAvailable == true) {
+ 261   4                  /* Preamble2 */
+ 262   4                  if (mstp_port->DataRegister == 0xFF) {
+ 263   5                      mstp_port->Index = 0;
+ 264   5                      mstp_port->HeaderCRC = 0xFF;
+ 265   5                      /* receive the remainder of the frame. */
+ 266   5                      mstp_port->receive_state = MSTP_RECEIVE_STATE_HEADER;
+ 267   5      
+ 268   5                  }
+ 269   4                  /* ignore RepeatedPreamble1 */
+ 270   4                  else if (mstp_port->DataRegister == 0x55) {
+ 271   5                      /* wait for the second preamble octet. */
+ 272   5                  }
+ 273   4                  /* NotPreamble */
+ 274   4                  else {
+ 275   5                      /* wait for the start of a frame. */
+ 276   5                      mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+ 277   5                  }
+ 278   4                  mstp_port->DataAvailable = false;
+ 279   4                  mstp_port->SilenceTimerReset();
+ 280   4                  INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
+ 281   4      
+ 282   4              }
+ 283   3              break;
+ 284   3              /* In the HEADER state, the node waits for the fixed message header. */
+ 285   3          case MSTP_RECEIVE_STATE_HEADER:
+ 286   3      
+ 287   3      
+ 288   3              /* Timeout */
+ 289   3              if (SilenceTime > Tframe_abort) {                        //      mstp_port->SilenceTimer()
+ 290   4                  /* indicate that an error has occurred during the reception of a frame */
+ 291   4                  mstp_port->ReceivedInvalidFrame = true;
+ 292   4                  /* wait for the start of a frame. */
+ 293   4                  mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+ 294   4      
+ 295   4              }
+ 296   3              /* Error */
+ 297   3              else if (mstp_port->ReceiveError == true) {
+ 298   4                  mstp_port->ReceiveError = false;
+ 299   4                  mstp_port->SilenceTimerReset();
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 6   
+
+ 300   4                  INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
+ 301   4                  /* indicate that an error has occurred during the reception of a frame */
+ 302   4                  mstp_port->ReceivedInvalidFrame = true;
+ 303   4                  /* wait for the start of a frame. */
+ 304   4                  mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+ 305   4      
+ 306   4              } else if (mstp_port->DataAvailable == true) {
+ 307   4      
+ 308   4                  /* FrameType */
+ 309   4                  if (mstp_port->Index == 0) {
+ 310   5                      mstp_port->HeaderCRC =
+ 311   5                          CRC_Calc_Header(mstp_port->DataRegister,
+ 312   5                          mstp_port->HeaderCRC);
+ 313   5                      mstp_port->FrameType = mstp_port->DataRegister;
+ 314   5                      mstp_port->Index = 1;
+ 315   5      
+ 316   5                  }
+ 317   4                  /* Destination */
+ 318   4                  else if (mstp_port->Index == 1) {
+ 319   5                      mstp_port->HeaderCRC =
+ 320   5                          CRC_Calc_Header(mstp_port->DataRegister,    
+ 321   5                          mstp_port->HeaderCRC);
+ 322   5                      mstp_port->DestinationAddress = mstp_port->DataRegister;
+ 323   5                      mstp_port->Index = 2;
+ 324   5      
+ 325   5                  }
+ 326   4                  /* Source */
+ 327   4                  else if (mstp_port->Index == 2) {
+ 328   5                      mstp_port->HeaderCRC =
+ 329   5                          CRC_Calc_Header(mstp_port->DataRegister,
+ 330   5                          mstp_port->HeaderCRC);
+ 331   5                      mstp_port->SourceAddress = mstp_port->DataRegister;
+ 332   5                      mstp_port->Index = 3;
+ 333   5      
+ 334   5                  }
+ 335   4                  /* Length1 */
+ 336   4                  else if (mstp_port->Index == 3) {
+ 337   5                      mstp_port->HeaderCRC =
+ 338   5                          CRC_Calc_Header(mstp_port->DataRegister,
+ 339   5                          mstp_port->HeaderCRC);
+ 340   5                      mstp_port->DataLength = mstp_port->DataRegister * 256;
+ 341   5                      mstp_port->Index = 4;
+ 342   5      
+ 343   5                  }
+ 344   4                  /* Length2 */
+ 345   4                  else if (mstp_port->Index == 4) {
+ 346   5      
+ 347   5                      mstp_port->HeaderCRC =
+ 348   5                          CRC_Calc_Header(mstp_port->DataRegister,
+ 349   5                          mstp_port->HeaderCRC);
+ 350   5                      mstp_port->DataLength += mstp_port->DataRegister;
+ 351   5                      mstp_port->Index = 5;
+ 352   5      
+ 353   5                  }
+ 354   4                  /* HeaderCRC */
+ 355   4                  else if (mstp_port->Index == 5) {
+ 356   5                           
+ 357   5                                  mstp_port->HeaderCRC =
+ 358   5                          CRC_Calc_Header(mstp_port->DataRegister,
+ 359   5                          mstp_port->HeaderCRC);
+ 360   5                      mstp_port->HeaderCRCActual = mstp_port->DataRegister;
+ 361   5                      /* don't wait for next state - do it here */
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 7   
+
+ 362   5                      if (mstp_port->HeaderCRC != 0x55) {
+ 363   6                          /* BadCRC */
+ 364   6                          /* indicate that an error has occurred during
+ 365   6                             the reception of a frame */
+ 366   6                          mstp_port->ReceivedInvalidFrame = true;
+ 367   6                          /* wait for the start of the next frame. */
+ 368   6                          mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+ 369   6      
+ 370   6                                  } else {
+ 371   6                          if (mstp_port->DataLength == 0) {
+ 372   7                              /* NoData */
+ 373   7                              if ((mstp_port->DestinationAddress ==
+ 374   7                                      mstp_port->This_Station)
+ 375   7                                  || (mstp_port->DestinationAddress ==
+ 376   7                                      MSTP_BROADCAST_ADDRESS)) {
+ 377   8                                  /* ForUs */
+ 378   8                                  /* indicate that a frame with no data has been received */
+ 379   8                                  mstp_port->ReceivedValidFrame = true;
+ 380   8                                                               
+ 381   8      
+ 382   8                                                      } else {
+ 383   8                                  /* NotForUs */
+ 384   8                                  mstp_port->ReceivedValidFrameNotForUs = true;
+ 385   8      
+ 386   8                              }
+ 387   7                              /* wait for the start of the next frame. */
+ 388   7                              mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+ 389   7      
+ 390   7                          } else {
+ 391   7      
+ 392   7                              /* receive the data portion of the frame. */
+ 393   7                              if ((mstp_port->DestinationAddress ==
+ 394   7                                      mstp_port->This_Station)
+ 395   7                                  || (mstp_port->DestinationAddress ==
+ 396   7                                      MSTP_BROADCAST_ADDRESS)) {
+ 397   8                                  if (mstp_port->DataLength <=
+ 398   8                                      mstp_port->InputBufferSize) {
+ 399   9                                      /* Data */
+ 400   9                                      mstp_port->receive_state =
+ 401   9                                          MSTP_RECEIVE_STATE_DATA;
+ 402   9                                  } else {
+ 403   9                                      /* FrameTooLong */
+ 404   9                                      mstp_port->receive_state =
+ 405   9                                          MSTP_RECEIVE_STATE_SKIP_DATA;
+ 406   9                                  }
+ 407   8                              } else {
+ 408   8                                  /* NotForUs */
+ 409   8                                  mstp_port->receive_state =
+ 410   8                                      MSTP_RECEIVE_STATE_SKIP_DATA;
+ 411   8                              }
+ 412   7                              mstp_port->Index = 0;
+ 413   7                              mstp_port->DataCRC = 0xFFFF;
+ 414   7                          }
+ 415   6                      }
+ 416   5                  }
+ 417   4                  /* not per MS/TP standard, but it is a case not covered */
+ 418   4                  else {
+ 419   5      
+ 420   5                      mstp_port->ReceiveError = false;
+ 421   5                      /* indicate that an error has occurred during  */
+ 422   5                      /* the reception of a frame */
+ 423   5                      mstp_port->ReceivedInvalidFrame = true;
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 8   
+
+ 424   5                      /* wait for the start of a frame. */
+ 425   5                      mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+ 426   5                  }
+ 427   4                  mstp_port->SilenceTimerReset();
+ 428   4                  INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
+ 429   4                  mstp_port->DataAvailable = false;
+ 430   4              }
+ 431   3      
+ 432   3              break;
+ 433   3              /* In the DATA state, the node waits for the data portion of a frame. */
+ 434   3          case MSTP_RECEIVE_STATE_DATA:               
+ 435   3              case MSTP_RECEIVE_STATE_SKIP_DATA:
+ 436   3              /* Timeout */
+ 437   3             
+ 438   3                        
+ 439   3                 
+ 440   3                  if (SilenceTime > Tframe_abort) {              //
+ 441   4                  /* indicate that an error has occurred during the reception of a frame */
+ 442   4                  mstp_port->ReceivedInvalidFrame = true;
+ 443   4                  /* wait for the start of the next frame. */
+ 444   4                  mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+ 445   4                      }
+ 446   3              /* Error */
+ 447   3              else if (mstp_port->ReceiveError == true) {
+ 448   4                  mstp_port->ReceiveError = false;
+ 449   4                  mstp_port->SilenceTimerReset();
+ 450   4                  /* indicate that an error has occurred during the reception of a frame */
+ 451   4                  mstp_port->ReceivedInvalidFrame = true;
+ 452   4                  /* wait for the start of the next frame. */
+ 453   4                  mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+ 454   4                      
+ 455   4                      } else if (mstp_port->DataAvailable == true) {
+ 456   4                  if (mstp_port->Index < mstp_port->DataLength) {
+ 457   5                      /* DataOctet */
+ 458   5                      mstp_port->DataCRC =
+ 459   5                          CRC_Calc_Data(mstp_port->DataRegister,
+ 460   5                          mstp_port->DataCRC);
+ 461   5                      if (mstp_port->Index < mstp_port->InputBufferSize) {
+ 462   6                          mstp_port->InputBuffer[mstp_port->Index] =
+ 463   6                              mstp_port->DataRegister;
+ 464   6                      }
+ 465   5                      mstp_port->Index++;
+ 466   5                      mstp_port->receive_state = MSTP_RECEIVE_STATE_DATA;
+ 467   5      
+ 468   5                  } else if (mstp_port->Index == mstp_port->DataLength) {
+ 469   5                      /* CRC1 */
+ 470   5                      mstp_port->DataCRC =
+ 471   5                          CRC_Calc_Data(mstp_port->DataRegister,
+ 472   5                          mstp_port->DataCRC);
+ 473   5                      mstp_port->DataCRCActualMSB = mstp_port->DataRegister;
+ 474   5                      mstp_port->Index++;
+ 475   5                      mstp_port->receive_state = MSTP_RECEIVE_STATE_DATA;
+ 476   5      
+ 477   5                  } else if (mstp_port->Index == (mstp_port->DataLength + 1)) {
+ 478   5                      /* CRC2 */
+ 479   5                      mstp_port->DataCRC =
+ 480   5                          CRC_Calc_Data(mstp_port->DataRegister,
+ 481   5                          mstp_port->DataCRC);
+ 482   5                      mstp_port->DataCRCActualLSB = mstp_port->DataRegister;
+ 483   5                      /* STATE DATA CRC - no need for new state */
+ 484   5                      /* indicate the complete reception of a valid frame */
+ 485   5                      if (mstp_port->DataCRC == 0xF0B8) {
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 9   
+
+ 486   6                          if (mstp_port->receive_state ==
+ 487   6                              MSTP_RECEIVE_STATE_DATA) {
+ 488   7                              /* ForUs */
+ 489   7                              mstp_port->ReceivedValidFrame = true;
+ 490   7      
+ 491   7                          } else {
+ 492   7                              /* NotForUs */
+ 493   7                              mstp_port->ReceivedValidFrameNotForUs = true;
+ 494   7                          }
+ 495   6                      } else {
+ 496   6                          mstp_port->ReceivedInvalidFrame = true;
+ 497   6                      }
+ 498   5                      mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+ 499   5                  } else {
+ 500   5                      mstp_port->ReceivedInvalidFrame = true;
+ 501   5                      mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+ 502   5                  }
+ 503   4                  mstp_port->DataAvailable = false;
+ 504   4                  mstp_port->SilenceTimerReset();
+ 505   4              }
+ 506   3              break;
+ 507   3      
+ 508   3          default:
+ 509   3              /* shouldn't get here - but if we do... */
+ 510   3              mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
+ 511   3      
+ 512   3              //      P3_2 = ~ P3_2;           
+ 513   3      
+ 514   3                      break;
+ 515   3               }
+ 516   2        }
+ 517   1      #endif
+ 518   1      }
+ 519          
+ 520          
+ 521          
+ 522          /*
+ 523           * ----------------------------------------------------------------------------
+ 524           * static void uart0_Init(void)
+ 525           * Purpose : Setting operation mode of UART0 and initiating the global values.
+ 526           * Params  : none
+ 527           * Returns : none
+ 528           * Note    : none
+ 529           * ----------------------------------------------------------------------------
+ 530           */
+ 531          static void uart0_Init(void)
+ 532          {
+ 533   1              U8_T    sysClk = 0;
+ 534   1              U16_T   i;
+ 535   1      
+ 536   1              uart0_TxHead = 0;
+ 537   1              uart0_TxTail = 0;
+ 538   1              uart0_TxCount = 0;
+ 539   1              uart0_TxFlag = 0;
+ 540   1              uart0_RxHead = 0;
+ 541   1              uart0_RxTail = 0;
+ 542   1              uart0_RxCount = 0;
+ 543   1      
+ 544   1              for (i=0 ; i<MAX_TX_UART0_BUF_SIZE ; i++)
+ 545   1                      uart0_TxBuf[i] = 0;
+ 546   1              for (i=0 ; i<MAX_RX_UART0_BUF_SIZE ; i++)
+ 547   1                      uart0_RxBuf[i] = 0;
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 10  
+
+ 548   1      
+ 549   1              // Initialize TIMER1 for standard 8051 UART clock
+ 550   1              PCON  |= 0x80;                  // Disable BaudRate doubler.
+ 551   1              SM01  = 1;                      // Use serial port 0 in mode 1 with 8-bits data.
+ 552   1              REN0  = 1;                      // Enable UART0 receiver.
+ 553   1              TMOD  = 0x20;           // Use timer 1 in mode 2, 8-bit counter with auto-reload.
+ 554   1              uart0_Mode = 1;
+ 555   1      
+ 556   1              sysClk = CSREPR & 0xC0;
+ 557   1              switch (sysClk)
+ 558   1              {
+ 559   2                      case SCS_100M :
+ 560   2                      
+ 561   2                              TH1 = 0xE5;             // Baud rate = 9600 @ 100MHz.
+ 562   2                              break;
+ 563   2                      case SCS_50M :
+ 564   2                              
+ 565   2                              TH1 = 0xF2;             // Baud rate = 9600 @ 50MHz.
+ 566   2                              break;
+ 567   2                      case SCS_25M :
+ 568   2                              
+ 569   2                              TH1 = 0xF9;             // Baud rate = 9600 @ 25MHz.
+ 570   2                              break;
+ 571   2                      default :
+ 572   2                              
+ 573   2                              TH1 = 0xE5;             // Baud rate = 9600 @ 25MHz.
+ 574   2                              break;
+ 575   2              }
+ 576   1      
+ 577   1              ES0     = 1;                            // Enable serial port Interrupt request
+ 578   1              TR1 = 1;                                // Run Timer 1
+ 579   1              TI0 = 0;
+ 580   1      
+ 581   1      
+ 582   1      } /* End of UART_Init */
+ 583          
+ 584          void test_uart0_tx(U8_T *buf, U8_T len)
+ 585          {
+ 586   1              U8_T i;
+ 587   1              for(i = 0; i < len; i++)
+ 588   1              { 
+ 589   2                      SBUF0 = buf[i];
+ 590   2                 
+ 591   2                  DELAY_Us(70);
+ 592   2      
+ 593   2                      while(!TI0);
+ 594   2      
+ 595   2                      
+ 596   2              }
+ 597   1      
+ 598   1      }
+ 599          
+ 600          
+ 601          
+ 602          /*
+ 603           * ----------------------------------------------------------------------------
+ 604           * static S8_T uart0_PutChar(S8_T c)
+ 605           * Purpose : UART0 output function. This function puts one byte data into the
+ 606           *           software character buffer.
+ 607           * Params  : c - one byte character.
+ 608           * Returns : c - one byte character.
+ 609           * Note    : none
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 11  
+
+ 610           * ----------------------------------------------------------------------------
+ 611           */
+ 612          S8_T uart0_PutChar (S8_T c)
+ 613          {
+ 614   1              U16_T   count = 0;
+ 615   1      
+ 616   1              if (c == 0x0a)
+ 617   1              {
+ 618   2                      do
+ 619   2                      {
+ 620   3                              EA = 0;
+ 621   3                              count = uart0_TxCount; 
+ 622   3                              EA = 1;
+ 623   3                      } while (count == MAX_TX_UART0_BUF_SIZE);
+ 624   2                      uart0_TxBuf[uart0_TxHead] = 0x0d;
+ 625   2                      EA = 0;
+ 626   2                      uart0_TxCount++;
+ 627   2                      EA = 1;
+ 628   2                      uart0_TxHead++;
+ 629   2                      uart0_TxHead &= MAX_TX_UART0_MASK;
+ 630   2              }
+ 631   1              do
+ 632   1              {
+ 633   2                      EA = 0;
+ 634   2                      count = uart0_TxCount; 
+ 635   2                      EA = 1;
+ 636   2              } while (count == MAX_TX_UART0_BUF_SIZE);
+ 637   1              uart0_TxBuf[uart0_TxHead] = c;
+ 638   1              EA = 0;
+ 639   1              uart0_TxCount++;
+ 640   1              EA = 1;
+ 641   1              uart0_TxHead++;
+ 642   1              uart0_TxHead &= MAX_TX_UART0_MASK;
+ 643   1      
+ 644   1              if (!uart0_TxFlag)
+ 645   1              {
+ 646   2                      uart0_TxFlag = 1;
+ 647   2                      SBUF0 = uart0_TxBuf[uart0_TxTail];
+ 648   2              }
+ 649   1      
+ 650   1              
+ 651   1              return c;
+ 652   1      
+ 653   1      }
+ 654          
+ 655          /*
+ 656           * ----------------------------------------------------------------------------
+ 657           * static S8_T uart0_GetKey(void)
+ 658           * Purpose : UART0 input function. This function replies one byte data from the
+ 659           *           software character buffer.
+ 660           * Params  : none
+ 661           * Returns : c - one byte character.
+ 662           * Note    : none
+ 663           * ----------------------------------------------------------------------------
+ 664           */
+ 665          static S8_T uart0_GetKey (void)
+ 666          {
+ 667   1          /* NAMING CONSTANT DECLARATIONS */
+ 668   1      
+ 669   1          /* LOCAL VARIABLE DECLARATIONS */
+ 670   1          S8_T        c = 0;
+ 671   1          /* BODY */
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 12  
+
+ 672   1              while(uart0_RxCount == 0);
+ 673   1              EA = 0;
+ 674   1              uart0_RxCount--;
+ 675   1              EA = 1;
+ 676   1              c = uart0_RxBuf[uart0_RxTail];
+ 677   1              uart0_RxTail++;
+ 678   1              uart0_RxTail &= MAX_RX_UART0_MASK;
+ 679   1              return c;
+ 680   1      }
+ 681          
+ 682          /*
+ 683           * ----------------------------------------------------------------------------
+ 684           * static S8_T uart0_NoBlockGetkey(void)
+ 685           * Purpose : UART0 input function. This function replies one byte data from the
+ 686           *           software character buffer. But it only check the buffer one time.
+ 687           *           If no data, it will reply a FALSE condition.
+ 688           * Params  : none
+ 689           * Returns : c - one byte character.
+ 690           * Note    : none
+ 691           * ----------------------------------------------------------------------------
+ 692           */
+ 693          static S8_T UART0_NoBlockGetkey (void)
+ 694          {
+ 695   1          char c = 0;
+ 696   1      
+ 697   1              if (uart0_RxCount !=0 )
+ 698   1              {
+ 699   2                      EA = 0;
+ 700   2                      uart0_RxCount--;
+ 701   2                      EA = 1;
+ 702   2                      c = uart0_RxBuf[uart0_RxTail];
+ 703   2                      uart0_RxTail++;
+ 704   2                      uart0_RxTail &= MAX_RX_UART0_MASK;
+ 705   2                      return c;
+ 706   2              }
+ 707   1              else
+ 708   1              {
+ 709   2                      return FALSE;
+ 710   2              }
+ 711   1      }
+ 712          #endif
+ 713          
+ 714          
+ 715          #if UART1_ENABLE
+ 716          ////////////////////////////////////////////////////////////////////////////////
+ 717          /*
+ 718           * ----------------------------------------------------------------------------
+ 719           * static void UART1_ISR(void)
+ 720           * Purpose : UART1 interrupt service routine. For sending out, it puts data
+ 721           *           from software buffer into hardware serial buffer register (SBUF1).
+ 722           *           For receiving, it gets data from hardware serial buffer register
+ 723           *           (SBUF1) and stores into software buffer.
+ 724           * Params  : none
+ 725           * Returns : none
+ 726           * Note    : none
+ 727           * ----------------------------------------------------------------------------
+ 728           */
+ 729          #if 1
+ 730          static void uart1_ISR(void) interrupt 6
+ 731          {
+ 732   1      //      U8_T i;
+ 733   1              
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 13  
+
+ 734   1              if(RI1)
+ 735   1              {
+ 736   2                      EA = 0;
+ 737   2                              
+ 738   2                      if(uart1_RxCount >= MAX_RX_UART1_BUF_SIZE)
+ 739   2                              uart1_RxCount = 0;
+ 740   2                                         
+ 741   2              //      ch = SBUF1;                               //LJ             6/6/2012
+ 742   2      
+ 743   2                      uart1_RxBuf[uart1_RxCount++] = SBUF1;
+ 744   2                       
+ 745   2                      if(uart1_RxCount < 3)
+ 746   2                      {
+ 747   3                              uart1_rec_size = 8;
+ 748   3                      }
+ 749   2                      else if((uart1_RxCount == 3) && (uart1_RxBuf[1] == 0x03))       //read
+ 750   2                      {
+ 751   3                              uart1_rec_size = uart1_RxBuf[2] + 5;
+ 752   3                      }
+ 753   2      /*              else if ( uart1_RxCount > 5 )
+ 754   2                      {
+ 755   2                              for ( i = 3; i < (uart1_RxCount - 2); i++ )
+ 756   2                              {
+ 757   2                                      if ( ( uart1_RxBuf[i] == rsv_msg.register_id) 
+ 758   2                                              && ( uart1_RxBuf[i+1] == rsv_msg.cmd )
+ 759   2                                              && ( uart1_RxBuf[i+2] == rsv_msg.len*2 ))
+ 760   2                                      {
+ 761   2                                              uart1_RxBuf[0] = rsv_msg.register_id;
+ 762   2                                              uart1_RxBuf[1] = rsv_msg.cmd;
+ 763   2                                              uart1_RxBuf[2] = rsv_msg.len*2;
+ 764   2                                              uart1_RxCount = 3;
+ 765   2                                      }
+ 766   2                              }
+ 767   2                      }                       */                                              // LJ 6/11/2012
+ 768   2                      if(uart1_RxCount >= uart1_rec_size)
+ 769   2                      {
+ 770   3                              uart1_dealwithTag = 1;
+ 771   3      /*                      Uart1_Receive( uart1_RxCount);
+ 772   3                              uart1_RxCount = 0;
+ 773   3                              uart1_rec_size = 0;                
+ 774   3                              memset ( uart1_RxBuf, 0 , MAX_RX_UART1_BUF_SIZE);                       */ // LJ test
+ 775   3                      }
+ 776   2                      uart1_timeout = UART1_TIMEOUT;   
+ 777   2                      
+ 778   2                      RI1 = 0;
+ 779   2                      EA = 1;
+ 780   2              } 
+ 781   1      
+ 782   1              if (TI1)
+ 783   1              {
+ 784   2                      TI1 = 0;
+ 785   2                      FlagSend1 = 1;// finishing sending flag
+ 786   2              } /* End of if(TI0) */
+ 787   1      }
+ 788          
+ 789          #endif 
+ 790          
+ 791          #if 0
+              static void uart1_ISR(void) interrupt 6
+              {
+                      U8_T    parity = 0;
+              
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 14  
+
+                      if (RI1)
+                      {
+                              EA = 0;
+                              if (uart1_RxCount != MAX_RX_UART1_BUF_SIZE) 
+                              {
+                                      uart1_RxBuf[uart1_RxHead] = SBUF1;
+              
+                                      if (uart1_Mode & BIT1)
+                                      {
+                                              parity = UART_ParityChk((U8_T)uart1_RxBuf[uart1_RxHead]);
+                                              if (RB18 != parity)
+                                                      P3 = 0xE7;
+                                      }
+              
+                                      uart1_RxCount++;
+                                      uart1_RxHead++;
+                                      uart1_RxHead &= MAX_RX_UART1_MASK;
+                          }
+                              RI1 = 0;
+                              EA = 1;
+                      } /* End of if(RI0) */
+              
+                      if (TI1)
+                      {
+                              EA = 0;
+              
+                              uart1_TxTail++;
+                              uart1_TxTail &= MAX_TX_UART1_MASK;
+                              uart1_TxCount--;
+                              if (uart1_TxCount > 0)
+                              {
+                                      SBUF1 = uart1_TxBuf[uart1_TxTail];
+                                      
+                                      if (uart1_Mode & BIT1)
+                                      {
+                                              parity = UART_ParityChk((U8_T)uart1_TxBuf[uart1_TxTail]);
+                                              if (parity)
+                                                      TB18 = 1;
+                                              else
+                                                      TB18 = 0;
+                                      }
+                              }
+                              else
+                                      uart1_TxFlag = 0;
+              
+                              TI1 = 0;
+                              EA = 1;
+              
+                      } /* End of if(TI0) */
+              
+              }
+              #endif
+ 848          
+ 849          /*
+ 850           * ----------------------------------------------------------------------------
+ 851           * static void uart1_Init(void)
+ 852           * Purpose : Setting operation mode of UART1 and initiating the global values.
+ 853           * Params  : none
+ 854           * Returns : none
+ 855           * Note    : none
+ 856           * ----------------------------------------------------------------------------
+ 857           */
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 15  
+
+ 858          static void uart1_Init(void)
+ 859          {
+ 860   1              U8_T    sysClk = 0;
+ 861   1              U16_T   i;
+ 862   1      
+ 863   1              uart1_TxHead = 0;
+ 864   1              uart1_TxTail = 0;
+ 865   1              uart1_TxCount = 0;
+ 866   1              uart1_TxFlag = 0;
+ 867   1              uart1_RxHead = 0;
+ 868   1              uart1_RxTail = 0;
+ 869   1              uart1_RxCount = 0;
+ 870   1              for (i=0 ; i<MAX_TX_UART1_BUF_SIZE ; i++)
+ 871   1                      uart1_TxBuf[i] = 0;
+ 872   1              for (i=0 ; i<MAX_RX_UART1_BUF_SIZE ; i++)
+ 873   1                      uart1_RxBuf[i] = 0;
+ 874   1      
+ 875   1              // Initialize TIMER1 for standard 8051 UART clock
+ 876   1              PCON  &= ~(1 << 6);     // Disable BaudRate doubler.         // LJ 6/8/2012
+ 877   1              SM10  = 0;
+ 878   1              SM11  = 1;                      // Use serial port 1 in mode 1 with 8-bits data.
+ 879   1              REN1  = 1;                      // Enable UART1 receiver.
+ 880   1              TMOD  |= 0x20;          // Use timer 1 in mode 2, 8-bit counter with auto-reload.
+ 881   1              uart1_Mode = 1;
+ 882   1      
+ 883   1              sysClk = CSREPR & 0xC0;
+ 884   1              switch (sysClk)
+ 885   1              {
+ 886   2                      case SCS_100M :
+ 887   2                              
+ 888   2                              TH1 = 0xE5;             // Baud rate = 9600 @ 100MHz.
+ 889   2                              break;
+ 890   2                      case SCS_50M :
+ 891   2                              
+ 892   2                              TH1 = 0xF2;             // Baud rate = 9600 @ 50MHz.
+ 893   2                              break;
+ 894   2                      case SCS_25M :
+ 895   2                      
+ 896   2                              TH1 = 0xF9;             // Baud rate = 9600 @ 25MHz.
+ 897   2                              break;
+ 898   2                      default :
+ 899   2                      
+ 900   2                              TH1 = 0xE5;             // Baud rate = 9600 @ 25MHz.
+ 901   2                              break;
+ 902   2              }
+ 903   1      
+ 904   1              ES1     = 1;                            // Enable serial port Interrupt request
+ 905   1              TR1 = 1;                                // Run Timer 1
+ 906   1              TI1 = 0;
+ 907   1      
+ 908   1      }
+ 909          
+ 910          /*
+ 911           * ----------------------------------------------------------------------------
+ 912           * static S8_T uart1_PutChar(S8_T c)
+ 913           * Purpose : UART1 output function. This function puts one byte data into the
+ 914           *           software character buffer.
+ 915           * Params  : c - one byte character.
+ 916           * Returns : c - one byte character.
+ 917           * Note    : none
+ 918           * ----------------------------------------------------------------------------
+ 919           */
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 16  
+
+ 920          static S8_T uart1_PutChar(S8_T c)
+ 921          {
+ 922   1              U16_T   count = 0;
+ 923   1      
+ 924   1              if (c == 0xa)
+ 925   1              {
+ 926   2                      do
+ 927   2                      {
+ 928   3                              EA = 0;
+ 929   3                              count = uart1_TxCount; 
+ 930   3                              EA = 1;
+ 931   3                      } while (count == MAX_TX_UART1_BUF_SIZE);
+ 932   2                      uart1_TxBuf[uart1_TxHead] = 0xd;
+ 933   2                      EA = 0;
+ 934   2                      uart1_TxCount++;
+ 935   2                      EA = 1;
+ 936   2                      uart1_TxHead++;
+ 937   2                      uart1_TxHead &= MAX_TX_UART1_MASK;
+ 938   2              }
+ 939   1              do
+ 940   1              {
+ 941   2                      EA = 0;
+ 942   2                      count = uart1_TxCount; 
+ 943   2                      EA = 1;
+ 944   2              } while (count == MAX_TX_UART1_BUF_SIZE);
+ 945   1              uart1_TxBuf[uart1_TxHead] = c;
+ 946   1              EA = 0;
+ 947   1              uart1_TxCount++;
+ 948   1              EA = 1;
+ 949   1              uart1_TxHead++;
+ 950   1              uart1_TxHead &= MAX_TX_UART1_MASK;
+ 951   1      
+ 952   1              if (!uart1_TxFlag)
+ 953   1              {
+ 954   2                      uart1_TxFlag = 1;
+ 955   2                      SBUF1 = uart1_TxBuf[uart1_TxTail];
+ 956   2              }
+ 957   1              
+ 958   1              return c;
+ 959   1      
+ 960   1      }
+ 961          
+ 962          
+ 963          void test_uart1_tx(U8_T *buf, U8_T len)
+ 964          {
+ 965   1              U8_T i;
+ 966   1              for(i = 0; i < len; i++)
+ 967   1              { 
+ 968   2                      SBUF1 = buf[i];
+ 969   2                 
+ 970   2                  DELAY_Us(70);
+ 971   2      
+ 972   2                      while(!TI1);
+ 973   2      
+ 974   2                      
+ 975   2              }
+ 976   1      
+ 977   1      }
+ 978          
+ 979          
+ 980          
+ 981          
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 17  
+
+ 982          /*
+ 983           * ----------------------------------------------------------------------------
+ 984           * static S8_T uart1_GetKey(void)
+ 985           * Purpose : UART1 input function. This function replies one byte data from the
+ 986           *           software character buffer.
+ 987           * Params  : none
+ 988           * Returns : c - one byte character.
+ 989           * Note    : none
+ 990           * ----------------------------------------------------------------------------
+ 991           */
+ 992          static S8_T uart1_GetKey (void)
+ 993          {
+ 994   1          /* NAMING CONSTANT DECLARATIONS */
+ 995   1      
+ 996   1          /* LOCAL VARIABLE DECLARATIONS */
+ 997   1          S8_T c;
+ 998   1          /* BODY */
+ 999   1              while(uart1_RxCount==0);
+1000   1              EA = 0;
+1001   1              uart1_RxCount--;
+1002   1              EA = 1;
+1003   1              c = uart1_RxBuf[uart1_RxTail];
+1004   1              uart1_RxTail++;
+1005   1              uart1_RxTail &= MAX_RX_UART1_MASK;
+1006   1              return c;
+1007   1      }
+1008          
+1009          /*
+1010           * ----------------------------------------------------------------------------
+1011           * static S8_T uart1_NoBlockGetkey(void)
+1012           * Purpose : UART1 input function. This function replies one byte data from the
+1013           *           software character buffer. But it only check the buffer one time.
+1014           *           If no data, it will reply a FALSE condition.
+1015           * Params  : none
+1016           * Returns : c - one byte character.
+1017           * Note    : none
+1018           * ----------------------------------------------------------------------------
+1019           */
+1020          static S8_T uart1_NoBlockGetkey (void)
+1021          {
+1022   1          char c = 0;
+1023   1      
+1024   1              if (uart1_RxCount !=0 )
+1025   1              {
+1026   2                      EA = 0;
+1027   2                      uart1_RxCount--;
+1028   2                      EA = 1;
+1029   2                      c = uart1_RxBuf[uart1_RxTail];
+1030   2                      uart1_RxTail++;
+1031   2                      uart1_RxTail &= MAX_RX_UART1_MASK;
+1032   2                      return c;
+1033   2              }
+1034   1              else
+1035   1              {
+1036   2                      return FALSE;
+1037   2              }
+1038   1      }
+1039          #endif
+1040          
+1041          
+1042          /* EXPORTED SUBPROGRAM BODIES */
+1043          
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 18  
+
+1044          /*
+1045           * ----------------------------------------------------------------------------
+1046           * S8_T _getkey (void)
+1047           * Purpose : UART getkey function. This function is the entry of getting
+1048           *           characters from software buffer of system's UART ports,
+1049           *           UART0, UART1 and HSUR. 
+1050           * Params  : none
+1051           * Returns : ch - one byte character.
+1052           * Note    : The default UART port is UART0.
+1053           * ----------------------------------------------------------------------------
+1054           */
+1055          S8_T _getkey (void)
+1056          {
+1057   1              S8_T    ch = 0;
+1058   1      
+1059   1              ch = HSUR_GetChar();
+1060   1              return ch;
+1061   1      }
+1062          
+1063          /*
+1064           * ----------------------------------------------------------------------------
+1065           * S8_T putchar(S8_T c)
+1066           * Purpose : UART putchar function. This function is the entry of putting
+1067           *           characters into software buffer of system's UART ports,
+1068           *           UART0, UART1 and HSUR. 
+1069           * Params  : c - one byte character to be put.
+1070           * Returns : ch - the same character to be replied.
+1071           * Note    : The default UART port is UART0.
+1072           * ----------------------------------------------------------------------------
+1073           */
+1074          S8_T putchar(S8_T c)
+1075          {
+1076   1              S8_T    ch = 0;
+1077   1      
+1078   1              ch = HSUR_PutChar(c);
+1079   1              return ch;
+1080   1      }
+1081          
+1082          /*
+1083           * ----------------------------------------------------------------------------
+1084           * void UART_Init(void)
+1085           * Purpose : UART initial function. It will call a real initial function
+1086           *           corresponding to the used UART port.
+1087           * Params  : none
+1088           * Returns : none
+1089           * Note    : none
+1090           * ----------------------------------------------------------------------------
+1091           */
+1092          void UART_Init(U8_T port)
+1093          {
+1094   1              if (port == 0)
+1095   1              {
+1096   2                      uart0_Init();
+1097   2              }
+1098   1              else if (port == 1)
+1099   1              {
+1100   2                      uart1_Init();
+1101   2              }
+1102   1              else if (port == 2)
+1103   1              {
+1104   2                      HSUR_InitValue();
+1105   2                      HSUR_Setup(0x0010, (UR2_CHAR_8|UR2_STOP_10), (UR2_RDI_ENB|UR2_RLSI_ENB|UR2_MSI_ENB),
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 19  
+
+1106   2                      (UR2_FIFO_MODE|UR2_RXFIFO_RST|UR2_TXFIFO_RST|UR2_TRIG_08), UR2_DTR | UR2_RTS);
+1107   2              }
+1108   1              
+1109   1      }
+1110          
+1111          /*
+1112           * ----------------------------------------------------------------------------
+1113           * S8_T NOBLK_getkey (void)
+1114           * Purpose : UART no blocking getkey function with one checked. This function
+1115           *           is the entry of getting characters from software buffer of
+1116           *           system's UART ports, UART0, UART1 and HSUR.
+1117           * Params  : none
+1118           * Returns : ch - one byte character.
+1119           * Note    : The default UART port is UART0.
+1120           * ----------------------------------------------------------------------------
+1121           */
+1122          S8_T NOBLK_getkey (void)
+1123          {
+1124   1          S8_T        c = 0;
+1125   1      
+1126   1              c = HSUR_GetCharNb();
+1127   1      
+1128   1              return c;
+1129   1      }
+1130          
+1131          /*
+1132           * ----------------------------------------------------------------------------
+1133           * BOOL UART_ParityChk(S8_T checkByte)
+1134           * Purpose : UART parity checked function in one byte transfer.
+1135           * Params  : checkByte - one byte character.
+1136           * Returns : TRUE - odd parity ; FALSE - even parity.
+1137           * Note    : none
+1138           * ----------------------------------------------------------------------------
+1139           */
+1140          BOOL UART_ParityChk(S8_T checkByte)
+1141          {
+1142   1              U8_T    oneNum = 0;
+1143   1              U16_T   i;
+1144   1      
+1145   1              oneNum = 0;
+1146   1              for (i=0 ; i<=7 ; i++)
+1147   1              {
+1148   2                      if (checkByte & (BIT0<<i))
+1149   2                      {
+1150   3                              oneNum ++;
+1151   3                      }
+1152   2              }
+1153   1              if ((oneNum % 2) == 0)
+1154   1                      return FALSE;           // if '1' number is even, return 0
+1155   1              else
+1156   1                      return TRUE;            // if '1' number is odd, return 1
+1157   1      }
+1158          
+1159          #if UART0_ENABLE
+1160          /*
+1161           * ----------------------------------------------------------------------------
+1162           * void UART0_SetMode(U8_T mode)
+1163           * Purpose : Setting operation mode of UART0.
+1164           * Params  : mode - operation mode (0~3).
+1165           * Returns : none
+1166           * Note    : none
+1167           * ----------------------------------------------------------------------------
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 20  
+
+1168           */
+1169          void UART0_SetMode(U8_T mode)
+1170          {
+1171   1              uart0_Mode = mode;
+1172   1      }
+1173          #endif
+1174          
+1175          #if UART1_ENABLE
+1176          /*
+1177           * ----------------------------------------------------------------------------
+1178           * void UART1_SetMode(U8_T mode)
+1179           * Purpose : Setting operation mode of UART0.
+1180           * Params  : mode - operation mode (0~3).
+1181           * Returns : none
+1182           * Note    : none
+1183           * ----------------------------------------------------------------------------
+1184           */
+1185          void UART1_SetMode(U8_T mode)
+1186          {
+1187   1              uart1_Mode = mode;
+1188   1      }
+1189          #endif
+1190          
+1191          /*
+1192           * ----------------------------------------------------------------------------
+1193           * BOOL UART_SetPort(U8_T portNum)
+1194           * Purpose : Setting which UART port will be used.
+1195           * Params  : portNum - uart port number (0~2).
+1196           * Returns : none
+1197           * Note    : none
+1198           * ----------------------------------------------------------------------------
+1199           */
+1200          BOOL UART_SetPort(U8_T portNum)
+1201          {
+1202   1              uartPort = portNum & 0x03;
+1203   1              UART_Init(0);
+1204   1              UART_Init(1);
+1205   1              return TRUE;
+1206   1      }
+1207          
+1208          /*
+1209           * ----------------------------------------------------------------------------
+1210           * U16_T UART_GetRxBufCount(void)
+1211           * Purpose : Getting the remain character number in UART Rx buffer.
+1212           * Params  : none
+1213           * Returns : bufCount - the number of remain character in UART software RX buffer.
+1214           * Note    : none
+1215           * ----------------------------------------------------------------------------
+1216           */
+1217          U16_T UART_GetRxBufCount(void)
+1218          {
+1219   1              U16_T   bufCount = 0;
+1220   1      
+1221   1              bufCount = HSUR_GetRxBufCount();
+1222   1      
+1223   1              return bufCount;
+1224   1      }
+1225          
+1226          /*
+1227           * ----------------------------------------------------------------------------
+1228           * void PMM_Uart0Init(void)
+1229           * Purpose : Initiating the UART0 to work in power management mode.
+C51 COMPILER V9.06   UART                                                                  03/13/2013 09:32:21 PAGE 21  
+
+1230           * Params  : none
+1231           * Returns : none
+1232           * Note    : none
+1233           * ----------------------------------------------------------------------------
+1234           */
+1235          #if UART_PMM_ENABLE
+              void PMM_Uart0Init(void)
+              {
+                      U16_T   i;
+              
+                      uart0_TxHead = 0;
+                      uart0_TxTail = 0;
+                      uart0_TxCount = 0;
+                      uart0_TxFlag = 0;
+                      uart0_RxHead = 0;
+                      uart0_RxTail = 0;
+                      uart0_RxCount = 0;
+                      for (i=0 ; i<MAX_TX_UART0_BUF_SIZE ; i++)
+                              uart0_TxBuf[i] = 0;
+                      for (i=0 ; i<MAX_RX_UART0_BUF_SIZE ; i++)
+                              uart0_RxBuf[i] = 0;
+              
+                      // Initialize TIMER1 for standard 8051 UART clock
+                      PCON  |= BIT7;          // Enable BaudRate doubler.
+                      SM01  = 1;                      // Use serial port 0 in mode 1 with 8-bits data.
+                      REN0  = 1;                      // Enable UART0 receiver.
+                      TMOD  = 0x20;           // Use timer 1 in mode 2, 8-bit counter with auto-reload.
+              
+                      TH1 = 0xFE;                     // Baud rate = 1200 @ 25MHz.
+              
+                      ES0     = 1;                            // Enable serial port Interrupt request
+                      TR1 = 1;                                // Run Timer 1
+                      TI0 = 0;
+              
+              }
+              #endif
+1266          
+1267          
+1268          /* End of uart.c */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   5139    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   1240      11
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =    524    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

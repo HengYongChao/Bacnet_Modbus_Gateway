@@ -1,0 +1,492 @@
+C51 COMPILER V9.06   BACPROPSTATES                                                         03/13/2013 09:32:35 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE BACPROPSTATES
+OBJECT MODULE PLACED IN .\bacpropstates.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\bacpropstates.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(
+                    -0X6020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC
+                    -\hsur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;
+                    -..\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX1
+                    -1000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\bacpropstates.lst) 
+                    -OBJECT(.\bacpropstates.obj)
+
+line level    source
+
+   1          /*####COPYRIGHTBEGIN####
+   2           -------------------------------------------
+   3           Copyright (C) 2008 John Minack
+   4          
+   5           This program is free software; you can redistribute it and/or
+   6           modify it under the terms of the GNU General Public License
+   7           as published by the Free Software Foundation; either version 2
+   8           of the License, or (at your option) any later version.
+   9          
+  10           This program is distributed in the hope that it will be useful,
+  11           but WITHOUT ANY WARRANTY; without even the implied warranty of
+  12           MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  13           GNU General Public License for more details.
+  14          
+  15           You should have received a copy of the GNU General Public License
+  16           along with this program; if not, write to:
+  17           The Free Software Foundation, Inc.
+  18           59 Temple Place - Suite 330
+  19           Boston, MA  02111-1307, USA.
+  20          
+  21           As a special exception, if other files instantiate templates or
+  22           use macros or inline functions from this file, or you compile
+  23           this file and link it with other works to produce a work based
+  24           on this file, this file does not by itself cause the resulting
+  25           work to be covered by the GNU General Public License. However
+  26           the source code for this file must still be made available in
+  27           accordance with section (3) of the GNU General Public License.
+  28          
+  29           This exception does not invalidate any other reasons why a work
+  30           based on this file might be covered by the GNU General Public
+  31           License.
+  32           -------------------------------------------
+  33          ####COPYRIGHTEND####*/
+  34          
+  35          #include "../include/bacdcode.h"
+  36          #include "../include/npdu.h"
+  37          #include "../include/device.h"
+  38          #include "../include/timestamp.h"
+  39          #include "../include/bacpropstates.h"
+  40          
+  41          /** @file bacpropstates.c  Encode/Decode BACnet Application Property States */
+  42          
+  43          int bacapp_decode_property_state(
+  44              uint8_t * apdu,
+  45              BACNET_PROPERTY_STATE * value)
+  46          {
+  47   1          int len = 0;
+  48   1          uint32_t len_value_type;
+  49   1          int section_length;
+  50   1          uint32_t enumValue;
+C51 COMPILER V9.06   BACPROPSTATES                                                         03/13/2013 09:32:35 PAGE 2   
+
+  51   1          uint8_t tagnum;
+  52   1      
+  53   1          section_length =
+  54   1              decode_tag_number_and_value(&apdu[len], &tagnum, &len_value_type);
+  55   1      
+  56   1          if (-1 == section_length) {
+  57   2              return -1;
+  58   2          }
+  59   1          value->tag = tagnum;
+  60   1          len += section_length;
+  61   1          switch (value->tag) {
+  62   2              case BOOLEAN_VALUE:
+  63   2                  value->state.booleanValue = decode_boolean(len_value_type);
+  64   2                  break;
+  65   2      
+  66   2              case BINARY_VALUE:
+  67   2                  if (-1 == (section_length =
+  68   2                          decode_enumerated(&apdu[len], len_value_type,
+  69   2                              &enumValue))) {
+  70   3                      return -1;
+  71   3                  }
+  72   2                  value->state.binaryValue = (BACNET_BINARY_PV) enumValue;
+  73   2                  break;
+  74   2      
+  75   2              case EVENT_TYPE:
+  76   2                  if (-1 == (section_length =
+  77   2                          decode_enumerated(&apdu[len], len_value_type,
+  78   2                              &enumValue))) {
+  79   3                      return -1;
+  80   3                  }
+  81   2                  value->state.eventType = (BACNET_EVENT_TYPE) enumValue;
+  82   2                  break;
+  83   2      
+  84   2              case POLARITY:
+  85   2                  if (-1 == (section_length =
+  86   2                          decode_enumerated(&apdu[len], len_value_type,
+  87   2                              &enumValue))) {
+  88   3                      return -1;
+  89   3                  }
+  90   2                  value->state.polarity = (BACNET_POLARITY) enumValue;
+  91   2                  break;
+  92   2      
+  93   2              case PROGRAM_CHANGE:
+  94   2                  if (-1 == (section_length =
+  95   2                          decode_enumerated(&apdu[len], len_value_type,
+  96   2                              &enumValue))) {
+  97   3                      return -1;
+  98   3                  }
+  99   2                  value->state.programChange = (BACNET_PROGRAM_REQUEST) enumValue;
+ 100   2                  break;
+ 101   2      
+ 102   2              case PROGRAM_STATE:
+ 103   2                  if (-1 == (section_length =
+ 104   2                          decode_enumerated(&apdu[len], len_value_type,
+ 105   2                              &enumValue))) {
+ 106   3                      return -1;
+ 107   3                  }
+ 108   2                  value->state.programState = (BACNET_PROGRAM_STATE) enumValue;
+ 109   2                  break;
+ 110   2      
+ 111   2              case REASON_FOR_HALT:
+ 112   2                  if (-1 == (section_length =
+C51 COMPILER V9.06   BACPROPSTATES                                                         03/13/2013 09:32:35 PAGE 3   
+
+ 113   2                          decode_enumerated(&apdu[len], len_value_type,
+ 114   2                              &enumValue))) {
+ 115   3                      return -1;
+ 116   3                  }
+ 117   2                  value->state.programError = (BACNET_PROGRAM_ERROR) enumValue;
+ 118   2                  break;
+ 119   2      
+ 120   2              case RELIABILITY:
+ 121   2                  if (-1 == (section_length =
+ 122   2                          decode_enumerated(&apdu[len], len_value_type,
+ 123   2                              &enumValue))) {
+ 124   3                      return -1;
+ 125   3                  }
+ 126   2                  value->state.reliability = (BACNET_RELIABILITY) enumValue;
+ 127   2                  break;
+ 128   2      
+ 129   2              case STATE:
+ 130   2                  if (-1 == (section_length =
+ 131   2                          decode_enumerated(&apdu[len], len_value_type,
+ 132   2                              &enumValue))) {
+ 133   3                      return -1;
+ 134   3                  }
+ 135   2                  value->state.state = (BACNET_EVENT_STATE) enumValue;
+ 136   2                  break;
+ 137   2      
+ 138   2              case SYSTEM_STATUS:
+ 139   2                  if (-1 == (section_length =
+ 140   2                          decode_enumerated(&apdu[len], len_value_type,
+ 141   2                              &enumValue))) {
+ 142   3                      return -1;
+ 143   3                  }
+ 144   2                  value->state.systemStatus = (BACNET_DEVICE_STATUS) enumValue;
+ 145   2                  break;
+ 146   2      
+ 147   2              case UNITS:
+ 148   2                  if (-1 == (section_length =
+ 149   2                          decode_enumerated(&apdu[len], len_value_type,
+ 150   2                              &enumValue))) {
+ 151   3                      return -1;
+ 152   3                  }
+ 153   2                  value->state.units = (BACNET_ENGINEERING_UNITS) enumValue;
+ 154   2                  break;
+ 155   2      
+ 156   2              case UNSIGNED_VALUE:
+ 157   2                  if (-1 == (section_length =
+ 158   2                          decode_unsigned(&apdu[len], len_value_type,
+ 159   2                              &value->state.unsignedValue))) {
+ 160   3                      return -1;
+ 161   3                  }
+ 162   2                  break;
+ 163   2      
+ 164   2              case LIFE_SAFETY_MODE:
+ 165   2                  if (-1 == (section_length =
+ 166   2                          decode_enumerated(&apdu[len], len_value_type,
+ 167   2                              &enumValue))) {
+ 168   3                      return -1;
+ 169   3                  }
+ 170   2                  value->state.lifeSafetyMode = (BACNET_LIFE_SAFETY_MODE) enumValue;
+ 171   2                  break;
+ 172   2      
+ 173   2              case LIFE_SAFETY_STATE:
+ 174   2                  if (-1 == (section_length =
+C51 COMPILER V9.06   BACPROPSTATES                                                         03/13/2013 09:32:35 PAGE 4   
+
+ 175   2                          decode_enumerated(&apdu[len], len_value_type,
+ 176   2                              &enumValue))) {
+ 177   3                      return -1;
+ 178   3                  }
+ 179   2                  value->state.lifeSafetyState =
+ 180   2                      (BACNET_LIFE_SAFETY_STATE) enumValue;
+ 181   2                  break;
+ 182   2      
+ 183   2              default:
+ 184   2                  return -1;
+ 185   2          }
+ 186   1          len += section_length;
+ 187   1      
+ 188   1          return len;
+ 189   1      }
+ 190          
+ 191          int bacapp_decode_context_property_state(
+ 192              uint8_t * apdu,
+ 193              uint8_t tag_number,
+ 194              BACNET_PROPERTY_STATE * value)
+ 195          {
+ 196   1          int len = 0;
+ 197   1          int section_length;
+ 198   1      
+ 199   1          if (decode_is_opening_tag_number(&apdu[len], tag_number)) {
+ 200   2              len++;
+ 201   2              section_length = bacapp_decode_property_state(&apdu[len], value);
+ 202   2      
+ 203   2              if (section_length == -1) {
+ 204   3                  len = -1;
+ 205   3              } else {
+ 206   3                  len += section_length;
+ 207   3                  if (decode_is_closing_tag_number(&apdu[len], tag_number)) {
+ 208   4                      len++;
+ 209   4                  } else {
+ 210   4                      len = -1;
+ 211   4                  }
+ 212   3              }
+ 213   2          } else {
+ 214   2              len = -1;
+ 215   2          }
+ 216   1          return len;
+ 217   1      }
+ 218          
+ 219          int bacapp_encode_property_state(
+ 220              uint8_t * apdu,
+ 221              BACNET_PROPERTY_STATE * value)
+ 222          {
+ 223   1          int len = 0;        /* length of each encoding */
+ 224   1          if (value && apdu) {
+ 225   2              switch (value->tag) {
+ 226   3                  case BOOLEAN_VALUE:
+ 227   3                      len =
+ 228   3                          encode_context_boolean(&apdu[0], 0,
+ 229   3                          value->state.booleanValue);
+ 230   3                      break;
+ 231   3      
+ 232   3                  case BINARY_VALUE:
+ 233   3                      len =
+ 234   3                          encode_context_enumerated(&apdu[0], 1,
+ 235   3                          value->state.binaryValue);
+ 236   3                      break;
+C51 COMPILER V9.06   BACPROPSTATES                                                         03/13/2013 09:32:35 PAGE 5   
+
+ 237   3      
+ 238   3                  case EVENT_TYPE:
+ 239   3                      len =
+ 240   3                          encode_context_enumerated(&apdu[0], 2,
+ 241   3                          value->state.eventType);
+ 242   3                      break;
+ 243   3      
+ 244   3                  case POLARITY:
+ 245   3                      len =
+ 246   3                          encode_context_enumerated(&apdu[0], 3,
+ 247   3                          value->state.polarity);
+ 248   3                      break;
+ 249   3      
+ 250   3                  case PROGRAM_CHANGE:
+ 251   3                      len =
+ 252   3                          encode_context_enumerated(&apdu[0], 4,
+ 253   3                          value->state.programChange);
+ 254   3                      break;
+ 255   3      
+ 256   3                  case PROGRAM_STATE:
+ 257   3                      len =
+ 258   3                          encode_context_enumerated(&apdu[0], 5,
+ 259   3                          value->state.programState);
+ 260   3                      break;
+ 261   3      
+ 262   3                  case REASON_FOR_HALT:
+ 263   3                      len =
+ 264   3                          encode_context_enumerated(&apdu[0], 6,
+ 265   3                          value->state.programError);
+ 266   3                      break;
+ 267   3      
+ 268   3                  case RELIABILITY:
+ 269   3                      len =
+ 270   3                          encode_context_enumerated(&apdu[0], 7,
+ 271   3                          value->state.reliability);
+ 272   3                      break;
+ 273   3      
+ 274   3                  case STATE:
+ 275   3                      len =
+ 276   3                          encode_context_enumerated(&apdu[0], 8, value->state.state);
+ 277   3                      break;
+ 278   3      
+ 279   3                  case SYSTEM_STATUS:
+ 280   3                      len =
+ 281   3                          encode_context_enumerated(&apdu[0], 9,
+ 282   3                          value->state.systemStatus);
+ 283   3                      break;
+ 284   3      
+ 285   3                  case UNITS:
+ 286   3                      len =
+ 287   3                          encode_context_enumerated(&apdu[0], 10,
+ 288   3                          value->state.units);
+ 289   3                      break;
+ 290   3      
+ 291   3                  case UNSIGNED_VALUE:
+ 292   3                      len =
+ 293   3                          encode_context_unsigned(&apdu[0], 11,
+ 294   3                          value->state.unsignedValue);
+ 295   3                      break;
+ 296   3      
+ 297   3                  case LIFE_SAFETY_MODE:
+ 298   3                      len =
+C51 COMPILER V9.06   BACPROPSTATES                                                         03/13/2013 09:32:35 PAGE 6   
+
+ 299   3                          encode_context_enumerated(&apdu[0], 12,
+ 300   3                          value->state.lifeSafetyMode);
+ 301   3                      break;
+ 302   3      
+ 303   3                  case LIFE_SAFETY_STATE:
+ 304   3                      len =
+ 305   3                          encode_context_enumerated(&apdu[0], 13,
+ 306   3                          value->state.lifeSafetyState);
+ 307   3                      break;
+ 308   3      
+ 309   3                  default:
+ 310   3                      /* FIXME: assert(0); - return a negative len? */
+ 311   3                      break;
+ 312   3              }
+ 313   2          }
+ 314   1          return len;
+ 315   1      }
+ 316          
+ 317          #ifdef TEST
+              #include <string.h>     /* for memset */
+              
+              void testPropStates(
+                  Test * pTest)
+              {
+                  BACNET_PROPERTY_STATE inData;
+                  BACNET_PROPERTY_STATE outData;
+                  uint8_t appMsg[MAX_APDU];
+                  int inLen;
+                  int outLen;
+              
+                  inData.tag = BOOLEAN_VALUE;
+                  inData.state.booleanValue = true;
+              
+                  inLen = bacapp_encode_property_state(appMsg, &inData);
+              
+                  memset(&outData, 0, sizeof(outData));
+              
+                  outLen = bacapp_decode_property_state(appMsg, &outData);
+              
+                  ct_test(pTest, outLen == inLen);
+                  ct_test(pTest, inData.tag == outData.tag);
+                  ct_test(pTest, inData.state.booleanValue == outData.state.booleanValue);
+              
+                      /****************
+                      *****************
+                      ****************/
+                  inData.tag = BINARY_VALUE;
+                  inData.state.binaryValue = BINARY_ACTIVE;
+              
+                  inLen = bacapp_encode_property_state(appMsg, &inData);
+              
+                  memset(&outData, 0, sizeof(outData));
+              
+                  outLen = bacapp_decode_property_state(appMsg, &outData);
+              
+                  ct_test(pTest, outLen == inLen);
+                  ct_test(pTest, inData.tag == outData.tag);
+                  ct_test(pTest, inData.state.binaryValue == outData.state.binaryValue);
+              
+                      /****************
+                      *****************
+                      ****************/
+C51 COMPILER V9.06   BACPROPSTATES                                                         03/13/2013 09:32:35 PAGE 7   
+
+                  inData.tag = EVENT_TYPE;
+                  inData.state.eventType = EVENT_BUFFER_READY;
+              
+                  inLen = bacapp_encode_property_state(appMsg, &inData);
+              
+                  memset(&outData, 0, sizeof(outData));
+              
+                  outLen = bacapp_decode_property_state(appMsg, &outData);
+              
+                  ct_test(pTest, outLen == inLen);
+                  ct_test(pTest, inData.tag == outData.tag);
+                  ct_test(pTest, inData.state.eventType == outData.state.eventType);
+              
+                      /****************
+                      *****************
+                      ****************/
+                  inData.tag = POLARITY;
+                  inData.state.polarity = POLARITY_REVERSE;
+              
+                  inLen = bacapp_encode_property_state(appMsg, &inData);
+              
+                  memset(&outData, 0, sizeof(outData));
+              
+                  outLen = bacapp_decode_property_state(appMsg, &outData);
+              
+                  ct_test(pTest, outLen == inLen);
+                  ct_test(pTest, inData.tag == outData.tag);
+                  ct_test(pTest, inData.state.polarity == outData.state.polarity);
+              
+                      /****************
+                      *****************
+                      ****************/
+                  inData.tag = PROGRAM_CHANGE;
+                  inData.state.programChange = PROGRAM_REQUEST_RESTART;
+              
+                  inLen = bacapp_encode_property_state(appMsg, &inData);
+              
+                  memset(&outData, 0, sizeof(outData));
+              
+                  outLen = bacapp_decode_property_state(appMsg, &outData);
+              
+                  ct_test(pTest, outLen == inLen);
+                  ct_test(pTest, inData.tag == outData.tag);
+                  ct_test(pTest, inData.state.programChange == outData.state.programChange);
+              
+                      /****************
+                      *****************
+                      ****************/
+                  inData.tag = UNSIGNED_VALUE;
+                  inData.state.unsignedValue = 0xdeadbeef;
+              
+                  inLen = bacapp_encode_property_state(appMsg, &inData);
+              
+                  memset(&outData, 0, sizeof(outData));
+              
+                  outLen = bacapp_decode_property_state(appMsg, &outData);
+              
+                  ct_test(pTest, outLen == inLen);
+                  ct_test(pTest, inData.tag == outData.tag);
+                  ct_test(pTest, inData.state.unsignedValue == outData.state.unsignedValue);
+              
+              }
+C51 COMPILER V9.06   BACPROPSTATES                                                         03/13/2013 09:32:35 PAGE 8   
+
+              
+              #ifdef TEST_PROP_STATES
+              #include <assert.h>
+              int main(
+                  void)
+              {
+                  Test *pTest;
+                  bool rc;
+              
+                  pTest = ct_create("BACnet Event", NULL);
+                  /* individual tests */
+                  rc = ct_addTestFunction(pTest, testPropStates);
+                  assert(rc);
+              
+                  ct_setStream(pTest, stdout);
+                  ct_run(pTest);
+                  (void) ct_report(pTest);
+                  ct_destroy(pTest);
+              
+                  return 0;
+              }
+              
+              #endif /* TEST_PROP_STATES */
+              #endif /* TEST */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2536    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----      36
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,2016 @@
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE     1
+
+
+MACRO ASSEMBLER AX51 V3.07c
+OBJECT MODULE PLACED IN .\list.OBJ
+ASSEMBLER INVOKED BY: d:\Keil_4_9.06\C51\BIN\AX51.EXE .\list.src PR(.\list.ls1) EP DEBUG MOD_CONT
+
+LOC    OBJ             LINE     SOURCE
+
+                          1     ; .\list.SRC generated from: ..\src\FreeRtossource\list.c
+                          2     ; COMPILER INVOKED BY:
+                          3     ;        d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\list.c LARGE OMF2 ROM(D16M
+                               ) BROWSE INTVECTOR(0X6020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstim
+                               er\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\SRC\debug\;..\SRC\dhcp\;..\SR
+                               C\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\b
+                               uffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSS
+                               ource\portable\Keil\AX11000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL
+                               _AX11000) VARBANKING DEBUG PRINT(.\list.lst) SRC(.\list.SRC)
+                          4     
+                          5     $mod_cont 
+                          6     $nomod51 
+                          7     
+                          8     NAME    LIST
+                          9     
+ 0098.3                  10     TB08    BIT     098H.3
+ 00C0.3                  11     TB18    BIT     0C0H.3
+ 0080                    12     P0      DATA    080H
+ 0098.7                  13     SM00    BIT     098H.7
+ 0090                    14     P1      DATA    090H
+ 00C0.7                  15     SM10    BIT     0C0H.7
+ 0098.6                  16     SM01    BIT     098H.6
+ 00A0                    17     P2      DATA    0A0H
+ 00C0.6                  18     SM11    BIT     0C0H.6
+ 0098.5                  19     SM02    BIT     098H.5
+ 00B0                    20     P3      DATA    0B0H
+ 00D0.6                  21     AC      BIT     0D0H.6
+ 00C0.5                  22     SM12    BIT     0C0H.5
+ 00B0.4                  23     T0      BIT     0B0H.4
+ 00CF                    24     SPIDR   DATA    0CFH
+ 00B0.5                  25     T1      BIT     0B0H.5
+ 00A8.7                  26     EA      BIT     0A8H.7
+ 00D6                    27     OWCIR   DATA    0D6H
+ 00C5                    28     CH      DATA    0C5H
+ 0083                    29     DPH0    DATA    083H
+ 00A8                    30     IE      DATA    0A8H
+ 0085                    31     DPH1    DATA    085H
+ 00C4                    32     CL      DATA    0C4H
+ 0080.0                  33     P0_0    BIT     080H.0
+ 0090.0                  34     P1_0    BIT     090H.0
+ 0080.1                  35     P0_1    BIT     080H.1
+ 00B9                    36     CCAPH0  DATA    0B9H
+ 0082                    37     DPL0    DATA    082H
+ 00A0.0                  38     P2_0    BIT     0A0H.0
+ 0090.1                  39     P1_1    BIT     090H.1
+ 0080.2                  40     P0_2    BIT     080H.2
+ 00BA                    41     CCAPH1  DATA    0BAH
+ 0084                    42     DPL1    DATA    084H
+ 00B0.0                  43     P3_0    BIT     0B0H.0
+ 00A0.1                  44     P2_1    BIT     0A0H.1
+ 0090.2                  45     P1_2    BIT     090H.2
+ 0080.3                  46     P0_3    BIT     080H.3
+ 00E2                    47     UR2_DLH DATA    0E2H
+ 00BB                    48     CCAPH2  DATA    0BBH
+ 00A7                    49     XMRHR   DATA    0A7H
+ 00B0.1                  50     P3_1    BIT     0B0H.1
+ 00A0.2                  51     P2_2    BIT     0A0H.2
+ 0090.3                  52     P1_3    BIT     090H.3
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE     2
+
+ 0080.4                  53     P0_4    BIT     080H.4
+ 00BC                    54     CCAPH3  DATA    0BCH
+ 00B0.2                  55     P3_2    BIT     0B0H.2
+ 00A0.3                  56     P2_3    BIT     0A0H.3
+ 0090.4                  57     P1_4    BIT     090H.4
+ 0080.5                  58     P0_5    BIT     080H.5
+ 00EB                    59     TA      DATA    0EBH
+ 00BD                    60     CCAPH4  DATA    0BDH
+ 00B1                    61     CCAPL0  DATA    0B1H
+ 00C8.6                  62     EXF2    BIT     0C8H.6
+ 00B0.7                  63     RD      BIT     0B0H.7
+ 00B0.3                  64     P3_3    BIT     0B0H.3
+ 00A0.4                  65     P2_4    BIT     0A0H.4
+ 0098.4                  66     REN0    BIT     098H.4
+ 0090.5                  67     P1_5    BIT     090H.5
+ 0080.6                  68     P0_6    BIT     080H.6
+ 00E3                    69     UR2_FCR DATA    0E3H
+ 00D1                    70     CCAPM0  DATA    0D1H
+ 00C9                    71     T2IF    DATA    0C9H
+ 00B2                    72     CCAPL1  DATA    0B2H
+ 00C0.4                  73     REN1    BIT     0C0H.4
+ 00B0.4                  74     P3_4    BIT     0B0H.4
+ 00A0.5                  75     P2_5    BIT     0A0H.5
+ 0090.6                  76     P1_6    BIT     090H.6
+ 0080.7                  77     P0_7    BIT     080H.7
+ 00E1                    78     UR2_DLL DATA    0E1H
+ 00D2                    79     CCAPM1  DATA    0D2H
+ 00B3                    80     CCAPL2  DATA    0B3H
+ 00A6                    81     XMRLR   DATA    0A6H
+ 00B0.5                  82     P3_5    BIT     0B0H.5
+ 00A0.6                  83     P2_6    BIT     0A0H.6
+ 0090.7                  84     P1_7    BIT     090H.7
+ 00D3                    85     CCAPM2  DATA    0D3H
+ 00B4                    86     CCAPL3  DATA    0B4H
+ 00A5                    87     XMWHR   DATA    0A5H
+ 00B0.6                  88     P3_6    BIT     0B0H.6
+ 00A0.7                  89     P2_7    BIT     0A0H.7
+ 00D4                    90     CCAPM3  DATA    0D4H
+ 00B8                    91     IP      DATA    0B8H
+ 00B5                    92     CCAPL4  DATA    0B5H
+ 00B0.7                  93     P3_7    BIT     0B0H.7
+ 00D5                    94     CCAPM4  DATA    0D5H
+ 009A                    95     DBAR    DATA    09AH
+ 00E2                    96     UR2_IER DATA    0E2H
+ 00D0.7                  97     CY      BIT     0D0H.7
+ 00B0.2                  98     INT0    BIT     0B0H.2
+ 00E4                    99     UR2_LCR DATA    0E4H
+ 00A4                   100     XMWLR   DATA    0A4H
+ 00B0.3                 101     INT1    BIT     0B0H.3
+ 00E5                   102     UR2_MCR DATA    0E5H
+ 0093                   103     DPX0    DATA    093H
+ 0096                   104     I2CCIR  DATA    096H
+ 0095                   105     DPX1    DATA    095H
+ 00E3                   106     UR2_IIR DATA    0E3H
+ 00E1                   107     UR2_RBR DATA    0E1H
+ 009D                   108     ACON    DATA    09DH
+ 009B                   109     DCIR    DATA    09BH
+ 0081                   110     SP      DATA    081H
+ 00C3                   111     CCON    DATA    0C3H
+ 00C2                   112     CMOD    DATA    0C2H
+ 00D0.2                 113     OV      BIT     0D0H.2
+ 00B0.6                 114     WR      BIT     0B0H.6
+ 00E1                   115     UR2_THR DATA    0E1H
+ 00E8.5                 116     EWDI    BIT     0E8H.5
+ 00D8.3                 117     WDIF    BIT     0D8H.3
+ 00CB                   118     RLDH    DATA    0CBH
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE     3
+
+ 00BE                   119     EPCR    DATA    0BEH
+ 00AA                   120     LDHR    DATA    0AAH
+ 00E6                   121     UR2_LSR DATA    0E6H
+ 00BF                   122     EPDR    DATA    0BFH
+ 00B6                   123     MCIR    DATA    0B6H
+ 00C8.5                 124     RCLK    BIT     0C8H.5
+ 00E7                   125     UR2_MSR DATA    0E7H
+ 00C8.4                 126     TCLK    BIT     0C8H.4
+ 00CA                   127     RLDL    DATA    0CAH
+ 00A9                   128     LDLR    DATA    0A9H
+ 0087                   129     PCON    DATA    087H
+ 00DE                   130     CANCIR  DATA    0DEH
+ 00AE                   131     TCIR    DATA    0AEH
+ 00F8.5                 132     PWDI    BIT     0F8H.5
+ 00A2                   133     LSCR    DATA    0A2H
+ 0089                   134     TMOD    DATA    089H
+ 0088                   135     TCON    DATA    088H
+ 00D7                   136     OWDR    DATA    0D7H
+ 0088.1                 137     IE0     BIT     088H.1
+ 0088.3                 138     IE1     BIT     088H.3
+ 00EA                   139     MXAX    DATA    0EAH
+ 00A1                   140     LMSR    DATA    0A1H
+ 00F9                   141     MD0     DATA    0F9H
+ 00F0                   142     B       DATA    0F0H
+ 00FA                   143     MD1     DATA    0FAH
+ 00A1                   144     LSAIER  DATA    0A1H
+ 00FB                   145     MD2     DATA    0FBH
+ 00D8.2                 146     WTRF    BIT     0D8H.2
+ 00FC                   147     MD3     DATA    0FCH
+ 009E                   148     PISSR1  DATA    09EH
+ 00FD                   149     MD4     DATA    0FDH
+ 00A3                   150     LSSR    DATA    0A3H
+ 009F                   151     PISSR2  DATA    09FH
+ 00FE                   152     MD5     DATA    0FEH
+ 00E0                   153     ACC     DATA    0E0H
+ 00A8.4                 154     ES0     BIT     0A8H.4
+ 00C8.1                 155     CT2     BIT     0C8H.1
+ 00A8.6                 156     ES1     BIT     0A8H.6
+ 00A8.1                 157     ET0     BIT     0A8H.1
+ 00A8.3                 158     ET1     BIT     0A8H.3
+ 0088.5                 159     TF0     BIT     088H.5
+ 00A8.5                 160     ET2     BIT     0A8H.5
+ 0098.0                 161     RI0     BIT     098H.0
+ 0088.7                 162     TF1     BIT     088H.7
+ 00C8.7                 163     TF2     BIT     0C8H.7
+ 00C0.0                 164     RI1     BIT     0C0H.0
+ 00CE                   165     SPICIR  DATA    0CEH
+ 008C                   166     TH0     DATA    08CH
+ 00A8.0                 167     EX0     BIT     0A8H.0
+ 0098.1                 168     TI0     BIT     098H.1
+ 0088.0                 169     IT0     BIT     088H.0
+ 008D                   170     TH1     DATA    08DH
+ 00C0.1                 171     TI1     BIT     0C0H.1
+ 00A8.2                 172     EX1     BIT     0A8H.2
+ 0088.2                 173     IT1     BIT     088H.2
+ 00CD                   174     TH2     DATA    0CDH
+ 00D0.0                 175     P       BIT     0D0H.0
+ 008A                   176     TL0     DATA    08AH
+ 008F                   177     CSREPR  DATA    08FH
+ 008B                   178     TL1     DATA    08BH
+ 00CC                   179     TL2     DATA    0CCH
+ 00B8.4                 180     PS0     BIT     0B8H.4
+ 00E8                   181     EIE     DATA    0E8H
+ 0092                   182     WTST    DATA    092H
+ 00B8.6                 183     PS1     BIT     0B8H.6
+ 00B8.1                 184     PT0     BIT     0B8H.1
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE     4
+
+ 0091                   185     EIF     DATA    091H
+ 00D0.3                 186     RS0     BIT     0D0H.3
+ 00B8.3                 187     PT1     BIT     0B8H.3
+ 0097                   188     I2CDR   DATA    097H
+ 00D0.4                 189     RS1     BIT     0D0H.4
+ 00B8.5                 190     PT2     BIT     0B8H.5
+ 0088.4                 191     TR0     BIT     088H.4
+ 0088.6                 192     TR1     BIT     088H.6
+ 00C8.2                 193     TR2     BIT     0C8H.2
+ 00B8.0                 194     PX0     BIT     0B8H.0
+ 00B8.2                 195     PX1     BIT     0B8H.2
+ 009C                   196     DDR     DATA    09CH
+ 0083                   197     DPH     DATA    083H
+ 00F8                   198     EIP     DATA    0F8H
+ 0082                   199     DPL     DATA    082H
+ 00A2                   200     LCR     DATA    0A2H
+ 0099                   201     SBUF0   DATA    099H
+ 00C1                   202     SBUF1   DATA    0C1H
+ 00E8.0                 203     EINT2   BIT     0E8H.0
+ 00C8.3                 204     EXEN2   BIT     0C8H.3
+ 00B7                   205     MDR     DATA    0B7H
+ 00E8.1                 206     EINT3   BIT     0E8H.1
+ 00C8.0                 207     CPRL2   BIT     0C8H.0
+ 0098                   208     SCON0   DATA    098H
+ 00E8.2                 209     EINT4   BIT     0E8H.2
+ 00C0                   210     SCON1   DATA    0C0H
+ 0094                   211     SDSTSR  DATA    094H
+ 00E8.3                 212     EINT5   BIT     0E8H.3
+ 00E9                   213     STATUS  DATA    0E9H
+ 00E8.4                 214     EINT6   BIT     0E8H.4
+ 00C8                   215     T2CON   DATA    0C8H
+ 0086                   216     DPS     DATA    086H
+ 00DF                   217     CANDR   DATA    0DFH
+ 00AF                   218     TDR     DATA    0AFH
+ 00A5                   219     LDAHR   DATA    0A5H
+ 0093                   220     DPX     DATA    093H
+ 00AD                   221     DMAHR   DATA    0ADH
+ 00F8.0                 222     PINT2   BIT     0F8H.0
+ 00B0.0                 223     RXD     BIT     0B0H.0
+ 00F8.1                 224     PINT3   BIT     0F8H.1
+ 008E                   225     CKCON   DATA    08EH
+ 00F8.2                 226     PINT4   BIT     0F8H.2
+ 00D8.1                 227     EWT     BIT     0D8H.1
+ 00B0.1                 228     TXD     BIT     0B0H.1
+ 00A4                   229     LDALR   DATA    0A4H
+ 00F8.3                 230     PINT5   BIT     0F8H.3
+ 00AB                   231     DMALR   DATA    0ABH
+ 00A3                   232     LSR     DATA    0A3H
+ 00F8.4                 233     PINT6   BIT     0F8H.4
+ 00AC                   234     DMAMR   DATA    0ACH
+ 00FF                   235     ARCON   DATA    0FFH
+ 00D0.5                 236     F0      BIT     0D0H.5
+ 00D0.1                 237     F1      BIT     0D0H.1
+ 00A6                   238     LDCSR   DATA    0A6H
+ 00D0                   239     PSW     DATA    0D0H
+ 0098.2                 240     RB08    BIT     098H.2
+ 00D8                   241     WDCON   DATA    0D8H
+ 00D8.0                 242     RWT     BIT     0D8H.0
+ 00C0.2                 243     RB18    BIT     0C0H.2
+------                  244     ?PR?_?vListInitialise?LIST               SEGMENT ECODE INSEG 
+------                  245     ?PR?_?vListInitialiseItem?LIST           SEGMENT ECODE INSEG 
+------                  246     ?PR?_?vListInsertEnd?LIST                SEGMENT ECODE INSEG 
+------                  247     ?PR?_?vListInsert?LIST                   SEGMENT ECODE INSEG 
+------                  248     ?PR?_?vListRemove?LIST                   SEGMENT ECODE INSEG 
+                        249             EXTRN   CODE (?C?ADDXBP)
+                        250             EXTRN   DATA (?C_XBP)
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE     5
+
+                        251             EXTRN   NUMBER (?C?XDATASEG)
+                        252             EXTRN   CODE (?C?PSTPTR)
+                        253             EXTRN   CODE (?C?PLDPTR)
+                        254             EXTRN   CODE (?C?LSTPTR)
+                        255             EXTRN   CODE (?C?ISTPTR)
+                        256             EXTRN   CODE (?C?XBPOFF)
+                        257             EXTRN   CODE (?C?IILDPTR)
+                        258             EXTRN   CODE (?C?LLDPTR)
+                        259             EXTRN   CODE (?C?LSTXDATA)
+                        260             EXTRN   CODE (?C?ULCMP)
+                        261             PUBLIC  _?vListRemove
+                        262             PUBLIC  _?vListInsert
+                        263             PUBLIC  _?vListInsertEnd
+                        264             PUBLIC  _?vListInitialiseItem
+                        265             PUBLIC  _?vListInitialise
+                        266     ; /*
+                        267     ;       FreeRTOS V2.6.0 - Copyright (C) 2003 - 2005 Richard Barry.
+                        268     ; 
+                        269     ;       This file is part of the FreeRTOS distribution.
+                        270     ; 
+                        271     ;       FreeRTOS is free software; you can redistribute it and/or modify
+                        272     ;       it under the terms of the GNU General Public License as published by
+                        273     ;       the Free Software Foundation; either version 2 of the License, or
+                        274     ;       (at your option) any later version.
+                        275     ; 
+                        276     ;       FreeRTOS is distributed in the hope that it will be useful,
+                        277     ;       but WITHOUT ANY WARRANTY; without even the implied warranty of
+                        278     ;       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+                        279     ;       GNU General Public License for more details.
+                        280     ; 
+                        281     ;       You should have received a copy of the GNU General Public License
+                        282     ;       along with FreeRTOS; if not, write to the Free Software
+                        283     ;       Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+                        284     ; 
+                        285     ;       A special exception to the GPL can be applied should you wish to distribute
+                        286     ;       a combined work that includes FreeRTOS, without being obliged to provide
+                        287     ;       the source code for any proprietary components.  See the licensing section 
+                        288     ;       of http://www.FreeRTOS.org for full details of how and when the exception
+                        289     ;       can be applied.
+                        290     ; 
+                        291     ;       ***************************************************************************
+                        292     ;       See http://www.FreeRTOS.org for documentation, latest information, license 
+                        293     ;       and contact details.  Please ensure to read the configuration and relevant 
+                        294     ;       port sections of the online documentation.
+                        295     ;       ***************************************************************************
+                        296     ; */
+                        297     ; 
+                        298     ; /*
+                        299     ; Changes from V1.2.0
+                        300     ; 
+                        301     ;       + Removed the volatile modifier from the function parameters.  This was
+                        302     ;         only ever included to prevent compiler warnings.  Now warnings are 
+                        303     ;         removed by casting parameters where the calls are made.
+                        304     ; 
+                        305     ;       + prvListGetOwnerOfNextEntry() and prvListGetOwnerOfHeadEntry() have been
+                        306     ;         removed from the c file and added as macros to the h file.
+                        307     ; 
+                        308     ;       + usNumberOfItems has been added to the list structure.  This removes the
+                        309     ;         need for a pointer comparison when checking if a list is empty, and so
+                        310     ;         is slightly faster.
+                        311     ; 
+                        312     ;       + Removed the NULL check in vListRemove().  This makes the call faster but
+                        313     ;         necessitates any application code utilising the list implementation to
+                        314     ;         ensure NULL pointers are not passed.
+                        315     ; 
+                        316     ; Changes from V2.0.0
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE     6
+
+                        317     ; 
+                        318     ;       + Double linked the lists to allow faster removal item removal.
+                        319     ; */
+                        320     ; 
+                        321     ; #include <stdlib.h>
+                        322     ; #include "projdefs.h"
+                        323     ; #include "portable.h"
+                        324     ; #include "list.h"
+                        325     ; 
+                        326     ; /*-----------------------------------------------------------
+                        327     ;  * PUBLIC LIST API documented in list.h
+                        328     ;  *----------------------------------------------------------*/
+                        329     ; 
+                        330     ; void vListInitialise( xList *pxList ) reentrant
+                        331     
+------                  332             RSEG  ?PR?_?vListInitialise?LIST
+000000                  333     _?vListInitialise:
+                        334             USING   0
+                        335                             ; SOURCE LINE # 65
+000000 9000FFFD         336             MOV     DPTR,#0FFFDH
+000004 12000000   E     337             LCALL   ?C?ADDXBP
+000008 EB               338             MOV     A,R3
+000009 F0               339             MOVX    @DPTR,A
+00000A A3               340             INC     DPTR
+00000B EA               341             MOV     A,R2
+00000C F0               342             MOVX    @DPTR,A
+00000D A3               343             INC     DPTR
+00000E E9               344             MOV     A,R1
+00000F F0               345             MOVX    @DPTR,A
+                        346     ; {
+                        347     ;       /* The list structure contains a list item which is used to mark the 
+                        348     ;       end of the list.  To initialise the list the list end is inserted
+                        349     ;       as the only list entry. */
+                        350     ;       pxList->pxHead = &( pxList->xListEnd );
+                        351                             ; SOURCE LINE # 70
+000010 850083     E     352             MOV     DPH,?C_XBP
+000013 850082     E     353             MOV     DPL,?C_XBP+01H
+000016 759300     E     354             MOV     DPX,#?C?XDATASEG
+000019 E0               355             MOVX    A,@DPTR
+00001A FB               356             MOV     R3,A
+00001B A3               357             INC     DPTR
+00001C E0               358             MOVX    A,@DPTR
+00001D FA               359             MOV     R2,A
+00001E A3               360             INC     DPTR
+00001F E0               361             MOVX    A,@DPTR
+000020 2408             362             ADD     A,#08H
+000022 F9               363             MOV     R1,A
+000023 E4               364             CLR     A
+000024 3A               365             ADDC    A,R2
+000025 FA               366             MOV     R2,A
+000026 C003             367             PUSH    AR3
+000028 C002             368             PUSH    AR2
+00002A C001             369             PUSH    AR1
+00002C 850083     E     370             MOV     DPH,?C_XBP
+00002F 850082     E     371             MOV     DPL,?C_XBP+01H
+000032 759300     E     372             MOV     DPX,#?C?XDATASEG
+000035 E0               373             MOVX    A,@DPTR
+000036 FB               374             MOV     R3,A
+000037 A3               375             INC     DPTR
+000038 E0               376             MOVX    A,@DPTR
+000039 FA               377             MOV     R2,A
+00003A A3               378             INC     DPTR
+00003B E0               379             MOVX    A,@DPTR
+00003C 2402             380             ADD     A,#02H
+00003E F9               381             MOV     R1,A
+00003F E4               382             CLR     A
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE     7
+
+000040 3A               383             ADDC    A,R2
+000041 FA               384             MOV     R2,A
+000042 12000000   E     385             LCALL   ?C?PSTPTR
+                        386     ;       pxList->pxIndex = pxList->pxHead;
+                        387                             ; SOURCE LINE # 71
+000046 850083     E     388             MOV     DPH,?C_XBP
+000049 850082     E     389             MOV     DPL,?C_XBP+01H
+00004C 759300     E     390             MOV     DPX,#?C?XDATASEG
+00004F E0               391             MOVX    A,@DPTR
+000050 FB               392             MOV     R3,A
+000051 A3               393             INC     DPTR
+000052 E0               394             MOVX    A,@DPTR
+000053 FA               395             MOV     R2,A
+000054 A3               396             INC     DPTR
+000055 E0               397             MOVX    A,@DPTR
+000056 2402             398             ADD     A,#02H
+000058 F9               399             MOV     R1,A
+000059 E4               400             CLR     A
+00005A 3A               401             ADDC    A,R2
+00005B FA               402             MOV     R2,A
+00005C 12000000   E     403             LCALL   ?C?PLDPTR
+000060 C003             404             PUSH    AR3
+000062 C002             405             PUSH    AR2
+000064 C001             406             PUSH    AR1
+000066 850083     E     407             MOV     DPH,?C_XBP
+000069 850082     E     408             MOV     DPL,?C_XBP+01H
+00006C 759300     E     409             MOV     DPX,#?C?XDATASEG
+00006F E0               410             MOVX    A,@DPTR
+000070 FB               411             MOV     R3,A
+000071 A3               412             INC     DPTR
+000072 E0               413             MOVX    A,@DPTR
+000073 FA               414             MOV     R2,A
+000074 A3               415             INC     DPTR
+000075 E0               416             MOVX    A,@DPTR
+000076 2405             417             ADD     A,#05H
+000078 F9               418             MOV     R1,A
+000079 E4               419             CLR     A
+00007A 3A               420             ADDC    A,R2
+00007B FA               421             MOV     R2,A
+00007C 12000000   E     422             LCALL   ?C?PSTPTR
+                        423     ; 
+                        424     ;       /* The list end value is the highest possible value in the list to
+                        425     ;       ensure it remains at the end of the list. */
+                        426     ;       pxList->xListEnd.xItemValue = portMAX_DELAY;
+                        427                             ; SOURCE LINE # 75
+000080 74FF             428             MOV     A,#0FFH
+000082 FF               429             MOV     R7,A
+000083 FE               430             MOV     R6,A
+000084 FD               431             MOV     R5,A
+000085 FC               432             MOV     R4,A
+000086 850083     E     433             MOV     DPH,?C_XBP
+000089 850082     E     434             MOV     DPL,?C_XBP+01H
+00008C 759300     E     435             MOV     DPX,#?C?XDATASEG
+00008F E0               436             MOVX    A,@DPTR
+000090 FB               437             MOV     R3,A
+000091 A3               438             INC     DPTR
+000092 E0               439             MOVX    A,@DPTR
+000093 FA               440             MOV     R2,A
+000094 A3               441             INC     DPTR
+000095 E0               442             MOVX    A,@DPTR
+000096 2408             443             ADD     A,#08H
+000098 F9               444             MOV     R1,A
+000099 E4               445             CLR     A
+00009A 3A               446             ADDC    A,R2
+00009B FA               447             MOV     R2,A
+00009C 12000000   E     448             LCALL   ?C?LSTPTR
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE     8
+
+                        449     ; 
+                        450     ;       /* The list end next and previous pointers point to itself so we know
+                        451     ;       when the list is empty. */
+                        452     ;       pxList->xListEnd.pxNext = &( pxList->xListEnd );
+                        453                             ; SOURCE LINE # 79
+0000A0 850083     E     454             MOV     DPH,?C_XBP
+0000A3 850082     E     455             MOV     DPL,?C_XBP+01H
+0000A6 759300     E     456             MOV     DPX,#?C?XDATASEG
+0000A9 E0               457             MOVX    A,@DPTR
+0000AA FB               458             MOV     R3,A
+0000AB A3               459             INC     DPTR
+0000AC E0               460             MOVX    A,@DPTR
+0000AD FA               461             MOV     R2,A
+0000AE A3               462             INC     DPTR
+0000AF E0               463             MOVX    A,@DPTR
+0000B0 2408             464             ADD     A,#08H
+0000B2 F9               465             MOV     R1,A
+0000B3 E4               466             CLR     A
+0000B4 3A               467             ADDC    A,R2
+0000B5 FA               468             MOV     R2,A
+0000B6 C003             469             PUSH    AR3
+0000B8 C002             470             PUSH    AR2
+0000BA C001             471             PUSH    AR1
+0000BC 850083     E     472             MOV     DPH,?C_XBP
+0000BF 850082     E     473             MOV     DPL,?C_XBP+01H
+0000C2 759300     E     474             MOV     DPX,#?C?XDATASEG
+0000C5 E0               475             MOVX    A,@DPTR
+0000C6 FB               476             MOV     R3,A
+0000C7 A3               477             INC     DPTR
+0000C8 E0               478             MOVX    A,@DPTR
+0000C9 FA               479             MOV     R2,A
+0000CA A3               480             INC     DPTR
+0000CB E0               481             MOVX    A,@DPTR
+0000CC 240C             482             ADD     A,#0CH
+0000CE F9               483             MOV     R1,A
+0000CF E4               484             CLR     A
+0000D0 3A               485             ADDC    A,R2
+0000D1 FA               486             MOV     R2,A
+0000D2 12000000   E     487             LCALL   ?C?PSTPTR
+                        488     ;       pxList->xListEnd.pxPrevious = &( pxList->xListEnd );
+                        489                             ; SOURCE LINE # 80
+0000D6 850083     E     490             MOV     DPH,?C_XBP
+0000D9 850082     E     491             MOV     DPL,?C_XBP+01H
+0000DC 759300     E     492             MOV     DPX,#?C?XDATASEG
+0000DF E0               493             MOVX    A,@DPTR
+0000E0 FB               494             MOV     R3,A
+0000E1 A3               495             INC     DPTR
+0000E2 E0               496             MOVX    A,@DPTR
+0000E3 FA               497             MOV     R2,A
+0000E4 A3               498             INC     DPTR
+0000E5 E0               499             MOVX    A,@DPTR
+0000E6 2408             500             ADD     A,#08H
+0000E8 F9               501             MOV     R1,A
+0000E9 E4               502             CLR     A
+0000EA 3A               503             ADDC    A,R2
+0000EB FA               504             MOV     R2,A
+0000EC C003             505             PUSH    AR3
+0000EE C002             506             PUSH    AR2
+0000F0 C001             507             PUSH    AR1
+0000F2 850083     E     508             MOV     DPH,?C_XBP
+0000F5 850082     E     509             MOV     DPL,?C_XBP+01H
+0000F8 759300     E     510             MOV     DPX,#?C?XDATASEG
+0000FB E0               511             MOVX    A,@DPTR
+0000FC FB               512             MOV     R3,A
+0000FD A3               513             INC     DPTR
+0000FE E0               514             MOVX    A,@DPTR
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE     9
+
+0000FF FA               515             MOV     R2,A
+000100 A3               516             INC     DPTR
+000101 E0               517             MOVX    A,@DPTR
+000102 240F             518             ADD     A,#0FH
+000104 F9               519             MOV     R1,A
+000105 E4               520             CLR     A
+000106 3A               521             ADDC    A,R2
+000107 FA               522             MOV     R2,A
+000108 12000000   E     523             LCALL   ?C?PSTPTR
+                        524     ; 
+                        525     ;       /* The list head will never get used and has no owner. */
+                        526     ;       pxList->xListEnd.pvOwner = NULL;
+                        527                             ; SOURCE LINE # 83
+00010C 7B00             528             MOV     R3,#00H
+00010E 7A00             529             MOV     R2,#00H
+000110 7900             530             MOV     R1,#00H
+000112 C003             531             PUSH    AR3
+000114 C002             532             PUSH    AR2
+000116 C001             533             PUSH    AR1
+000118 850083     E     534             MOV     DPH,?C_XBP
+00011B 850082     E     535             MOV     DPL,?C_XBP+01H
+00011E 759300     E     536             MOV     DPX,#?C?XDATASEG
+000121 E0               537             MOVX    A,@DPTR
+000122 FB               538             MOV     R3,A
+000123 A3               539             INC     DPTR
+000124 E0               540             MOVX    A,@DPTR
+000125 FA               541             MOV     R2,A
+000126 A3               542             INC     DPTR
+000127 E0               543             MOVX    A,@DPTR
+000128 2412             544             ADD     A,#012H
+00012A F9               545             MOV     R1,A
+00012B E4               546             CLR     A
+00012C 3A               547             ADDC    A,R2
+00012D FA               548             MOV     R2,A
+00012E 12000000   E     549             LCALL   ?C?PSTPTR
+                        550     ; 
+                        551     ;       /* Make sure the marker items are not mistaken for being on a list. */
+                        552     ;       vListInitialiseItem( ( xListItem * ) &( pxList->xListEnd ) );
+                        553                             ; SOURCE LINE # 86
+000132 850083     E     554             MOV     DPH,?C_XBP
+000135 850082     E     555             MOV     DPL,?C_XBP+01H
+000138 759300     E     556             MOV     DPX,#?C?XDATASEG
+00013B E0               557             MOVX    A,@DPTR
+00013C FB               558             MOV     R3,A
+00013D A3               559             INC     DPTR
+00013E E0               560             MOVX    A,@DPTR
+00013F FA               561             MOV     R2,A
+000140 A3               562             INC     DPTR
+000141 E0               563             MOVX    A,@DPTR
+000142 2408             564             ADD     A,#08H
+000144 F9               565             MOV     R1,A
+000145 E4               566             CLR     A
+000146 3A               567             ADDC    A,R2
+000147 FA               568             MOV     R2,A
+000148 12000000   F     569             LCALL   _?vListInitialiseItem
+                        570     ; 
+                        571     ;       pxList->usNumberOfItems = ( unsigned portSHORT ) 0;
+                        572                             ; SOURCE LINE # 88
+00014C 850083     E     573             MOV     DPH,?C_XBP
+00014F 850082     E     574             MOV     DPL,?C_XBP+01H
+000152 759300     E     575             MOV     DPX,#?C?XDATASEG
+000155 E0               576             MOVX    A,@DPTR
+000156 FB               577             MOV     R3,A
+000157 A3               578             INC     DPTR
+000158 E0               579             MOVX    A,@DPTR
+000159 FA               580             MOV     R2,A
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    10
+
+00015A A3               581             INC     DPTR
+00015B E0               582             MOVX    A,@DPTR
+00015C F9               583             MOV     R1,A
+00015D E4               584             CLR     A
+00015E F5F0             585             MOV     B,A
+000160 12000000   E     586             LCALL   ?C?ISTPTR
+                        587     ; }
+                        588                             ; SOURCE LINE # 89
+000164 90000003         589             MOV     DPTR,#03H
+000168 02000000   E     590             LJMP    ?C?ADDXBP
+                        591     ; END OF _?vListInitialise
+                        592     
+                        593     ; /*-----------------------------------------------------------*/
+                        594     ; 
+                        595     ; void vListInitialiseItem( xListItem *pxItem ) reentrant
+                        596     
+------                  597             RSEG  ?PR?_?vListInitialiseItem?LIST
+000000                  598     _?vListInitialiseItem:
+                        599             USING   0
+                        600                             ; SOURCE LINE # 92
+000000 9000FFFD         601             MOV     DPTR,#0FFFDH
+000004 12000000   E     602             LCALL   ?C?ADDXBP
+000008 EB               603             MOV     A,R3
+000009 F0               604             MOVX    @DPTR,A
+00000A A3               605             INC     DPTR
+00000B EA               606             MOV     A,R2
+00000C F0               607             MOVX    @DPTR,A
+00000D A3               608             INC     DPTR
+00000E E9               609             MOV     A,R1
+00000F F0               610             MOVX    @DPTR,A
+                        611     ; {
+                        612     ;       /* Make sure the list item is not recorded as being on a list. */
+                        613     ;       pxItem->pvContainer = NULL;
+                        614                             ; SOURCE LINE # 95
+000010 7B00             615             MOV     R3,#00H
+000012 7A00             616             MOV     R2,#00H
+000014 7900             617             MOV     R1,#00H
+000016 C003             618             PUSH    AR3
+000018 C002             619             PUSH    AR2
+00001A C001             620             PUSH    AR1
+00001C 850083     E     621             MOV     DPH,?C_XBP
+00001F 850082     E     622             MOV     DPL,?C_XBP+01H
+000022 759300     E     623             MOV     DPX,#?C?XDATASEG
+000025 E0               624             MOVX    A,@DPTR
+000026 FB               625             MOV     R3,A
+000027 A3               626             INC     DPTR
+000028 E0               627             MOVX    A,@DPTR
+000029 FA               628             MOV     R2,A
+00002A A3               629             INC     DPTR
+00002B E0               630             MOVX    A,@DPTR
+00002C 240D             631             ADD     A,#0DH
+00002E F9               632             MOV     R1,A
+00002F E4               633             CLR     A
+000030 3A               634             ADDC    A,R2
+000031 FA               635             MOV     R2,A
+000032 12000000   E     636             LCALL   ?C?PSTPTR
+                        637     ; }
+                        638                             ; SOURCE LINE # 96
+000036 90000003         639             MOV     DPTR,#03H
+00003A 02000000   E     640             LJMP    ?C?ADDXBP
+                        641     ; END OF _?vListInitialiseItem
+                        642     
+                        643     ; /*-----------------------------------------------------------*/
+                        644     ; 
+                        645     ; void vListInsertEnd( xList *pxList, xListItem *pxNewListItem ) reentrant
+                        646     
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    11
+
+------                  647             RSEG  ?PR?_?vListInsertEnd?LIST
+000000                  648     _?vListInsertEnd:
+                        649             USING   0
+                        650                             ; SOURCE LINE # 99
+000000 9000FFFD         651             MOV     DPTR,#0FFFDH
+000004 12000000   E     652             LCALL   ?C?ADDXBP
+000008 EB               653             MOV     A,R3
+000009 F0               654             MOVX    @DPTR,A
+00000A A3               655             INC     DPTR
+00000B EA               656             MOV     A,R2
+00000C F0               657             MOVX    @DPTR,A
+00000D A3               658             INC     DPTR
+00000E E9               659             MOV     A,R1
+00000F F0               660             MOVX    @DPTR,A
+000010 9000FFFD         661             MOV     DPTR,#0FFFDH
+000014 12000000   E     662             LCALL   ?C?ADDXBP
+                        663     ; {
+                        664     ; volatile xListItem * pxIndex;
+                        665     ; 
+                        666     ;       /* Insert a new list item into pxList, but rather than sort the list, 
+                        667     ;       makes the new list item the last item to be removed by a call to 
+                        668     ;       pvListGetOwnerOfNextEntry.  This means it has to be the item pointed to by
+                        669     ;       the pxIndex member. */
+                        670     ;       pxIndex = pxList->pxIndex;
+                        671                             ; SOURCE LINE # 107
+000018 90000003         672             MOV     DPTR,#03H
+00001C 12000000   E     673             LCALL   ?C?XBPOFF
+000020 E0               674             MOVX    A,@DPTR
+000021 FB               675             MOV     R3,A
+000022 A3               676             INC     DPTR
+000023 E0               677             MOVX    A,@DPTR
+000024 FA               678             MOV     R2,A
+000025 A3               679             INC     DPTR
+000026 E0               680             MOVX    A,@DPTR
+000027 2405             681             ADD     A,#05H
+000029 F9               682             MOV     R1,A
+00002A E4               683             CLR     A
+00002B 3A               684             ADDC    A,R2
+00002C FA               685             MOV     R2,A
+00002D 12000000   E     686             LCALL   ?C?PLDPTR
+000031 850083     E     687             MOV     DPH,?C_XBP
+000034 850082     E     688             MOV     DPL,?C_XBP+01H
+000037 759300     E     689             MOV     DPX,#?C?XDATASEG
+00003A EB               690             MOV     A,R3
+00003B F0               691             MOVX    @DPTR,A
+00003C A3               692             INC     DPTR
+00003D EA               693             MOV     A,R2
+00003E F0               694             MOVX    @DPTR,A
+00003F A3               695             INC     DPTR
+000040 E9               696             MOV     A,R1
+000041 F0               697             MOVX    @DPTR,A
+                        698     ; 
+                        699     ;       pxNewListItem->pxNext = pxIndex->pxNext;
+                        700                             ; SOURCE LINE # 109
+000042 850083     E     701             MOV     DPH,?C_XBP
+000045 850082     E     702             MOV     DPL,?C_XBP+01H
+000048 759300     E     703             MOV     DPX,#?C?XDATASEG
+00004B E0               704             MOVX    A,@DPTR
+00004C FB               705             MOV     R3,A
+00004D A3               706             INC     DPTR
+00004E E0               707             MOVX    A,@DPTR
+00004F FA               708             MOV     R2,A
+000050 A3               709             INC     DPTR
+000051 E0               710             MOVX    A,@DPTR
+000052 2404             711             ADD     A,#04H
+000054 F9               712             MOV     R1,A
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    12
+
+000055 E4               713             CLR     A
+000056 3A               714             ADDC    A,R2
+000057 FA               715             MOV     R2,A
+000058 12000000   E     716             LCALL   ?C?PLDPTR
+00005C C003             717             PUSH    AR3
+00005E C002             718             PUSH    AR2
+000060 C001             719             PUSH    AR1
+000062 90000006         720             MOV     DPTR,#06H
+000066 12000000   E     721             LCALL   ?C?XBPOFF
+00006A E0               722             MOVX    A,@DPTR
+00006B FB               723             MOV     R3,A
+00006C A3               724             INC     DPTR
+00006D E0               725             MOVX    A,@DPTR
+00006E FA               726             MOV     R2,A
+00006F A3               727             INC     DPTR
+000070 E0               728             MOVX    A,@DPTR
+000071 2404             729             ADD     A,#04H
+000073 F9               730             MOV     R1,A
+000074 E4               731             CLR     A
+000075 3A               732             ADDC    A,R2
+000076 FA               733             MOV     R2,A
+000077 12000000   E     734             LCALL   ?C?PSTPTR
+                        735     ;       pxNewListItem->pxPrevious = pxList->pxIndex;
+                        736                             ; SOURCE LINE # 110
+00007B 90000003         737             MOV     DPTR,#03H
+00007F 12000000   E     738             LCALL   ?C?XBPOFF
+000083 E0               739             MOVX    A,@DPTR
+000084 FB               740             MOV     R3,A
+000085 A3               741             INC     DPTR
+000086 E0               742             MOVX    A,@DPTR
+000087 FA               743             MOV     R2,A
+000088 A3               744             INC     DPTR
+000089 E0               745             MOVX    A,@DPTR
+00008A 2405             746             ADD     A,#05H
+00008C F9               747             MOV     R1,A
+00008D E4               748             CLR     A
+00008E 3A               749             ADDC    A,R2
+00008F FA               750             MOV     R2,A
+000090 12000000   E     751             LCALL   ?C?PLDPTR
+000094 C003             752             PUSH    AR3
+000096 C002             753             PUSH    AR2
+000098 C001             754             PUSH    AR1
+00009A 90000006         755             MOV     DPTR,#06H
+00009E 12000000   E     756             LCALL   ?C?XBPOFF
+0000A2 E0               757             MOVX    A,@DPTR
+0000A3 FB               758             MOV     R3,A
+0000A4 A3               759             INC     DPTR
+0000A5 E0               760             MOVX    A,@DPTR
+0000A6 FA               761             MOV     R2,A
+0000A7 A3               762             INC     DPTR
+0000A8 E0               763             MOVX    A,@DPTR
+0000A9 2407             764             ADD     A,#07H
+0000AB F9               765             MOV     R1,A
+0000AC E4               766             CLR     A
+0000AD 3A               767             ADDC    A,R2
+0000AE FA               768             MOV     R2,A
+0000AF 12000000   E     769             LCALL   ?C?PSTPTR
+                        770     ;       pxIndex->pxNext->pxPrevious = ( volatile xListItem * ) pxNewListItem;
+                        771                             ; SOURCE LINE # 111
+0000B3 90000006         772             MOV     DPTR,#06H
+0000B7 12000000   E     773             LCALL   ?C?XBPOFF
+0000BB E0               774             MOVX    A,@DPTR
+0000BC FB               775             MOV     R3,A
+0000BD A3               776             INC     DPTR
+0000BE E0               777             MOVX    A,@DPTR
+0000BF FA               778             MOV     R2,A
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    13
+
+0000C0 A3               779             INC     DPTR
+0000C1 E0               780             MOVX    A,@DPTR
+0000C2 F9               781             MOV     R1,A
+0000C3 C003             782             PUSH    AR3
+0000C5 C002             783             PUSH    AR2
+0000C7 C001             784             PUSH    AR1
+0000C9 850083     E     785             MOV     DPH,?C_XBP
+0000CC 850082     E     786             MOV     DPL,?C_XBP+01H
+0000CF 759300     E     787             MOV     DPX,#?C?XDATASEG
+0000D2 E0               788             MOVX    A,@DPTR
+0000D3 FB               789             MOV     R3,A
+0000D4 A3               790             INC     DPTR
+0000D5 E0               791             MOVX    A,@DPTR
+0000D6 FA               792             MOV     R2,A
+0000D7 A3               793             INC     DPTR
+0000D8 E0               794             MOVX    A,@DPTR
+0000D9 2404             795             ADD     A,#04H
+0000DB F9               796             MOV     R1,A
+0000DC E4               797             CLR     A
+0000DD 3A               798             ADDC    A,R2
+0000DE FA               799             MOV     R2,A
+0000DF 12000000   E     800             LCALL   ?C?PLDPTR
+0000E3 E9               801             MOV     A,R1
+0000E4 2407             802             ADD     A,#07H
+0000E6 F9               803             MOV     R1,A
+0000E7 E4               804             CLR     A
+0000E8 3A               805             ADDC    A,R2
+0000E9 FA               806             MOV     R2,A
+0000EA 12000000   E     807             LCALL   ?C?PSTPTR
+                        808     ;       pxIndex->pxNext = ( volatile xListItem * ) pxNewListItem;
+                        809                             ; SOURCE LINE # 112
+0000EE 90000006         810             MOV     DPTR,#06H
+0000F2 12000000   E     811             LCALL   ?C?XBPOFF
+0000F6 E0               812             MOVX    A,@DPTR
+0000F7 FB               813             MOV     R3,A
+0000F8 A3               814             INC     DPTR
+0000F9 E0               815             MOVX    A,@DPTR
+0000FA FA               816             MOV     R2,A
+0000FB A3               817             INC     DPTR
+0000FC E0               818             MOVX    A,@DPTR
+0000FD F9               819             MOV     R1,A
+0000FE C003             820             PUSH    AR3
+000100 C002             821             PUSH    AR2
+000102 C001             822             PUSH    AR1
+000104 850083     E     823             MOV     DPH,?C_XBP
+000107 850082     E     824             MOV     DPL,?C_XBP+01H
+00010A 759300     E     825             MOV     DPX,#?C?XDATASEG
+00010D E0               826             MOVX    A,@DPTR
+00010E FB               827             MOV     R3,A
+00010F A3               828             INC     DPTR
+000110 E0               829             MOVX    A,@DPTR
+000111 FA               830             MOV     R2,A
+000112 A3               831             INC     DPTR
+000113 E0               832             MOVX    A,@DPTR
+000114 2404             833             ADD     A,#04H
+000116 F9               834             MOV     R1,A
+000117 E4               835             CLR     A
+000118 3A               836             ADDC    A,R2
+000119 FA               837             MOV     R2,A
+00011A 12000000   E     838             LCALL   ?C?PSTPTR
+                        839     ;       pxList->pxIndex = ( volatile xListItem * ) pxNewListItem;
+                        840                             ; SOURCE LINE # 113
+00011E 90000006         841             MOV     DPTR,#06H
+000122 12000000   E     842             LCALL   ?C?XBPOFF
+000126 E0               843             MOVX    A,@DPTR
+000127 FB               844             MOV     R3,A
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    14
+
+000128 A3               845             INC     DPTR
+000129 E0               846             MOVX    A,@DPTR
+00012A FA               847             MOV     R2,A
+00012B A3               848             INC     DPTR
+00012C E0               849             MOVX    A,@DPTR
+00012D F9               850             MOV     R1,A
+00012E C003             851             PUSH    AR3
+000130 C002             852             PUSH    AR2
+000132 C001             853             PUSH    AR1
+000134 90000003         854             MOV     DPTR,#03H
+000138 12000000   E     855             LCALL   ?C?XBPOFF
+00013C E0               856             MOVX    A,@DPTR
+00013D FB               857             MOV     R3,A
+00013E A3               858             INC     DPTR
+00013F E0               859             MOVX    A,@DPTR
+000140 FA               860             MOV     R2,A
+000141 A3               861             INC     DPTR
+000142 E0               862             MOVX    A,@DPTR
+000143 2405             863             ADD     A,#05H
+000145 F9               864             MOV     R1,A
+000146 E4               865             CLR     A
+000147 3A               866             ADDC    A,R2
+000148 FA               867             MOV     R2,A
+000149 12000000   E     868             LCALL   ?C?PSTPTR
+                        869     ; 
+                        870     ;       /* Remember which list the item is in. */
+                        871     ;       pxNewListItem->pvContainer = ( void * ) pxList;
+                        872                             ; SOURCE LINE # 116
+00014D 90000003         873             MOV     DPTR,#03H
+000151 12000000   E     874             LCALL   ?C?XBPOFF
+000155 E0               875             MOVX    A,@DPTR
+000156 FB               876             MOV     R3,A
+000157 A3               877             INC     DPTR
+000158 E0               878             MOVX    A,@DPTR
+000159 FA               879             MOV     R2,A
+00015A A3               880             INC     DPTR
+00015B E0               881             MOVX    A,@DPTR
+00015C F9               882             MOV     R1,A
+00015D C003             883             PUSH    AR3
+00015F C002             884             PUSH    AR2
+000161 C001             885             PUSH    AR1
+000163 90000006         886             MOV     DPTR,#06H
+000167 12000000   E     887             LCALL   ?C?XBPOFF
+00016B E0               888             MOVX    A,@DPTR
+00016C FB               889             MOV     R3,A
+00016D A3               890             INC     DPTR
+00016E E0               891             MOVX    A,@DPTR
+00016F FA               892             MOV     R2,A
+000170 A3               893             INC     DPTR
+000171 E0               894             MOVX    A,@DPTR
+000172 240D             895             ADD     A,#0DH
+000174 F9               896             MOV     R1,A
+000175 E4               897             CLR     A
+000176 3A               898             ADDC    A,R2
+000177 FA               899             MOV     R2,A
+000178 12000000   E     900             LCALL   ?C?PSTPTR
+                        901     ; 
+                        902     ;       ( pxList->usNumberOfItems )++;
+                        903                             ; SOURCE LINE # 118
+00017C 90000003         904             MOV     DPTR,#03H
+000180 12000000   E     905             LCALL   ?C?XBPOFF
+000184 E0               906             MOVX    A,@DPTR
+000185 FB               907             MOV     R3,A
+000186 A3               908             INC     DPTR
+000187 E0               909             MOVX    A,@DPTR
+000188 FA               910             MOV     R2,A
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    15
+
+000189 A3               911             INC     DPTR
+00018A E0               912             MOVX    A,@DPTR
+00018B F9               913             MOV     R1,A
+00018C E4               914             CLR     A
+00018D 75F001           915             MOV     B,#01H
+000190 12000000   E     916             LCALL   ?C?IILDPTR
+                        917     ; }
+                        918                             ; SOURCE LINE # 119
+000194 90000009         919             MOV     DPTR,#09H
+000198 02000000   E     920             LJMP    ?C?ADDXBP
+                        921     ; END OF _?vListInsertEnd
+                        922     
+                        923     ; /*-----------------------------------------------------------*/
+                        924     ; 
+                        925     ; void vListInsert( xList *pxList, xListItem *pxNewListItem ) reentrant
+                        926     
+------                  927             RSEG  ?PR?_?vListInsert?LIST
+000000                  928     _?vListInsert:
+                        929             USING   0
+                        930                             ; SOURCE LINE # 122
+000000 9000FFFD         931             MOV     DPTR,#0FFFDH
+000004 12000000   E     932             LCALL   ?C?ADDXBP
+000008 EB               933             MOV     A,R3
+000009 F0               934             MOVX    @DPTR,A
+00000A A3               935             INC     DPTR
+00000B EA               936             MOV     A,R2
+00000C F0               937             MOVX    @DPTR,A
+00000D A3               938             INC     DPTR
+00000E E9               939             MOV     A,R1
+00000F F0               940             MOVX    @DPTR,A
+000010 9000FFF9         941             MOV     DPTR,#0FFF9H
+000014 12000000   E     942             LCALL   ?C?ADDXBP
+                        943     ; {
+                        944     ; volatile xListItem *pxIterator;
+                        945     ; register portTickType xValueOfInsertion;
+                        946     ; 
+                        947     ;       /* Insert the new list item into the list, sorted in ulListItem order. */
+                        948     ;       xValueOfInsertion = pxNewListItem->xItemValue;
+                        949                             ; SOURCE LINE # 128
+000018 9000000A         950             MOV     DPTR,#0AH
+00001C 12000000   E     951             LCALL   ?C?XBPOFF
+000020 E0               952             MOVX    A,@DPTR
+000021 FB               953             MOV     R3,A
+000022 A3               954             INC     DPTR
+000023 E0               955             MOVX    A,@DPTR
+000024 FA               956             MOV     R2,A
+000025 A3               957             INC     DPTR
+000026 E0               958             MOVX    A,@DPTR
+000027 F9               959             MOV     R1,A
+000028 12000000   E     960             LCALL   ?C?LLDPTR
+00002C 90000003         961             MOV     DPTR,#03H
+000030 12000000   E     962             LCALL   ?C?XBPOFF
+000034 12000000   E     963             LCALL   ?C?LSTXDATA
+                        964     ; 
+                        965     ;       /* If the list already contains a list item with the same item value then
+                        966     ;       the new list item should be placed after it.  This ensures that TCB's which
+                        967     ;       are stored in ready lists (all of which have the same ulListItem value)
+                        968     ;       get an equal share of the CPU.  However, if the xItemValue is the same as 
+                        969     ;       the back marker the iteration loop below will not end.  This means we need
+                        970     ;       to guard against this by checking the value first and modifying the 
+                        971     ;       algorithm slightly if necessary. */
+                        972     ;       if( xValueOfInsertion == portMAX_DELAY )
+                        973                             ; SOURCE LINE # 137
+000038 74FF             974             MOV     A,#0FFH
+00003A FF               975             MOV     R7,A
+00003B FE               976             MOV     R6,A
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    16
+
+00003C FD               977             MOV     R5,A
+00003D FC               978             MOV     R4,A
+00003E 90000003         979             MOV     DPTR,#03H
+000042 12000000   E     980             LCALL   ?C?XBPOFF
+000046 E0               981             MOVX    A,@DPTR
+000047 F8               982             MOV     R0,A
+000048 A3               983             INC     DPTR
+000049 E0               984             MOVX    A,@DPTR
+00004A F9               985             MOV     R1,A
+00004B A3               986             INC     DPTR
+00004C E0               987             MOVX    A,@DPTR
+00004D FA               988             MOV     R2,A
+00004E A3               989             INC     DPTR
+00004F E0               990             MOVX    A,@DPTR
+000050 FB               991             MOV     R3,A
+000051 C3               992             CLR     C
+000052 12000000   E     993             LCALL   ?C?ULCMP
+000056 6003             994             JZ      $ + 5H
+000058 010000     F     995             AJMP    ?C0004
+                        996     ;       {
+                        997                             ; SOURCE LINE # 138
+                        998     ;               for( pxIterator = pxList->pxHead; pxIterator->pxNext->xItemValue < xValu
+                               eOfInsertion; pxIterator = pxIterator->pxNext )
+                        999                             ; SOURCE LINE # 139
+00005B 90000007        1000             MOV     DPTR,#07H
+00005F 12000000   E    1001             LCALL   ?C?XBPOFF
+000063 E0              1002             MOVX    A,@DPTR
+000064 FB              1003             MOV     R3,A
+000065 A3              1004             INC     DPTR
+000066 E0              1005             MOVX    A,@DPTR
+000067 FA              1006             MOV     R2,A
+000068 A3              1007             INC     DPTR
+000069 E0              1008             MOVX    A,@DPTR
+00006A 2402            1009             ADD     A,#02H
+00006C F9              1010             MOV     R1,A
+00006D E4              1011             CLR     A
+00006E 3A              1012             ADDC    A,R2
+00006F FA              1013             MOV     R2,A
+000070 12000000   E    1014             LCALL   ?C?PLDPTR
+000074 850083     E    1015             MOV     DPH,?C_XBP
+000077 850082     E    1016             MOV     DPL,?C_XBP+01H
+00007A 759300     E    1017             MOV     DPX,#?C?XDATASEG
+00007D EB              1018             MOV     A,R3
+00007E F0              1019             MOVX    @DPTR,A
+00007F A3              1020             INC     DPTR
+000080 EA              1021             MOV     A,R2
+000081 F0              1022             MOVX    @DPTR,A
+000082 A3              1023             INC     DPTR
+000083 E9              1024             MOV     A,R1
+000084 F0              1025             MOVX    @DPTR,A
+000085                 1026     ?C0005:
+000085 850083     E    1027             MOV     DPH,?C_XBP
+000088 850082     E    1028             MOV     DPL,?C_XBP+01H
+00008B 759300     E    1029             MOV     DPX,#?C?XDATASEG
+00008E E0              1030             MOVX    A,@DPTR
+00008F FB              1031             MOV     R3,A
+000090 A3              1032             INC     DPTR
+000091 E0              1033             MOVX    A,@DPTR
+000092 FA              1034             MOV     R2,A
+000093 A3              1035             INC     DPTR
+000094 E0              1036             MOVX    A,@DPTR
+000095 2404            1037             ADD     A,#04H
+000097 F9              1038             MOV     R1,A
+000098 E4              1039             CLR     A
+000099 3A              1040             ADDC    A,R2
+00009A FA              1041             MOV     R2,A
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    17
+
+00009B 12000000   E    1042             LCALL   ?C?PLDPTR
+00009F 12000000   E    1043             LCALL   ?C?LLDPTR
+0000A3 90000003        1044             MOV     DPTR,#03H
+0000A7 12000000   E    1045             LCALL   ?C?XBPOFF
+0000AB E0              1046             MOVX    A,@DPTR
+0000AC F8              1047             MOV     R0,A
+0000AD A3              1048             INC     DPTR
+0000AE E0              1049             MOVX    A,@DPTR
+0000AF F9              1050             MOV     R1,A
+0000B0 A3              1051             INC     DPTR
+0000B1 E0              1052             MOVX    A,@DPTR
+0000B2 FA              1053             MOV     R2,A
+0000B3 A3              1054             INC     DPTR
+0000B4 E0              1055             MOVX    A,@DPTR
+0000B5 FB              1056             MOV     R3,A
+0000B6 D3              1057             SETB    C
+0000B7 12000000   E    1058             LCALL   ?C?ULCMP
+0000BB 5003            1059             JNC     $ + 5H
+0000BD 010000     F    1060             AJMP    ?C0008
+                       1061     ;               {
+                       1062                             ; SOURCE LINE # 140
+                       1063     ;                       /* There is nothing to do here, we are just iterating to the 
+                       1064     ;                       wanted insertion position. */
+                       1065     ;               }
+                       1066                             ; SOURCE LINE # 143
+0000C0 850083     E    1067             MOV     DPH,?C_XBP
+0000C3 850082     E    1068             MOV     DPL,?C_XBP+01H
+0000C6 759300     E    1069             MOV     DPX,#?C?XDATASEG
+0000C9 E0              1070             MOVX    A,@DPTR
+0000CA FB              1071             MOV     R3,A
+0000CB A3              1072             INC     DPTR
+0000CC E0              1073             MOVX    A,@DPTR
+0000CD FA              1074             MOV     R2,A
+0000CE A3              1075             INC     DPTR
+0000CF E0              1076             MOVX    A,@DPTR
+0000D0 2404            1077             ADD     A,#04H
+0000D2 F9              1078             MOV     R1,A
+0000D3 E4              1079             CLR     A
+0000D4 3A              1080             ADDC    A,R2
+0000D5 FA              1081             MOV     R2,A
+0000D6 12000000   E    1082             LCALL   ?C?PLDPTR
+0000DA 850083     E    1083             MOV     DPH,?C_XBP
+0000DD 850082     E    1084             MOV     DPL,?C_XBP+01H
+0000E0 759300     E    1085             MOV     DPX,#?C?XDATASEG
+0000E3 EB              1086             MOV     A,R3
+0000E4 F0              1087             MOVX    @DPTR,A
+0000E5 A3              1088             INC     DPTR
+0000E6 EA              1089             MOV     A,R2
+0000E7 F0              1090             MOVX    @DPTR,A
+0000E8 A3              1091             INC     DPTR
+0000E9 E9              1092             MOV     A,R1
+0000EA F0              1093             MOVX    @DPTR,A
+0000EB 8098            1094             SJMP    ?C0005
+                       1095     ;       }
+                       1096                             ; SOURCE LINE # 144
+0000ED                 1097     ?C0004:
+                       1098     ;       else
+                       1099     ;       {
+                       1100                             ; SOURCE LINE # 146
+                       1101     ;               for( pxIterator = pxList->pxHead; pxIterator->pxNext->xItemValue <= xVal
+                               ueOfInsertion; pxIterator = pxIterator->pxNext )
+                       1102                             ; SOURCE LINE # 147
+0000ED 90000007        1103             MOV     DPTR,#07H
+0000F1 12000000   E    1104             LCALL   ?C?XBPOFF
+0000F5 E0              1105             MOVX    A,@DPTR
+0000F6 FB              1106             MOV     R3,A
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    18
+
+0000F7 A3              1107             INC     DPTR
+0000F8 E0              1108             MOVX    A,@DPTR
+0000F9 FA              1109             MOV     R2,A
+0000FA A3              1110             INC     DPTR
+0000FB E0              1111             MOVX    A,@DPTR
+0000FC 2402            1112             ADD     A,#02H
+0000FE F9              1113             MOV     R1,A
+0000FF E4              1114             CLR     A
+000100 3A              1115             ADDC    A,R2
+000101 FA              1116             MOV     R2,A
+000102 12000000   E    1117             LCALL   ?C?PLDPTR
+000106 850083     E    1118             MOV     DPH,?C_XBP
+000109 850082     E    1119             MOV     DPL,?C_XBP+01H
+00010C 759300     E    1120             MOV     DPX,#?C?XDATASEG
+00010F EB              1121             MOV     A,R3
+000110 F0              1122             MOVX    @DPTR,A
+000111 A3              1123             INC     DPTR
+000112 EA              1124             MOV     A,R2
+000113 F0              1125             MOVX    @DPTR,A
+000114 A3              1126             INC     DPTR
+000115 E9              1127             MOV     A,R1
+000116 F0              1128             MOVX    @DPTR,A
+000117                 1129     ?C0009:
+000117 850083     E    1130             MOV     DPH,?C_XBP
+00011A 850082     E    1131             MOV     DPL,?C_XBP+01H
+00011D 759300     E    1132             MOV     DPX,#?C?XDATASEG
+000120 E0              1133             MOVX    A,@DPTR
+000121 FB              1134             MOV     R3,A
+000122 A3              1135             INC     DPTR
+000123 E0              1136             MOVX    A,@DPTR
+000124 FA              1137             MOV     R2,A
+000125 A3              1138             INC     DPTR
+000126 E0              1139             MOVX    A,@DPTR
+000127 2404            1140             ADD     A,#04H
+000129 F9              1141             MOV     R1,A
+00012A E4              1142             CLR     A
+00012B 3A              1143             ADDC    A,R2
+00012C FA              1144             MOV     R2,A
+00012D 12000000   E    1145             LCALL   ?C?PLDPTR
+000131 12000000   E    1146             LCALL   ?C?LLDPTR
+000135 90000003        1147             MOV     DPTR,#03H
+000139 12000000   E    1148             LCALL   ?C?XBPOFF
+00013D E0              1149             MOVX    A,@DPTR
+00013E F8              1150             MOV     R0,A
+00013F A3              1151             INC     DPTR
+000140 E0              1152             MOVX    A,@DPTR
+000141 F9              1153             MOV     R1,A
+000142 A3              1154             INC     DPTR
+000143 E0              1155             MOVX    A,@DPTR
+000144 FA              1156             MOV     R2,A
+000145 A3              1157             INC     DPTR
+000146 E0              1158             MOVX    A,@DPTR
+000147 FB              1159             MOV     R3,A
+000148 C3              1160             CLR     C
+000149 12000000   E    1161             LCALL   ?C?ULCMP
+00014D 402D            1162             JC      ?C0008
+                       1163     ;               {
+                       1164                             ; SOURCE LINE # 148
+                       1165     ;                       /* There is nothing to do here, we are just iterating to the 
+                       1166     ;                       wanted insertion position. */
+                       1167     ;               }
+                       1168                             ; SOURCE LINE # 151
+00014F 850083     E    1169             MOV     DPH,?C_XBP
+000152 850082     E    1170             MOV     DPL,?C_XBP+01H
+000155 759300     E    1171             MOV     DPX,#?C?XDATASEG
+000158 E0              1172             MOVX    A,@DPTR
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    19
+
+000159 FB              1173             MOV     R3,A
+00015A A3              1174             INC     DPTR
+00015B E0              1175             MOVX    A,@DPTR
+00015C FA              1176             MOV     R2,A
+00015D A3              1177             INC     DPTR
+00015E E0              1178             MOVX    A,@DPTR
+00015F 2404            1179             ADD     A,#04H
+000161 F9              1180             MOV     R1,A
+000162 E4              1181             CLR     A
+000163 3A              1182             ADDC    A,R2
+000164 FA              1183             MOV     R2,A
+000165 12000000   E    1184             LCALL   ?C?PLDPTR
+000169 850083     E    1185             MOV     DPH,?C_XBP
+00016C 850082     E    1186             MOV     DPL,?C_XBP+01H
+00016F 759300     E    1187             MOV     DPX,#?C?XDATASEG
+000172 EB              1188             MOV     A,R3
+000173 F0              1189             MOVX    @DPTR,A
+000174 A3              1190             INC     DPTR
+000175 EA              1191             MOV     A,R2
+000176 F0              1192             MOVX    @DPTR,A
+000177 A3              1193             INC     DPTR
+000178 E9              1194             MOV     A,R1
+000179 F0              1195             MOVX    @DPTR,A
+00017A 809B            1196             SJMP    ?C0009
+                       1197     ;       }
+                       1198                             ; SOURCE LINE # 152
+00017C                 1199     ?C0008:
+                       1200     ; 
+                       1201     ;       pxNewListItem->pxNext = pxIterator->pxNext;
+                       1202                             ; SOURCE LINE # 154
+00017C 850083     E    1203             MOV     DPH,?C_XBP
+00017F 850082     E    1204             MOV     DPL,?C_XBP+01H
+000182 759300     E    1205             MOV     DPX,#?C?XDATASEG
+000185 E0              1206             MOVX    A,@DPTR
+000186 FB              1207             MOV     R3,A
+000187 A3              1208             INC     DPTR
+000188 E0              1209             MOVX    A,@DPTR
+000189 FA              1210             MOV     R2,A
+00018A A3              1211             INC     DPTR
+00018B E0              1212             MOVX    A,@DPTR
+00018C 2404            1213             ADD     A,#04H
+00018E F9              1214             MOV     R1,A
+00018F E4              1215             CLR     A
+000190 3A              1216             ADDC    A,R2
+000191 FA              1217             MOV     R2,A
+000192 12000000   E    1218             LCALL   ?C?PLDPTR
+000196 C003            1219             PUSH    AR3
+000198 C002            1220             PUSH    AR2
+00019A C001            1221             PUSH    AR1
+00019C 9000000A        1222             MOV     DPTR,#0AH
+0001A0 12000000   E    1223             LCALL   ?C?XBPOFF
+0001A4 E0              1224             MOVX    A,@DPTR
+0001A5 FB              1225             MOV     R3,A
+0001A6 A3              1226             INC     DPTR
+0001A7 E0              1227             MOVX    A,@DPTR
+0001A8 FA              1228             MOV     R2,A
+0001A9 A3              1229             INC     DPTR
+0001AA E0              1230             MOVX    A,@DPTR
+0001AB 2404            1231             ADD     A,#04H
+0001AD F9              1232             MOV     R1,A
+0001AE E4              1233             CLR     A
+0001AF 3A              1234             ADDC    A,R2
+0001B0 FA              1235             MOV     R2,A
+0001B1 12000000   E    1236             LCALL   ?C?PSTPTR
+                       1237     ;       pxNewListItem->pxNext->pxPrevious = ( volatile xListItem * ) pxNewListItem;
+                       1238                             ; SOURCE LINE # 155
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    20
+
+0001B5 9000000A        1239             MOV     DPTR,#0AH
+0001B9 12000000   E    1240             LCALL   ?C?XBPOFF
+0001BD E0              1241             MOVX    A,@DPTR
+0001BE FB              1242             MOV     R3,A
+0001BF A3              1243             INC     DPTR
+0001C0 E0              1244             MOVX    A,@DPTR
+0001C1 FA              1245             MOV     R2,A
+0001C2 A3              1246             INC     DPTR
+0001C3 E0              1247             MOVX    A,@DPTR
+0001C4 F9              1248             MOV     R1,A
+0001C5 C003            1249             PUSH    AR3
+0001C7 C002            1250             PUSH    AR2
+0001C9 C001            1251             PUSH    AR1
+0001CB 9000000A        1252             MOV     DPTR,#0AH
+0001CF 12000000   E    1253             LCALL   ?C?XBPOFF
+0001D3 E0              1254             MOVX    A,@DPTR
+0001D4 FB              1255             MOV     R3,A
+0001D5 A3              1256             INC     DPTR
+0001D6 E0              1257             MOVX    A,@DPTR
+0001D7 FA              1258             MOV     R2,A
+0001D8 A3              1259             INC     DPTR
+0001D9 E0              1260             MOVX    A,@DPTR
+0001DA 2404            1261             ADD     A,#04H
+0001DC F9              1262             MOV     R1,A
+0001DD E4              1263             CLR     A
+0001DE 3A              1264             ADDC    A,R2
+0001DF FA              1265             MOV     R2,A
+0001E0 12000000   E    1266             LCALL   ?C?PLDPTR
+0001E4 E9              1267             MOV     A,R1
+0001E5 2407            1268             ADD     A,#07H
+0001E7 F9              1269             MOV     R1,A
+0001E8 E4              1270             CLR     A
+0001E9 3A              1271             ADDC    A,R2
+0001EA FA              1272             MOV     R2,A
+0001EB 12000000   E    1273             LCALL   ?C?PSTPTR
+                       1274     ;       pxNewListItem->pxPrevious = pxIterator;
+                       1275                             ; SOURCE LINE # 156
+0001EF 850083     E    1276             MOV     DPH,?C_XBP
+0001F2 850082     E    1277             MOV     DPL,?C_XBP+01H
+0001F5 759300     E    1278             MOV     DPX,#?C?XDATASEG
+0001F8 E0              1279             MOVX    A,@DPTR
+0001F9 FB              1280             MOV     R3,A
+0001FA A3              1281             INC     DPTR
+0001FB E0              1282             MOVX    A,@DPTR
+0001FC FA              1283             MOV     R2,A
+0001FD A3              1284             INC     DPTR
+0001FE E0              1285             MOVX    A,@DPTR
+0001FF F9              1286             MOV     R1,A
+000200 C003            1287             PUSH    AR3
+000202 C002            1288             PUSH    AR2
+000204 C001            1289             PUSH    AR1
+000206 9000000A        1290             MOV     DPTR,#0AH
+00020A 12000000   E    1291             LCALL   ?C?XBPOFF
+00020E E0              1292             MOVX    A,@DPTR
+00020F FB              1293             MOV     R3,A
+000210 A3              1294             INC     DPTR
+000211 E0              1295             MOVX    A,@DPTR
+000212 FA              1296             MOV     R2,A
+000213 A3              1297             INC     DPTR
+000214 E0              1298             MOVX    A,@DPTR
+000215 2407            1299             ADD     A,#07H
+000217 F9              1300             MOV     R1,A
+000218 E4              1301             CLR     A
+000219 3A              1302             ADDC    A,R2
+00021A FA              1303             MOV     R2,A
+00021B 12000000   E    1304             LCALL   ?C?PSTPTR
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    21
+
+                       1305     ;       pxIterator->pxNext = ( volatile xListItem * ) pxNewListItem;
+                       1306                             ; SOURCE LINE # 157
+00021F 9000000A        1307             MOV     DPTR,#0AH
+000223 12000000   E    1308             LCALL   ?C?XBPOFF
+000227 E0              1309             MOVX    A,@DPTR
+000228 FB              1310             MOV     R3,A
+000229 A3              1311             INC     DPTR
+00022A E0              1312             MOVX    A,@DPTR
+00022B FA              1313             MOV     R2,A
+00022C A3              1314             INC     DPTR
+00022D E0              1315             MOVX    A,@DPTR
+00022E F9              1316             MOV     R1,A
+00022F C003            1317             PUSH    AR3
+000231 C002            1318             PUSH    AR2
+000233 C001            1319             PUSH    AR1
+000235 850083     E    1320             MOV     DPH,?C_XBP
+000238 850082     E    1321             MOV     DPL,?C_XBP+01H
+00023B 759300     E    1322             MOV     DPX,#?C?XDATASEG
+00023E E0              1323             MOVX    A,@DPTR
+00023F FB              1324             MOV     R3,A
+000240 A3              1325             INC     DPTR
+000241 E0              1326             MOVX    A,@DPTR
+000242 FA              1327             MOV     R2,A
+000243 A3              1328             INC     DPTR
+000244 E0              1329             MOVX    A,@DPTR
+000245 2404            1330             ADD     A,#04H
+000247 F9              1331             MOV     R1,A
+000248 E4              1332             CLR     A
+000249 3A              1333             ADDC    A,R2
+00024A FA              1334             MOV     R2,A
+00024B 12000000   E    1335             LCALL   ?C?PSTPTR
+                       1336     ; 
+                       1337     ;       /* Remember which list the item is in.  This allows fast removal of the
+                       1338     ;       item later. */
+                       1339     ;       pxNewListItem->pvContainer = ( void * ) pxList;
+                       1340                             ; SOURCE LINE # 161
+00024F 90000007        1341             MOV     DPTR,#07H
+000253 12000000   E    1342             LCALL   ?C?XBPOFF
+000257 E0              1343             MOVX    A,@DPTR
+000258 FB              1344             MOV     R3,A
+000259 A3              1345             INC     DPTR
+00025A E0              1346             MOVX    A,@DPTR
+00025B FA              1347             MOV     R2,A
+00025C A3              1348             INC     DPTR
+00025D E0              1349             MOVX    A,@DPTR
+00025E F9              1350             MOV     R1,A
+00025F C003            1351             PUSH    AR3
+000261 C002            1352             PUSH    AR2
+000263 C001            1353             PUSH    AR1
+000265 9000000A        1354             MOV     DPTR,#0AH
+000269 12000000   E    1355             LCALL   ?C?XBPOFF
+00026D E0              1356             MOVX    A,@DPTR
+00026E FB              1357             MOV     R3,A
+00026F A3              1358             INC     DPTR
+000270 E0              1359             MOVX    A,@DPTR
+000271 FA              1360             MOV     R2,A
+000272 A3              1361             INC     DPTR
+000273 E0              1362             MOVX    A,@DPTR
+000274 240D            1363             ADD     A,#0DH
+000276 F9              1364             MOV     R1,A
+000277 E4              1365             CLR     A
+000278 3A              1366             ADDC    A,R2
+000279 FA              1367             MOV     R2,A
+00027A 12000000   E    1368             LCALL   ?C?PSTPTR
+                       1369     ; 
+                       1370     ;       ( pxList->usNumberOfItems )++;
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    22
+
+                       1371                             ; SOURCE LINE # 163
+00027E 90000007        1372             MOV     DPTR,#07H
+000282 12000000   E    1373             LCALL   ?C?XBPOFF
+000286 E0              1374             MOVX    A,@DPTR
+000287 FB              1375             MOV     R3,A
+000288 A3              1376             INC     DPTR
+000289 E0              1377             MOVX    A,@DPTR
+00028A FA              1378             MOV     R2,A
+00028B A3              1379             INC     DPTR
+00028C E0              1380             MOVX    A,@DPTR
+00028D F9              1381             MOV     R1,A
+00028E E4              1382             CLR     A
+00028F 75F001          1383             MOV     B,#01H
+000292 12000000   E    1384             LCALL   ?C?IILDPTR
+                       1385     ; }
+                       1386                             ; SOURCE LINE # 164
+000296 9000000D        1387             MOV     DPTR,#0DH
+00029A 02000000   E    1388             LJMP    ?C?ADDXBP
+                       1389     ; END OF _?vListInsert
+                       1390     
+                       1391     ; /*-----------------------------------------------------------*/
+                       1392     ; 
+                       1393     ; void vListRemove( xListItem *pxItemToRemove ) reentrant
+                       1394     
+------                 1395             RSEG  ?PR?_?vListRemove?LIST
+000000                 1396     _?vListRemove:
+                       1397             USING   0
+                       1398                             ; SOURCE LINE # 167
+000000 9000FFFD        1399             MOV     DPTR,#0FFFDH
+000004 12000000   E    1400             LCALL   ?C?ADDXBP
+000008 EB              1401             MOV     A,R3
+000009 F0              1402             MOVX    @DPTR,A
+00000A A3              1403             INC     DPTR
+00000B EA              1404             MOV     A,R2
+00000C F0              1405             MOVX    @DPTR,A
+00000D A3              1406             INC     DPTR
+00000E E9              1407             MOV     A,R1
+00000F F0              1408             MOVX    @DPTR,A
+000010 9000FFFD        1409             MOV     DPTR,#0FFFDH
+000014 12000000   E    1410             LCALL   ?C?ADDXBP
+                       1411     ; {
+                       1412     ; xList * pxList;
+                       1413     ; 
+                       1414     ;       pxItemToRemove->pxNext->pxPrevious = pxItemToRemove->pxPrevious;
+                       1415                             ; SOURCE LINE # 171
+000018 90000003        1416             MOV     DPTR,#03H
+00001C 12000000   E    1417             LCALL   ?C?XBPOFF
+000020 E0              1418             MOVX    A,@DPTR
+000021 FB              1419             MOV     R3,A
+000022 A3              1420             INC     DPTR
+000023 E0              1421             MOVX    A,@DPTR
+000024 FA              1422             MOV     R2,A
+000025 A3              1423             INC     DPTR
+000026 E0              1424             MOVX    A,@DPTR
+000027 2407            1425             ADD     A,#07H
+000029 F9              1426             MOV     R1,A
+00002A E4              1427             CLR     A
+00002B 3A              1428             ADDC    A,R2
+00002C FA              1429             MOV     R2,A
+00002D 12000000   E    1430             LCALL   ?C?PLDPTR
+000031 C003            1431             PUSH    AR3
+000033 C002            1432             PUSH    AR2
+000035 C001            1433             PUSH    AR1
+000037 90000003        1434             MOV     DPTR,#03H
+00003B 12000000   E    1435             LCALL   ?C?XBPOFF
+00003F E0              1436             MOVX    A,@DPTR
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    23
+
+000040 FB              1437             MOV     R3,A
+000041 A3              1438             INC     DPTR
+000042 E0              1439             MOVX    A,@DPTR
+000043 FA              1440             MOV     R2,A
+000044 A3              1441             INC     DPTR
+000045 E0              1442             MOVX    A,@DPTR
+000046 2404            1443             ADD     A,#04H
+000048 F9              1444             MOV     R1,A
+000049 E4              1445             CLR     A
+00004A 3A              1446             ADDC    A,R2
+00004B FA              1447             MOV     R2,A
+00004C 12000000   E    1448             LCALL   ?C?PLDPTR
+000050 E9              1449             MOV     A,R1
+000051 2407            1450             ADD     A,#07H
+000053 F9              1451             MOV     R1,A
+000054 E4              1452             CLR     A
+000055 3A              1453             ADDC    A,R2
+000056 FA              1454             MOV     R2,A
+000057 12000000   E    1455             LCALL   ?C?PSTPTR
+                       1456     ;       pxItemToRemove->pxPrevious->pxNext = pxItemToRemove->pxNext;
+                       1457                             ; SOURCE LINE # 172
+00005B 90000003        1458             MOV     DPTR,#03H
+00005F 12000000   E    1459             LCALL   ?C?XBPOFF
+000063 E0              1460             MOVX    A,@DPTR
+000064 FB              1461             MOV     R3,A
+000065 A3              1462             INC     DPTR
+000066 E0              1463             MOVX    A,@DPTR
+000067 FA              1464             MOV     R2,A
+000068 A3              1465             INC     DPTR
+000069 E0              1466             MOVX    A,@DPTR
+00006A 2404            1467             ADD     A,#04H
+00006C F9              1468             MOV     R1,A
+00006D E4              1469             CLR     A
+00006E 3A              1470             ADDC    A,R2
+00006F FA              1471             MOV     R2,A
+000070 12000000   E    1472             LCALL   ?C?PLDPTR
+000074 C003            1473             PUSH    AR3
+000076 C002            1474             PUSH    AR2
+000078 C001            1475             PUSH    AR1
+00007A 90000003        1476             MOV     DPTR,#03H
+00007E 12000000   E    1477             LCALL   ?C?XBPOFF
+000082 E0              1478             MOVX    A,@DPTR
+000083 FB              1479             MOV     R3,A
+000084 A3              1480             INC     DPTR
+000085 E0              1481             MOVX    A,@DPTR
+000086 FA              1482             MOV     R2,A
+000087 A3              1483             INC     DPTR
+000088 E0              1484             MOVX    A,@DPTR
+000089 2407            1485             ADD     A,#07H
+00008B F9              1486             MOV     R1,A
+00008C E4              1487             CLR     A
+00008D 3A              1488             ADDC    A,R2
+00008E FA              1489             MOV     R2,A
+00008F 12000000   E    1490             LCALL   ?C?PLDPTR
+000093 E9              1491             MOV     A,R1
+000094 2404            1492             ADD     A,#04H
+000096 F9              1493             MOV     R1,A
+000097 E4              1494             CLR     A
+000098 3A              1495             ADDC    A,R2
+000099 FA              1496             MOV     R2,A
+00009A 12000000   E    1497             LCALL   ?C?PSTPTR
+                       1498     ;       
+                       1499     ;       /* The list item knows which list it is in.  Obtain the list from the list
+                       1500     ;       item. */
+                       1501     ;       pxList = ( xList * ) pxItemToRemove->pvContainer;
+                       1502                             ; SOURCE LINE # 176
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    24
+
+00009E 90000003        1503             MOV     DPTR,#03H
+0000A2 12000000   E    1504             LCALL   ?C?XBPOFF
+0000A6 E0              1505             MOVX    A,@DPTR
+0000A7 FB              1506             MOV     R3,A
+0000A8 A3              1507             INC     DPTR
+0000A9 E0              1508             MOVX    A,@DPTR
+0000AA FA              1509             MOV     R2,A
+0000AB A3              1510             INC     DPTR
+0000AC E0              1511             MOVX    A,@DPTR
+0000AD 240D            1512             ADD     A,#0DH
+0000AF F9              1513             MOV     R1,A
+0000B0 E4              1514             CLR     A
+0000B1 3A              1515             ADDC    A,R2
+0000B2 FA              1516             MOV     R2,A
+0000B3 12000000   E    1517             LCALL   ?C?PLDPTR
+0000B7 850083     E    1518             MOV     DPH,?C_XBP
+0000BA 850082     E    1519             MOV     DPL,?C_XBP+01H
+0000BD 759300     E    1520             MOV     DPX,#?C?XDATASEG
+0000C0 EB              1521             MOV     A,R3
+0000C1 F0              1522             MOVX    @DPTR,A
+0000C2 A3              1523             INC     DPTR
+0000C3 EA              1524             MOV     A,R2
+0000C4 F0              1525             MOVX    @DPTR,A
+0000C5 A3              1526             INC     DPTR
+0000C6 E9              1527             MOV     A,R1
+0000C7 F0              1528             MOVX    @DPTR,A
+                       1529     ; 
+                       1530     ;       /* Make sure the index is left pointing to a valid item. */
+                       1531     ;       if( pxList->pxIndex == pxItemToRemove )
+                       1532                             ; SOURCE LINE # 179
+0000C8 850083     E    1533             MOV     DPH,?C_XBP
+0000CB 850082     E    1534             MOV     DPL,?C_XBP+01H
+0000CE 759300     E    1535             MOV     DPX,#?C?XDATASEG
+0000D1 E0              1536             MOVX    A,@DPTR
+0000D2 FB              1537             MOV     R3,A
+0000D3 A3              1538             INC     DPTR
+0000D4 E0              1539             MOVX    A,@DPTR
+0000D5 FA              1540             MOV     R2,A
+0000D6 A3              1541             INC     DPTR
+0000D7 E0              1542             MOVX    A,@DPTR
+0000D8 2405            1543             ADD     A,#05H
+0000DA F9              1544             MOV     R1,A
+0000DB E4              1545             CLR     A
+0000DC 3A              1546             ADDC    A,R2
+0000DD FA              1547             MOV     R2,A
+0000DE 12000000   E    1548             LCALL   ?C?PLDPTR
+0000E2 C003            1549             PUSH    AR3
+0000E4 C002            1550             PUSH    AR2
+0000E6 C001            1551             PUSH    AR1
+0000E8 90000003        1552             MOV     DPTR,#03H
+0000EC 12000000   E    1553             LCALL   ?C?XBPOFF
+0000F0 E0              1554             MOVX    A,@DPTR
+0000F1 FB              1555             MOV     R3,A
+0000F2 A3              1556             INC     DPTR
+0000F3 E0              1557             MOVX    A,@DPTR
+0000F4 FA              1558             MOV     R2,A
+0000F5 A3              1559             INC     DPTR
+0000F6 E0              1560             MOVX    A,@DPTR
+0000F7 F9              1561             MOV     R1,A
+0000F8 D082            1562             POP     DPL
+0000FA D083            1563             POP     DPH
+0000FC D0E0            1564             POP     ACC
+0000FE 6B              1565             XRL     A,R3
+0000FF 7008            1566             JNZ     ?C0015
+000101 E9              1567             MOV     A,R1
+000102 6582            1568             XRL     A,DPL
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    25
+
+000104 7003            1569             JNZ     ?C0015
+000106 EA              1570             MOV     A,R2
+000107 6583            1571             XRL     A,DPH
+000109                 1572     ?C0015:
+000109 7039            1573             JNZ     ?C0013
+                       1574     ;       {
+                       1575                             ; SOURCE LINE # 180
+                       1576     ;               pxList->pxIndex = pxItemToRemove->pxPrevious;
+                       1577                             ; SOURCE LINE # 181
+00010B 90000003        1578             MOV     DPTR,#03H
+00010F 12000000   E    1579             LCALL   ?C?XBPOFF
+000113 E0              1580             MOVX    A,@DPTR
+000114 FB              1581             MOV     R3,A
+000115 A3              1582             INC     DPTR
+000116 E0              1583             MOVX    A,@DPTR
+000117 FA              1584             MOV     R2,A
+000118 A3              1585             INC     DPTR
+000119 E0              1586             MOVX    A,@DPTR
+00011A 2407            1587             ADD     A,#07H
+00011C F9              1588             MOV     R1,A
+00011D E4              1589             CLR     A
+00011E 3A              1590             ADDC    A,R2
+00011F FA              1591             MOV     R2,A
+000120 12000000   E    1592             LCALL   ?C?PLDPTR
+000124 C003            1593             PUSH    AR3
+000126 C002            1594             PUSH    AR2
+000128 C001            1595             PUSH    AR1
+00012A 850083     E    1596             MOV     DPH,?C_XBP
+00012D 850082     E    1597             MOV     DPL,?C_XBP+01H
+000130 759300     E    1598             MOV     DPX,#?C?XDATASEG
+000133 E0              1599             MOVX    A,@DPTR
+000134 FB              1600             MOV     R3,A
+000135 A3              1601             INC     DPTR
+000136 E0              1602             MOVX    A,@DPTR
+000137 FA              1603             MOV     R2,A
+000138 A3              1604             INC     DPTR
+000139 E0              1605             MOVX    A,@DPTR
+00013A 2405            1606             ADD     A,#05H
+00013C F9              1607             MOV     R1,A
+00013D E4              1608             CLR     A
+00013E 3A              1609             ADDC    A,R2
+00013F FA              1610             MOV     R2,A
+000140 12000000   E    1611             LCALL   ?C?PSTPTR
+                       1612     ;       }
+                       1613                             ; SOURCE LINE # 182
+000144                 1614     ?C0013:
+                       1615     ; 
+                       1616     ;       pxItemToRemove->pvContainer = NULL;
+                       1617                             ; SOURCE LINE # 184
+000144 7B00            1618             MOV     R3,#00H
+000146 7A00            1619             MOV     R2,#00H
+000148 7900            1620             MOV     R1,#00H
+00014A C003            1621             PUSH    AR3
+00014C C002            1622             PUSH    AR2
+00014E C001            1623             PUSH    AR1
+000150 90000003        1624             MOV     DPTR,#03H
+000154 12000000   E    1625             LCALL   ?C?XBPOFF
+000158 E0              1626             MOVX    A,@DPTR
+000159 FB              1627             MOV     R3,A
+00015A A3              1628             INC     DPTR
+00015B E0              1629             MOVX    A,@DPTR
+00015C FA              1630             MOV     R2,A
+00015D A3              1631             INC     DPTR
+00015E E0              1632             MOVX    A,@DPTR
+00015F 240D            1633             ADD     A,#0DH
+000161 F9              1634             MOV     R1,A
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    26
+
+000162 E4              1635             CLR     A
+000163 3A              1636             ADDC    A,R2
+000164 FA              1637             MOV     R2,A
+000165 12000000   E    1638             LCALL   ?C?PSTPTR
+                       1639     ;       ( pxList->usNumberOfItems )--;
+                       1640                             ; SOURCE LINE # 185
+000169 850083     E    1641             MOV     DPH,?C_XBP
+00016C 850082     E    1642             MOV     DPL,?C_XBP+01H
+00016F 759300     E    1643             MOV     DPX,#?C?XDATASEG
+000172 E0              1644             MOVX    A,@DPTR
+000173 FB              1645             MOV     R3,A
+000174 A3              1646             INC     DPTR
+000175 E0              1647             MOVX    A,@DPTR
+000176 FA              1648             MOV     R2,A
+000177 A3              1649             INC     DPTR
+000178 E0              1650             MOVX    A,@DPTR
+000179 F9              1651             MOV     R1,A
+00017A 74FF            1652             MOV     A,#0FFH
+00017C F5F0            1653             MOV     B,A
+00017E 12000000   E    1654             LCALL   ?C?IILDPTR
+                       1655     ; }
+                       1656                             ; SOURCE LINE # 186
+000182 90000006        1657             MOV     DPTR,#06H
+000186 02000000   E    1658             LJMP    ?C?ADDXBP
+                       1659     ; END OF _?vListRemove
+                       1660     
+                       1661             END
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    27
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E                                    T Y P E  V A L U E     ATTRIBUTES
+
+?C0004. . . . . . . . . . . . . . . . .    EC ADDR  00EDH     R   SEG=?PR?_?VLISTINSERT?LIST
+?C0005. . . . . . . . . . . . . . . . .    EC ADDR  0085H     R   SEG=?PR?_?VLISTINSERT?LIST
+?C0008. . . . . . . . . . . . . . . . .    EC ADDR  017CH     R   SEG=?PR?_?VLISTINSERT?LIST
+?C0009. . . . . . . . . . . . . . . . .    EC ADDR  0117H     R   SEG=?PR?_?VLISTINSERT?LIST
+?C0013. . . . . . . . . . . . . . . . .    EC ADDR  0144H     R   SEG=?PR?_?VLISTREMOVE?LIST
+?C0015. . . . . . . . . . . . . . . . .    EC ADDR  0109H     R   SEG=?PR?_?VLISTREMOVE?LIST
+?C?ADDXBP . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+?C?IILDPTR. . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+?C?ISTPTR . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+?C?LLDPTR . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+?C?LSTPTR . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+?C?LSTXDATA . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+?C?PLDPTR . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+?C?PSTPTR . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+?C?ULCMP. . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+?C?XBPOFF . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+?C?XDATASEG . . . . . . . . . . . . . .    N  NUMB  -------       EXT
+?C_XBP. . . . . . . . . . . . . . . . .    D  ADDR  -------       EXT
+?PR?_?VLISTINITIALISE?LIST. . . . . . .    EC SEG   00016CH       REL=INSEG, ALN=BYTE
+?PR?_?VLISTINITIALISEITEM?LIST. . . . .    EC SEG   00003EH       REL=INSEG, ALN=BYTE
+?PR?_?VLISTINSERT?LIST. . . . . . . . .    EC SEG   00029EH       REL=INSEG, ALN=BYTE
+?PR?_?VLISTINSERTEND?LIST . . . . . . .    EC SEG   00019CH       REL=INSEG, ALN=BYTE
+?PR?_?VLISTREMOVE?LIST. . . . . . . . .    EC SEG   00018AH       REL=INSEG, ALN=BYTE
+_?VLISTINITIALISE . . . . . . . . . . .    EC ADDR  0000H     R   SEG=?PR?_?VLISTINITIALISE?LIST
+_?VLISTINITIALISEITEM . . . . . . . . .    EC ADDR  0000H     R   SEG=?PR?_?VLISTINITIALISEITEM?LIST
+_?VLISTINSERT . . . . . . . . . . . . .    EC ADDR  0000H     R   SEG=?PR?_?VLISTINSERT?LIST
+_?VLISTINSERTEND. . . . . . . . . . . .    EC ADDR  0000H     R   SEG=?PR?_?VLISTINSERTEND?LIST
+_?VLISTREMOVE . . . . . . . . . . . . .    EC ADDR  0000H     R   SEG=?PR?_?VLISTREMOVE?LIST
+AC. . . . . . . . . . . . . . . . . . .    B  ADDR  00D0H.6   A   
+ACC . . . . . . . . . . . . . . . . . .    D  ADDR  00E0H     A   
+ACON. . . . . . . . . . . . . . . . . .    D  ADDR  009DH     A   
+AR1 . . . . . . . . . . . . . . . . . .    D  ADDR  0001H     A   
+AR2 . . . . . . . . . . . . . . . . . .    D  ADDR  0002H     A   
+AR3 . . . . . . . . . . . . . . . . . .    D  ADDR  0003H     A   
+ARCON . . . . . . . . . . . . . . . . .    D  ADDR  00FFH     A   
+B . . . . . . . . . . . . . . . . . . .    D  ADDR  00F0H     A   
+CANCIR. . . . . . . . . . . . . . . . .    D  ADDR  00DEH     A   
+CANDR . . . . . . . . . . . . . . . . .    D  ADDR  00DFH     A   
+CCAPH0. . . . . . . . . . . . . . . . .    D  ADDR  00B9H     A   
+CCAPH1. . . . . . . . . . . . . . . . .    D  ADDR  00BAH     A   
+CCAPH2. . . . . . . . . . . . . . . . .    D  ADDR  00BBH     A   
+CCAPH3. . . . . . . . . . . . . . . . .    D  ADDR  00BCH     A   
+CCAPH4. . . . . . . . . . . . . . . . .    D  ADDR  00BDH     A   
+CCAPL0. . . . . . . . . . . . . . . . .    D  ADDR  00B1H     A   
+CCAPL1. . . . . . . . . . . . . . . . .    D  ADDR  00B2H     A   
+CCAPL2. . . . . . . . . . . . . . . . .    D  ADDR  00B3H     A   
+CCAPL3. . . . . . . . . . . . . . . . .    D  ADDR  00B4H     A   
+CCAPL4. . . . . . . . . . . . . . . . .    D  ADDR  00B5H     A   
+CCAPM0. . . . . . . . . . . . . . . . .    D  ADDR  00D1H     A   
+CCAPM1. . . . . . . . . . . . . . . . .    D  ADDR  00D2H     A   
+CCAPM2. . . . . . . . . . . . . . . . .    D  ADDR  00D3H     A   
+CCAPM3. . . . . . . . . . . . . . . . .    D  ADDR  00D4H     A   
+CCAPM4. . . . . . . . . . . . . . . . .    D  ADDR  00D5H     A   
+CCON. . . . . . . . . . . . . . . . . .    D  ADDR  00C3H     A   
+CH. . . . . . . . . . . . . . . . . . .    D  ADDR  00C5H     A   
+CKCON . . . . . . . . . . . . . . . . .    D  ADDR  008EH     A   
+CL. . . . . . . . . . . . . . . . . . .    D  ADDR  00C4H     A   
+CMOD. . . . . . . . . . . . . . . . . .    D  ADDR  00C2H     A   
+CPRL2 . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.0   A   
+CSREPR. . . . . . . . . . . . . . . . .    D  ADDR  008FH     A   
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    28
+
+CT2 . . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.1   A   
+CY. . . . . . . . . . . . . . . . . . .    B  ADDR  00D0H.7   A   
+DBAR. . . . . . . . . . . . . . . . . .    D  ADDR  009AH     A   
+DCIR. . . . . . . . . . . . . . . . . .    D  ADDR  009BH     A   
+DDR . . . . . . . . . . . . . . . . . .    D  ADDR  009CH     A   
+DMAHR . . . . . . . . . . . . . . . . .    D  ADDR  00ADH     A   
+DMALR . . . . . . . . . . . . . . . . .    D  ADDR  00ABH     A   
+DMAMR . . . . . . . . . . . . . . . . .    D  ADDR  00ACH     A   
+DPH . . . . . . . . . . . . . . . . . .    D  ADDR  0083H     A   
+DPH0. . . . . . . . . . . . . . . . . .    D  ADDR  0083H     A   
+DPH1. . . . . . . . . . . . . . . . . .    D  ADDR  0085H     A   
+DPL . . . . . . . . . . . . . . . . . .    D  ADDR  0082H     A   
+DPL0. . . . . . . . . . . . . . . . . .    D  ADDR  0082H     A   
+DPL1. . . . . . . . . . . . . . . . . .    D  ADDR  0084H     A   
+DPS . . . . . . . . . . . . . . . . . .    D  ADDR  0086H     A   
+DPX . . . . . . . . . . . . . . . . . .    D  ADDR  0093H     A   
+DPX0. . . . . . . . . . . . . . . . . .    D  ADDR  0093H     A   
+DPX1. . . . . . . . . . . . . . . . . .    D  ADDR  0095H     A   
+EA. . . . . . . . . . . . . . . . . . .    B  ADDR  00A8H.7   A   
+EIE . . . . . . . . . . . . . . . . . .    D  ADDR  00E8H     A   
+EIF . . . . . . . . . . . . . . . . . .    D  ADDR  0091H     A   
+EINT2 . . . . . . . . . . . . . . . . .    B  ADDR  00E8H.0   A   
+EINT3 . . . . . . . . . . . . . . . . .    B  ADDR  00E8H.1   A   
+EINT4 . . . . . . . . . . . . . . . . .    B  ADDR  00E8H.2   A   
+EINT5 . . . . . . . . . . . . . . . . .    B  ADDR  00E8H.3   A   
+EINT6 . . . . . . . . . . . . . . . . .    B  ADDR  00E8H.4   A   
+EIP . . . . . . . . . . . . . . . . . .    D  ADDR  00F8H     A   
+EPCR. . . . . . . . . . . . . . . . . .    D  ADDR  00BEH     A   
+EPDR. . . . . . . . . . . . . . . . . .    D  ADDR  00BFH     A   
+ES0 . . . . . . . . . . . . . . . . . .    B  ADDR  00A8H.4   A   
+ES1 . . . . . . . . . . . . . . . . . .    B  ADDR  00A8H.6   A   
+ET0 . . . . . . . . . . . . . . . . . .    B  ADDR  00A8H.1   A   
+ET1 . . . . . . . . . . . . . . . . . .    B  ADDR  00A8H.3   A   
+ET2 . . . . . . . . . . . . . . . . . .    B  ADDR  00A8H.5   A   
+EWDI. . . . . . . . . . . . . . . . . .    B  ADDR  00E8H.5   A   
+EWT . . . . . . . . . . . . . . . . . .    B  ADDR  00D8H.1   A   
+EX0 . . . . . . . . . . . . . . . . . .    B  ADDR  00A8H.0   A   
+EX1 . . . . . . . . . . . . . . . . . .    B  ADDR  00A8H.2   A   
+EXEN2 . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.3   A   
+EXF2. . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.6   A   
+F0. . . . . . . . . . . . . . . . . . .    B  ADDR  00D0H.5   A   
+F1. . . . . . . . . . . . . . . . . . .    B  ADDR  00D0H.1   A   
+I2CCIR. . . . . . . . . . . . . . . . .    D  ADDR  0096H     A   
+I2CDR . . . . . . . . . . . . . . . . .    D  ADDR  0097H     A   
+IE. . . . . . . . . . . . . . . . . . .    D  ADDR  00A8H     A   
+IE0 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.1   A   
+IE1 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.3   A   
+INT0. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.2   A   
+INT1. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.3   A   
+IP. . . . . . . . . . . . . . . . . . .    D  ADDR  00B8H     A   
+IT0 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.0   A   
+IT1 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.2   A   
+LCR . . . . . . . . . . . . . . . . . .    D  ADDR  00A2H     A   
+LDAHR . . . . . . . . . . . . . . . . .    D  ADDR  00A5H     A   
+LDALR . . . . . . . . . . . . . . . . .    D  ADDR  00A4H     A   
+LDCSR . . . . . . . . . . . . . . . . .    D  ADDR  00A6H     A   
+LDHR. . . . . . . . . . . . . . . . . .    D  ADDR  00AAH     A   
+LDLR. . . . . . . . . . . . . . . . . .    D  ADDR  00A9H     A   
+LIST. . . . . . . . . . . . . . . . . .    -- ----  -------       
+LMSR. . . . . . . . . . . . . . . . . .    D  ADDR  00A1H     A   
+LSAIER. . . . . . . . . . . . . . . . .    D  ADDR  00A1H     A   
+LSCR. . . . . . . . . . . . . . . . . .    D  ADDR  00A2H     A   
+LSR . . . . . . . . . . . . . . . . . .    D  ADDR  00A3H     A   
+LSSR. . . . . . . . . . . . . . . . . .    D  ADDR  00A3H     A   
+MCIR. . . . . . . . . . . . . . . . . .    D  ADDR  00B6H     A   
+MD0 . . . . . . . . . . . . . . . . . .    D  ADDR  00F9H     A   
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    29
+
+MD1 . . . . . . . . . . . . . . . . . .    D  ADDR  00FAH     A   
+MD2 . . . . . . . . . . . . . . . . . .    D  ADDR  00FBH     A   
+MD3 . . . . . . . . . . . . . . . . . .    D  ADDR  00FCH     A   
+MD4 . . . . . . . . . . . . . . . . . .    D  ADDR  00FDH     A   
+MD5 . . . . . . . . . . . . . . . . . .    D  ADDR  00FEH     A   
+MDR . . . . . . . . . . . . . . . . . .    D  ADDR  00B7H     A   
+MXAX. . . . . . . . . . . . . . . . . .    D  ADDR  00EAH     A   
+OV. . . . . . . . . . . . . . . . . . .    B  ADDR  00D0H.2   A   
+OWCIR . . . . . . . . . . . . . . . . .    D  ADDR  00D6H     A   
+OWDR. . . . . . . . . . . . . . . . . .    D  ADDR  00D7H     A   
+P . . . . . . . . . . . . . . . . . . .    B  ADDR  00D0H.0   A   
+P0. . . . . . . . . . . . . . . . . . .    D  ADDR  0080H     A   
+P0_0. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.0   A   
+P0_1. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.1   A   
+P0_2. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.2   A   
+P0_3. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.3   A   
+P0_4. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.4   A   
+P0_5. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.5   A   
+P0_6. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.6   A   
+P0_7. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.7   A   
+P1. . . . . . . . . . . . . . . . . . .    D  ADDR  0090H     A   
+P1_0. . . . . . . . . . . . . . . . . .    B  ADDR  0090H.0   A   
+P1_1. . . . . . . . . . . . . . . . . .    B  ADDR  0090H.1   A   
+P1_2. . . . . . . . . . . . . . . . . .    B  ADDR  0090H.2   A   
+P1_3. . . . . . . . . . . . . . . . . .    B  ADDR  0090H.3   A   
+P1_4. . . . . . . . . . . . . . . . . .    B  ADDR  0090H.4   A   
+P1_5. . . . . . . . . . . . . . . . . .    B  ADDR  0090H.5   A   
+P1_6. . . . . . . . . . . . . . . . . .    B  ADDR  0090H.6   A   
+P1_7. . . . . . . . . . . . . . . . . .    B  ADDR  0090H.7   A   
+P2. . . . . . . . . . . . . . . . . . .    D  ADDR  00A0H     A   
+P2_0. . . . . . . . . . . . . . . . . .    B  ADDR  00A0H.0   A   
+P2_1. . . . . . . . . . . . . . . . . .    B  ADDR  00A0H.1   A   
+P2_2. . . . . . . . . . . . . . . . . .    B  ADDR  00A0H.2   A   
+P2_3. . . . . . . . . . . . . . . . . .    B  ADDR  00A0H.3   A   
+P2_4. . . . . . . . . . . . . . . . . .    B  ADDR  00A0H.4   A   
+P2_5. . . . . . . . . . . . . . . . . .    B  ADDR  00A0H.5   A   
+P2_6. . . . . . . . . . . . . . . . . .    B  ADDR  00A0H.6   A   
+P2_7. . . . . . . . . . . . . . . . . .    B  ADDR  00A0H.7   A   
+P3. . . . . . . . . . . . . . . . . . .    D  ADDR  00B0H     A   
+P3_0. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.0   A   
+P3_1. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.1   A   
+P3_2. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.2   A   
+P3_3. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.3   A   
+P3_4. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.4   A   
+P3_5. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.5   A   
+P3_6. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.6   A   
+P3_7. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.7   A   
+PCON. . . . . . . . . . . . . . . . . .    D  ADDR  0087H     A   
+PINT2 . . . . . . . . . . . . . . . . .    B  ADDR  00F8H.0   A   
+PINT3 . . . . . . . . . . . . . . . . .    B  ADDR  00F8H.1   A   
+PINT4 . . . . . . . . . . . . . . . . .    B  ADDR  00F8H.2   A   
+PINT5 . . . . . . . . . . . . . . . . .    B  ADDR  00F8H.3   A   
+PINT6 . . . . . . . . . . . . . . . . .    B  ADDR  00F8H.4   A   
+PISSR1. . . . . . . . . . . . . . . . .    D  ADDR  009EH     A   
+PISSR2. . . . . . . . . . . . . . . . .    D  ADDR  009FH     A   
+PS0 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.4   A   
+PS1 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.6   A   
+PSW . . . . . . . . . . . . . . . . . .    D  ADDR  00D0H     A   
+PT0 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.1   A   
+PT1 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.3   A   
+PT2 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.5   A   
+PWDI. . . . . . . . . . . . . . . . . .    B  ADDR  00F8H.5   A   
+PX0 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.0   A   
+PX1 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.2   A   
+RB08. . . . . . . . . . . . . . . . . .    B  ADDR  0098H.2   A   
+RB18. . . . . . . . . . . . . . . . . .    B  ADDR  00C0H.2   A   
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    30
+
+RCLK. . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.5   A   
+RD. . . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.7   A   
+REN0. . . . . . . . . . . . . . . . . .    B  ADDR  0098H.4   A   
+REN1. . . . . . . . . . . . . . . . . .    B  ADDR  00C0H.4   A   
+RI0 . . . . . . . . . . . . . . . . . .    B  ADDR  0098H.0   A   
+RI1 . . . . . . . . . . . . . . . . . .    B  ADDR  00C0H.0   A   
+RLDH. . . . . . . . . . . . . . . . . .    D  ADDR  00CBH     A   
+RLDL. . . . . . . . . . . . . . . . . .    D  ADDR  00CAH     A   
+RS0 . . . . . . . . . . . . . . . . . .    B  ADDR  00D0H.3   A   
+RS1 . . . . . . . . . . . . . . . . . .    B  ADDR  00D0H.4   A   
+RWT . . . . . . . . . . . . . . . . . .    B  ADDR  00D8H.0   A   
+RXD . . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.0   A   
+SBUF0 . . . . . . . . . . . . . . . . .    D  ADDR  0099H     A   
+SBUF1 . . . . . . . . . . . . . . . . .    D  ADDR  00C1H     A   
+SCON0 . . . . . . . . . . . . . . . . .    D  ADDR  0098H     A   
+SCON1 . . . . . . . . . . . . . . . . .    D  ADDR  00C0H     A   
+SDSTSR. . . . . . . . . . . . . . . . .    D  ADDR  0094H     A   
+SM00. . . . . . . . . . . . . . . . . .    B  ADDR  0098H.7   A   
+SM01. . . . . . . . . . . . . . . . . .    B  ADDR  0098H.6   A   
+SM02. . . . . . . . . . . . . . . . . .    B  ADDR  0098H.5   A   
+SM10. . . . . . . . . . . . . . . . . .    B  ADDR  00C0H.7   A   
+SM11. . . . . . . . . . . . . . . . . .    B  ADDR  00C0H.6   A   
+SM12. . . . . . . . . . . . . . . . . .    B  ADDR  00C0H.5   A   
+SP. . . . . . . . . . . . . . . . . . .    D  ADDR  0081H     A   
+SPICIR. . . . . . . . . . . . . . . . .    D  ADDR  00CEH     A   
+SPIDR . . . . . . . . . . . . . . . . .    D  ADDR  00CFH     A   
+STATUS. . . . . . . . . . . . . . . . .    D  ADDR  00E9H     A   
+T0. . . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.4   A   
+T1. . . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.5   A   
+T2CON . . . . . . . . . . . . . . . . .    D  ADDR  00C8H     A   
+T2IF. . . . . . . . . . . . . . . . . .    D  ADDR  00C9H     A   
+TA. . . . . . . . . . . . . . . . . . .    D  ADDR  00EBH     A   
+TB08. . . . . . . . . . . . . . . . . .    B  ADDR  0098H.3   A   
+TB18. . . . . . . . . . . . . . . . . .    B  ADDR  00C0H.3   A   
+TCIR. . . . . . . . . . . . . . . . . .    D  ADDR  00AEH     A   
+TCLK. . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.4   A   
+TCON. . . . . . . . . . . . . . . . . .    D  ADDR  0088H     A   
+TDR . . . . . . . . . . . . . . . . . .    D  ADDR  00AFH     A   
+TF0 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.5   A   
+TF1 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.7   A   
+TF2 . . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.7   A   
+TH0 . . . . . . . . . . . . . . . . . .    D  ADDR  008CH     A   
+TH1 . . . . . . . . . . . . . . . . . .    D  ADDR  008DH     A   
+TH2 . . . . . . . . . . . . . . . . . .    D  ADDR  00CDH     A   
+TI0 . . . . . . . . . . . . . . . . . .    B  ADDR  0098H.1   A   
+TI1 . . . . . . . . . . . . . . . . . .    B  ADDR  00C0H.1   A   
+TL0 . . . . . . . . . . . . . . . . . .    D  ADDR  008AH     A   
+TL1 . . . . . . . . . . . . . . . . . .    D  ADDR  008BH     A   
+TL2 . . . . . . . . . . . . . . . . . .    D  ADDR  00CCH     A   
+TMOD. . . . . . . . . . . . . . . . . .    D  ADDR  0089H     A   
+TR0 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.4   A   
+TR1 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.6   A   
+TR2 . . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.2   A   
+TXD . . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.1   A   
+UR2_DLH . . . . . . . . . . . . . . . .    D  ADDR  00E2H     A   
+UR2_DLL . . . . . . . . . . . . . . . .    D  ADDR  00E1H     A   
+UR2_FCR . . . . . . . . . . . . . . . .    D  ADDR  00E3H     A   
+UR2_IER . . . . . . . . . . . . . . . .    D  ADDR  00E2H     A   
+UR2_IIR . . . . . . . . . . . . . . . .    D  ADDR  00E3H     A   
+UR2_LCR . . . . . . . . . . . . . . . .    D  ADDR  00E4H     A   
+UR2_LSR . . . . . . . . . . . . . . . .    D  ADDR  00E6H     A   
+UR2_MCR . . . . . . . . . . . . . . . .    D  ADDR  00E5H     A   
+UR2_MSR . . . . . . . . . . . . . . . .    D  ADDR  00E7H     A   
+UR2_RBR . . . . . . . . . . . . . . . .    D  ADDR  00E1H     A   
+UR2_THR . . . . . . . . . . . . . . . .    D  ADDR  00E1H     A   
+WDCON . . . . . . . . . . . . . . . . .    D  ADDR  00D8H     A   
+AX51 MACRO ASSEMBLER  LIST                                                                  03/13/13 09:32:27 PAGE    31
+
+WDIF. . . . . . . . . . . . . . . . . .    B  ADDR  00D8H.3   A   
+WR. . . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.6   A   
+WTRF. . . . . . . . . . . . . . . . . .    B  ADDR  00D8H.2   A   
+WTST. . . . . . . . . . . . . . . . . .    D  ADDR  0092H     A   
+XMRHR . . . . . . . . . . . . . . . . .    D  ADDR  00A7H     A   
+XMRLR . . . . . . . . . . . . . . . . .    D  ADDR  00A6H     A   
+XMWHR . . . . . . . . . . . . . . . . .    D  ADDR  00A5H     A   
+XMWLR . . . . . . . . . . . . . . . . .    D  ADDR  00A4H     A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S).

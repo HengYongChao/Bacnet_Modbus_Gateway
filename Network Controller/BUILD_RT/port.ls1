@@ -1,0 +1,1719 @@
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE     1
+
+
+MACRO ASSEMBLER AX51 V3.07c
+OBJECT MODULE PLACED IN .\port.OBJ
+ASSEMBLER INVOKED BY: d:\Keil_4_9.06\C51\BIN\AX51.EXE .\port.src PR(.\port.ls1) EP DEBUG MOD_CONT
+
+LOC    OBJ             LINE     SOURCE
+
+                          1     ; .\port.SRC generated from: ..\src\FreeRtossource\portable\Keil\AX11000\port.c
+                          2     ; COMPILER INVOKED BY:
+                          3     ;        d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\portable\Keil\AX11000\port
+                               .c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\S
+                               RC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\SRC\deb
+                               ug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;
+                               ..\SRC\flash\;..\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP
+                               _v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\Src\FreeRTOSSource\include\;..\Src\
+                               schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\port.lst) SRC(.\port.SRC)
+                          4     
+                          5     $mod_cont 
+                          6     $nomod51 
+                          7     
+                          8     NAME    PORT
+                          9     
+ 0098.3                  10     TB08    BIT     098H.3
+ 00C0.3                  11     TB18    BIT     0C0H.3
+ 0080                    12     P0      DATA    080H
+ 0098.7                  13     SM00    BIT     098H.7
+ 0090                    14     P1      DATA    090H
+ 00C0.7                  15     SM10    BIT     0C0H.7
+ 0098.6                  16     SM01    BIT     098H.6
+ 00A0                    17     P2      DATA    0A0H
+ 00C0.6                  18     SM11    BIT     0C0H.6
+ 0098.5                  19     SM02    BIT     098H.5
+ 00B0                    20     P3      DATA    0B0H
+ 00D0.6                  21     AC      BIT     0D0H.6
+ 00C0.5                  22     SM12    BIT     0C0H.5
+ 00B0.4                  23     T0      BIT     0B0H.4
+ 00CF                    24     SPIDR   DATA    0CFH
+ 00B0.5                  25     T1      BIT     0B0H.5
+ 00A8.7                  26     EA      BIT     0A8H.7
+ 00D6                    27     OWCIR   DATA    0D6H
+ 00C5                    28     CH      DATA    0C5H
+ 0083                    29     DPH0    DATA    083H
+ 00A8                    30     IE      DATA    0A8H
+ 0085                    31     DPH1    DATA    085H
+ 00C4                    32     CL      DATA    0C4H
+ 0080.0                  33     P0_0    BIT     080H.0
+ 0090.0                  34     P1_0    BIT     090H.0
+ 0080.1                  35     P0_1    BIT     080H.1
+ 00B9                    36     CCAPH0  DATA    0B9H
+ 0082                    37     DPL0    DATA    082H
+ 00A0.0                  38     P2_0    BIT     0A0H.0
+ 0090.1                  39     P1_1    BIT     090H.1
+ 0080.2                  40     P0_2    BIT     080H.2
+ 00BA                    41     CCAPH1  DATA    0BAH
+ 0084                    42     DPL1    DATA    084H
+ 00B0.0                  43     P3_0    BIT     0B0H.0
+ 00A0.1                  44     P2_1    BIT     0A0H.1
+ 0090.2                  45     P1_2    BIT     090H.2
+ 0080.3                  46     P0_3    BIT     080H.3
+ 00E2                    47     UR2_DLH DATA    0E2H
+ 00BB                    48     CCAPH2  DATA    0BBH
+ 00A7                    49     XMRHR   DATA    0A7H
+ 00B0.1                  50     P3_1    BIT     0B0H.1
+ 00A0.2                  51     P2_2    BIT     0A0H.2
+ 0090.3                  52     P1_3    BIT     090H.3
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE     2
+
+ 0080.4                  53     P0_4    BIT     080H.4
+ 00BC                    54     CCAPH3  DATA    0BCH
+ 00B0.2                  55     P3_2    BIT     0B0H.2
+ 00A0.3                  56     P2_3    BIT     0A0H.3
+ 0090.4                  57     P1_4    BIT     090H.4
+ 0080.5                  58     P0_5    BIT     080H.5
+ 00EB                    59     TA      DATA    0EBH
+ 00BD                    60     CCAPH4  DATA    0BDH
+ 00B1                    61     CCAPL0  DATA    0B1H
+ 00C8.6                  62     EXF2    BIT     0C8H.6
+ 00B0.7                  63     RD      BIT     0B0H.7
+ 00B0.3                  64     P3_3    BIT     0B0H.3
+ 00A0.4                  65     P2_4    BIT     0A0H.4
+ 0098.4                  66     REN0    BIT     098H.4
+ 0090.5                  67     P1_5    BIT     090H.5
+ 0080.6                  68     P0_6    BIT     080H.6
+ 00E3                    69     UR2_FCR DATA    0E3H
+ 00D1                    70     CCAPM0  DATA    0D1H
+ 00C9                    71     T2IF    DATA    0C9H
+ 00B2                    72     CCAPL1  DATA    0B2H
+ 00C0.4                  73     REN1    BIT     0C0H.4
+ 00B0.4                  74     P3_4    BIT     0B0H.4
+ 00A0.5                  75     P2_5    BIT     0A0H.5
+ 0090.6                  76     P1_6    BIT     090H.6
+ 0080.7                  77     P0_7    BIT     080H.7
+ 00E1                    78     UR2_DLL DATA    0E1H
+ 00D2                    79     CCAPM1  DATA    0D2H
+ 00B3                    80     CCAPL2  DATA    0B3H
+ 00A6                    81     XMRLR   DATA    0A6H
+ 00B0.5                  82     P3_5    BIT     0B0H.5
+ 00A0.6                  83     P2_6    BIT     0A0H.6
+ 0090.7                  84     P1_7    BIT     090H.7
+ 00D3                    85     CCAPM2  DATA    0D3H
+ 00B4                    86     CCAPL3  DATA    0B4H
+ 00A5                    87     XMWHR   DATA    0A5H
+ 00B0.6                  88     P3_6    BIT     0B0H.6
+ 00A0.7                  89     P2_7    BIT     0A0H.7
+ 00D4                    90     CCAPM3  DATA    0D4H
+ 00B8                    91     IP      DATA    0B8H
+ 00B5                    92     CCAPL4  DATA    0B5H
+ 00B0.7                  93     P3_7    BIT     0B0H.7
+ 00D5                    94     CCAPM4  DATA    0D5H
+ 009A                    95     DBAR    DATA    09AH
+ 00E2                    96     UR2_IER DATA    0E2H
+ 00D0.7                  97     CY      BIT     0D0H.7
+ 00B0.2                  98     INT0    BIT     0B0H.2
+ 00E4                    99     UR2_LCR DATA    0E4H
+ 00A4                   100     XMWLR   DATA    0A4H
+ 00B0.1                 101     GSM_SWITCH      BIT     0B0H.1
+ 00B0.3                 102     INT1    BIT     0B0H.3
+ 00E5                   103     UR2_MCR DATA    0E5H
+ 0093                   104     DPX0    DATA    093H
+ 0096                   105     I2CCIR  DATA    096H
+ 0095                   106     DPX1    DATA    095H
+ 00E3                   107     UR2_IIR DATA    0E3H
+ 00E1                   108     UR2_RBR DATA    0E1H
+ 009D                   109     ACON    DATA    09DH
+ 009B                   110     DCIR    DATA    09BH
+ 0081                   111     SP      DATA    081H
+ 00C3                   112     CCON    DATA    0C3H
+ 00C2                   113     CMOD    DATA    0C2H
+ 00D0.2                 114     OV      BIT     0D0H.2
+ 00B0.6                 115     WR      BIT     0B0H.6
+ 00E1                   116     UR2_THR DATA    0E1H
+ 00E8.5                 117     EWDI    BIT     0E8H.5
+ 00D8.3                 118     WDIF    BIT     0D8H.3
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE     3
+
+ 00CB                   119     RLDH    DATA    0CBH
+ 00BE                   120     EPCR    DATA    0BEH
+ 00AA                   121     LDHR    DATA    0AAH
+ 00E6                   122     UR2_LSR DATA    0E6H
+ 00BF                   123     EPDR    DATA    0BFH
+ 00B6                   124     MCIR    DATA    0B6H
+ 00C8.5                 125     RCLK    BIT     0C8H.5
+ 00E7                   126     UR2_MSR DATA    0E7H
+ 00C8.4                 127     TCLK    BIT     0C8H.4
+ 00CA                   128     RLDL    DATA    0CAH
+ 00A9                   129     LDLR    DATA    0A9H
+ 0087                   130     PCON    DATA    087H
+ 00DE                   131     CANCIR  DATA    0DEH
+ 00AE                   132     TCIR    DATA    0AEH
+ 00F8.5                 133     PWDI    BIT     0F8H.5
+ 00A2                   134     LSCR    DATA    0A2H
+ 0089                   135     TMOD    DATA    089H
+ 0088                   136     TCON    DATA    088H
+ 00D7                   137     OWDR    DATA    0D7H
+ 0088.1                 138     IE0     BIT     088H.1
+ 0088.3                 139     IE1     BIT     088H.3
+ 00EA                   140     MXAX    DATA    0EAH
+ 00A1                   141     LMSR    DATA    0A1H
+ 00F9                   142     MD0     DATA    0F9H
+ 00F0                   143     B       DATA    0F0H
+ 00FA                   144     MD1     DATA    0FAH
+ 00A1                   145     LSAIER  DATA    0A1H
+ 00FB                   146     MD2     DATA    0FBH
+ 00D8.2                 147     WTRF    BIT     0D8H.2
+ 00FC                   148     MD3     DATA    0FCH
+ 009E                   149     PISSR1  DATA    09EH
+ 00FD                   150     MD4     DATA    0FDH
+ 00A3                   151     LSSR    DATA    0A3H
+ 009F                   152     PISSR2  DATA    09FH
+ 00FE                   153     MD5     DATA    0FEH
+ 00E0                   154     ACC     DATA    0E0H
+ 00A8.4                 155     ES0     BIT     0A8H.4
+ 00C8.1                 156     CT2     BIT     0C8H.1
+ 00A8.6                 157     ES1     BIT     0A8H.6
+ 00A8.1                 158     ET0     BIT     0A8H.1
+ 00A8.3                 159     ET1     BIT     0A8H.3
+ 0088.5                 160     TF0     BIT     088H.5
+ 00A8.5                 161     ET2     BIT     0A8H.5
+ 0098.0                 162     RI0     BIT     098H.0
+ 0088.7                 163     TF1     BIT     088H.7
+ 00C8.7                 164     TF2     BIT     0C8H.7
+ 00C0.0                 165     RI1     BIT     0C0H.0
+ 00CE                   166     SPICIR  DATA    0CEH
+ 008C                   167     TH0     DATA    08CH
+ 00A8.0                 168     EX0     BIT     0A8H.0
+ 0098.1                 169     TI0     BIT     098H.1
+ 0088.0                 170     IT0     BIT     088H.0
+ 008D                   171     TH1     DATA    08DH
+ 00C0.1                 172     TI1     BIT     0C0H.1
+ 00A8.2                 173     EX1     BIT     0A8H.2
+ 0088.2                 174     IT1     BIT     088H.2
+ 00CD                   175     TH2     DATA    0CDH
+ 00D0.0                 176     P       BIT     0D0H.0
+ 008A                   177     TL0     DATA    08AH
+ 008F                   178     CSREPR  DATA    08FH
+ 008B                   179     TL1     DATA    08BH
+ 00CC                   180     TL2     DATA    0CCH
+ 00B8.4                 181     PS0     BIT     0B8H.4
+ 00E8                   182     EIE     DATA    0E8H
+ 0092                   183     WTST    DATA    092H
+ 00B8.6                 184     PS1     BIT     0B8H.6
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE     4
+
+ 00B8.1                 185     PT0     BIT     0B8H.1
+ 0091                   186     EIF     DATA    091H
+ 00D0.3                 187     RS0     BIT     0D0H.3
+ 00B8.3                 188     PT1     BIT     0B8H.3
+ 0097                   189     I2CDR   DATA    097H
+ 00D0.4                 190     RS1     BIT     0D0H.4
+ 00B8.5                 191     PT2     BIT     0B8H.5
+ 0088.4                 192     TR0     BIT     088H.4
+ 0088.6                 193     TR1     BIT     088H.6
+ 00C8.2                 194     TR2     BIT     0C8H.2
+ 00B8.0                 195     PX0     BIT     0B8H.0
+ 00B8.2                 196     PX1     BIT     0B8H.2
+ 009C                   197     DDR     DATA    09CH
+ 0083                   198     DPH     DATA    083H
+ 00F8                   199     EIP     DATA    0F8H
+ 0082                   200     DPL     DATA    082H
+ 00A2                   201     LCR     DATA    0A2H
+ 0099                   202     SBUF0   DATA    099H
+ 00C1                   203     SBUF1   DATA    0C1H
+ 00E8.0                 204     EINT2   BIT     0E8H.0
+ 00C8.3                 205     EXEN2   BIT     0C8H.3
+ 00B7                   206     MDR     DATA    0B7H
+ 00E8.1                 207     EINT3   BIT     0E8H.1
+ 00C8.0                 208     CPRL2   BIT     0C8H.0
+ 0098                   209     SCON0   DATA    098H
+ 00E8.2                 210     EINT4   BIT     0E8H.2
+ 00C0                   211     SCON1   DATA    0C0H
+ 0094                   212     SDSTSR  DATA    094H
+ 00E8.3                 213     EINT5   BIT     0E8H.3
+ 00E9                   214     STATUS  DATA    0E9H
+ 00E8.4                 215     EINT6   BIT     0E8H.4
+ 00C8                   216     T2CON   DATA    0C8H
+ 0086                   217     DPS     DATA    086H
+ 00DF                   218     CANDR   DATA    0DFH
+ 00AF                   219     TDR     DATA    0AFH
+ 00A5                   220     LDAHR   DATA    0A5H
+ 0093                   221     DPX     DATA    093H
+ 00AD                   222     DMAHR   DATA    0ADH
+ 00F8.0                 223     PINT2   BIT     0F8H.0
+ 00B0.0                 224     RXD     BIT     0B0H.0
+ 00F8.1                 225     PINT3   BIT     0F8H.1
+ 008E                   226     CKCON   DATA    08EH
+ 00F8.2                 227     PINT4   BIT     0F8H.2
+ 00D8.1                 228     EWT     BIT     0D8H.1
+ 00B0.1                 229     TXD     BIT     0B0H.1
+ 00A4                   230     LDALR   DATA    0A4H
+ 00F8.3                 231     PINT5   BIT     0F8H.3
+ 00AB                   232     DMALR   DATA    0ABH
+ 00A3                   233     LSR     DATA    0A3H
+ 00B0.0                 234     GSM_RX  BIT     0B0H.0
+ 00F8.4                 235     PINT6   BIT     0F8H.4
+ 00AC                   236     DMAMR   DATA    0ACH
+ 0090.1                 237     GSM_TX  BIT     090H.1
+ 00FF                   238     ARCON   DATA    0FFH
+ 00D0.5                 239     F0      BIT     0D0H.5
+ 00D0.1                 240     F1      BIT     0D0H.1
+ 00A6                   241     LDCSR   DATA    0A6H
+ 00D0                   242     PSW     DATA    0D0H
+ 0098.2                 243     RB08    BIT     098H.2
+ 00D8                   244     WDCON   DATA    0D8H
+ 00D8.0                 245     RWT     BIT     0D8H.0
+ 00C0.2                 246     RB18    BIT     0C0H.2
+------                  247     ?PR?_?pxPortInitialiseStack?PORT         SEGMENT ECODE INSEG 
+------                  248     ?PR?_?sPortStartScheduler?PORT           SEGMENT ECODE INSEG 
+------                  249     ?PR?_?vPortEndScheduler?PORT             SEGMENT ECODE INSEG 
+------                  250     ?PR?_?vPortContextSwitch?PORT            SEGMENT ECODE INSEG 
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE     5
+
+------                  251     ?PR?_?OSIntCtxSw?PORT                    SEGMENT ECODE INSEG 
+------                  252     ?PR?_?vIntPortContextSwitch?PORT         SEGMENT ECODE INSEG 
+------                  253     ?PR?vTimer2ISR?PORT  SEGMENT ECODE INSEG 
+------                  254     ?XD?vTimer2ISR?PORT  SEGMENT XDATA OVERLAYABLE
+------                  255     ?PR?prvSetupTimerInterrupt?PORT          SEGMENT ECODE INSEG 
+------                  256     ?XD?prvSetupTimerInterrupt?PORT          SEGMENT XDATA OVERLAYABLE
+------                  257     ?C_INITSEG           SEGMENT CODE 
+------                  258     ?XD?PORT             SEGMENT XDATA 
+------                  259     ?DT?PORT             SEGMENT DATA 
+                        260             EXTRN   CODE (_?prvGetCurrentTCB_XBP)
+                        261             EXTRN   CODE (_?prvSetCurrentTCB_XBP)
+                        262             EXTRN   CODE (_?LoadCtx)
+                        263             EXTRN   XDATA (gsm_timeout)
+                        264             EXTRN   CODE (_?vTaskIncrementTick)
+                        265             EXTRN   HDATA (USB_timeout)
+                        266             EXTRN   XDATA (SilenceTime)
+                        267             EXTRN   HDATA (uart0_timeout)
+                        268             EXTRN   HDATA (uart1_timeout)
+                        269             EXTRN   HDATA (uart2_timeout)
+                        270             EXTRN   CODE (_DMA_WriteReg)
+                        271             EXTRN   IDATA (STACK_START)
+                        272             EXTRN   CODE (_?vTaskSwitchContext)
+                        273             EXTRN   DATA (TICK_INT)
+                        274             EXTRN   CODE (?C?ADDXBP)
+                        275             EXTRN   CODE (?C?XBPOFF)
+                        276             EXTRN   DATA (?C_XBP)
+                        277             EXTRN   NUMBER (?C?XDATASEG)
+                        278             EXTRN   CODE (?C?IILDX)
+                        279             EXTRN   CODE (?C?PSTPTR)
+                        280             EXTRN   CODE (?C?ISTPTR)
+                        281             EXTRN   CODE (?C?ULSHR)
+                        282             EXTRN   CODE (?C?CSTPTR)
+                        283             PUBLIC  siltime
+                        284             PUBLIC  SaveSP
+                        285             PUBLIC  timegasflag
+                        286             PUBLIC  vTimer2ISR
+                        287             PUBLIC  _?vIntPortContextSwitch
+                        288             PUBLIC  _?OSIntCtxSw
+                        289             PUBLIC  _?vPortContextSwitch
+                        290             PUBLIC  _?vPortEndScheduler
+                        291             PUBLIC  _?sPortStartScheduler
+                        292             PUBLIC  _?pxPortInitialiseStack
+                        293     
+------                  294             RSEG  ?XD?vTimer2ISR?PORT
+000000                  295     ?vTimer2ISR?BYTE:
+000000                  296             isr?640:   DS   1
+                        297     
+------                  298             RSEG  ?XD?prvSetupTimerInterrupt?PORT
+000000                  299     ?prvSetupTimerInterrupt?BYTE:
+000000                  300            temp?741:   DS   2
+                        301     
+------                  302             RSEG  ?XD?PORT
+000000                  303         timegasflag:   DS   2
+000002                  304             siltime:   DS   1
+                        305     
+------                  306             RSEG  ?DT?PORT
+000000                  307              SaveSP:   DS   1
+                        308     
+------                  309             RSEG  ?C_INITSEG
+000000 41               310             DB      041H
+000001 0000       F     311             DW      siltime
+000003 00               312             DB      000H
+                        313     
+000004 42               314             DB      042H
+000005 0000       F     315             DW      timegasflag
+000007 0000             316             DW      00000H
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE     6
+
+                        317     
+                        318     ; /*
+                        319     ;       FreeRTOS V2.6.0 - Copyright (C) 2003 - 2005 Richard Barry.
+                        320     ; 
+                        321     ;       This file is part of the FreeRTOS distribution.
+                        322     ; 
+                        323     ;       FreeRTOS is free software; you can redistribute it and/or modify
+                        324     ;       it under the terms of the GNU General Public License as published by
+                        325     ;       the Free Software Foundation; either version 2 of the License, or
+                        326     ;       (at your option) any later version.
+                        327     ; 
+                        328     ;       FreeRTOS is distributed in the hope that it will be useful,
+                        329     ;       but WITHOUT ANY WARRANTY; without even the implied warranty of
+                        330     ;       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+                        331     ;       GNU General Public License for more details.
+                        332     ; 
+                        333     ;       You should have received a copy of the GNU General Public License
+                        334     ;       along with FreeRTOS; if not, write to the Free Software
+                        335     ;       Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+                        336     ; 
+                        337     ;       A special exception to the GPL can be applied should you wish to distribute
+                        338     ;       a combined work that includes FreeRTOS, without being obliged to provide
+                        339     ;       the source code for any proprietary components.  See the licensing section 
+                        340     ;       of http://www.FreeRTOS.org for full details of how and when the exception
+                        341     ;       can be applied.
+                        342     ; 
+                        343     ;       ***************************************************************************
+                        344     ;       See http://www.FreeRTOS.org for documentation, latest information, license 
+                        345     ;       and contact details.  Please ensure to read the configuration and relevant 
+                        346     ;       port sections of the online documentation.
+                        347     ;       ***************************************************************************
+                        348     ; */
+                        349     ; 
+                        350     ; /*-----------------------------------------------------------
+                        351     ;  * Implementation of functions defined in portable.h for the Cygnal port.
+                        352     ;  *----------------------------------------------------------*/
+                        353     ; //#pragma SRC 
+                        354     ; /* Standard includes. */
+                        355     ; #include <string.h>
+                        356     ; 
+                        357     ; /* Scheduler includes. */
+                        358     ; #include "projdefs.h"
+                        359     ; #include "portable.h"
+                        360     ; #include "task.h"
+                        361     ; #include "queue.h"
+                        362     ; #include "mstimer.h"
+                        363     ; #include "interrupt.h"
+                        364     ; #include "dma.h"
+                        365     ; 
+                        366     ; #include "hsuart.h"
+                        367     ; #include "uart.h"
+                        368     ; #include "../../../../USB/ch375_com.h"
+                        369     ; #include "../../../../gsm/gsm.h"
+                        370     ; #include "../include/mstp.h"
+                        371     ; 
+                        372     ; U8_T siltime = 0;
+                        373     ; //U8_T frame_gap = 0;
+                        374     ; BOOL timegasflag = 0;
+                        375     ; /* Constants required to setup timer 2 to produce the RTOS tick. */
+                        376     ; //#define portCLOCK_DIVISOR                           ( ( unsigned portLONG ) 12 )
+                        377     ; //#define portMAX_TIMER_VALUE                         ( ( unsigned portLONG ) 0xffff )
+                        378     ; //#define portENABLE_TIMER                            ( ( unsigned portCHAR ) 0x04 )
+                        379     ; //#define portTIMER_2_INTERRUPT_ENABLE        ( ( unsigned portCHAR ) 0x20 )
+                        380     ; 
+                        381     ; /* The value used in the IE register when a task first starts. */
+                        382     ; #define portGLOBAL_INTERRUPT_BIT      ( ( portSTACK_TYPE ) 0x80 )
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE     7
+
+                        383     ; 
+                        384     ; /* The value used in the PSW register when a task first starts. */
+                        385     ; #define portINITIAL_PSW                               ( ( portSTACK_TYPE ) 0x00 )
+                        386     ; 
+                        387     ; /* Macro to clear the timer 2 interrupt flag. */
+                        388     ; #define portCLEAR_INTERRUPT_FLAG()    {                                       \
+                        389     ;                                                                               EINT5 = 
+                               0;              \
+                        390     ;                                                                               EIF &= ~
+                               INT5F;  \
+                        391     ;                                                                               EINT5 = 
+                               1;              \
+                        392     ;                                                                       }
+                        393     ;                                                                                       
+                        394     ; /* Used during a context switch to store the size of the stack being copied
+                        395     ; to or from XRAM. */
+                        396     ; //data static unsigned portCHAR ucStackBytes;
+                        397     ; //data  unsigned portCHAR ucStackBytes;
+                        398     ; 
+                        399     ; /* Used during a context switch to point to the next byte in XRAM from/to which
+                        400     ; a RAM byte is to be copied. */
+                        401     ; //xdata static portSTACK_TYPE * data pxXRAMStack;
+                        402     ; //static portSTACK_TYPE xdata * data pxXRAMStack;
+                        403     ; 
+                        404     ; /* Used during a context switch to point to the next byte in RAM from/to which
+                        405     ; an XRAM byte is to be copied. */
+                        406     ; //data static portSTACK_TYPE * data pxRAMStack;
+                        407     ; //static  portSTACK_TYPE data * data pxRAMStack;
+                        408     ; 
+                        409     ; /* We require the address of the pxCurrentTCB variable, but don't want to know
+                        410     ; any details of its type. */
+                        411     ; //typedef void tskTCB;
+                        412     ; //extern volatile tskTCB * volatile pxCurrentTCB;
+                        413     ; 
+                        414     ; void LoadCtx() reentrant;   /* Save the current working registers to stack, defined in
+                                OS_CPU_A.ASM */
+                        415     ; extern INT8U xdata * data C_XBP, TICK_INT;
+                        416     ; 
+                        417     ; 
+                        418     ; /*
+                        419     ;  * Setup the hardware to generate an interrupt off timer 2 at the required 
+                        420     ;  * frequency.
+                        421     ;  */
+                        422     ; static void prvSetupTimerInterrupt( void );
+                        423     ; 
+                        424     ; 
+                        425     ; /* 
+                        426     ;  * See header file for description. 
+                        427     ;  */
+                        428     ; portSTACK_TYPE *pxPortInitialiseStack( portSTACK_TYPE *pxTopOfStack, pdTASK_CODE pxCod
+                               e, void *pvParameters ) reentrant
+                        429     
+------                  430             RSEG  ?PR?_?pxPortInitialiseStack?PORT
+000000                  431     _?pxPortInitialiseStack:
+                        432             USING   0
+                        433                             ; SOURCE LINE # 111
+000000 9000FFFD         434             MOV     DPTR,#0FFFDH
+000004 12000000   E     435             LCALL   ?C?ADDXBP
+000008 EB               436             MOV     A,R3
+000009 F0               437             MOVX    @DPTR,A
+00000A A3               438             INC     DPTR
+00000B EA               439             MOV     A,R2
+00000C F0               440             MOVX    @DPTR,A
+00000D A3               441             INC     DPTR
+00000E E9               442             MOV     A,R1
+00000F F0               443             MOVX    @DPTR,A
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE     8
+
+000010 9000FFFD         444             MOV     DPTR,#0FFFDH
+000014 12000000   E     445             LCALL   ?C?ADDXBP
+                        446     ; {
+                        447     ;     portSTACK_TYPE * stk;
+                        448     ; 
+                        449     ;     stk    = (portSTACK_TYPE *) pxTopOfStack;        /* Load stack pointer            
+                                                         */
+                        450                             ; SOURCE LINE # 115
+000018 90000003         451             MOV     DPTR,#03H
+00001C 12000000   E     452             LCALL   ?C?XBPOFF
+000020 E0               453             MOVX    A,@DPTR
+000021 F9               454             MOV     R1,A
+000022 A3               455             INC     DPTR
+000023 E0               456             MOVX    A,@DPTR
+000024 FA               457             MOV     R2,A
+000025 A3               458             INC     DPTR
+000026 E0               459             MOVX    A,@DPTR
+000027 850083     E     460             MOV     DPH,?C_XBP
+00002A 850082     E     461             MOV     DPL,?C_XBP+01H
+00002D 759300     E     462             MOV     DPX,#?C?XDATASEG
+000030 C9               463             XCH     A,R1
+000031 F0               464             MOVX    @DPTR,A
+000032 A3               465             INC     DPTR
+000033 EA               466             MOV     A,R2
+000034 F0               467             MOVX    @DPTR,A
+000035 A3               468             INC     DPTR
+000036 E9               469             MOV     A,R1
+000037 F0               470             MOVX    @DPTR,A
+                        471     ; 
+                        472     ;       stk                             -= sizeof(void *);              /* Save the pvPa
+                               rameters to external stack */
+                        473                             ; SOURCE LINE # 117
+000038 850083     E     474             MOV     DPH,?C_XBP
+00003B 850082     E     475             MOV     DPL,?C_XBP+01H
+00003E 759300     E     476             MOV     DPX,#?C?XDATASEG
+000041 A3               477             INC     DPTR
+000042 74FF             478             MOV     A,#0FFH
+000044 75F0FD           479             MOV     B,#0FDH
+000047 12000000   E     480             LCALL   ?C?IILDX
+                        481     ;       *(void**)stk     = pvParameters;        /*                               */
+                        482                             ; SOURCE LINE # 118
+00004B 90000009         483             MOV     DPTR,#09H
+00004F 12000000   E     484             LCALL   ?C?XBPOFF
+000053 E0               485             MOVX    A,@DPTR
+000054 FB               486             MOV     R3,A
+000055 A3               487             INC     DPTR
+000056 E0               488             MOVX    A,@DPTR
+000057 FA               489             MOV     R2,A
+000058 A3               490             INC     DPTR
+000059 E0               491             MOVX    A,@DPTR
+00005A F9               492             MOV     R1,A
+00005B C003             493             PUSH    AR3
+00005D C002             494             PUSH    AR2
+00005F C001             495             PUSH    AR1
+000061 850083     E     496             MOV     DPH,?C_XBP
+000064 850082     E     497             MOV     DPL,?C_XBP+01H
+000067 759300     E     498             MOV     DPX,#?C?XDATASEG
+00006A E0               499             MOVX    A,@DPTR
+00006B FB               500             MOV     R3,A
+00006C A3               501             INC     DPTR
+00006D E0               502             MOVX    A,@DPTR
+00006E FA               503             MOV     R2,A
+00006F A3               504             INC     DPTR
+000070 E0               505             MOVX    A,@DPTR
+000071 F9               506             MOV     R1,A
+000072 12000000   E     507             LCALL   ?C?PSTPTR
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE     9
+
+                        508     ; 
+                        509     ;       stk                             -= sizeof(INT16U);                              
+                                               /* The value should be loaded to PC    */
+                        510                             ; SOURCE LINE # 120
+000076 850083     E     511             MOV     DPH,?C_XBP
+000079 850082     E     512             MOV     DPL,?C_XBP+01H
+00007C 759300     E     513             MOV     DPX,#?C?XDATASEG
+00007F A3               514             INC     DPTR
+000080 74FF             515             MOV     A,#0FFH
+000082 75F0FE           516             MOV     B,#0FEH
+000085 12000000   E     517             LCALL   ?C?IILDX
+                        518     ;       *(INT16U*)stk    = (INT16U) pxCode;                                             
+                               /* next time when this task is running */
+                        519                             ; SOURCE LINE # 121
+000089 90000006         520             MOV     DPTR,#06H
+00008D 12000000   E     521             LCALL   ?C?XBPOFF
+000091 A3               522             INC     DPTR
+000092 E0               523             MOVX    A,@DPTR
+000093 FA               524             MOV     R2,A
+000094 A3               525             INC     DPTR
+000095 E0               526             MOVX    A,@DPTR
+000096 AE02             527             MOV     R6,AR2
+000098 FF               528             MOV     R7,A
+000099 850083     E     529             MOV     DPH,?C_XBP
+00009C 850082     E     530             MOV     DPL,?C_XBP+01H
+00009F 759300     E     531             MOV     DPX,#?C?XDATASEG
+0000A2 E0               532             MOVX    A,@DPTR
+0000A3 FB               533             MOV     R3,A
+0000A4 A3               534             INC     DPTR
+0000A5 E0               535             MOVX    A,@DPTR
+0000A6 FA               536             MOV     R2,A
+0000A7 A3               537             INC     DPTR
+0000A8 E0               538             MOVX    A,@DPTR
+0000A9 F9               539             MOV     R1,A
+0000AA EE               540             MOV     A,R6
+0000AB 8FF0             541             MOV     B,R7
+0000AD 12000000   E     542             LCALL   ?C?ISTPTR
+                        543     ; 
+                        544     ;       *--stk                   = (portSTACK_TYPE )(((INT32U) pxCode>>16)+0x7F);      /
+                               * Third byte of PC for dallas 390 */
+                        545                             ; SOURCE LINE # 123
+0000B1 90000006         546             MOV     DPTR,#06H
+0000B5 12000000   E     547             LCALL   ?C?XBPOFF
+0000B9 E0               548             MOVX    A,@DPTR
+0000BA FB               549             MOV     R3,A
+0000BB A3               550             INC     DPTR
+0000BC E0               551             MOVX    A,@DPTR
+0000BD FA               552             MOV     R2,A
+0000BE A3               553             INC     DPTR
+0000BF E0               554             MOVX    A,@DPTR
+0000C0 F9               555             MOV     R1,A
+0000C1 FF               556             MOV     R7,A
+0000C2 AE02             557             MOV     R6,AR2
+0000C4 AD03             558             MOV     R5,AR3
+0000C6 7C00             559             MOV     R4,#00H
+0000C8 7810             560             MOV     R0,#010H
+0000CA 12000000   E     561             LCALL   ?C?ULSHR
+0000CE EF               562             MOV     A,R7
+0000CF 247F             563             ADD     A,#07FH
+0000D1 FF               564             MOV     R7,A
+0000D2 850083     E     565             MOV     DPH,?C_XBP
+0000D5 850082     E     566             MOV     DPL,?C_XBP+01H
+0000D8 759300     E     567             MOV     DPX,#?C?XDATASEG
+0000DB E0               568             MOVX    A,@DPTR
+0000DC FB               569             MOV     R3,A
+0000DD A3               570             INC     DPTR
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE    10
+
+0000DE 74FF             571             MOV     A,#0FFH
+0000E0 F5F0             572             MOV     B,A
+0000E2 12000000   E     573             LCALL   ?C?IILDX
+0000E6 A9F0             574             MOV     R1,B
+0000E8 FA               575             MOV     R2,A
+0000E9 EF               576             MOV     A,R7
+0000EA 12000000   E     577             LCALL   ?C?CSTPTR
+                        578     ; 
+                        579     ; /* Following is the registers pushed into hardware stack */
+                        580     ;       *--stk                   = 'A';                 /* ACC */
+                        581                             ; SOURCE LINE # 126
+0000EE 850083     E     582             MOV     DPH,?C_XBP
+0000F1 850082     E     583             MOV     DPL,?C_XBP+01H
+0000F4 759300     E     584             MOV     DPX,#?C?XDATASEG
+0000F7 E0               585             MOVX    A,@DPTR
+0000F8 FB               586             MOV     R3,A
+0000F9 A3               587             INC     DPTR
+0000FA 74FF             588             MOV     A,#0FFH
+0000FC F5F0             589             MOV     B,A
+0000FE 12000000   E     590             LCALL   ?C?IILDX
+000102 A9F0             591             MOV     R1,B
+000104 FA               592             MOV     R2,A
+000105 7441             593             MOV     A,#041H
+000107 12000000   E     594             LCALL   ?C?CSTPTR
+                        595     ;       *--stk                   = 'B';                 /* B   */
+                        596                             ; SOURCE LINE # 127
+00010B 850083     E     597             MOV     DPH,?C_XBP
+00010E 850082     E     598             MOV     DPL,?C_XBP+01H
+000111 759300     E     599             MOV     DPX,#?C?XDATASEG
+000114 E0               600             MOVX    A,@DPTR
+000115 FB               601             MOV     R3,A
+000116 A3               602             INC     DPTR
+000117 74FF             603             MOV     A,#0FFH
+000119 F5F0             604             MOV     B,A
+00011B 12000000   E     605             LCALL   ?C?IILDX
+00011F A9F0             606             MOV     R1,B
+000121 FA               607             MOV     R2,A
+000122 7442             608             MOV     A,#042H
+000124 12000000   E     609             LCALL   ?C?CSTPTR
+                        610     ;       *--stk                   = 'X';                 /* DPX */
+                        611                             ; SOURCE LINE # 128
+000128 850083     E     612             MOV     DPH,?C_XBP
+00012B 850082     E     613             MOV     DPL,?C_XBP+01H
+00012E 759300     E     614             MOV     DPX,#?C?XDATASEG
+000131 E0               615             MOVX    A,@DPTR
+000132 FB               616             MOV     R3,A
+000133 A3               617             INC     DPTR
+000134 74FF             618             MOV     A,#0FFH
+000136 F5F0             619             MOV     B,A
+000138 12000000   E     620             LCALL   ?C?IILDX
+00013C A9F0             621             MOV     R1,B
+00013E FA               622             MOV     R2,A
+00013F 7458             623             MOV     A,#058H
+000141 12000000   E     624             LCALL   ?C?CSTPTR
+                        625     ;       *--stk                   = 'H';                 /* DPH */
+                        626                             ; SOURCE LINE # 129
+000145 850083     E     627             MOV     DPH,?C_XBP
+000148 850082     E     628             MOV     DPL,?C_XBP+01H
+00014B 759300     E     629             MOV     DPX,#?C?XDATASEG
+00014E E0               630             MOVX    A,@DPTR
+00014F FB               631             MOV     R3,A
+000150 A3               632             INC     DPTR
+000151 74FF             633             MOV     A,#0FFH
+000153 F5F0             634             MOV     B,A
+000155 12000000   E     635             LCALL   ?C?IILDX
+000159 A9F0             636             MOV     R1,B
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE    11
+
+00015B FA               637             MOV     R2,A
+00015C 7448             638             MOV     A,#048H
+00015E 12000000   E     639             LCALL   ?C?CSTPTR
+                        640     ;       *--stk                   = 'L';                 /* DPL */
+                        641                             ; SOURCE LINE # 130
+000162 850083     E     642             MOV     DPH,?C_XBP
+000165 850082     E     643             MOV     DPL,?C_XBP+01H
+000168 759300     E     644             MOV     DPX,#?C?XDATASEG
+00016B E0               645             MOVX    A,@DPTR
+00016C FB               646             MOV     R3,A
+00016D A3               647             INC     DPTR
+00016E 74FF             648             MOV     A,#0FFH
+000170 F5F0             649             MOV     B,A
+000172 12000000   E     650             LCALL   ?C?IILDX
+000176 A9F0             651             MOV     R1,B
+000178 FA               652             MOV     R2,A
+000179 744C             653             MOV     A,#04CH
+00017B 12000000   E     654             LCALL   ?C?CSTPTR
+                        655     ; //    *--stk                   = 'X';                 /* DPX1 for second DPTR */
+                        656     ; //    *--stk                   = 'H';                 /* DPH1 for second DPTR */
+                        657     ; //    *--stk                   = 'L';                 /* DPL1 for second DPTR */
+                        658     ; //    *--stk                   = DPS;                 /* DPS for second DPTR */
+                        659     ;       *--stk                   = PSW;                                 /* PSW */
+                        660                             ; SOURCE LINE # 135
+00017F 850083     E     661             MOV     DPH,?C_XBP
+000182 850082     E     662             MOV     DPL,?C_XBP+01H
+000185 759300     E     663             MOV     DPX,#?C?XDATASEG
+000188 E0               664             MOVX    A,@DPTR
+000189 FB               665             MOV     R3,A
+00018A A3               666             INC     DPTR
+00018B 74FF             667             MOV     A,#0FFH
+00018D F5F0             668             MOV     B,A
+00018F 12000000   E     669             LCALL   ?C?IILDX
+000193 A9F0             670             MOV     R1,B
+000195 FA               671             MOV     R2,A
+000196 E5D0             672             MOV     A,PSW
+000198 12000000   E     673             LCALL   ?C?CSTPTR
+                        674     ;       *--stk                   = 0;                   /* R0  */
+                        675                             ; SOURCE LINE # 136
+00019C 850083     E     676             MOV     DPH,?C_XBP
+00019F 850082     E     677             MOV     DPL,?C_XBP+01H
+0001A2 759300     E     678             MOV     DPX,#?C?XDATASEG
+0001A5 E0               679             MOVX    A,@DPTR
+0001A6 FB               680             MOV     R3,A
+0001A7 A3               681             INC     DPTR
+0001A8 74FF             682             MOV     A,#0FFH
+0001AA F5F0             683             MOV     B,A
+0001AC 12000000   E     684             LCALL   ?C?IILDX
+0001B0 A9F0             685             MOV     R1,B
+0001B2 FA               686             MOV     R2,A
+0001B3 E4               687             CLR     A
+0001B4 12000000   E     688             LCALL   ?C?CSTPTR
+                        689     ; /*
+                        690     ;       *--stk                   = 1;                   // should be R1
+                        691     ;       *--stk                   = 2;                   // should be R2
+                        692     ;       *--stk                   = 3;                   // should be R3
+                        693     ; */
+                        694     ;       stk                             -= sizeof(void *);      /* Keil C uses R1,R2,R3 
+                               to pass the */
+                        695                             ; SOURCE LINE # 142
+0001B8 850083     E     696             MOV     DPH,?C_XBP
+0001BB 850082     E     697             MOV     DPL,?C_XBP+01H
+0001BE 759300     E     698             MOV     DPX,#?C?XDATASEG
+0001C1 A3               699             INC     DPTR
+0001C2 74FF             700             MOV     A,#0FFH
+0001C4 75F0FD           701             MOV     B,#0FDH
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE    12
+
+0001C7 12000000   E     702             LCALL   ?C?IILDX
+                        703     ;       *(void**)stk     = pvParameters;                  /* arguments of functions.    
+                                     */
+                        704                             ; SOURCE LINE # 143
+0001CB 90000009         705             MOV     DPTR,#09H
+0001CF 12000000   E     706             LCALL   ?C?XBPOFF
+0001D3 E0               707             MOVX    A,@DPTR
+0001D4 FB               708             MOV     R3,A
+0001D5 A3               709             INC     DPTR
+0001D6 E0               710             MOVX    A,@DPTR
+0001D7 FA               711             MOV     R2,A
+0001D8 A3               712             INC     DPTR
+0001D9 E0               713             MOVX    A,@DPTR
+0001DA F9               714             MOV     R1,A
+0001DB C003             715             PUSH    AR3
+0001DD C002             716             PUSH    AR2
+0001DF C001             717             PUSH    AR1
+0001E1 850083     E     718             MOV     DPH,?C_XBP
+0001E4 850082     E     719             MOV     DPL,?C_XBP+01H
+0001E7 759300     E     720             MOV     DPX,#?C?XDATASEG
+0001EA E0               721             MOVX    A,@DPTR
+0001EB FB               722             MOV     R3,A
+0001EC A3               723             INC     DPTR
+0001ED E0               724             MOVX    A,@DPTR
+0001EE FA               725             MOV     R2,A
+0001EF A3               726             INC     DPTR
+0001F0 E0               727             MOVX    A,@DPTR
+0001F1 F9               728             MOV     R1,A
+0001F2 12000000   E     729             LCALL   ?C?PSTPTR
+                        730     ; 
+                        731     ;       *--stk                   = 4;                   /* R4  */
+                        732                             ; SOURCE LINE # 145
+0001F6 850083     E     733             MOV     DPH,?C_XBP
+0001F9 850082     E     734             MOV     DPL,?C_XBP+01H
+0001FC 759300     E     735             MOV     DPX,#?C?XDATASEG
+0001FF E0               736             MOVX    A,@DPTR
+000200 FB               737             MOV     R3,A
+000201 A3               738             INC     DPTR
+000202 74FF             739             MOV     A,#0FFH
+000204 F5F0             740             MOV     B,A
+000206 12000000   E     741             LCALL   ?C?IILDX
+00020A A9F0             742             MOV     R1,B
+00020C FA               743             MOV     R2,A
+00020D 7404             744             MOV     A,#04H
+00020F 12000000   E     745             LCALL   ?C?CSTPTR
+                        746     ;       *--stk                   = 5;                   /* R5  */
+                        747                             ; SOURCE LINE # 146
+000213 850083     E     748             MOV     DPH,?C_XBP
+000216 850082     E     749             MOV     DPL,?C_XBP+01H
+000219 759300     E     750             MOV     DPX,#?C?XDATASEG
+00021C E0               751             MOVX    A,@DPTR
+00021D FB               752             MOV     R3,A
+00021E A3               753             INC     DPTR
+00021F 74FF             754             MOV     A,#0FFH
+000221 F5F0             755             MOV     B,A
+000223 12000000   E     756             LCALL   ?C?IILDX
+000227 A9F0             757             MOV     R1,B
+000229 FA               758             MOV     R2,A
+00022A 7405             759             MOV     A,#05H
+00022C 12000000   E     760             LCALL   ?C?CSTPTR
+                        761     ;       *--stk                   = 6;                   /* R6  */
+                        762                             ; SOURCE LINE # 147
+000230 850083     E     763             MOV     DPH,?C_XBP
+000233 850082     E     764             MOV     DPL,?C_XBP+01H
+000236 759300     E     765             MOV     DPX,#?C?XDATASEG
+000239 E0               766             MOVX    A,@DPTR
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE    13
+
+00023A FB               767             MOV     R3,A
+00023B A3               768             INC     DPTR
+00023C 74FF             769             MOV     A,#0FFH
+00023E F5F0             770             MOV     B,A
+000240 12000000   E     771             LCALL   ?C?IILDX
+000244 A9F0             772             MOV     R1,B
+000246 FA               773             MOV     R2,A
+000247 7406             774             MOV     A,#06H
+000249 12000000   E     775             LCALL   ?C?CSTPTR
+                        776     ;       *--stk                   = 7;                   /* R7  */
+                        777                             ; SOURCE LINE # 148
+00024D 850083     E     778             MOV     DPH,?C_XBP
+000250 850082     E     779             MOV     DPL,?C_XBP+01H
+000253 759300     E     780             MOV     DPX,#?C?XDATASEG
+000256 E0               781             MOVX    A,@DPTR
+000257 FB               782             MOV     R3,A
+000258 A3               783             INC     DPTR
+000259 74FF             784             MOV     A,#0FFH
+00025B F5F0             785             MOV     B,A
+00025D 12000000   E     786             LCALL   ?C?IILDX
+000261 A9F0             787             MOV     R1,B
+000263 FA               788             MOV     R2,A
+000264 7407             789             MOV     A,#07H
+000266 12000000   E     790             LCALL   ?C?CSTPTR
+                        791     ; /* Following is the registers pushed into hardware stack manually to support the dalla
+                               s 390 */
+                        792     ;     *--stk           = 0x80;                /* IE, EA is enabled  */
+                        793                             ; SOURCE LINE # 150
+00026A 850083     E     794             MOV     DPH,?C_XBP
+00026D 850082     E     795             MOV     DPL,?C_XBP+01H
+000270 759300     E     796             MOV     DPX,#?C?XDATASEG
+000273 E0               797             MOVX    A,@DPTR
+000274 FB               798             MOV     R3,A
+000275 A3               799             INC     DPTR
+000276 74FF             800             MOV     A,#0FFH
+000278 F5F0             801             MOV     B,A
+00027A 12000000   E     802             LCALL   ?C?IILDX
+00027E A9F0             803             MOV     R1,B
+000280 FA               804             MOV     R2,A
+000281 7480             805             MOV     A,#080H
+000283 12000000   E     806             LCALL   ?C?CSTPTR
+                        807     ; 
+                        808     ; /*
+                        809     ;     Next is calculating the hardware stack pointer.
+                        810     ; */
+                        811     ;     *--stk                     = (INT8U) portSTACK_START-1      /* Initial value when 
+                               main was called    */
+                        812                             ; SOURCE LINE # 155
+000287 7400       E     813             MOV     A,#LOW (STACK_START)
+000289 2408             814             ADD     A,#08H
+00028B 2405             815             ADD     A,#05H
+00028D 04               816             INC     A
+00028E 2402             817             ADD     A,#02H
+000290 04               818             INC     A
+000291 FF               819             MOV     R7,A
+000292 850083     E     820             MOV     DPH,?C_XBP
+000295 850082     E     821             MOV     DPL,?C_XBP+01H
+000298 759300     E     822             MOV     DPX,#?C?XDATASEG
+00029B E0               823             MOVX    A,@DPTR
+00029C FB               824             MOV     R3,A
+00029D A3               825             INC     DPTR
+00029E 74FF             826             MOV     A,#0FFH
+0002A0 F5F0             827             MOV     B,A
+0002A2 12000000   E     828             LCALL   ?C?IILDX
+0002A6 A9F0             829             MOV     R1,B
+0002A8 FA               830             MOV     R2,A
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE    14
+
+0002A9 EF               831             MOV     A,R7
+0002AA 12000000   E     832             LCALL   ?C?CSTPTR
+                        833     ;                          +1                   /* IE */
+                        834     ;                          +8                   /* R0-R7, eight registers was saved     
+                                */
+                        835     ;                        +5                   /* ACC, B, DPH, DPL, PSW, five registers *
+                               /
+                        836     ;                        +1                   /* Dallas 390 extra registers DPX1 */
+                        837     ; //                       +4                   /* Dallas 390 extra registers for second
+                                DPTR - DPL1 DPH1 DPX1 DPS */
+                        838     ;                        +sizeof(INT16U)      /* The PC value to be loaded             *
+                               /
+                        839     ;                        +sizeof(INT8U)       /* The third byte of PC value to be loaded
+                                for dallas 390  */
+                        840     ;                                          ;
+                        841     ;     return ((void *)stk);
+                        842                             ; SOURCE LINE # 164
+0002AE 850083     E     843             MOV     DPH,?C_XBP
+0002B1 850082     E     844             MOV     DPL,?C_XBP+01H
+0002B4 759300     E     845             MOV     DPX,#?C?XDATASEG
+0002B7 E0               846             MOVX    A,@DPTR
+0002B8 FB               847             MOV     R3,A
+0002B9 A3               848             INC     DPTR
+0002BA E0               849             MOVX    A,@DPTR
+0002BB FA               850             MOV     R2,A
+0002BC A3               851             INC     DPTR
+0002BD E0               852             MOVX    A,@DPTR
+0002BE F9               853             MOV     R1,A
+                        854     ; 
+                        855     ; }
+                        856                             ; SOURCE LINE # 166
+0002BF                  857     ?C0001:
+0002BF 9000000C         858             MOV     DPTR,#0CH
+0002C3 02000000   E     859             LJMP    ?C?ADDXBP
+                        860     ; END OF _?pxPortInitialiseStack
+                        861     
+                        862     ; 
+                        863     ; /* 
+                        864     ;  * See header file for description. 
+                        865     ;  */
+                        866     ; portSHORT sPortStartScheduler( portSHORT sUsePreemption ) reentrant
+                        867     
+------                  868             RSEG  ?PR?_?sPortStartScheduler?PORT
+000000                  869     _?sPortStartScheduler:
+                        870             USING   0
+                        871                             ; SOURCE LINE # 171
+000000 9000FFFE         872             MOV     DPTR,#0FFFEH
+000004 12000000   E     873             LCALL   ?C?ADDXBP
+000008 EE               874             MOV     A,R6
+000009 F0               875             MOVX    @DPTR,A
+00000A A3               876             INC     DPTR
+00000B EF               877             MOV     A,R7
+00000C F0               878             MOVX    @DPTR,A
+                        879     ; {
+                        880     ;       /* Stop compiler warnings.  This port uses a constant defined in
+                        881     ;       portmacro.h to specify whether or not preemption is used. */
+                        882     ;       sUsePreemption = sUsePreemption;
+                        883                             ; SOURCE LINE # 175
+00000D 850083     E     884             MOV     DPH,?C_XBP
+000010 850082     E     885             MOV     DPL,?C_XBP+01H
+000013 759300     E     886             MOV     DPX,#?C?XDATASEG
+000016 E0               887             MOVX    A,@DPTR
+000017 FF               888             MOV     R7,A
+000018 A3               889             INC     DPTR
+000019 E0               890             MOVX    A,@DPTR
+00001A 850083     E     891             MOV     DPH,?C_XBP
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE    15
+
+00001D 850082     E     892             MOV     DPL,?C_XBP+01H
+000020 759300     E     893             MOV     DPX,#?C?XDATASEG
+000023 CF               894             XCH     A,R7
+000024 F0               895             MOVX    @DPTR,A
+000025 A3               896             INC     DPTR
+000026 EF               897             MOV     A,R7
+000027 F0               898             MOVX    @DPTR,A
+                        899     ; 
+                        900     ;       /* Setup timer 2 to generate the RTOS tick. */
+                        901     ;       prvSetupTimerInterrupt();       
+                        902                             ; SOURCE LINE # 178
+000028 12000000   F     903             LCALL   prvSetupTimerInterrupt
+                        904     ; 
+                        905     ;     prvSetCurrentTCB_XBP();
+                        906                             ; SOURCE LINE # 180
+00002C 12000000   E     907             LCALL   _?prvSetCurrentTCB_XBP
+                        908     ;       LoadCtx();
+                        909                             ; SOURCE LINE # 181
+000030 12000000   E     910             LCALL   _?LoadCtx
+                        911     ;                                                                               /* Shoul
+                               d never get here! */
+                        912     ;       return pdTRUE;
+                        913                             ; SOURCE LINE # 183
+000034 7E00             914             MOV     R6,#00H
+000036 7F01             915             MOV     R7,#01H
+                        916     ; }
+                        917                             ; SOURCE LINE # 184
+000038                  918     ?C0002:
+000038 90000002         919             MOV     DPTR,#02H
+00003C 02000000   E     920             LJMP    ?C?ADDXBP
+                        921     ; END OF _?sPortStartScheduler
+                        922     
+                        923     ; 
+                        924     ; /*-----------------------------------------------------------*/
+                        925     ; 
+                        926     ; void vPortEndScheduler(void) reentrant
+                        927     
+------                  928             RSEG  ?PR?_?vPortEndScheduler?PORT
+000000                  929     _?vPortEndScheduler:
+                        930             USING   0
+                        931                             ; SOURCE LINE # 188
+                        932     ; {
+                        933     ; 
+                        934     ;       /* Not implemented for this port. */
+                        935     ; }
+                        936                             ; SOURCE LINE # 192
+000000 22               937             RET     
+                        938     ; END OF _?vPortEndScheduler
+                        939     
+                        940     ; /*-----------------------------------------------------------*/
+                        941     ; 
+                        942     ; 
+                        943     ; /*************************************************************************************
+                               *********************
+                        944     ; * C_OSCtxSw is the c part of OSCtxSw.
+                        945     ; * When control passes to this function, the processor registers have been saved in ext
+                               ernal stack
+                        946     ; **************************************************************************************
+                               *********************/
+                        947     ; void vPortContextSwitch(void) reentrant
+                        948     
+------                  949             RSEG  ?PR?_?vPortContextSwitch?PORT
+000000                  950     _?vPortContextSwitch:
+                        951             USING   0
+                        952                             ; SOURCE LINE # 200
+                        953     ; {
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE    16
+
+                        954     ; 
+                        955     ; /*    Save processor registers; DONE in the OSCtxSw part in OS_CPU_ASM.ASM            
+                                                     */
+                        956     ; 
+                        957     ; /*    Save the current task's stack pointer into the current task's OS_TCB:  
+                        958     ;               prvGetCurrentTCB_XBP();
+                        959     ;       Call vTaskSwitchContext();                                    
+                        960     ;       Get the stack pointer of the task to resume:                           
+                        961     ;               prvSetCurrentTCB_XBP;
+                        962     ;       Restore all processor registers from the new task's stack;             
+                        963     ;       Execute a return from interrupt instruction;                           */
+                        964     ;     prvGetCurrentTCB_XBP();
+                        965                             ; SOURCE LINE # 212
+000000 12000000   E     966             LCALL   _?prvGetCurrentTCB_XBP
+                        967     ;     
+                        968     ;       vTaskSwitchContext();
+                        969                             ; SOURCE LINE # 214
+000004 12000000   E     970             LCALL   _?vTaskSwitchContext
+                        971     ; 
+                        972     ;     prvSetCurrentTCB_XBP();
+                        973                             ; SOURCE LINE # 216
+000008 12000000   E     974             LCALL   _?prvSetCurrentTCB_XBP
+                        975     ;     LoadCtx();
+                        976                             ; SOURCE LINE # 217
+00000C 02000000   E     977             LJMP    _?LoadCtx
+                        978     ; END OF _?vPortContextSwitch
+                        979     
+                        980     ; 
+                        981     ; }
+                        982     ; 
+                        983     ; 
+                        984     ; INT8U data SaveSP;
+                        985     ; 
+                        986     ; void OSIntCtxSw(void) reentrant
+                        987     
+------                  988             RSEG  ?PR?_?OSIntCtxSw?PORT
+000000                  989     _?OSIntCtxSw:
+                        990             USING   0
+                        991                             ; SOURCE LINE # 224
+                        992     ; {
+                        993     ; 
+                        994     ;       EA=0;
+                        995                             ; SOURCE LINE # 227
+000000 C2AF             996             CLR     EA
+                        997     ;     SP=SaveSP;
+                        998                             ; SOURCE LINE # 228
+000002 850081     F     999             MOV     SP,SaveSP
+                       1000     ; 
+                       1001     ;     prvSetCurrentTCB_XBP();
+                       1002                             ; SOURCE LINE # 230
+000005 12000000   E    1003             LCALL   _?prvSetCurrentTCB_XBP
+                       1004     ; 
+                       1005     ; #pragma ASM
+                       1006     ;       EXTRN   CODE(_?KCOSCtxSw)
+                       1007               EXTRN   code(_?KCOSCtxSw)
+                       1008     ;       MOV             A, #BYTE0( _?KCOSCtxSw)
+000009 7400       E    1009               MOV           A, #BYTE0( _?KCOSCtxSw)
+                       1010     ;       PUSH    ACC
+00000B C0E0            1011               PUSH  ACC
+                       1012     ;       MOV             A, #BYTE1(_?KCOSCtxSw)
+00000D 7400       E    1013               MOV           A, #BYTE1(_?KCOSCtxSw)
+                       1014     ;       PUSH    ACC
+00000F C0E0            1015               PUSH  ACC
+                       1016     ;       MOV             A, #BYTE2(_?KCOSCtxSw)
+000011 7400       E    1017               MOV           A, #BYTE2(_?KCOSCtxSw)
+                       1018     ;       PUSH    ACC
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE    17
+
+000013 C0E0            1019               PUSH  ACC
+                       1020     ;       RETI
+000015 32              1021               RETI
+                       1022     ; #pragma ENDASM
+                       1023     ; 
+                       1024     ; }
+                       1025                             ; SOURCE LINE # 243
+000016 22              1026             RET     
+                       1027     ; END OF _?OSIntCtxSw
+                       1028     
+                       1029     ; 
+                       1030     ; 
+                       1031     ; void vIntPortContextSwitch(void) reentrant
+                       1032     
+------                 1033             RSEG  ?PR?_?vIntPortContextSwitch?PORT
+000000                 1034     _?vIntPortContextSwitch:
+                       1035             USING   0
+                       1036                             ; SOURCE LINE # 246
+                       1037     ; {
+                       1038     ; 
+                       1039     ; /*    Save processor registers; DONE in the OSCtxSw part in OS_CPU_ASM.ASM            
+                                                     */
+                       1040     ; 
+                       1041     ; /*    Save the current task's stack pointer into the current task's OS_TCB:  
+                       1042     ;               prvGetCurrentTCB_XBP();
+                       1043     ;       Call vTaskSwitchContext();                                    
+                       1044     ;       Get the stack pointer of the task to resume:                           
+                       1045     ;               prvSetCurrentTCB_XBP;
+                       1046     ;       Restore all processor registers from the new task's stack;             
+                       1047     ;       Execute a return from interrupt instruction;                           */
+                       1048     ;     prvGetCurrentTCB_XBP();
+                       1049                             ; SOURCE LINE # 258
+000000 12000000   E    1050             LCALL   _?prvGetCurrentTCB_XBP
+                       1051     ; 
+                       1052     ;       if ( TICK_INT == 1 )
+                       1053                             ; SOURCE LINE # 260
+000004 E500       E    1054             MOV     A,TICK_INT
+000006 B40107          1055             CJNE    A,#01H,?C0006
+                       1056     ;       {
+                       1057                             ; SOURCE LINE # 261
+                       1058     ;               vTaskIncrementTick();
+                       1059                             ; SOURCE LINE # 262
+000009 12000000   E    1060             LCALL   _?vTaskIncrementTick
+                       1061     ;               TICK_INT = 0;
+                       1062                             ; SOURCE LINE # 263
+00000D E4              1063             CLR     A
+00000E F500       E    1064             MOV     TICK_INT,A
+                       1065     ;       }
+                       1066                             ; SOURCE LINE # 264
+000010                 1067     ?C0006:
+                       1068     ;       vTaskSwitchContext();
+                       1069                             ; SOURCE LINE # 265
+000010 12000000   E    1070             LCALL   _?vTaskSwitchContext
+                       1071     ;               
+                       1072     ;       portCLEAR_INTERRUPT_FLAG();
+                       1073                             ; SOURCE LINE # 267
+000014 C2EB            1074             CLR     EINT5
+000016 5391F7          1075             ANL     EIF,#0F7H
+000019 D2EB            1076             SETB    EINT5
+                       1077     ; 
+                       1078     ;     prvSetCurrentTCB_XBP();
+                       1079                             ; SOURCE LINE # 269
+00001B 12000000   E    1080             LCALL   _?prvSetCurrentTCB_XBP
+                       1081     ;     LoadCtx();
+                       1082                             ; SOURCE LINE # 270
+00001F 12000000   E    1083             LCALL   _?LoadCtx
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE    18
+
+                       1084     ;       return;
+                       1085     ; 
+                       1086     ; }
+                       1087                             ; SOURCE LINE # 273
+000023                 1088     ?C0007:
+000023 22              1089             RET     
+                       1090     ; END OF _?vIntPortContextSwitch
+                       1091     
+006073                 1092     CSEG    AT      06073H
+006073 02000000   F    1093             LJMP    vTimer2ISR
+                       1094     
+                       1095     ; 
+                       1096     ; /*-----------------------------------------------------------*/
+                       1097     ; 
+                       1098     ; #if portUSE_PREEMPTION == 1
+                       1099     ; 
+                       1100     ; /*-----------------------------------------------------------*/
+                       1101     ; 
+                       1102     ; void vTimer2ISR( void ) interrupt 10
+                       1103     
+------                 1104             RSEG  ?PR?vTimer2ISR?PORT
+                       1105             USING   0
+000000                 1106     vTimer2ISR:
+000000 C0E0            1107             PUSH    ACC
+000002 C0F0            1108             PUSH    B
+000004 C093            1109             PUSH    DPX
+000006 C083            1110             PUSH    DPH
+000008 C082            1111             PUSH    DPL
+00000A C0D0            1112             PUSH    PSW
+00000C 75D000          1113             MOV     PSW,#00H
+00000F C000            1114             PUSH    AR0
+000011 C001            1115             PUSH    AR1
+000013 C002            1116             PUSH    AR2
+000015 C003            1117             PUSH    AR3
+000017 C004            1118             PUSH    AR4
+000019 C005            1119             PUSH    AR5
+00001B C006            1120             PUSH    AR6
+00001D C007            1121             PUSH    AR7
+                       1122             USING   0
+                       1123                             ; SOURCE LINE # 281
+                       1124     ; {
+                       1125     ;       unsigned portCHAR isr;
+                       1126     ; #pragma ASM
+                       1127     ;               PUSH IE
+00001F C0A8            1128               PUSH IE
+                       1129     ; #pragma ENDASM                                                   
+                       1130     ;               isr = EA;
+                       1131                             ; SOURCE LINE # 287
+000021 A2AF            1132             MOV     C,EA
+000023 E4              1133             CLR     A
+000024 33              1134             RLC     A
+000025 90000000   F    1135             MOV     DPTR,#isr?640
+000029 F0              1136             MOVX    @DPTR,A
+                       1137     ;               EA = 0;
+                       1138                             ; SOURCE LINE # 288
+00002A C2AF            1139             CLR     EA
+                       1140     ;               if(uart2_timeout)
+                       1141                             ; SOURCE LINE # 289
+00002C 90000000   E    1142             MOV     DPTR,#uart2_timeout
+000030 E0              1143             MOVX    A,@DPTR
+000031 6002            1144             JZ      ?C0008
+                       1145     ;                       uart2_timeout--;
+                       1146                             ; SOURCE LINE # 290
+000033 14              1147             DEC     A
+000034 F0              1148             MOVX    @DPTR,A
+000035                 1149     ?C0008:
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE    19
+
+                       1150     ;               if(uart1_timeout)
+                       1151                             ; SOURCE LINE # 291
+000035 90000000   E    1152             MOV     DPTR,#uart1_timeout
+000039 E0              1153             MOVX    A,@DPTR
+00003A 6002            1154             JZ      ?C0009
+                       1155     ;                       uart1_timeout--;
+                       1156                             ; SOURCE LINE # 292
+00003C 14              1157             DEC     A
+00003D F0              1158             MOVX    @DPTR,A
+00003E                 1159     ?C0009:
+                       1160     ;               if(uart0_timeout)
+                       1161                             ; SOURCE LINE # 293
+00003E 90000000   E    1162             MOV     DPTR,#uart0_timeout
+000042 E0              1163             MOVX    A,@DPTR
+000043 6002            1164             JZ      ?C0010
+                       1165     ;                       uart0_timeout--;
+                       1166                             ; SOURCE LINE # 294
+000045 14              1167             DEC     A
+000046 F0              1168             MOVX    @DPTR,A
+000047                 1169     ?C0010:
+                       1170     ;               if(USB_timeout)
+                       1171                             ; SOURCE LINE # 295
+000047 90000000   E    1172             MOV     DPTR,#USB_timeout
+00004B E0              1173             MOVX    A,@DPTR
+00004C 6002            1174             JZ      ?C0011
+                       1175     ;                       USB_timeout--;
+                       1176                             ; SOURCE LINE # 296
+00004E 14              1177             DEC     A
+00004F F0              1178             MOVX    @DPTR,A
+000050                 1179     ?C0011:
+                       1180     ;               if(gsm_timeout)
+                       1181                             ; SOURCE LINE # 297
+000050 90000000   E    1182             MOV     DPTR,#gsm_timeout
+000054 E0              1183             MOVX    A,@DPTR
+000055 6002            1184             JZ      ?C0012
+                       1185     ;                       gsm_timeout--;
+                       1186                             ; SOURCE LINE # 298
+000057 14              1187             DEC     A
+000058 F0              1188             MOVX    @DPTR,A
+000059                 1189     ?C0012:
+                       1190     ;       
+                       1191     ; 
+                       1192     ; 
+                       1193     ;               siltime++;
+                       1194                             ; SOURCE LINE # 302
+000059 90000000   F    1195             MOV     DPTR,#siltime
+00005D E0              1196             MOVX    A,@DPTR
+00005E 04              1197             INC     A
+00005F F0              1198             MOVX    @DPTR,A
+                       1199     ;               if(siltime >= 1){
+                       1200                             ; SOURCE LINE # 303
+000060 E0              1201             MOVX    A,@DPTR
+000061 C3              1202             CLR     C
+000062 9401            1203             SUBB    A,#01H
+000064 4012            1204             JC      ?C0013
+                       1205     ;                       siltime = 0;
+                       1206                             ; SOURCE LINE # 304
+000066 E4              1207             CLR     A
+000067 F0              1208             MOVX    @DPTR,A
+                       1209     ;                       SilenceTime += 10;
+                       1210                             ; SOURCE LINE # 305
+000068 90000000   E    1211             MOV     DPTR,#SilenceTime+01H
+00006C E0              1212             MOVX    A,@DPTR
+00006D 240A            1213             ADD     A,#0AH
+00006F F0              1214             MOVX    @DPTR,A
+000070 90000000   E    1215             MOV     DPTR,#SilenceTime
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE    20
+
+000074 E0              1216             MOVX    A,@DPTR
+000075 3400            1217             ADDC    A,#00H
+000077 F0              1218             MOVX    @DPTR,A
+                       1219     ;                       }
+                       1220                             ; SOURCE LINE # 306
+000078                 1221     ?C0013:
+                       1222     ;               
+                       1223     ; 
+                       1224     ; //            SilenceTime++;
+                       1225     ; 
+                       1226     ; //            P1 = ~P1;
+                       1227     ; 
+                       1228     ;               TICK_INT = 1;
+                       1229                             ; SOURCE LINE # 313
+000078 750001     E    1230             MOV     TICK_INT,#01H
+                       1231     ;               SaveSP=SP;
+                       1232                             ; SOURCE LINE # 314
+00007B 858100     F    1233             MOV     SaveSP,SP
+                       1234     ;         prvGetCurrentTCB_XBP();
+                       1235                             ; SOURCE LINE # 315
+00007E 12000000   E    1236             LCALL   _?prvGetCurrentTCB_XBP
+                       1237     ;               EA = isr;
+                       1238                             ; SOURCE LINE # 316
+000082 90000000   F    1239             MOV     DPTR,#isr?640
+000086 E0              1240             MOVX    A,@DPTR
+000087 24FF            1241             ADD     A,#0FFH
+000089 92AF            1242             MOV     EA,C
+                       1243     ; 
+                       1244     ;               OSIntCtxSw();
+                       1245                             ; SOURCE LINE # 318
+00008B 12000000   F    1246             LCALL   _?OSIntCtxSw
+                       1247     ; }
+                       1248                             ; SOURCE LINE # 319
+00008F D007            1249             POP     AR7
+000091 D006            1250             POP     AR6
+000093 D005            1251             POP     AR5
+000095 D004            1252             POP     AR4
+000097 D003            1253             POP     AR3
+000099 D002            1254             POP     AR2
+00009B D001            1255             POP     AR1
+00009D D000            1256             POP     AR0
+00009F D0D0            1257             POP     PSW
+0000A1 D082            1258             POP     DPL
+0000A3 D083            1259             POP     DPH
+0000A5 D093            1260             POP     DPX
+0000A7 D0F0            1261             POP     B
+0000A9 D0E0            1262             POP     ACC
+0000AB 32              1263             RETI    
+                       1264     ; END OF vTimer2ISR
+                       1265     
+                       1266     ; 
+                       1267     ; #endif
+                       1268     ; 
+                       1269     ; /*-----------------------------------------------------------*/
+                       1270     ; static void prvSetupTimerInterrupt( void )
+                       1271     
+------                 1272             RSEG  ?PR?prvSetupTimerInterrupt?PORT
+000000                 1273     prvSetupTimerInterrupt:
+                       1274             USING   0
+                       1275                             ; SOURCE LINE # 324
+                       1276     ; {
+                       1277                             ; SOURCE LINE # 325
+                       1278     ;       /* using MS_TIMER */
+                       1279     ;       U8_T XDATA      temp[2];
+                       1280     ; 
+                       1281     ;       /* set software timer */
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE    21
+
+                       1282     ;       temp[1] = (U8_T)SWTIMER_INTERVAL;
+                       1283                             ; SOURCE LINE # 330
+000000 90000000   F    1284             MOV     DPTR,#temp?741+01H
+000004 740A            1285             MOV     A,#0AH
+000006 F0              1286             MOVX    @DPTR,A
+                       1287     ;       temp[0] = (U8_T)(SWTIMER_INTERVAL >> 8) + SWTIMER_START + SWTIMER_INT_ENABLE;
+                       1288                             ; SOURCE LINE # 331
+000007 90000000   F    1289             MOV     DPTR,#temp?741
+00000B 7490            1290             MOV     A,#090H
+00000D F0              1291             MOVX    @DPTR,A
+                       1292     ;       DMA_WriteReg(SWTIMER_REG, temp, 2);
+                       1293                             ; SOURCE LINE # 332
+00000E 7C00       F    1294             MOV     R4,#HIGH (temp?741)
+000010 7D00       F    1295             MOV     R5,#LOW (temp?741)
+000012 7B02            1296             MOV     R3,#02H
+000014 7F0C            1297             MOV     R7,#0CH
+000016 12000000   E    1298             LCALL   _DMA_WriteReg
+                       1299     ; 
+                       1300     ;       EXTINT5(ON);    /* Enable INT5 interrupt for software timer. */
+                       1301                             ; SOURCE LINE # 334
+00001A D2EB            1302             SETB    EINT5
+                       1303     ; 
+                       1304     ; }
+                       1305                             ; SOURCE LINE # 336
+00001C 22              1306             RET     
+                       1307     ; END OF prvSetupTimerInterrupt
+                       1308     
+                       1309             END
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE    22
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E                                    T Y P E  V A L U E     ATTRIBUTES
+
+?C0001. . . . . . . . . . . . . . . . .    EC ADDR  02BFH     R   SEG=?PR?_?PXPORTINITIALISESTACK?PORT
+?C0002. . . . . . . . . . . . . . . . .    EC ADDR  0038H     R   SEG=?PR?_?SPORTSTARTSCHEDULER?PORT
+?C0006. . . . . . . . . . . . . . . . .    EC ADDR  0010H     R   SEG=?PR?_?VINTPORTCONTEXTSWITCH?PORT
+?C0007. . . . . . . . . . . . . . . . .    EC ADDR  0023H     R   SEG=?PR?_?VINTPORTCONTEXTSWITCH?PORT
+?C0008. . . . . . . . . . . . . . . . .    EC ADDR  0035H     R   SEG=?PR?VTIMER2ISR?PORT
+?C0009. . . . . . . . . . . . . . . . .    EC ADDR  003EH     R   SEG=?PR?VTIMER2ISR?PORT
+?C0010. . . . . . . . . . . . . . . . .    EC ADDR  0047H     R   SEG=?PR?VTIMER2ISR?PORT
+?C0011. . . . . . . . . . . . . . . . .    EC ADDR  0050H     R   SEG=?PR?VTIMER2ISR?PORT
+?C0012. . . . . . . . . . . . . . . . .    EC ADDR  0059H     R   SEG=?PR?VTIMER2ISR?PORT
+?C0013. . . . . . . . . . . . . . . . .    EC ADDR  0078H     R   SEG=?PR?VTIMER2ISR?PORT
+?C?ADDXBP . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+?C?CSTPTR . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+?C?IILDX. . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+?C?ISTPTR . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+?C?PSTPTR . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+?C?ULSHR. . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+?C?XBPOFF . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+?C?XDATASEG . . . . . . . . . . . . . .    N  NUMB  -------       EXT
+?C_INITSEG. . . . . . . . . . . . . . .    C  SEG   000009H       REL=UNIT, ALN=BYTE
+?C_XBP. . . . . . . . . . . . . . . . .    D  ADDR  -------       EXT
+?DT?PORT. . . . . . . . . . . . . . . .    D  SEG   000001H       REL=UNIT, ALN=BYTE
+?PR?_?OSINTCTXSW?PORT . . . . . . . . .    EC SEG   000017H       REL=INSEG, ALN=BYTE
+?PR?_?PXPORTINITIALISESTACK?PORT. . . .    EC SEG   0002C7H       REL=INSEG, ALN=BYTE
+?PR?_?SPORTSTARTSCHEDULER?PORT. . . . .    EC SEG   000040H       REL=INSEG, ALN=BYTE
+?PR?_?VINTPORTCONTEXTSWITCH?PORT. . . .    EC SEG   000024H       REL=INSEG, ALN=BYTE
+?PR?_?VPORTCONTEXTSWITCH?PORT . . . . .    EC SEG   000010H       REL=INSEG, ALN=BYTE
+?PR?_?VPORTENDSCHEDULER?PORT. . . . . .    EC SEG   000001H       REL=INSEG, ALN=BYTE
+?PR?PRVSETUPTIMERINTERRUPT?PORT . . . .    EC SEG   00001DH       REL=INSEG, ALN=BYTE
+?PR?VTIMER2ISR?PORT . . . . . . . . . .    EC SEG   0000ACH       REL=INSEG, ALN=BYTE
+?PRVSETUPTIMERINTERRUPT?BYTE. . . . . .    X  ADDR  0000H     R   SEG=?XD?PRVSETUPTIMERINTERRUPT?PORT
+?VTIMER2ISR?BYTE. . . . . . . . . . . .    X  ADDR  0000H     R   SEG=?XD?VTIMER2ISR?PORT
+?XD?PORT. . . . . . . . . . . . . . . .    X  SEG   000003H       REL=UNIT, ALN=BYTE
+?XD?PRVSETUPTIMERINTERRUPT?PORT . . . .    X  SEG   000002H       REL=UNIT, ALN=BYTE
+?XD?VTIMER2ISR?PORT . . . . . . . . . .    X  SEG   000001H       REL=UNIT, ALN=BYTE
+_?KCOSCTXSW . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+_?LOADCTX . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
+_?OSINTCTXSW. . . . . . . . . . . . . .    EC ADDR  0000H     R   SEG=?PR?_?OSINTCTXSW?PORT
+_?PRVGETCURRENTTCB_XBP. . . . . . . . .    C  ADDR  -------       EXT
+_?PRVSETCURRENTTCB_XBP. . . . . . . . .    C  ADDR  -------       EXT
+_?PXPORTINITIALISESTACK . . . . . . . .    EC ADDR  0000H     R   SEG=?PR?_?PXPORTINITIALISESTACK?PORT
+_?SPORTSTARTSCHEDULER . . . . . . . . .    EC ADDR  0000H     R   SEG=?PR?_?SPORTSTARTSCHEDULER?PORT
+_?VINTPORTCONTEXTSWITCH . . . . . . . .    EC ADDR  0000H     R   SEG=?PR?_?VINTPORTCONTEXTSWITCH?PORT
+_?VPORTCONTEXTSWITCH. . . . . . . . . .    EC ADDR  0000H     R   SEG=?PR?_?VPORTCONTEXTSWITCH?PORT
+_?VPORTENDSCHEDULER . . . . . . . . . .    EC ADDR  0000H     R   SEG=?PR?_?VPORTENDSCHEDULER?PORT
+_?VTASKINCREMENTTICK. . . . . . . . . .    C  ADDR  -------       EXT
+_?VTASKSWITCHCONTEXT. . . . . . . . . .    C  ADDR  -------       EXT
+_DMA_WRITEREG . . . . . . . . . . . . .    C  ADDR  -------       EXT
+AC. . . . . . . . . . . . . . . . . . .    B  ADDR  00D0H.6   A   
+ACC . . . . . . . . . . . . . . . . . .    D  ADDR  00E0H     A   
+ACON. . . . . . . . . . . . . . . . . .    D  ADDR  009DH     A   
+AR0 . . . . . . . . . . . . . . . . . .    D  ADDR  0000H     A   
+AR1 . . . . . . . . . . . . . . . . . .    D  ADDR  0001H     A   
+AR2 . . . . . . . . . . . . . . . . . .    D  ADDR  0002H     A   
+AR3 . . . . . . . . . . . . . . . . . .    D  ADDR  0003H     A   
+AR4 . . . . . . . . . . . . . . . . . .    D  ADDR  0004H     A   
+AR5 . . . . . . . . . . . . . . . . . .    D  ADDR  0005H     A   
+AR6 . . . . . . . . . . . . . . . . . .    D  ADDR  0006H     A   
+AR7 . . . . . . . . . . . . . . . . . .    D  ADDR  0007H     A   
+ARCON . . . . . . . . . . . . . . . . .    D  ADDR  00FFH     A   
+B . . . . . . . . . . . . . . . . . . .    D  ADDR  00F0H     A   
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE    23
+
+CANCIR. . . . . . . . . . . . . . . . .    D  ADDR  00DEH     A   
+CANDR . . . . . . . . . . . . . . . . .    D  ADDR  00DFH     A   
+CCAPH0. . . . . . . . . . . . . . . . .    D  ADDR  00B9H     A   
+CCAPH1. . . . . . . . . . . . . . . . .    D  ADDR  00BAH     A   
+CCAPH2. . . . . . . . . . . . . . . . .    D  ADDR  00BBH     A   
+CCAPH3. . . . . . . . . . . . . . . . .    D  ADDR  00BCH     A   
+CCAPH4. . . . . . . . . . . . . . . . .    D  ADDR  00BDH     A   
+CCAPL0. . . . . . . . . . . . . . . . .    D  ADDR  00B1H     A   
+CCAPL1. . . . . . . . . . . . . . . . .    D  ADDR  00B2H     A   
+CCAPL2. . . . . . . . . . . . . . . . .    D  ADDR  00B3H     A   
+CCAPL3. . . . . . . . . . . . . . . . .    D  ADDR  00B4H     A   
+CCAPL4. . . . . . . . . . . . . . . . .    D  ADDR  00B5H     A   
+CCAPM0. . . . . . . . . . . . . . . . .    D  ADDR  00D1H     A   
+CCAPM1. . . . . . . . . . . . . . . . .    D  ADDR  00D2H     A   
+CCAPM2. . . . . . . . . . . . . . . . .    D  ADDR  00D3H     A   
+CCAPM3. . . . . . . . . . . . . . . . .    D  ADDR  00D4H     A   
+CCAPM4. . . . . . . . . . . . . . . . .    D  ADDR  00D5H     A   
+CCON. . . . . . . . . . . . . . . . . .    D  ADDR  00C3H     A   
+CH. . . . . . . . . . . . . . . . . . .    D  ADDR  00C5H     A   
+CKCON . . . . . . . . . . . . . . . . .    D  ADDR  008EH     A   
+CL. . . . . . . . . . . . . . . . . . .    D  ADDR  00C4H     A   
+CMOD. . . . . . . . . . . . . . . . . .    D  ADDR  00C2H     A   
+CPRL2 . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.0   A   
+CSREPR. . . . . . . . . . . . . . . . .    D  ADDR  008FH     A   
+CT2 . . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.1   A   
+CY. . . . . . . . . . . . . . . . . . .    B  ADDR  00D0H.7   A   
+DBAR. . . . . . . . . . . . . . . . . .    D  ADDR  009AH     A   
+DCIR. . . . . . . . . . . . . . . . . .    D  ADDR  009BH     A   
+DDR . . . . . . . . . . . . . . . . . .    D  ADDR  009CH     A   
+DMAHR . . . . . . . . . . . . . . . . .    D  ADDR  00ADH     A   
+DMALR . . . . . . . . . . . . . . . . .    D  ADDR  00ABH     A   
+DMAMR . . . . . . . . . . . . . . . . .    D  ADDR  00ACH     A   
+DPH . . . . . . . . . . . . . . . . . .    D  ADDR  0083H     A   
+DPH0. . . . . . . . . . . . . . . . . .    D  ADDR  0083H     A   
+DPH1. . . . . . . . . . . . . . . . . .    D  ADDR  0085H     A   
+DPL . . . . . . . . . . . . . . . . . .    D  ADDR  0082H     A   
+DPL0. . . . . . . . . . . . . . . . . .    D  ADDR  0082H     A   
+DPL1. . . . . . . . . . . . . . . . . .    D  ADDR  0084H     A   
+DPS . . . . . . . . . . . . . . . . . .    D  ADDR  0086H     A   
+DPX . . . . . . . . . . . . . . . . . .    D  ADDR  0093H     A   
+DPX0. . . . . . . . . . . . . . . . . .    D  ADDR  0093H     A   
+DPX1. . . . . . . . . . . . . . . . . .    D  ADDR  0095H     A   
+EA. . . . . . . . . . . . . . . . . . .    B  ADDR  00A8H.7   A   
+EIE . . . . . . . . . . . . . . . . . .    D  ADDR  00E8H     A   
+EIF . . . . . . . . . . . . . . . . . .    D  ADDR  0091H     A   
+EINT2 . . . . . . . . . . . . . . . . .    B  ADDR  00E8H.0   A   
+EINT3 . . . . . . . . . . . . . . . . .    B  ADDR  00E8H.1   A   
+EINT4 . . . . . . . . . . . . . . . . .    B  ADDR  00E8H.2   A   
+EINT5 . . . . . . . . . . . . . . . . .    B  ADDR  00E8H.3   A   
+EINT6 . . . . . . . . . . . . . . . . .    B  ADDR  00E8H.4   A   
+EIP . . . . . . . . . . . . . . . . . .    D  ADDR  00F8H     A   
+EPCR. . . . . . . . . . . . . . . . . .    D  ADDR  00BEH     A   
+EPDR. . . . . . . . . . . . . . . . . .    D  ADDR  00BFH     A   
+ES0 . . . . . . . . . . . . . . . . . .    B  ADDR  00A8H.4   A   
+ES1 . . . . . . . . . . . . . . . . . .    B  ADDR  00A8H.6   A   
+ET0 . . . . . . . . . . . . . . . . . .    B  ADDR  00A8H.1   A   
+ET1 . . . . . . . . . . . . . . . . . .    B  ADDR  00A8H.3   A   
+ET2 . . . . . . . . . . . . . . . . . .    B  ADDR  00A8H.5   A   
+EWDI. . . . . . . . . . . . . . . . . .    B  ADDR  00E8H.5   A   
+EWT . . . . . . . . . . . . . . . . . .    B  ADDR  00D8H.1   A   
+EX0 . . . . . . . . . . . . . . . . . .    B  ADDR  00A8H.0   A   
+EX1 . . . . . . . . . . . . . . . . . .    B  ADDR  00A8H.2   A   
+EXEN2 . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.3   A   
+EXF2. . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.6   A   
+F0. . . . . . . . . . . . . . . . . . .    B  ADDR  00D0H.5   A   
+F1. . . . . . . . . . . . . . . . . . .    B  ADDR  00D0H.1   A   
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE    24
+
+GSM_RX. . . . . . . . . . . . . . . . .    B  ADDR  00B0H.0   A   
+GSM_SWITCH. . . . . . . . . . . . . . .    B  ADDR  00B0H.1   A   
+GSM_TIMEOUT . . . . . . . . . . . . . .    X  ADDR  -------       EXT
+GSM_TX. . . . . . . . . . . . . . . . .    B  ADDR  0090H.1   A   
+I2CCIR. . . . . . . . . . . . . . . . .    D  ADDR  0096H     A   
+I2CDR . . . . . . . . . . . . . . . . .    D  ADDR  0097H     A   
+IE. . . . . . . . . . . . . . . . . . .    D  ADDR  00A8H     A   
+IE0 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.1   A   
+IE1 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.3   A   
+INT0. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.2   A   
+INT1. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.3   A   
+IP. . . . . . . . . . . . . . . . . . .    D  ADDR  00B8H     A   
+ISR?640 . . . . . . . . . . . . . . . .    X  ADDR  0000H     R   SEG=?XD?VTIMER2ISR?PORT
+IT0 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.0   A   
+IT1 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.2   A   
+LCR . . . . . . . . . . . . . . . . . .    D  ADDR  00A2H     A   
+LDAHR . . . . . . . . . . . . . . . . .    D  ADDR  00A5H     A   
+LDALR . . . . . . . . . . . . . . . . .    D  ADDR  00A4H     A   
+LDCSR . . . . . . . . . . . . . . . . .    D  ADDR  00A6H     A   
+LDHR. . . . . . . . . . . . . . . . . .    D  ADDR  00AAH     A   
+LDLR. . . . . . . . . . . . . . . . . .    D  ADDR  00A9H     A   
+LMSR. . . . . . . . . . . . . . . . . .    D  ADDR  00A1H     A   
+LSAIER. . . . . . . . . . . . . . . . .    D  ADDR  00A1H     A   
+LSCR. . . . . . . . . . . . . . . . . .    D  ADDR  00A2H     A   
+LSR . . . . . . . . . . . . . . . . . .    D  ADDR  00A3H     A   
+LSSR. . . . . . . . . . . . . . . . . .    D  ADDR  00A3H     A   
+MCIR. . . . . . . . . . . . . . . . . .    D  ADDR  00B6H     A   
+MD0 . . . . . . . . . . . . . . . . . .    D  ADDR  00F9H     A   
+MD1 . . . . . . . . . . . . . . . . . .    D  ADDR  00FAH     A   
+MD2 . . . . . . . . . . . . . . . . . .    D  ADDR  00FBH     A   
+MD3 . . . . . . . . . . . . . . . . . .    D  ADDR  00FCH     A   
+MD4 . . . . . . . . . . . . . . . . . .    D  ADDR  00FDH     A   
+MD5 . . . . . . . . . . . . . . . . . .    D  ADDR  00FEH     A   
+MDR . . . . . . . . . . . . . . . . . .    D  ADDR  00B7H     A   
+MXAX. . . . . . . . . . . . . . . . . .    D  ADDR  00EAH     A   
+OV. . . . . . . . . . . . . . . . . . .    B  ADDR  00D0H.2   A   
+OWCIR . . . . . . . . . . . . . . . . .    D  ADDR  00D6H     A   
+OWDR. . . . . . . . . . . . . . . . . .    D  ADDR  00D7H     A   
+P . . . . . . . . . . . . . . . . . . .    B  ADDR  00D0H.0   A   
+P0. . . . . . . . . . . . . . . . . . .    D  ADDR  0080H     A   
+P0_0. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.0   A   
+P0_1. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.1   A   
+P0_2. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.2   A   
+P0_3. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.3   A   
+P0_4. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.4   A   
+P0_5. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.5   A   
+P0_6. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.6   A   
+P0_7. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.7   A   
+P1. . . . . . . . . . . . . . . . . . .    D  ADDR  0090H     A   
+P1_0. . . . . . . . . . . . . . . . . .    B  ADDR  0090H.0   A   
+P1_1. . . . . . . . . . . . . . . . . .    B  ADDR  0090H.1   A   
+P1_2. . . . . . . . . . . . . . . . . .    B  ADDR  0090H.2   A   
+P1_3. . . . . . . . . . . . . . . . . .    B  ADDR  0090H.3   A   
+P1_4. . . . . . . . . . . . . . . . . .    B  ADDR  0090H.4   A   
+P1_5. . . . . . . . . . . . . . . . . .    B  ADDR  0090H.5   A   
+P1_6. . . . . . . . . . . . . . . . . .    B  ADDR  0090H.6   A   
+P1_7. . . . . . . . . . . . . . . . . .    B  ADDR  0090H.7   A   
+P2. . . . . . . . . . . . . . . . . . .    D  ADDR  00A0H     A   
+P2_0. . . . . . . . . . . . . . . . . .    B  ADDR  00A0H.0   A   
+P2_1. . . . . . . . . . . . . . . . . .    B  ADDR  00A0H.1   A   
+P2_2. . . . . . . . . . . . . . . . . .    B  ADDR  00A0H.2   A   
+P2_3. . . . . . . . . . . . . . . . . .    B  ADDR  00A0H.3   A   
+P2_4. . . . . . . . . . . . . . . . . .    B  ADDR  00A0H.4   A   
+P2_5. . . . . . . . . . . . . . . . . .    B  ADDR  00A0H.5   A   
+P2_6. . . . . . . . . . . . . . . . . .    B  ADDR  00A0H.6   A   
+P2_7. . . . . . . . . . . . . . . . . .    B  ADDR  00A0H.7   A   
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE    25
+
+P3. . . . . . . . . . . . . . . . . . .    D  ADDR  00B0H     A   
+P3_0. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.0   A   
+P3_1. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.1   A   
+P3_2. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.2   A   
+P3_3. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.3   A   
+P3_4. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.4   A   
+P3_5. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.5   A   
+P3_6. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.6   A   
+P3_7. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.7   A   
+PCON. . . . . . . . . . . . . . . . . .    D  ADDR  0087H     A   
+PINT2 . . . . . . . . . . . . . . . . .    B  ADDR  00F8H.0   A   
+PINT3 . . . . . . . . . . . . . . . . .    B  ADDR  00F8H.1   A   
+PINT4 . . . . . . . . . . . . . . . . .    B  ADDR  00F8H.2   A   
+PINT5 . . . . . . . . . . . . . . . . .    B  ADDR  00F8H.3   A   
+PINT6 . . . . . . . . . . . . . . . . .    B  ADDR  00F8H.4   A   
+PISSR1. . . . . . . . . . . . . . . . .    D  ADDR  009EH     A   
+PISSR2. . . . . . . . . . . . . . . . .    D  ADDR  009FH     A   
+PORT. . . . . . . . . . . . . . . . . .    -- ----  -------       
+PRVSETUPTIMERINTERRUPT. . . . . . . . .    EC ADDR  0000H     R   SEG=?PR?PRVSETUPTIMERINTERRUPT?PORT
+PS0 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.4   A   
+PS1 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.6   A   
+PSW . . . . . . . . . . . . . . . . . .    D  ADDR  00D0H     A   
+PT0 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.1   A   
+PT1 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.3   A   
+PT2 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.5   A   
+PWDI. . . . . . . . . . . . . . . . . .    B  ADDR  00F8H.5   A   
+PX0 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.0   A   
+PX1 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.2   A   
+RB08. . . . . . . . . . . . . . . . . .    B  ADDR  0098H.2   A   
+RB18. . . . . . . . . . . . . . . . . .    B  ADDR  00C0H.2   A   
+RCLK. . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.5   A   
+RD. . . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.7   A   
+REN0. . . . . . . . . . . . . . . . . .    B  ADDR  0098H.4   A   
+REN1. . . . . . . . . . . . . . . . . .    B  ADDR  00C0H.4   A   
+RI0 . . . . . . . . . . . . . . . . . .    B  ADDR  0098H.0   A   
+RI1 . . . . . . . . . . . . . . . . . .    B  ADDR  00C0H.0   A   
+RLDH. . . . . . . . . . . . . . . . . .    D  ADDR  00CBH     A   
+RLDL. . . . . . . . . . . . . . . . . .    D  ADDR  00CAH     A   
+RS0 . . . . . . . . . . . . . . . . . .    B  ADDR  00D0H.3   A   
+RS1 . . . . . . . . . . . . . . . . . .    B  ADDR  00D0H.4   A   
+RWT . . . . . . . . . . . . . . . . . .    B  ADDR  00D8H.0   A   
+RXD . . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.0   A   
+SAVESP. . . . . . . . . . . . . . . . .    D  ADDR  0000H     R   SEG=?DT?PORT
+SBUF0 . . . . . . . . . . . . . . . . .    D  ADDR  0099H     A   
+SBUF1 . . . . . . . . . . . . . . . . .    D  ADDR  00C1H     A   
+SCON0 . . . . . . . . . . . . . . . . .    D  ADDR  0098H     A   
+SCON1 . . . . . . . . . . . . . . . . .    D  ADDR  00C0H     A   
+SDSTSR. . . . . . . . . . . . . . . . .    D  ADDR  0094H     A   
+SILENCETIME . . . . . . . . . . . . . .    X  ADDR  -------       EXT
+SILTIME . . . . . . . . . . . . . . . .    X  ADDR  0002H     R   SEG=?XD?PORT
+SM00. . . . . . . . . . . . . . . . . .    B  ADDR  0098H.7   A   
+SM01. . . . . . . . . . . . . . . . . .    B  ADDR  0098H.6   A   
+SM02. . . . . . . . . . . . . . . . . .    B  ADDR  0098H.5   A   
+SM10. . . . . . . . . . . . . . . . . .    B  ADDR  00C0H.7   A   
+SM11. . . . . . . . . . . . . . . . . .    B  ADDR  00C0H.6   A   
+SM12. . . . . . . . . . . . . . . . . .    B  ADDR  00C0H.5   A   
+SP. . . . . . . . . . . . . . . . . . .    D  ADDR  0081H     A   
+SPICIR. . . . . . . . . . . . . . . . .    D  ADDR  00CEH     A   
+SPIDR . . . . . . . . . . . . . . . . .    D  ADDR  00CFH     A   
+STACK_START . . . . . . . . . . . . . .    I  ADDR  -------       EXT
+STATUS. . . . . . . . . . . . . . . . .    D  ADDR  00E9H     A   
+T0. . . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.4   A   
+T1. . . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.5   A   
+T2CON . . . . . . . . . . . . . . . . .    D  ADDR  00C8H     A   
+T2IF. . . . . . . . . . . . . . . . . .    D  ADDR  00C9H     A   
+TA. . . . . . . . . . . . . . . . . . .    D  ADDR  00EBH     A   
+AX51 MACRO ASSEMBLER  PORT                                                                  03/13/13 09:32:28 PAGE    26
+
+TB08. . . . . . . . . . . . . . . . . .    B  ADDR  0098H.3   A   
+TB18. . . . . . . . . . . . . . . . . .    B  ADDR  00C0H.3   A   
+TCIR. . . . . . . . . . . . . . . . . .    D  ADDR  00AEH     A   
+TCLK. . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.4   A   
+TCON. . . . . . . . . . . . . . . . . .    D  ADDR  0088H     A   
+TDR . . . . . . . . . . . . . . . . . .    D  ADDR  00AFH     A   
+TEMP?741. . . . . . . . . . . . . . . .    X  ADDR  0000H     R   SEG=?XD?PRVSETUPTIMERINTERRUPT?PORT
+TF0 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.5   A   
+TF1 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.7   A   
+TF2 . . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.7   A   
+TH0 . . . . . . . . . . . . . . . . . .    D  ADDR  008CH     A   
+TH1 . . . . . . . . . . . . . . . . . .    D  ADDR  008DH     A   
+TH2 . . . . . . . . . . . . . . . . . .    D  ADDR  00CDH     A   
+TI0 . . . . . . . . . . . . . . . . . .    B  ADDR  0098H.1   A   
+TI1 . . . . . . . . . . . . . . . . . .    B  ADDR  00C0H.1   A   
+TICK_INT. . . . . . . . . . . . . . . .    D  ADDR  -------       EXT
+TIMEGASFLAG . . . . . . . . . . . . . .    X  ADDR  0000H     R   SEG=?XD?PORT
+TL0 . . . . . . . . . . . . . . . . . .    D  ADDR  008AH     A   
+TL1 . . . . . . . . . . . . . . . . . .    D  ADDR  008BH     A   
+TL2 . . . . . . . . . . . . . . . . . .    D  ADDR  00CCH     A   
+TMOD. . . . . . . . . . . . . . . . . .    D  ADDR  0089H     A   
+TR0 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.4   A   
+TR1 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.6   A   
+TR2 . . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.2   A   
+TXD . . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.1   A   
+UART0_TIMEOUT . . . . . . . . . . . . .    HD ADDR  -------       EXT
+UART1_TIMEOUT . . . . . . . . . . . . .    HD ADDR  -------       EXT
+UART2_TIMEOUT . . . . . . . . . . . . .    HD ADDR  -------       EXT
+UR2_DLH . . . . . . . . . . . . . . . .    D  ADDR  00E2H     A   
+UR2_DLL . . . . . . . . . . . . . . . .    D  ADDR  00E1H     A   
+UR2_FCR . . . . . . . . . . . . . . . .    D  ADDR  00E3H     A   
+UR2_IER . . . . . . . . . . . . . . . .    D  ADDR  00E2H     A   
+UR2_IIR . . . . . . . . . . . . . . . .    D  ADDR  00E3H     A   
+UR2_LCR . . . . . . . . . . . . . . . .    D  ADDR  00E4H     A   
+UR2_LSR . . . . . . . . . . . . . . . .    D  ADDR  00E6H     A   
+UR2_MCR . . . . . . . . . . . . . . . .    D  ADDR  00E5H     A   
+UR2_MSR . . . . . . . . . . . . . . . .    D  ADDR  00E7H     A   
+UR2_RBR . . . . . . . . . . . . . . . .    D  ADDR  00E1H     A   
+UR2_THR . . . . . . . . . . . . . . . .    D  ADDR  00E1H     A   
+USB_TIMEOUT . . . . . . . . . . . . . .    HD ADDR  -------       EXT
+VTIMER2ISR. . . . . . . . . . . . . . .    EC ADDR  0000H     R   SEG=?PR?VTIMER2ISR?PORT
+WDCON . . . . . . . . . . . . . . . . .    D  ADDR  00D8H     A   
+WDIF. . . . . . . . . . . . . . . . . .    B  ADDR  00D8H.3   A   
+WR. . . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.6   A   
+WTRF. . . . . . . . . . . . . . . . . .    B  ADDR  00D8H.2   A   
+WTST. . . . . . . . . . . . . . . . . .    D  ADDR  0092H     A   
+XMRHR . . . . . . . . . . . . . . . . .    D  ADDR  00A7H     A   
+XMRLR . . . . . . . . . . . . . . . . .    D  ADDR  00A6H     A   
+XMWHR . . . . . . . . . . . . . . . . .    D  ADDR  00A5H     A   
+XMWLR . . . . . . . . . . . . . . . . .    D  ADDR  00A4H     A   
+
+
+REGISTER BANK(S) USED: 0 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S).

@@ -1,0 +1,24 @@
+
+Rev65:
+   Add schedule and clear flash features.
+
+Rev64_1: Created by Evan 2012-03-08, based on Rev63_10 which was created by LHN.
+   Add DHCP feature. If set register 106 to 1, the unit will enable DHCP, and the ip address of NC will be assigned by router.
+
+   If clear register 106 to 0, the unit will fix the ip address as 192.168.0.3, it static ip mode.
+   In the static ip mode, please set the ip address of your PC to 198.168.0.xxx. And set the gateway of your router to 192.168.0.xxx if there is a router across PC and NC.
+    
+
+Rev63: LHN
+   Based on Rev 59   
+   Add schedules
+   Time server
+   OK to release to customers
+
+
+Rev62 Bancnet < no ide on the difference
+Rev61 Bancnet < no ide on the difference
+Rev60 Bacnet
+
+
+Rev59: Not sure what this is but qwe used this to create Rev 63 
