@@ -158,7 +158,7 @@ int printd(const char *format, ...)
 				case 's':
 				    {
 					register char *s = (char *)va_arg( args, char * );
-					pc += prints ( s?s:"(null)", width, pad);
+					pc += prints ( s?s:"(null)", width, pad);			//(null)
 					continue;
 					}
 				case 'b':

@@ -40,9 +40,9 @@
 
 /* NAMING CONSTANT DECLARATIONS */
 #if UART0_ENABLE
-#define MAX_TX_UART0_BUF_SIZE	300
+#define MAX_TX_UART0_BUF_SIZE	512
 #define MAX_TX_UART0_MASK		(MAX_TX_UART0_BUF_SIZE - 1)
-#define MAX_RX_UART0_BUF_SIZE	300
+#define MAX_RX_UART0_BUF_SIZE	512
 #define MAX_RX_UART0_MASK		(MAX_RX_UART0_BUF_SIZE - 1)
 #endif
 
@@ -54,11 +54,11 @@
 #endif
 
 #if 1
+	#define read 3
+	#define swrite  6
+	#define mwrite 16   
 
-#define read 3
-#define swrite  6
-#define mwrite 16   
-
+sbit Rs485_2_EN = P3^4;
 	
 typedef struct {
 U8_T register_id;
@@ -68,29 +68,24 @@ U8_T len;
 
 
 
-/* GLOBAL VARIABLES */
-#if UART0_ENABLE
-extern U16_T uart0_RxCount;
-extern U16_T uart0_TxCount;
-extern U8_T uart0_RxBuf[MAX_RX_UART0_BUF_SIZE]; //lihengning
-extern U8_T uart0_TxBuf[MAX_TX_UART0_BUF_SIZE];
+	/* GLOBAL VARIABLES */
+	#if UART0_ENABLE
+	extern U16_T  uart0_RxCount;
+	extern U16_T  uart0_TxCount;
+	extern U8_T   uart0_RxBuf[MAX_RX_UART0_BUF_SIZE]; //lihengning
+	extern U8_T	  uart0_TxBuf[MAX_TX_UART0_BUF_SIZE];
+	#endif
+	
+	#if UART1_ENABLE
+	extern U16_T  uart1_RxCount;
+	extern U16_T  uart1_TxCount;
+	extern U8_T   uart1_dealwithTag;
+	extern U8_T   uart1_RxBuf[MAX_RX_UART1_BUF_SIZE]; //lihengning
+	extern U8_T   uart1_TxBuf[MAX_RX_UART1_BUF_SIZE];
 
-extern U8_T far uart0_timeout;
-//extern U8_T far 
-#endif
-
-#if UART1_ENABLE
-extern U16_T uart1_RxCount;
-extern U16_T uart1_TxCount;
-extern U8_T uart1_dealwithTag;
-extern U8_T uart1_RxBuf[MAX_RX_UART1_BUF_SIZE]; //lihengning
-extern U8_T uart1_TxBuf[MAX_RX_UART1_BUF_SIZE];
-
-extern U8_T far uart1_timeout;
-extern U8_T uart1_rec_size;
-#endif
-
-
+	extern U8_T far uart1_timeout;
+	extern U8_T uart1_rec_size;
+	#endif
 #endif
 
 extern uart_frame rsv_msg;
@@ -107,8 +102,6 @@ BOOL	UART_SetPort(U8_T portNum);
 U16_T	UART_GetRxBufCount(void);
 void	PMM_Uart0Init(void);
 S8_T	uart0_PutChar(S8_T c);
-void    test_uart0_tx(U8_T *buf, U8_T len);
-void 	test_uart1_tx(U8_T *buf, U8_T len);
 
 #endif /* End of __UART_H__ */
 

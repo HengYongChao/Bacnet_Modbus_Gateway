@@ -1,0 +1,1852 @@
+/*
+ ******************************************************************************
+ *     Copyright (c) 2006	ASIX Electronic Corporation      All rights reserved.
+ *
+ *     This is unpublished proprietary source code of ASIX Electronic Corporation
+ *
+ *     The copyright notice above does not evidence any actual or intended
+ *     publication of such source code.
+ ******************************************************************************
+ */
+ /*============================================================================
+ * Module Name: adapter.c
+ * Purpose:
+ * Author:
+ * Date:
+ * Notes:
+ * $Log: adapter.c,v $
+ * Revision 1.8  2006/05/23 05:22:39  robin6633
+ * 1.Removed old command input.
+ *
+ * Revision 1.7  2006/05/23 01:53:55  robin6633
+ * 1.Removed debug information from UART2.
+ *
+ * Revision 1.6  2006/05/22 05:45:23  robin6633
+ * 1.Add DNS handle.
+ *
+ * Revision 1.5  2006/05/18 07:29:32  robin6633
+ * 1.Enabled time counter function.
+ *
+ * Revision 1.4  2006/05/18 02:13:35  robin6633
+ * 1.Changed DHCP initial function.
+ *
+ * Revision 1.3  2006/05/17 08:34:17  robin6633
+ * Disabled DHCP function.
+ *
+ * Revision 1.2  2006/05/16 05:03:09  robin6633
+ * no message
+ *
+ * Revision 1.1  2006/05/12 14:23:38  robin6633
+ * no message
+ *
+ * Revision 1.2  2006/02/24 00:31:47  borbin
+ * no message
+ *
+ * Revision 1.1.1.1  2006/02/23 00:55:10  borbin
+ * no message
+ *
+ *=============================================================================
+ */
+
+/* INCLUDE FILE DECLARATIONS */
+#include "reg80390.h"
+#include "main.h"
+#include "adapter.h"
+#include "mstimer.h"
+#include "ax11000.h"
+#include "interrupt.h"
+#include "stoe.h"
+#include "dma.h"
+#include "tcpip.h"
+#include "hsuart.h"
+#include "printd.h"
+#include "uart.h"
+#include "flash.h"
+#include <stdio.h>
+#include <Intrins.h>
+
+#include "../i2c/e2prom.h" 
+
+#include "delay.h"  //lihengning
+
+#if STOE_TRANSPARENT
+//  #include "uip_arp.h"
+#endif
+#if (INCLUDE_DHCP_CLIENT)
+  #include "dhcpc.h"
+#endif
+#if (INCLUDE_DNS_CLIENT)
+  #include "dnsctab.h"
+#endif
+
+#include "gconfig.h"
+#include "gudpbc.h"
+#include "temperature.h"
+#include "httpd.h"
+#include "filesys.h"
+#include "sntpc.h"
+
+#include <string.h>
+#include 	"projdefs.h"
+#include 	"portable.h"
+#include 	"task.h"
+#include	"queue.h"
+#include    "8563.h"
+
+#include "schedule.h"
+#include "flash_schedule.h"
+#include "../USB/ch375_COM.h"
+
+
+/* NAMING CONSTANT DECLARATIONS */
+#ifdef DEBUG
+#define DBGMSG(A) {A}
+#else
+#define DBGMSG(A) {}
+#endif
+
+#define TIME_OUT_COUNTER	(250/SWTIMER_INTERVAL)  //250
+
+typedef struct app_buf {
+	U32_T	ipaddr;
+	U8_T	buf[100];
+	U16_T	uip_len;
+	U16_T	PayLoadOffset;
+	U8_T	wait;
+}APP_BUF;
+
+APP_BUF	XDATA app_arp_buf;
+
+/* GLOBAL VARIABLES  */
+static U16_T ServerBroadcastListenPort;
+extern U8_T  FlagIsp;
+extern U8_T  ChangeFlash;
+extern U8_T far CRClo;
+extern U8_T far CRChi;
+extern U8_T far FlagSend;
+extern   U8_T  far  Parame[400]; 
+extern   U8_T   far  Para[400]; 
+enum ledState LED= None;
+
+#if 1 //lihengning    
+	extern U8_T  far UartRevNum;  
+//	extern U16_T far hsurRxCount;
+	extern U8_T gudpbc_InterAppId;
+	U8_T	TcpSocket_ME;
+	U8_T	Sever_Order = 0;
+	U8_T	Sever_id;
+	U8_T	ChangeIP = 0;
+	U8_T	TcpIp_Scan = 0;
+	Time_str Time_Server={0,0,0};
+	U8_T far mac_change_enable = 0;
+#endif
+
+#if (INCLUDE_DNS_CLIENT)
+U8_T XDATA cmdDnsFlag = 0;
+#endif
+
+
+
+/* LOCAL SUBPROGRAM DECLARATIONS */
+//static void UpdateIpSettings(U32_T);
+static void CheckArpTable(void);
+extern void InitCRC16(void);
+extern void CRC16_Tstat(unsigned char ch);
+
+/* LOCAL VARIABLES DECLARATIONS */
+xTaskHandle xHandle1;
+xTaskHandle xHandle2;
+xTaskHandle xHandle3;
+xTaskHandle xHandle4;
+xTaskHandle xHandle5;
+xTaskHandle xHandle6;
+xTaskHandle xHandle7;
+xTaskHandle xHandle8;
+xTaskHandle xHandle9;   //LHN ADD
+xTaskHandle xHandle10;
+xTaskHandle xHandle11;    
+
+char err485=0;
+U8_T data LedSta = 0xff;
+//U8_T BeatSta=0;
+U8_T  far WebText[6][30]={"time.windows.com","time.stdtime.gov.tw","clock.stdtime.gov.tw ",
+                           "watch.stdtime.gov.tw", "pool.ntp.org"};
+U32_T far IpServer[6]={0x3b7cc454,0xdc829e48,0xda4b0482,0x7ae2c004,0x3b7cc455};
+
+//U8_T add_mac[6]={1,2,3,4,5,6};
+//extern U8_T far UartRev[255];
+//extern U8_T far UartSend[255];
+//extern unsigned char  auchCRCHi[256];
+//extern unsigned char  auchCRCLo[256];
+//extern U8_T SerialFlag;
+//U16_T StartAdd_Port;
+//U16_T RealNum_Port;
+//extern U8_T IspFlag;
+//extern U8_T far FlagRev;
+//extern U8_T  SetimeFlag;
+//U16_T Port_Sin_Add=0;
+//extern U8_T far buf[255];
+//extern U8_T far buf1[255];
+
+
+void OSDelay(U8_T x)
+{
+	vTaskDelay(x);
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * Function Name: UpdateIpSettings
+ * Purpose: Update IP address, subnet mak, gateway IP address and DNS IP address 
+ * Params:
+ * Returns:
+ * Note:
+ * ----------------------------------------------------------------------------
+ */
+void UpdateIpSettings(U32_T ip)
+{
+ 	 U32_T gateWay,subnet;
+
+	 if(ip > 0)
+	 {
+	 	ip = STOE_GetIPAddr();
+		subnet = STOE_GetSubnetMask();
+		gateWay = STOE_GetGateway();
+	
+		Para[215]=(U8_T)(ip>>24);
+		Para[217]=(U8_T)(ip>>16);
+		Para[219]=(U8_T)(ip>>8);
+		Para[221]=(U8_T)(ip);
+	
+		Para[223]=(U8_T)(subnet>>24);
+		Para[225]=(U8_T)(subnet>>16);
+		Para[227]=(U8_T)(subnet>>8);
+		Para[229]=(U8_T)(subnet);
+	
+		Para[231]=(U8_T)(gateWay>>24);
+		Para[233]=(U8_T)(gateWay>>16);
+		Para[235]=(U8_T)(gateWay>>8);
+		Para[237]=(U8_T)(gateWay);
+	}
+	else
+	{
+		ip = (((U32_T)Para[215]) << 24) | ((U32_T)Para[217] << 16) | ((U32_T)Para[219] << 8) | (Para[221]);
+		subnet = (((U32_T)Para[223]) << 24) | ((U32_T)Para[225] << 16) | ((U32_T)Para[227] << 8) | (Para[229]);
+		gateWay = (((U32_T)Para[231]) << 24) | ((U32_T)Para[233] << 16) | ((U32_T)Para[235] << 8) | (Para[237]);
+		
+		TCPIP_SetIPAddr(ip); 
+		TCPIP_SetSubnetMask(subnet);
+		TCPIP_SetGateway(gateWay);
+			
+		STOE_SetIPAddr(ip); 
+	    STOE_SetSubnetMask(subnet);
+		STOE_SetGateway(gateWay);
+	
+	//	GCONFIG_SetServerDynamicIP(ip);						
+	//	GCONFIG_WriteConfigData();
+	//	GUDPBC_Init(ServerBroadcastListenPort);
+	}
+
+/*	if (ip > 0)	
+	{
+	//	printd("IP: %bu.%bu.%bu.%bu\n\r", (U8_T) ((ip >> 24) & 0x000000FF),
+	//								      (U8_T) ((ip >> 16) & 0x000000FF),
+	//							  	      (U8_T) ((ip >> 8) & 0x000000FF),
+	//								      (U8_T) (ip & 0x000000FF));
+
+//		TCPIP_SetIPAddr(ip);
+//		TCPIP_SetSubnetMask(STOE_GetSubnetMask());
+//		TCPIP_SetGateway(STOE_GetGateway());		
+	}
+	else
+	{
+		U32_T mask = GCONFIG_GetNetmask();
+		U32_T gateway = GCONFIG_GetGateway();
+		ip = GCONFIG_GetServerStaticIP();
+		
+		printd(" fail!\n\r");
+#if (INCLUDE_DHCP_CLIENT)
+		TCPIP_SetIPAddr(ip);
+#endif
+		STOE_SetIPAddr(ip);
+#if (INCLUDE_DHCP_CLIENT)
+		TCPIP_SetSubnetMask(mask);
+#endif
+		STOE_SetSubnetMask(mask);
+#if (INCLUDE_DHCP_CLIENT)
+		TCPIP_SetGateway(gateway);
+#endif
+		STOE_SetGateway(gateway);
+	}
+
+#if INCLUDE_DNS_CLIENT 
+	DNSCTAB_SetDnsIP(GCONFIG_GetDNS()); // DNS
+#endif
+	GCONFIG_SetServerDynamicIP(ip);						
+	GCONFIG_WriteConfigData();
+	GUDPBC_Init(ServerBroadcastListenPort);
+*/
+
+} /* End of UpdateIpSettings */
+
+/*
+ * ----------------------------------------------------------------------------
+ * Function Name: CheckArpTable
+ * Purpose: Update IP address, subnet mak, gateway IP address and DNS IP address 
+ * Params:
+ * Returns:
+ * Note:
+ * ----------------------------------------------------------------------------
+ */
+void CheckArpTable(void)
+{
+	if (app_arp_buf.wait) 
+	{
+		U8_T valid = STOE_CHECK_MAC(&app_arp_buf.ipaddr);
+		if (valid) 
+		{
+			DMA_GrantXdata(uip_buf, app_arp_buf.buf, app_arp_buf.uip_len);
+			PRINTD(DEBUG_MSG ,("send out the packet from arp buffer\n\r"));
+			uip_len = app_arp_buf.uip_len;
+			ETH_Send(app_arp_buf.PayLoadOffset);
+			uip_len = 0;
+			app_arp_buf.wait = 0;
+		}
+	}
+} /* End of CheckArpTable */
+
+
+
+void TCPIP_Task(void)reentrant
+{
+   //U32_T far iP,gateWay,subnet;
+   portTickType xDelayPeriod  = ( portTickType ) 250 / portTICK_RATE_MS;//2 minutes writting flash.
+   	
+
+ #if (BOOTLDR_ISR)
+	ERROR: BOOTLDR_ISR must set to '0' in non-bootloader driver.
+   #endif
+   #if (!AX_ETH_INT_ENABLE)
+	 ERROR: Must enable ethernet module in this driver.
+   #endif
+	 U32_T	timeCount,preTimeCount;
+   #if (INCLUDE_DHCP_CLIENT)
+   	U8_T    cmdDhcpFlag = 0;
+	U32_T 	dhcpTimeStart = 0;
+	U32_T 	dhcpTimeStop = 0;
+#endif
+#if STOE_TRANSPARENT
+//	U8_T xdata arptimer;
+#endif
+
+//   U8_T WhichServer;
+
+	/* Initialize Network adapter */
+	ETH_Init();
+
+	DHCP_Init();
+	//if (DHCP_Init())
+	//	printd("DHCP init ok.\n\r");
+
+#if (INCLUDE_DNS_CLIENT)
+	DNSCTAB_Init(); /* include DNS table */
+#endif
+
+
+#if GCONFIG_EEPROM_CONFIG
+	I2C_Init();
+#endif
+	GCONFIG_Init();
+
+//	ServerBroadcastListenPort = GCONFIG_GetServerBroadcastListenPort();
+//	printd ("ServerBroadcastListenPort = %d\n\r", ServerBroadcastListenPort);
+//	ServerBroadcastListenPort = 25122;
+//	GUDPBC_Init(ServerBroadcastListenPort);
+
+#if (INCLUDE_DHCP_CLIENT)	
+	if ( (Para[213] == 1) && ((GCONFIG_GetNetwork() & GCONFIG_NETWORK_DHCP_ENABLE) == GCONFIG_NETWORK_DHCP_ENABLE) )
+	{
+		printd("DHCP request... ");
+		DHCP_Start();
+#if (!STOE_TRANSPARENT)
+		STOE_DisableIpFilter();
+#endif
+		cmdDhcpFlag = 1;
+		dhcpTimeStart = SWTIMER_Tick();
+	}
+	else
+	{
+		UpdateIpSettings(0);
+	}
+#else
+	printd("DHCP module is not included. Use static IP address\n\r");
+	GCONFIG_SetServerDynamicIP(GCONFIG_GetServerStaticIP());						
+	GCONFIG_WriteConfigData();
+	GUDPBC_Init(ServerBroadcastListenPort);
+#endif
+
+   	ServerBroadcastListenPort = 1234; 
+	GUDPBC_Init(ServerBroadcastListenPort);
+
+	HTTP_Init();
+	FSYS_Init();
+
+//	SNTPC_Init();
+	
+	ETH_Start();
+
+
+
+//	WhichServer=Para[45]; //customer choose which server fro Sync.
+//	SNTPC_Start(800, IpServer[WhichServer]);
+//	should add condition if whichserver exceeds 6
+
+	while (1)
+	{
+//		HSUR_ErrorRecovery(); 
+  
+
+#if (!STOE_TRANSPARENT)
+		ETH_SendArpToGateway(ETH_CONTINUE_ARP_REQUEST_TO_GATEWAY_AFTER_REPLY);
+#endif
+
+		CheckArpTable();
+
+#if (INCLUDE_DHCP_CLIENT)
+		if (cmdDhcpFlag == 1)
+		{			
+			if (DHCP_GetState() > DHCP_IDLE_STATE)
+			{
+				DHCP_Send();
+			}
+			else
+			{
+			 	UpdateIpSettings(STOE_GetIPAddr());
+#if (!STOE_TRANSPARENT)
+				STOE_EnableIpFilter();
+#endif
+				cmdDhcpFlag = 0;
+			}
+		}
+#endif
+
+#if (STOE_GET_INTSTATUS_MODE == STOE_INTERRUPT_MODE)	/* interrupt mode */
+		if (STOE_GetInterruptFlag())
+		{
+			STOE_ProcessInterrupt();
+		}
+#else	/* polling mode */
+		STOE_ProcessInterrupt();
+#endif
+
+#if (!MAC_GET_INTSTATUS_MODE)
+		if (MAC_GetInterruptFlag())
+		{
+			MAC_ProcessInterrupt();
+		}
+#else
+		MAC_LinkSpeedChk();
+#endif
+
+		timeCount = (U16_T)SWTIMER_Tick();
+		if ((timeCount- preTimeCount)>= TIME_OUT_COUNTER)
+		{
+			preTimeCount = timeCount;
+			TCPIP_PeriodicCheck();
+		}
+	//	vTaskDelay(xDelayPeriod);
+		
+       timeCount = (U16_T)SWTIMER_Tick();
+       if(Para[43]==2)
+	   {
+		  SNTPC_GetState();Para[43]=1;
+       }
+
+      //  SNTPC_Debug();
+
+#if (INCLUDE_DNS_CLIENT)
+		if (cmdDnsFlag == 1)
+		{
+			U8_T state = DNSCTAB_GetState();/* include DNS table */
+
+			if (state == DNSC_STATE_FREE)
+			{
+				cmdDnsFlag = 0;
+				printf ("Can not find DNS server.\n\r");
+			}
+			else if (state == DNSC_STATE_RESPONSED)
+			{
+				U32_T	ip;
+
+				cmdDnsFlag = 0;
+
+				if ((ip = DNSCTAB_GetIP()) == 0)
+				{
+					printf ("Can not find remote station via DNS server.\n\r");
+				}
+				else
+				{
+					printf ("Get IP address from DNS server : %lx\n\r", ip);
+				}
+			}
+		}
+#endif
+
+	}
+} /* End of main() */
+
+/*
+//LED BANK1
+#define	LED_UPDATE		0
+#define	LED_HEART		1
+#define	LED_COM_ERR		2
+#define	LED_ETHER_TXD	4
+#define	LED_ETHER_RXD	5
+#define	LED_232_TXD		6
+#define LED_232_RXD		7
+
+
+//LED BANK2
+#define	LED_ZIGB_TXD	
+#define	LED_ZIGB_RXD	0
+#define	LED_USB_TXD		1
+#define	LED_USB_RXD		2
+#define	LED_GSM_TXD		3
+#define	LED_GSM_RXD		4
+#define	LED_485_TXD		5
+#define	LED_485_RXD		6
+
+void Beat_ON()//Set Pin low
+{
+	DisPlay1 = 1;
+	DisPlay2 = 0;
+	LedSta &= ~(1 << LED_HEART);
+ 	LE = 0;
+	LEDS = LedSta;
+	LE = 1;
+}
+	 
+void Beat_OFF()  //Set Pin high
+{
+	DisPlay1 = 1;
+	DisPlay2 = 0;
+	LedSta |= (1 << LED_HEART);
+	LE = 0;
+	LEDS = LedSta;
+	LE = 1;
+}
+
+void Led_EthSend()//Pin set low
+{
+	DisPlay1 = 1;
+	DisPlay2 = 0;
+	LedSta &= ~(1 << LED_ETHER_TXD);       	   
+	LE = 0;
+	LEDS = LedSta;
+	LE = 1;
+}
+
+void Led_EthRxD() //Pin set low 
+{
+	DisPlay1 = 1;
+	DisPlay2 = 0;
+	LedSta &= ~(1 << LED_ETHER_RXD); 
+	LE = 0;
+	LEDS = LedSta;
+	LE = 1;
+}
+
+void Led_485RxD()//Pin set low 
+{
+	DisPlay1 = 0;
+	DisPlay2 = 1;
+	LedSta &= ~(1 << LED_485_RXD);
+	LE = 0;
+	LEDS = LedSta;
+	LE = 1;
+}
+
+void Led_485Send() //Pin set low 
+{
+	DisPlay1 = 0;
+	DisPlay2 = 1;
+	LedSta &= ~(1 << LED_485_TXD);
+	LE = 0;
+	LEDS = LedSta;
+	LE = 1;
+}
+
+void Led_485ERR() //Pin set low 
+{
+	DisPlay1 = 1;
+	DisPlay2 = 0;
+	LedSta &= ~(1 << LED_COM_ERR);
+	LE = 0;
+	LEDS = LedSta;
+	LE = 1;
+}
+
+void Led_ReSet()
+{
+	DisPlay1 = 1;
+	DisPlay2 = 0;
+	LedSta |= (1 << LED_COM_ERR) | (1 << LED_ETHER_TXD) | (1 << LED_ETHER_RXD) | (1 << LED_232_TXD) | (1 << LED_232_RXD);
+	LE = 0;
+	LEDS = LedSta;
+	LE = 1;
+}
+
+*/
+
+U8_T BeatSta = 0;
+volatile U8_T far LEDS _at_ 0x200000;	//LED Address > 80000, or will compete with SRAM which the range is 0-0x80000!!
+
+void Beat_ON(void)//Set Pin low
+{
+	U8_T i;
+	DisPlay1 = 1;
+	DisPlay2 = 0;
+	LE = 0; 
+	LedSta = 0xfd;
+	for(i = 0; i < 100; i++);                     	   
+	LEDS = LedSta;            	                                 
+	LE = 1;  
+}
+
+void Beat_OFF(void)  //Set Pin high
+{
+	DisPlay1 = 1;
+	DisPlay2 = 0;
+	LE = 0;
+	LedSta = 0xff;                     	   
+	LEDS = LedSta;                               
+	LE = 1; 
+}
+
+void Led_EthSend(void)//Pin set low
+{
+	DisPlay1 = 1;
+	DisPlay2 = 0;
+	LE = 0;
+	if(BeatSta == 0)
+		LedSta = 0xef;
+	else
+		LedSta = 0xed;       	   
+	LEDS = LedSta;                               
+	LE = 1;                               
+}
+
+
+
+void Led_EthRxD(void) //Pin set low 
+{
+	DisPlay1 = 1;
+	DisPlay2 = 0;
+	LE = 0;
+	if(BeatSta == 0)
+		LedSta = 0xdf;  
+	else  
+		LedSta = 0xdd;              	   
+	LEDS = LedSta; 
+	LE = 1;
+}
+
+void Led_485RxD(void)//Pin set low 
+{    
+	DisPlay1 = 0;
+	DisPlay2 = 1;
+	LE = 0;
+	LedSta = 0xbf;               	   
+	LEDS = LedSta; 
+	LE = 1;
+}
+
+void Led_485Send(void) //Pin set low 
+{      
+	DisPlay1 = 0;
+	DisPlay2 = 1;
+	LE = 0;
+	LedSta = 0xdf;
+	LEDS = LedSta;
+	LE = 1;
+}
+
+void Led_485ERR(void) //Pin set low 
+{   
+	DisPlay1 = 1;
+	DisPlay2 = 0;
+	LE = 0;
+	if(BeatSta == 0)
+		LedSta = 0xfb;  
+	else
+		LedSta = 0xf9;                   	   
+	LEDS = LedSta; 
+	LE = 1;
+}
+void Led_ReSet(void)
+{
+	DisPlay1 = 1;
+	DisPlay2 = 0;
+	LE = 0;
+	if(BeatSta == 0)
+		LedSta = 0xff;  
+	else
+		LedSta = 0xfd;                   	   
+	LEDS = LedSta; 
+	LE = 1;
+}
+
+
+
+void Led_ispSet(void)
+{
+	DisPlay1 = 1;
+	DisPlay2 = 0;
+	LE = 0;                     	   
+	LEDS = 0xfe;            	                                 
+	LE = 1;  
+}
+
+/*****************************************/
+/*****************************************/
+/*****Uart0 routine***********************/
+
+void Uart0_Tx(U8_T *buf,U8_T len)
+{     
+	U8_T i;
+
+	for(i = 0; i < len; i++)
+	{ 
+		FlagSend = 0;
+		SBUF0 = buf[i];
+		while(FlagSend == 0);
+	}
+}
+
+void Uart0_Receive(void)
+{ 
+	U16_T i, j; 
+	
+	if(uart0_RxCount > 0)
+	{
+		DELAY_Ms(5);
+		Sever_Order = 2;
+		Sever_id = uart0_RxBuf[0];
+		LED= S485_OK;			
+		
+		if((uart0_RxBuf[0] == Para[13]) || (uart0_RxBuf[0] == 0xff))//Address of NetControl 
+		{ 
+			if(uart0_RxBuf[1] == 0x19) //scan Tsnet
+			{ 
+				Tx_To_Tstat(uart0_RxBuf, uart0_RxCount);			   												
+			}					
+			else if(uart0_RxBuf[1] == 0x1a) //scan NC
+			{ 
+				uart0_TxCount = 0;
+				uart0_TxBuf[uart0_TxCount++] = uart0_RxBuf[0];
+				uart0_TxBuf[uart0_TxCount++] = 0x19;
+				uart0_TxBuf[uart0_TxCount++] = Para[13];						 
+				uart0_TxBuf[uart0_TxCount++] = Para[1];
+				uart0_TxBuf[uart0_TxCount++] = Para[3];
+				uart0_TxBuf[uart0_TxCount++] = Para[5];
+				uart0_TxBuf[uart0_TxCount++] = Para[7];
+				InitCRC16();
+				for(i = 0; i < uart0_TxCount; i++)
+					CRC16_Tstat(uart0_TxBuf[i]);
+				uart0_TxBuf[uart0_TxCount++] = CRChi;
+				uart0_TxBuf[uart0_TxCount++] = CRClo;				         
+				Uart0_Tx(uart0_TxBuf, uart0_TxCount);	
+				uart0_TxCount = 0;
+			}
+			else if(uart0_RxBuf[1] == read) 
+			{
+				U16_T StartAdd = (uart0_RxBuf[2] << 8) | uart0_RxBuf[3];
+				uart0_TxBuf[0] = uart0_RxBuf[0];
+				uart0_TxBuf[1] = uart0_RxBuf[1];
+				j = (uart0_RxBuf[4] << 8) | uart0_RxBuf[5];
+				uart0_TxBuf[2] = 2 * j;
+				uart0_TxCount = 3 + uart0_TxBuf[2];
+				for(i = 0; i < j; i++)
+				{
+					if((StartAdd + i) < MODBUS_TIMER_ADDRESS) //200
+					{  
+						uart0_TxBuf[3 + 2 * i] = Para[2 * (StartAdd + i)];  
+						uart0_TxBuf[4 + 2 * i] = Para[2 * (StartAdd + i) + 1];
+					}
+					else if((StartAdd + i) >= MODBUS_TIMER_ADDRESS) 
+					{
+						if(StartAdd + i < MODBUS_TIMER_ADDRESS + 8)
+						{	 
+						//  YEAR  MONTH  WEEK DATE  HOUR  MINUTE  SECOND 
+							uart0_TxBuf[3 + 2 * i] = 0;
+							switch(StartAdd + i - MODBUS_TIMER_ADDRESS)
+							{
+								case 7:
+									uart0_TxBuf[4 + 2 * i] = Time.UN.Current.sec;
+									break;	
+								case 6:
+									uart0_TxBuf[4 + 2 * i] = Time.UN.Current.min;
+									break;
+								case 5:
+									uart0_TxBuf[4 + 2 * i] = Time.UN.Current.hour;
+									break;
+								case 4:
+									uart0_TxBuf[4 + 2 * i] = Time.UN.Current.day;
+									break;
+								case 3:
+									uart0_TxBuf[4 + 2 * i] = Time.UN.Current.dayofweek;
+									break;
+								case 2:
+									uart0_TxBuf[4 + 2 * i] = Time.UN.Current.month;
+									break;
+								case 1:
+									uart0_TxBuf[4 + 2 * i] = Time.UN.Current.year;
+									break;
+								case 0:
+									uart0_TxBuf[4 + 2 * i] = Time.UN.Current.centary;
+									break;
+							}		
+						}
+						else if(StartAdd + i >= MODBUS_WR_DESCRIP_FIRST && StartAdd + i < MODBUS_WR_DESCRIP_LAST)
+						{
+							U8_T temp_number = (StartAdd + i - MODBUS_WR_DESCRIP_FIRST) / WR_DESCRIPTION_SIZE;
+							U8_T temp_address = (StartAdd + i - MODBUS_WR_DESCRIP_FIRST) % WR_DESCRIPTION_SIZE;
+							U8_T send_buffer = WR_Roution[temp_number].UN.all[temp_address];
+						    if((temp_address == (WR_DESCRIPTION_SIZE - 1)) && (send_buffer != 0xff))
+							{
+								if((send_buffer & 0x80) == 0)
+								{
+									if(GetBit(temp_number, wr_state_index))
+										send_buffer |= 0x40;
+									else
+										send_buffer &= 0xbf;
+								}
+
+								if(GetBit(temp_number, holiday1_state_index))
+									send_buffer |= 0x20;
+								else
+									send_buffer &= 0xdf;
+
+								if(GetBit(temp_number, holiday2_state_index))
+									send_buffer |= 0x10;
+								else
+									send_buffer &= 0xef;
+							}
+							uart0_TxBuf[3 + 2 * i] = 0;	
+							uart0_TxBuf[4 + 2 * i] = send_buffer;	
+						}
+						else if(StartAdd + i >= MODBUS_AR_DESCRIP_FIRST && StartAdd + i < MODBUS_AR_DESCRIP_LAST)
+						{
+							U8_T temp_number = (StartAdd + i - MODBUS_AR_DESCRIP_FIRST) / AR_DESCRIPTION_SIZE;    // line
+							U8_T temp_address = (StartAdd + i - MODBUS_AR_DESCRIP_FIRST) % AR_DESCRIPTION_SIZE;
+							U8_T send_buffer = AR_Roution[temp_number].UN.all[temp_address];
+	
+							if(temp_address == (AR_DESCRIPTION_SIZE - 1))
+							{
+								if((send_buffer & 0x80) == 0)
+								{
+									if(GetBit(temp_number, ar_state_index))
+										send_buffer |= 0x40;
+									else
+										send_buffer &= 0xbf;
+								}
+							}
+							uart0_TxBuf[3 + 2 * i] = 0;	
+							uart0_TxBuf[4 + 2 * i] = send_buffer;	
+						}
+						else if(StartAdd + i >= MODBUS_ID_FIRST && StartAdd + i < MODBUS_ID_LAST)
+						{
+							U8_T temp_number = (StartAdd + i - MODBUS_ID_FIRST) / ID_SIZE;
+							U8_T temp_address = (StartAdd + i - MODBUS_ID_FIRST) % ID_SIZE;
+							U8_T send_buffer = ID_Config[temp_number].all[temp_address];
+			
+							if((temp_address == (ID_SIZE - 1)) && (send_buffer != 0xff))
+							{
+								if((send_buffer & 0x80) == 0)
+								{
+									if(GetBit(temp_number, output_state_index))
+										send_buffer |= 0x40;
+									else
+										send_buffer &= 0xbf;
+								}
+
+								if(GetBit(temp_number, schedual1_state_index))
+									send_buffer |= 0x20;
+								else
+									send_buffer &= 0xdf;
+
+								if(GetBit(temp_number, schedual2_state_index))
+									send_buffer |= 0x10;
+								else
+									send_buffer &= 0xef;
+							}
+							uart0_TxBuf[3 + 2 * i] = 0;	
+							uart0_TxBuf[4 + 2 * i] = send_buffer;	
+						}
+						else if(StartAdd + i >= MODBUS_AR_TIME_FIRST && StartAdd + i < MODBUS_WR_ONTIME_FIRST)
+						{
+							U8_T temp_number = (StartAdd + i - MODBUS_AR_TIME_FIRST) / AR_TIME_SIZE;
+							U8_T temp_address = (StartAdd + i - MODBUS_AR_TIME_FIRST) % AR_TIME_SIZE;
+							U8_T send_buffer = AR_Roution[temp_number].Time[temp_address];
+			
+							uart0_TxBuf[3 + 2 * i] = 0;	
+							uart0_TxBuf[4 + 2 * i] = send_buffer;
+						}
+						else if(StartAdd + i >= MODBUS_WR_ONTIME_FIRST && StartAdd + i < MODBUS_WR_OFFTIME_FIRST)
+						{
+							U8_T temp_number = (StartAdd + i - MODBUS_WR_ONTIME_FIRST) / WR_TIME_SIZE;		
+							U8_T temp_address = (StartAdd + i - MODBUS_WR_ONTIME_FIRST) % WR_TIME_SIZE;
+							U8_T send_buffer = WR_Roution[temp_number].OnTime[temp_address];
+							uart0_TxBuf[3 + 2 * i] = 0;	
+							uart0_TxBuf[4 + 2 * i] = send_buffer;
+						}
+						else if(StartAdd + i >= MODBUS_WR_OFFTIME_FIRST && StartAdd + i < MODBUS_TOTAL_PARAMETERS)
+						{
+							U8_T temp_number = (StartAdd + i - MODBUS_WR_OFFTIME_FIRST) / WR_TIME_SIZE;
+							U8_T temp_address = (StartAdd + i - MODBUS_WR_OFFTIME_FIRST) % WR_TIME_SIZE;
+							U8_T send_buffer = WR_Roution[temp_number].OffTime[temp_address];
+							uart0_TxBuf[3 + 2 * i] = 0;	
+							uart0_TxBuf[4 + 2 * i] = send_buffer;			
+						}
+//						else if(StartAdd == 0xee10) //for ISP read address of 0xee10
+//						{  
+//							RealNum = 2;
+//						  	send_tcp[UIP_HEAD] = uip_appdata[UIP_HEAD];//地址
+//						  	send_tcp[UIP_HEAD+1] = READ_VARIABLES;//命令
+//						  	send_tcp[UIP_HEAD+2] = RealNum;
+//						  	send_tcp[UIP_HEAD+3] = send_tcp[UIP_HEAD+4]=0;//有效数据00				
+//						}
+						else
+						{
+							uart0_TxBuf[3 + 2 * i] = 0;	
+							uart0_TxBuf[4 + 2 * i] = 1;
+						}						
+					} 
+				}
+
+				InitCRC16();
+				for(i = 0; i < uart0_TxCount; i++)
+					CRC16_Tstat(uart0_TxBuf[i]);
+				uart0_TxBuf[uart0_TxCount++] = CRChi;                        
+				uart0_TxBuf[uart0_TxCount++] = CRClo;
+				Uart0_Tx(uart0_TxBuf, uart0_TxCount);						  					
+			}
+			else if(uart0_RxBuf[1] == swrite) 
+			{
+				U16_T StartAdd = (uart0_RxBuf[2] << 8) | uart0_RxBuf[3];
+				if(StartAdd < 200)
+				{
+					if(StartAdd == 15) // clear flash to zero
+					{
+						if(((uart0_RxBuf[4] << 8) | uart0_RxBuf[5]) == 0x55)
+						{
+							memset(WR_Roution, 0, MAX_WR * WR_STRUCT_LENGTH);
+							memset(AR_Roution, 0, MAX_AR * AR_STRUCT_LENGTH);
+							memset(ID_Config, 0, MAX_ID * ID_SIZE);
+							Para[30] = 0;
+							Para[31] = 0;
+							ChangeFlash = 2;
+						}
+					}
+					else if(StartAdd == 106)
+					{
+						if((((Para[212] << 8) | Para[213]) == 0) && (((uart0_RxBuf[4] << 8) | uart0_RxBuf[5]) != 0))
+						{
+							Para[212] = uart0_RxBuf[4];
+							Para[213] = uart0_RxBuf[5];
+							ChangeIP = 1;
+							ChangeFlash = 2;
+						}
+					}
+					else if((StartAdd >= 107) && (StartAdd <= 120)) //IP change ,reset cpu
+					{
+						if(((Para[212] << 8) | Para[213]) == 0)
+						{
+							Para[2*uart0_RxBuf[3]] = uart0_RxBuf[4]; 		//write to bufffer array high bit
+							Para[2*uart0_RxBuf[3] + 1] = uart0_RxBuf[5];	//write to bufffer array low bit
+							ChangeFlash = 2;
+							ChangeIP = 1;
+						}
+					}
+					else
+					{
+						Para[2*uart0_RxBuf[3]] = uart0_RxBuf[4]; 		//write to bufffer array high bit
+						Para[2*uart0_RxBuf[3] + 1] = uart0_RxBuf[5];	//write to bufffer array low bit
+						ChangeFlash = 2;
+					}
+				}
+				Uart0_Tx(uart0_RxBuf,uart0_RxCount);
+			}
+		}
+		else
+		{				  
+			Tx_To_Tstat(uart0_RxBuf,uart0_RxCount);								 			          			 
+		} 
+		
+		uart0_RxCount = 0;
+	}    
+}
+
+
+/*****************************************/
+/*****************************************/
+/*****Uart1 routine***********************/
+void Uart1_Tx(U8_T *buf,U8_T len)
+{     
+	U8_T i;
+	for(i = 0; i < len; i++)
+	{ 
+		FlagSend = 0;
+		SBUF1 = buf[i];
+		while(FlagSend == 0);
+	}
+}
+
+U8_T forward_buffer[300];
+extern U16_T sessonlen;
+extern void Set_transaction_ID(U8_T *str, U16_T reg);
+void Uart1_Receive(U8_T length)
+{ 
+	if(Sever_Order == 1)  //Sever Order is from TCPIP
+	{
+		U8_T i;
+		EA = 0;
+		Set_transaction_ID(uart1_TxBuf, sessonlen);
+		for(i = 0; i < length-2; i++)
+			uart1_TxBuf[6 + i] = uart1_RxBuf[i];
+		EA = 1; 	
+		TCPIP_TcpSend(TcpSocket_ME, uart1_TxBuf, (6+length-2), TCPIP_SEND_NOT_FINAL);
+	}
+	else if(Sever_Order == 2) //Sever Order is from Uart0
+	{
+		Uart0_Tx(uart1_RxBuf, length);				
+	}
+
+	Sever_Order = 0;
+}
+
+//void Uart1_Receive(void)
+//{
+//	U16_T uart1_count = 0;
+//
+//	EA = 0;
+//	if(uart1_RxCount)
+//	{
+//		if(Sever_Order == 1)
+//		{
+//			Set_transaction_ID(forward_buffer, sessonlen);
+//			uart1_count = 6;
+//		}
+//
+//		memcpy(forward_buffer + uart1_count, uart1_RxBuf, uart1_RxCount);
+//		uart1_count += uart1_RxCount;
+//		uart1_RxCount = 0;
+//		EA = 1;
+//	}
+//	else
+//	{
+//		EA = 1;
+//		return;
+//	}
+//
+//	if(uart1_count)
+//	{
+//		if(Sever_Order == 1)  //Sever Order is from TCPIP
+//		{
+//			TCPIP_TcpSend(TcpSocket_ME, forward_buffer, uart1_count-2, TCPIP_SEND_NOT_FINAL);
+//		}
+//		else if(Sever_Order == 2)
+//		{
+//			Uart0_Tx(forward_buffer, uart1_count);
+//		}
+//		Sever_Order = 0;
+//	}
+//}
+
+
+/*****Uart2 routine***********************/
+void Uart2_Receive(void)
+{
+	U16_T uart2_count = 0;
+
+	EA = 0;
+	if(hsurRxCount)
+	{
+		if(Sever_Order == 1)
+		{
+			Set_transaction_ID(forward_buffer, sessonlen);
+			uart2_count = 6;
+		}
+
+		memcpy(forward_buffer + uart2_count, hsurRxBuffer, hsurRxCount);
+		uart2_count += hsurRxCount;
+		hsurRxCount = 0;
+		EA = 1;
+	}
+	else
+	{
+		EA = 1;
+		return;
+	}
+
+	if(uart2_count)
+	{
+		if(Sever_Order == 1)  //Sever Order is from TCPIP
+		{
+//			Uart0_Tx(forward_buffer+6, uart2_count-6);//////////////////
+			if(TcpIp_Scan == 1)
+			{
+				TcpIp_Scan = 0;
+				TCPIP_TcpSend(TcpSocket_ME, forward_buffer, uart2_count, TCPIP_SEND_NOT_FINAL);
+			}
+			else
+			{
+				TCPIP_TcpSend(TcpSocket_ME, forward_buffer, uart2_count-2, TCPIP_SEND_NOT_FINAL);
+			}
+		}
+		else if(Sever_Order == 2)
+		{
+			Uart0_Tx(forward_buffer, uart2_count);
+		}
+		Sever_Order = 0;
+	}
+}
+
+/*****transmit order to tstat***********************/
+void Tx_To_Tstat(U8_T *buf, U8_T len)
+{
+	U8_T i;
+
+	Rs485_EN = 1;
+
+	Uart1_Tx(buf, len);
+
+//	DELAY_Ms(1);
+
+	for(i = 0; i < len; i++)  
+		HSUR_PutChar(buf[i]);
+
+	if(len < 10)
+		DELAY_Ms(1);
+	else
+		DELAY_Ms((len + 1) / 8);
+
+	Rs485_EN = 0;
+}
+
+void LedBeat_task(void) reentrant
+{   U16_T i;
+  
+	portTickType xDelayPeriod = ( portTickType ) 500 / portTICK_RATE_MS;  //2000
+    portTickType xDelayPeriod1 = ( portTickType ) 100 / portTICK_RATE_MS;
+
+	for (;;)				
+	{  	
+		if(err485)
+		{
+			Led_485ERR();
+			for(i = 0; i < 20000;i++);
+				err485 = 0;
+
+			vTaskDelay(xDelayPeriod1);
+		} 
+//		BeatSta=1;
+		Beat_ON();
+		vTaskDelay(xDelayPeriod);
+//		BeatSta=0;
+		Beat_OFF() ;
+		vTaskDelay(xDelayPeriod);				 
+	}
+}
+
+void Realtimer_task(void) reentrant
+{
+
+	portTickType xDelayPeriod = ( portTickType ) 1000 / portTICK_RATE_MS;//2 minutes writting flash.
+   	
+	for (;;)
+    	{   
+		     vTaskDelay(xDelayPeriod);
+            /* if(SetimeFlag)
+               { SetimeFlag=0;
+                 Initial_Clock();
+               }*/
+
+			// Uart0_Tx(Data,48);
+             Read_Clock(2);
+        }
+
+}
+
+
+void Timer_task(void) reentrant
+{
+	unsigned portLONG	count = 0;
+	portTickType xDelayPeriod = ( portTickType ) 1000 / portTICK_RATE_MS;//3000
+    U16_T i=0;
+	
+	for (;;)
+	{     
+    	
+	  	if(ChangeFlash == 1)
+	     {  
+			Flash_Write_Schedule();
+			ChangeFlash=0;			
+         }
+		 else if(ChangeFlash == 2)
+	     {  
+			ChangeFlash=0;		
+			Flash_Write_Schedule();	
+		  //  IntFlashErase(ERA_RUN,0x070000);//erase		                    
+   		  //  MassFlashWrite(0,Para,400);             //write to flash
+			
+         }
+
+		 if(ChangeIP > 0)  //LHN add
+		 {
+		  	ChangeIP++;
+			if(ChangeIP >= 4)
+			{
+				ChangeIP = 0;
+
+				if(mac_change_enable == 1)
+				{
+					E2prom_Write_Byte_To_Absolute_Address(0x0b, Para[201]);
+					E2prom_Write_Byte_To_Absolute_Address(0x0a, Para[203]);
+					E2prom_Write_Byte_To_Absolute_Address(0x09, Para[205]);
+					E2prom_Write_Byte_To_Absolute_Address(0x08, Para[207]);
+					E2prom_Write_Byte_To_Absolute_Address(0x07, Para[209]);
+					E2prom_Write_Byte_To_Absolute_Address(0x06, Para[211]);
+
+					mac_change_enable = 0;
+				}
+
+				 lcdreset();
+				AX11000_SoftReboot();
+			}
+		}
+
+		Read_Clock(2);
+		vTaskDelay(xDelayPeriod);
+	}
+}
+
+
+void Ledflash_task(void) reentrant
+{
+  
+	portTickType xDelayPeriod = ( portTickType ) 200 / portTICK_RATE_MS;//400
+	portTickType xDelayPeriod1 = ( portTickType ) 100 / portTICK_RATE_MS;//200
+	for (;;)
+	{  
+		  if(LED==S485_OK){   Led_EthSend(); vTaskDelay(xDelayPeriod1);Led_EthRxD(); vTaskDelay(xDelayPeriod1);
+		                
+		                  Led_485Send();vTaskDelay(xDelayPeriod1);Led_485RxD();vTaskDelay(xDelayPeriod1);
+						
+				         LED=None;Led_ReSet();
+					 }
+
+          if(LED==Ethnet_OK){ Led_EthSend(); vTaskDelay(xDelayPeriod1);Led_EthRxD(); vTaskDelay(xDelayPeriod1);
+		             
+					 LED= None;Led_ReSet();
+					 }
+
+            
+          if(LED==S485_ERR){ Led_485ERR(); vTaskDelay(xDelayPeriod1); vTaskDelay(xDelayPeriod1);
+		             
+					 LED= None;Led_ReSet();
+					 }
+          
+          
+	       vTaskDelay(xDelayPeriod);
+	}
+}
+
+
+
+
+void Uart0_task(void) reentrant
+{
+	portTickType xDelayPeriod  = ( portTickType ) 300 / portTICK_RATE_MS;//1000
+   	
+	for (;;)
+    {
+ 	#if 1
+		Uart0_Receive();
+		vTaskDelay(xDelayPeriod);
+	#endif   
+    }		
+  
+}
+
+void Uart1_task(void) reentrant
+{
+	portTickType xDelayPeriod = ( portTickType ) 300 / portTICK_RATE_MS;//1500
+   	
+	for (;;)
+    { 
+		vTaskDelay(xDelayPeriod);
+//		if(uart1_timeout == 0)
+//		{
+//			Uart1_Receive();
+//		}
+
+		if(uart1_dealwithTag == 1)
+		{
+			Uart1_Receive(uart1_RxCount);
+			uart1_dealwithTag = 0;
+			uart1_RxCount = 0;
+		}
+	}
+}
+
+
+void Uart2_task(void) reentrant
+{
+	portTickType xDelayPeriod = ( portTickType ) 50 / portTICK_RATE_MS;//1000
+
+	for (;;)
+    { 
+		vTaskDelay(xDelayPeriod);
+		if(uart2_timeout == 0)
+		{
+			Uart2_Receive();
+		}
+	}
+}
+
+
+void CheckAnnualRoutines( void );
+void CheckWeeklyRoutines(void);
+void SendSchedualData(unsigned char number,bit flag);
+void CheckIdRoutines(void);
+void CaculateTime(void);
+
+void Schedule_task(void) reentrant
+{
+	static U8_T	count = 0;
+	portTickType xDelayPeriod = ( portTickType ) 500 / portTICK_RATE_MS;//500
+//    U8_T i;   	
+	for (;;)
+	{ 
+				
+		
+#if 1
+/* implement CaculateTime rution  per 500ms */
+		CaculateTime();
+/* implement CheckWeeklyRoutines rution  per 1s */
+		if(count % 2 == 0)  // 1s
+		{
+			//Para[1]++;
+			CheckWeeklyRoutines();
+		}
+/* implement CheckAnnualRoutines rution  per 3s */
+/* implement CheckIdRoutines rution  per 3s */	
+		if(count % 6 == 0)  // 3s
+		{
+			//Para[3]++;
+			CheckAnnualRoutines();
+			CheckIdRoutines();
+		}
+
+#endif		
+		if(count < 6) count++;
+		else count = 0;
+
+		vTaskDelay(xDelayPeriod);
+	}
+}
+
+void TimeServer_task(void) reentrant
+{
+//	unsigned portLONG	count = 0;
+	portTickType xDelayPeriod = ( portTickType ) 1000 / portTICK_RATE_MS;  //2000
+    U8_T i;
+	U32_T ip;//ntp.fudan.edu.cn=0x3D812A2C; 0xc0a800c7;192.168.0.199 0x4137150f;time.windows.com
+	U8_T Data[48]={0xd9,0x00,0x0a,0xfa,0x00,0x00,0x00,0x00,0x00,0x01,0x04}; //{0x65,0,0x0b,0};
+	for (;;)
+    	{ 
+			Time_Server.Leng++;
+	 		if( (Time_Server.Leng == 50000) || (Para[355] == 6))						   		     
+			{	
+				Para[355] = 0;
+				Para[399] = 0;
+
+				ip = ((U32_T)Para[357]) << 24 | ((U32_T)Para[359]) << 16 | ((U32_T)Para[361]) << 8 | (U32_T)Para[363];
+				Time_Server.UdpSocket = TCPIP_UdpNew(gudpbc_InterAppId, 0, ip, 1234,123);
+				if(Time_Server.UdpSocket != TCPIP_NO_NEW_CONN)
+				{
+					for(i = 11; i < 40; i++)
+						Data[i] = 0;
+					Data[40] = 0xd2;Data[41] = 0x3c;Data[42] = 0xde;Data[43] = 0xd6;
+					Data[44] = 0xe8;Data[45] = 0;Data[46] = 0;Data[47] = 0;				
+				//	Uart0_Tx(Data,48);
+				//	DELAY_Ms(5);
+					TCPIP_UdpSend(Time_Server.UdpSocket, 0, 0, Data,48);
+				}
+			}
+
+			if (Time_Server.Leng >= 50110) 
+				Time_Server.Leng = 0;
+							
+			vTaskDelay(xDelayPeriod);
+		}
+}
+
+void UdpBroadcast_task(void)
+{
+//	U8_T buf[250] = {11, 22, 33, 44};
+	portTickType xDelayPeriod = ( portTickType ) 2000 / portTICK_RATE_MS;
+//	U8_T socket;
+	while(1)
+	{
+		vTaskDelay(xDelayPeriod);
+//		socket = TCPIP_UdpNew(2, 3, 0xffffffff, 0, 3654);
+//		TCPIP_UdpSend(socket, 0, 0, buf, 250);
+//		TCPIP_UdpClose(socket);
+	}
+}
+
+
+
+void USB_task(void)
+{
+	static U8_T UpIndex;
+	U8_T len, length;
+	U16_T StartAdd;
+	portTickType xDelayPeriod = (portTickType)20 / portTICK_RATE_MS;
+
+	CH375_Init();
+
+	while(1)
+	{   
+		vTaskDelay(xDelayPeriod);
+		if(usb_poll() == TRUE)
+		{
+			mCH375Interrupt();
+		}
+		else
+		{
+			if(USB_timeout == 0)
+			{
+				if(DownCtr > 0)
+				{
+//					LED = USB_OK;			
+					if((DownBuf[0] == Para[13]) || (DownBuf[0] == 0xff))	// Address of NetControl 
+					{ 
+						if(DownBuf[1] == 0x19) 		//scan Tsnet
+						{
+							Sever_Order = 3;		//USB
+							Sever_id = DownBuf[0];
+							Tx_To_Tstat(DownBuf, DownCtr);			   												
+						}					
+						else if(DownBuf[1] == 0x1a)	//scan NC
+						{ 
+							UpCtr = 0;
+							UpBuf[UpCtr++] = DownBuf[0];
+							UpBuf[UpCtr++] = 0x19;
+							UpBuf[UpCtr++] = Para[13];						 
+							UpBuf[UpCtr++] = Para[1];
+							UpBuf[UpCtr++] = Para[3];
+							UpBuf[UpCtr++] = Para[5];
+							UpBuf[UpCtr++] = Para[7];
+							InitCRC16();
+							for(len = 0; len < UpCtr; len++)
+								CRC16_Tstat(UpBuf[len]);
+							UpBuf[UpCtr++] = CRChi;
+							UpBuf[UpCtr++] = CRClo;
+							UpIndex = 0;
+							ENDP2_NEED_UP_FLAG = 1;				         
+						}
+						else if(DownBuf[1] == read) 
+						{
+							UpBuf[0] = DownBuf[0];
+							UpBuf[1] = DownBuf[1];
+							length = (DownBuf[4] << 8) | DownBuf[5];
+							UpBuf[2] = 2 * length;
+							UpCtr = 3 + UpBuf[2];
+							StartAdd = (DownBuf[2] << 8) | DownBuf[3];						                             
+							for(len = 0; len < length; len++)
+							{
+								if(StartAdd < 200)
+								{
+									UpBuf[3 + 2 * len] = Para[2 * (StartAdd + len)];  
+									UpBuf[4 + 2 * len] = Para[2 * (StartAdd + len) + 1];
+								}
+								else if((StartAdd + len) >= MODBUS_TIMER_ADDRESS) 
+								{
+									if(StartAdd + len < MODBUS_TIMER_ADDRESS + 8)
+									{	 
+									//  YEAR  MONTH  WEEK DATE  HOUR  MINUTE  SECOND 
+										UpBuf[3 + 2 * len] = 0;
+										switch(StartAdd + len - MODBUS_TIMER_ADDRESS)
+										{
+											case 7:
+												UpBuf[4 + 2 * len] = Time.UN.Current.sec;
+												break;	
+											case 6:
+												UpBuf[4 + 2 * len] = Time.UN.Current.min;
+												break;
+											case 5:
+												UpBuf[4 + 2 * len] = Time.UN.Current.hour;
+												break;
+											case 4:
+												UpBuf[4 + 2 * len] = Time.UN.Current.day;
+												break;
+											case 3:
+												UpBuf[4 + 2 * len] = Time.UN.Current.dayofweek;
+												break;
+											case 2:
+												UpBuf[4 + 2 * len] = Time.UN.Current.month;
+												break;
+											case 1:
+												UpBuf[4 + 2 * len] = Time.UN.Current.year;
+												break;
+											case 0:
+												UpBuf[4 + 2 * len] = Time.UN.Current.centary;
+												break;
+										}		
+									}
+									else if(StartAdd + len >= MODBUS_WR_DESCRIP_FIRST && StartAdd + len < MODBUS_WR_DESCRIP_LAST)
+									{
+										U8_T temp_number = (StartAdd + len - MODBUS_WR_DESCRIP_FIRST) / WR_DESCRIPTION_SIZE;
+										U8_T temp_address = (StartAdd + len - MODBUS_WR_DESCRIP_FIRST) % WR_DESCRIPTION_SIZE;
+										U8_T send_buffer = WR_Roution[temp_number].UN.all[temp_address];
+									    if((temp_address == (WR_DESCRIPTION_SIZE - 1)) && (send_buffer != 0xff))
+										{
+											if((send_buffer & 0x80) == 0)
+											{
+												if(GetBit(temp_number, wr_state_index))
+													send_buffer |= 0x40;
+												else
+													send_buffer &= 0xbf;
+											}
+
+											if(GetBit(temp_number, holiday1_state_index))
+												send_buffer |= 0x20;
+											else
+												send_buffer &= 0xdf;
+
+											if(GetBit(temp_number, holiday2_state_index))
+												send_buffer |= 0x10;
+											else
+												send_buffer &= 0xef;
+										}
+										UpBuf[3 + 2 * len] = 0;	
+										UpBuf[4 + 2 * len] = send_buffer;	
+									}
+									else if(StartAdd + len >= MODBUS_AR_DESCRIP_FIRST && StartAdd + len < MODBUS_AR_DESCRIP_LAST)
+									{
+										U8_T temp_number = (StartAdd + len - MODBUS_AR_DESCRIP_FIRST) / AR_DESCRIPTION_SIZE;    // line
+										U8_T temp_address = (StartAdd + len - MODBUS_AR_DESCRIP_FIRST) % AR_DESCRIPTION_SIZE;
+										U8_T send_buffer = AR_Roution[temp_number].UN.all[temp_address];
+				
+										if(temp_address == (AR_DESCRIPTION_SIZE - 1))
+										{
+											if((send_buffer & 0x80) == 0)
+											{
+												if(GetBit(temp_number, ar_state_index))
+													send_buffer |= 0x40;
+												else
+													send_buffer &= 0xbf;
+											}
+										}
+										UpBuf[3 + 2 * len] = 0;	
+										UpBuf[4 + 2 * len] = send_buffer;	
+									}
+									else if(StartAdd + len >= MODBUS_ID_FIRST && StartAdd + len < MODBUS_ID_LAST)
+									{
+										U8_T temp_number = (StartAdd + len - MODBUS_ID_FIRST) / ID_SIZE;
+										U8_T temp_address = (StartAdd + len - MODBUS_ID_FIRST) % ID_SIZE;
+										U8_T send_buffer = ID_Config[temp_number].all[temp_address];
+						
+										if((temp_address == (ID_SIZE - 1)) && (send_buffer != 0xff))
+										{
+											if((send_buffer & 0x80) == 0)
+											{
+												if(GetBit(temp_number, output_state_index))
+													send_buffer |= 0x40;
+												else
+													send_buffer &= 0xbf;
+											}
+
+											if(GetBit(temp_number, schedual1_state_index))
+												send_buffer |= 0x20;
+											else
+												send_buffer &= 0xdf;
+
+											if(GetBit(temp_number, schedual2_state_index))
+												send_buffer |= 0x10;
+											else
+												send_buffer &= 0xef;
+										}
+										UpBuf[3 + 2 * len] = 0;	
+										UpBuf[4 + 2 * len] = send_buffer;	
+									}
+									else if(StartAdd + len >= MODBUS_AR_TIME_FIRST && StartAdd + len < MODBUS_WR_ONTIME_FIRST)
+									{
+										U8_T temp_number = (StartAdd + len - MODBUS_AR_TIME_FIRST) / AR_TIME_SIZE;
+										U8_T temp_address = (StartAdd + len - MODBUS_AR_TIME_FIRST) % AR_TIME_SIZE;
+										U8_T send_buffer = AR_Roution[temp_number].Time[temp_address];
+						
+										UpBuf[3 + 2 * len] = 0;	
+										UpBuf[4 + 2 * len] = send_buffer;
+									}
+									else if(StartAdd + len >= MODBUS_WR_ONTIME_FIRST && StartAdd + len < MODBUS_WR_OFFTIME_FIRST)
+									{
+										U8_T temp_number = (StartAdd + len - MODBUS_WR_ONTIME_FIRST) / WR_TIME_SIZE;		
+										U8_T temp_address = (StartAdd + len - MODBUS_WR_ONTIME_FIRST) % WR_TIME_SIZE;
+										U8_T send_buffer = WR_Roution[temp_number].OnTime[temp_address];
+										UpBuf[3 + 2 * len] = 0;	
+										UpBuf[4 + 2 * len] = send_buffer;
+									}
+									else if(StartAdd + len >= MODBUS_WR_OFFTIME_FIRST && StartAdd + len < MODBUS_TOTAL_PARAMETERS)
+									{
+										U8_T temp_number = (StartAdd + len - MODBUS_WR_OFFTIME_FIRST) / WR_TIME_SIZE;
+										U8_T temp_address = (StartAdd + len - MODBUS_WR_OFFTIME_FIRST) % WR_TIME_SIZE;
+										U8_T send_buffer = WR_Roution[temp_number].OffTime[temp_address];
+										UpBuf[3 + 2 * len] = 0;	
+										UpBuf[4 + 2 * len] = send_buffer;			
+									}
+//									else if(StartAdd==0xee10) //for ISP read address of 0xee10
+//									{  
+//										RealNum = 2;
+//									  	send_tcp[UIP_HEAD] = uip_appdata[UIP_HEAD];//地址
+//									  	send_tcp[UIP_HEAD+1] = READ_VARIABLES;//命令
+//									  	send_tcp[UIP_HEAD+2] = RealNum;
+//									  	send_tcp[UIP_HEAD+3] = send_tcp[UIP_HEAD+4]=0;//有效数据00				
+//									}
+									else
+									{
+										UpBuf[3 + 2 * len] = 0;	
+										UpBuf[4 + 2 * len] = 1;
+									}						
+								} 
+							}
+
+							InitCRC16();
+							for(len = 0; len < UpCtr; len++)
+								CRC16_Tstat(UpBuf[len]);
+
+							UpBuf[UpCtr++] = CRChi;                        
+							UpBuf[UpCtr++] = CRClo;
+
+							UpIndex = 0;
+							ENDP2_NEED_UP_FLAG = 1;							  					
+						}
+						else if(DownBuf[1] == swrite) 
+						{
+							if(((DownBuf[2] << 8) | DownBuf[3]) < 200)
+							{
+								if(((DownBuf[2] << 8) | DownBuf[3]) == 106)
+								{
+									if((((Para[212] << 8) | Para[213]) == 0) && (((DownBuf[4] << 8) | DownBuf[5]) != 0))
+									{
+										Para[212] = DownBuf[4];
+										Para[213] = DownBuf[5];
+										ChangeIP = 1;
+										ChangeFlash = 2;
+									}
+								}
+								else if((((DownBuf[2] << 8) | DownBuf[3]) >= 107) && (((DownBuf[2] << 8) | DownBuf[3]) <= 120)) //IP change ,reset cpu
+								{
+									if(((Para[212] << 8) | Para[213]) == 0)
+									{
+										Para[2*DownBuf[3]] = DownBuf[4];		//write to bufffer array high bit
+										Para[2*DownBuf[3] + 1] = DownBuf[5];	//write to bufffer array low bit
+										ChangeFlash = 2;
+										ChangeIP = 1;
+									}
+								}
+								else
+								{
+									Para[2*DownBuf[3]] = DownBuf[4]; 			//write to bufffer array high bit
+									Para[2*DownBuf[3] + 1] = DownBuf[5];		//write to bufffer array low bit
+									ChangeFlash = 2;
+								}
+							}
+
+							for(len = 0; len < DownCtr; len++)
+								UpBuf[len] = DownBuf[len];
+
+							UpCtr = len;
+							UpIndex = 0;
+							ENDP2_NEED_UP_FLAG = 1;
+						}
+					}
+					else
+					{
+						Sever_Order = 3;		//USB
+						Sever_id = DownBuf[0];				  
+						Tx_To_Tstat(DownBuf, DownCtr);								 			          			 
+					} 
+					
+					DownCtr = 0;
+				}
+			}
+
+			if((ENDP2_NEED_UP_FLAG == 1) && (ENDP2_UP_SUC_FLAG == 1) && UpCtr)
+			{
+				ENDP2_UP_SUC_FLAG = 0;
+				if(UpCtr > BULK_IN_ENDP_MAX_SIZE)
+				{
+					length = BULK_IN_ENDP_MAX_SIZE;
+					UpCtr -= BULK_IN_ENDP_MAX_SIZE;
+				}
+				else
+				{
+					length = UpCtr;
+					UpCtr = 0;
+					ENDP2_NEED_UP_FLAG = 0;
+				}
+
+				CH375_WR_CMD_PORT(CMD_WR_USB_DATA7);			// 发出写上传端点2命令
+				CH375_WR_DAT_PORT(length);
+				for(len = 0; len < length; len++)
+					CH375_WR_DAT_PORT(UpBuf[UpIndex++]);
+			}
+		}
+	}
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * Function Name: main
+ * Purpose:
+ * Params:
+ * Returns:
+ * Note:
+ * ----------------------------------------------------------------------------*/
+
+void main(void )
+{ 
+	U16_T i;
+    U8_T FlashFlag=0; //已经烧写过flash 还是没有
+    U8_T dat[100];
+    U16_T baudRateDiv=0;
+	U8_T flag_store_schedule;
+
+	ExecuteRuntimeFlag = 1;
+
+	/* System Initiation */
+	AX11000_Init();
+
+	/* UART Interface Initiation */
+	UART_Init(0);
+//	printd("UART-0 init ok.\n\r");
+	UART_Init(1);
+//	printd("UART-2 init ok.\n\r");
+		
+//	printd("\nASIX AX110xx 128PIN Demo Firmware V2.1.1 (%s %s)\n\r", __DATE2__, __TIME__);
+
+    HSUR_InitValue();
+	switch (CSREPR & (BIT6|BIT7))
+		{
+	    case SCS_25M:
+	 		baudRateDiv = UR2_BR25_19200;
+			break;
+		case SCS_50M:
+			baudRateDiv = UR2_BR50_19200;
+			break;
+		case SCS_100M:
+			baudRateDiv = UR2_BR100_19200;
+			break;
+		}
+
+	HSUR_Setup(baudRateDiv, (UR2_CHAR_8|UR2_STOP_10), (UR2_RDI_ENB|UR2_RLSI_ENB),
+	(UR2_FIFO_MODE|UR2_RXFIFO_RST|UR2_TXFIFO_RST|UR2_TRIG_08), UR2_RTS);
+	
+    I2C_Init();
+  
+	for(i = 0; i < 100; i++)
+    { 
+		IntFlashReadByte(0x70000 + i, &dat[i]);
+		if(dat[i] == 0xff) FlashFlag++;
+    }
+
+   	if(FlashFlag > 90) //if its the time to program
+	{   
+	 	IntFlashReadByte(0x6FFFF, &Parame[29]);
+
+		E2prom_Read_Byte_From_Absolute_Address(0x0b, Parame + 201);
+		E2prom_Read_Byte_From_Absolute_Address(0x0a, Parame + 203);
+		E2prom_Read_Byte_From_Absolute_Address(0x09, Parame + 205);
+		E2prom_Read_Byte_From_Absolute_Address(0x08, Parame + 207);
+		E2prom_Read_Byte_From_Absolute_Address(0x07, Parame + 209);
+		E2prom_Read_Byte_From_Absolute_Address(0x06, Parame + 211);
+
+		MassFlashWrite(0, Parame, 400);   //write datas to address 0,length 400	
+	}
+	
+	for(i = 0; i < 400; i++)   //read 
+		IntFlashReadByte(0x70000 + i, &Para[i]);   //the first para means location,last means array
+
+	E2prom_Read_Byte_From_Absolute_Address(0x0b, Para + 201);
+	E2prom_Read_Byte_From_Absolute_Address(0x0a, Para + 203);
+	E2prom_Read_Byte_From_Absolute_Address(0x09, Para + 205);
+	E2prom_Read_Byte_From_Absolute_Address(0x08, Para + 207);
+	E2prom_Read_Byte_From_Absolute_Address(0x07, Para + 209);
+	E2prom_Read_Byte_From_Absolute_Address(0x06, Para + 211);
+
+	Flash_Inital();	
+	IntFlashReadByte(0x7fff0, &flag_store_schedule);
+	if(flag_store_schedule == 0x55)	
+	{
+		Flash_Read_Schedule(); // read scheduel data from flash
+ 	}
+	if(Para[9] != Parame[9])  //botload is  changed,user configure can't erase.so if software revision need to change
+	{
+		Para[9] = Parame[9];
+		Flash_Write_Schedule();	
+	}
+  	if(Para[33]==0x1f)//if update is not completed,flashing led shows this statement.
+     	FlagIsp=1; 
+
+
+ // MAC_SetMacAddr(add_mac);
+
+  sTaskCreate(TCPIP_Task, (const signed portCHAR * const)"TCPIP_task",
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY +2, (xTaskHandle *)&xHandle1); //0 2
+
+  sTaskCreate(LedBeat_task, (const signed portCHAR * const)"LedBeat_task",
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 4, (xTaskHandle *)&xHandle3);  //3
+
+  //sTaskCreate(Realtimer_task, (const signed portCHAR * const)"Realtimer_task",
+		//portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 7, (xTaskHandle *)&xHandle7);  //7
+
+  sTaskCreate(Timer_task, (const signed portCHAR * const)"Timer_task",
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 3, (xTaskHandle *)&xHandle2);  //3
+
+   sTaskCreate(Ledflash_task, (const signed portCHAR * const)"Ledflash_task",
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 5, (xTaskHandle *)&xHandle4);  //5
+
+   sTaskCreate(Uart0_task, (const signed portCHAR * const)"Uart0_task",
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 8, (xTaskHandle *)&xHandle5); //0
+
+   sTaskCreate(Uart1_task, (const signed portCHAR * const)"Uart1_task",
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 8, (xTaskHandle *)&xHandle6);
+
+   sTaskCreate(Uart2_task, (const signed portCHAR * const)"Uart2_task",
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 9, (xTaskHandle *)&xHandle9);
+
+   sTaskCreate(Schedule_task, (const signed portCHAR * const)"Schedule_task",
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 6, (xTaskHandle *)&xHandle8);
+
+   sTaskCreate(TimeServer_task, (const signed portCHAR * const)"TimeServer_task",
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 7, (xTaskHandle *)&xHandle7);//8
+
+   sTaskCreate(UdpBroadcast_task, (const signed portCHAR * const)"UdpBroadcast_task",
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 4, (xTaskHandle *)&xHandle10);//8
+
+    sTaskCreate(USB_task, (const signed portCHAR * const)"USB_task",
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 10, (xTaskHandle *)&xHandle11);//8
+
+  /* Finally kick off the scheduler.  This function should never return. */
+	vTaskStartScheduler( portUSE_PREEMPTION );
+}
+
+
+
+
+
+/* End of adapter.c */

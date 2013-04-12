@@ -1,4 +1,61 @@
 
+
+Rev69.11:
+1.add mstp feature
+2.token passing and create node. 
+3.support 25M,100M system frequency, higher program speed.
+4.compatible LCD hardware.
+5.fix the IP Write Multiple then write dismatch bug.
+6.modify Regeister 106 value "0" or "1" choice.
+7.modify Multiple Write IP, NC should be auto reboot.
+8.set BACnet Device id=20000 for desmond.
+9.comptiable two version led.
+10.modified the register 14 to bootloader version,not register 4 ,register 4 is
+ fireware lower byte. And fixed register 4 change success when reboot covered the old value.
+11.fixed zigbee communicate with UART1 lost packet and timeout issue.
+12.fixed LED of Ethernet,rs232,zigbee,usb,gsm,rs485 issue. Now it display Properly.
+13.fixes 100MHZ led issue.
+14.new port RS485 compatiable.  
+15.features on update Tsata via ziggbee. (2013/04/09)
+16.add rs485_2_en macros enable new 485 feature.
+17.ADD free RTOS cpu frequency supprot 100Mhz,50Mhz.
+
+
+
+  
+Repository starts at Rev65
+  Other stuff is filed to \Archive
+   \Linux is notes about the linux version by Meng
+
+
+Rev68:
+   add new rs485 port2.
+   
+Rev65:
+   Add schedule and clear flash features.
+
+Rev64_1: Created by Evan 2012-03-08, based on Rev63_10 which was created by LHN.
+   Add DHCP feature. If set register 106 to 1, the unit will enable DHCP, and the ip address of NC will be assigned by router.
+
+   If clear register 106 to 0, the unit will fix the ip address as 192.168.0.3, it static ip mode.
+   In the static ip mode, please set the ip address of your PC to 198.168.0.xxx. And set the gateway of your router to 192.168.0.xxx if there is a router across PC and NC.
+    
+
+Rev63: LHN
+   Based on Rev 59   
+   Add schedules
+   Time server
+   OK to release to customers
+
+
+Rev62 Bancnet < no ide on the difference
+Rev61 Bancnet < no ide on the difference
+Rev60 Bacnet
+
+
+Rev59: Not sure what this is but qwe used this to create Rev 63 
+
+
 Rev65:
    Add schedule and clear flash features.
 

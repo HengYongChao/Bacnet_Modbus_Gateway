@@ -1,0 +1,86 @@
+10
+
+dir
+6
+file:///Z:/Designs/NetworkController/code/NC_CODE_LIB/NC_REV64_1/src/FreeRTOSSource/portable
+file:///Z:/Designs/NetworkController/code/NC_CODE_LIB
+
+
+
+2012-06-04T05:48:03.765625Z
+1
+Administrator
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+df0fba70-f087-3a47-a82b-066e6d4f4adf
+
+MemMang
+dir
+
+Keil
+dir
+
+BCC
+dir
+
+oWatcom
+dir
+
+IAR
+dir
+
+MPLAB
+dir
+
+readme.txt
+file
+
+
+
+
+2012-06-04T06:26:49.468750Z
+5a5588210dd5bc0600c8170af8242231
+2012-06-04T05:48:03.765625Z
+1
+Administrator
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+760
+
+GCC
+dir
+
+SDCC
+dir
+

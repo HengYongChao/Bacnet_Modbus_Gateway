@@ -1,1 +1,0 @@
-"..\src\FreeRtossource\portable\Keil\AX11000\OS_CPU_A.A51" MOD_CONT INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\uip\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\SRC\gs2e\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\) SET (LARGE) DEBUG PRINT(.\OS_CPU_A.lst) OBJECT(.\OS_CPU_A.obj) EP

@@ -1,0 +1,22 @@
+//======================================================================
+// AX11000 Firmware Revision History
+// Module Name: DHCP
+//
+// This document describes the major changes, additions and bug fixes made 
+// to the AX11000 Firmware between released versions. 
+//======================================================================
+
+Version 1.0.3  (2008-06-21)
+1. Fixed the bug that three or more demo boards power up at one time, some demo boards could not get
+   the assigned IP from DHCP server.
+
+Version 1.0.2  (2007-07-04)
+1. Fixed getting the same IP address assigned from DHCP server when all clients reset simultaneously.
+
+Version 1.0.1  (2007-05-16)
+1. Fixed software bug for parsing received DHCP frame information.
+
+Version 1.0.0  (2006-11-06)
+1. Initial release
+
+
