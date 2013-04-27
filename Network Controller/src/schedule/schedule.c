@@ -10,9 +10,9 @@
 U8_T far Ort_Table[256] = {0};
 //////////LHN ADD////////////////
 
-STR_WR WR_Roution[MAX_WR] = {0};
-STR_AR AR_Roution[MAX_AR] = {0};
-UN_ID ID_Config[MAX_ID] = {0};
+STR_WR far WR_Roution[MAX_WR];
+STR_AR far AR_Roution[MAX_AR];
+UN_ID far ID_Config[MAX_ID];
 
 bit BIT_FLAG;  // 0 -- run schedule 
 unsigned char idata current_hour;
@@ -21,17 +21,17 @@ unsigned char idata dayofweek;
 unsigned char idata previous_dayofweek = 10;
 unsigned int  idata dayofyear;
 
-unsigned char xdata ar_state_index[2] = {0};
-unsigned char xdata wr_state_index[3] = {0};
-unsigned char xdata holiday1_state_index[3] = {0};
-unsigned char xdata holiday2_state_index[3] = {0};
+unsigned char far ar_state_index[2] = {0};
+unsigned char far wr_state_index[3] = {0};
+unsigned char far holiday1_state_index[3] = {0};
+unsigned char far holiday2_state_index[3] = {0};
 
-unsigned char xdata output_state_index[32] = {0};
-unsigned char xdata schedual1_state_index[32] = {0};
-unsigned char xdata schedual2_state_index[32] = {0};
-unsigned char xdata first_time_schedual[32] = {0};
+unsigned char far output_state_index[32] = {0};
+unsigned char far schedual1_state_index[32] = {0};
+unsigned char far schedual2_state_index[32] = {0};
+unsigned char far first_time_schedual[32] = {0};
 
-unsigned char xdata send_schedual[8] = {0};
+unsigned char far send_schedual[8] = {0};
 bit received_schedual_data;
 bit success_write_schedual;
 bit receiving_schedual_byte;
@@ -47,8 +47,8 @@ sbit ANNUAL_CHANGED = REFRESH_STATUS^1;
 sbit ID_CHANGED = REFRESH_STATUS^2;
 
 extern unsigned char T;
-unsigned char xdata daylight_enable;
-unsigned char xdata daylight_flag;
+unsigned char far daylight_enable;
+unsigned char far daylight_flag;
 bit calibrated_time = 0;
 bit cycle_minutes_timeout;
 

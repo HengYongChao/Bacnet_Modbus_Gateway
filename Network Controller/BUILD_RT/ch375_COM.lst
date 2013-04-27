@@ -1,0 +1,725 @@
+C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE CH375_COM
+OBJECT MODULE PLACED IN .\ch375_COM.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\USB\ch375_COM.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020)
+                    - INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;
+                    -..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\
+                    -buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;.
+                    -.\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\ch375_COM.lst) OBJECT(.\ch
+                    -375_COM.obj)
+
+line level    source
+
+   1          
+   2          #include <stdio.h>
+   3          #include <string.h>
+   4          #include <intrins.h>
+   5          #include "types.h"
+   6          #include "reg80390.h"
+   7          #include "ch375inc.h"                                                           // CH375头文件
+   8          #include "descriptor_COM.h"                                                     // 描述符
+   9          #include "delay.h"
+  10          #include "main.h"
+  11          
+  12          //#define       USB_DEBUG
+  13          
+  14          #ifdef USB_DEBUG
+              #include "uart.h"
+              #endif
+  17          
+  18          mREQUEST_PACKET request;
+  19          mUART_PARA uartpara;
+  20          
+  21          bit CH375FLAGERR;                                                       // 错误标志
+  22          bit CH375CONFLAG;                                                       // 设备是否已经配置标志
+  23          bit ENDP2_NEED_UP_FLAG = 0;                                     // 端点2有数据需要上传标志
+  24          bit ENDP2_UP_SUC_FLAG = 1;                                      // 端点2本次数据上传成功标志
+  25          bit SET_LINE_CODING_Flag;                                       // 类请求SET_LINE_CODING标志
+  26          
+  27          U8_T VarUsbAddress;                                                     // 设备地址
+  28          U8_T mVarSetupRequest;                                          // USB请求码
+  29          U16_T mVarSetupLength;                                          // 后续数据长度
+  30          U8_T *VarSetupDescr;                                            // 描述符偏移地址
+  31          
+  32          /*硬件相关定义*/
+  33          volatile U8_T far CH375_CMD_PORT _at_ 0x180001; // CH375命令端口的I/O地址 
+  34          volatile U8_T far CH375_DAT_PORT _at_ 0x180000; // CH375数据端口的I/O地址 
+  35          sbit CH375_INT_WIRE = P2^7;                     // P2.7, INT0, 连接CH375的INT#引脚,用于查询中断状态, REV20
+  36          //sbit CH375_INT_WIRE = P2^4;                           // REV23
+  37          
+  38          #define USB_TIMEOUT             5
+  39          
+  40          U8_T far DownBuf[300];
+  41          U8_T far UpBuf[300];
+  42          U8_T far USB_timeout = USB_TIMEOUT;
+  43          U16_T far DownCtr = 0;
+  44          U16_T far UpCtr = 0;
+  45          
+  46          #ifdef  USB_DEBUG
+              //for debug
+              U8_T ascii[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+              void usb_debug_print_hex(U8_T *dat, U8_T length)
+              {
+C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 2   
+
+                      U8_T p[100];
+                      U8_T i;
+                      U8_T ctr = 0;
+              
+                      for(i = 0; i < length; i++)
+                      {
+                              p[ctr++] = ascii[dat[i] >> 4];
+                              p[ctr++] = ascii[dat[i] & 0x0f];
+                              p[ctr++] = ' ';
+                      }
+              
+                      p[ctr++] = '\n';
+                      p[ctr++] = '\r';
+              
+                      Uart0_Tx(p, ctr);
+              }
+              #endif
+  68          
+  69          /* 延时1us */
+  70          static void Delay1us(void)
+  71          {
+  72   1              _nop_(); _nop_(); _nop_(); _nop_(); _nop_();
+  73   1              _nop_(); _nop_(); _nop_(); _nop_(); _nop_();
+  74   1              _nop_(); _nop_(); _nop_(); _nop_(); _nop_();
+  75   1              _nop_(); _nop_(); _nop_(); _nop_(); _nop_();
+  76   1              _nop_(); _nop_(); _nop_(); _nop_(); _nop_();    /* 25MHz晶振，25个指令较接近于1us */
+  77   1      
+  78   1      //      _nop_(); _nop_(); _nop_(); _nop_(); _nop_();    /* 稍微多于1us */       
+  79   1      //      _nop_(); _nop_(); _nop_(); _nop_(); _nop_();
+  80   1      //
+  81   1      //      _nop_(); _nop_(); _nop_(); _nop_(); _nop_();    /* 稍微多于1us */       
+  82   1      //      _nop_(); _nop_(); _nop_(); _nop_(); _nop_();
+  83   1      //
+  84   1      //      _nop_(); _nop_(); _nop_(); _nop_(); _nop_();    /* 稍微多于1us */       
+  85   1      //      _nop_(); _nop_(); _nop_(); _nop_(); _nop_();
+  86   1      }
+  87          
+  88          /* 延时2us */
+  89          static void Delay10us(void)
+  90          {
+  91   1              Delay1us();
+  92   1              Delay1us();
+  93   1              Delay1us();
+  94   1              Delay1us();
+  95   1              Delay1us();
+  96   1              Delay1us();
+  97   1              Delay1us();
+  98   1              Delay1us();
+  99   1              Delay1us();
+ 100   1              Delay1us();
+ 101   1      }
+ 102          
+ 103          static void Delay5ms(void)
+ 104          {
+ 105   1              U16_T i;
+ 106   1              for(i = 0; i < 5000; i++)
+ 107   1              {
+ 108   2                      Delay1us();
+ 109   2              }       
+ 110   1      }
+ 111          
+ 112          /* 延时50ms， 不精确 */
+C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 3   
+
+ 113          static void Delay50ms(void)
+ 114          {
+ 115   1              U8_T i, j;
+ 116   1              for(i = 0; i < 200; i++)
+ 117   1                      for(j = 0; j < 250; j++)
+ 118   1                              Delay1us();
+ 119   1      }
+ 120          
+ 121          /* CH375写命令端口 */
+ 122          void CH375_WR_CMD_PORT(U8_T cmd)                                        // 向CH375的命令端口写入命令,周期不小于4uS
+ 123          {
+ 124   1              Delay10us();
+ 125   1              CH375_CMD_PORT = cmd;
+ 126   1              Delay10us();
+ 127   1              Delay10us();
+ 128   1      }
+ 129          
+ 130          /* CH375写数据端口 */
+ 131          void CH375_WR_DAT_PORT(U8_T dat) 
+ 132          {
+ 133   1              Delay10us();
+ 134   1              CH375_DAT_PORT = dat;
+ 135   1              Delay10us();
+ 136   1              Delay10us();
+ 137   1      }
+ 138          
+ 139          /* CH375读数据端口 */
+ 140          U8_T CH375_RD_DAT_PORT(void)
+ 141          {
+ 142   1              U8_T ret;
+ 143   1              Delay10us();
+ 144   1              ret = CH375_DAT_PORT;
+ 145   1              return ret;
+ 146   1      }
+ 147          
+ 148          void init_virtual_com(void)
+ 149          {
+ 150   1      //      uartpara.uart.bBaudRate1 = 0x80;                        // baudrate = 0X00002580 ,即9600(默认)
+ 151   1      //      uartpara.uart.bBaudRate2 = 0x25;
+ 152   1      //      uartpara.uart.bBaudRate3 = 0x00;
+ 153   1      //      uartpara.uart.bBaudRate4 = 0x00;
+ 154   1              uartpara.uart.bBaudRate1 = 0x00;                        // baudrate = 0X00004B00 ,即19200
+ 155   1              uartpara.uart.bBaudRate2 = 0x4B;
+ 156   1              uartpara.uart.bBaudRate3 = 0x00;
+ 157   1              uartpara.uart.bBaudRate4 = 0x00;
+ 158   1              uartpara.uart.bStopBit = 0x00;                          // Stop bit: 1
+ 159   1              uartpara.uart.bParityBit = 0x00;                        // Parity bit: None
+ 160   1              uartpara.uart.bDataBits  = 0x08;                        // Data bits: 8
+ 161   1      }
+ 162          
+ 163          U8_T usb_poll(void)
+ 164          {
+ 165   1              if(CH375_INT_WIRE == 0)
+ 166   1                      return TRUE;
+ 167   1              else
+ 168   1                      return FALSE;
+ 169   1      }
+ 170          
+ 171          void USB_disable(void)
+ 172          {
+ 173   1              CH375_WR_CMD_PORT(CMD_SET_USB_MODE);                            // 设置USB工作模式, 必要操作
+ 174   1              CH375_WR_DAT_PORT(0);                                                           // 设置为未启用的USB设备方式
+C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 4   
+
+ 175   1              #ifdef  USB_DEBUG
+                      Uart0_Tx("Disable USB\n\r", 13);
+                      #endif
+ 178   1      }
+ 179          
+ 180          void USB_enable(void)
+ 181          {
+ 182   1              CH375_WR_CMD_PORT(CMD_SET_USB_MODE);                            // 设置USB工作模式, 必要操作
+ 183   1              CH375_WR_DAT_PORT(1);                                                           // 设置为使用外部固件的USB设备方式
+ 184   1      }
+ 185          
+ 186          /* CH375初始化子程序 */
+ 187          U8_T CH375_Init(void)
+ 188          {
+ 189   1          U8_T ret = FALSE;
+ 190   1              U8_T i = 0;
+ 191   1      
+ 192   1              while(1)
+ 193   1              {
+ 194   2                      CH375_WR_CMD_PORT(CMD_CHECK_EXIST);
+ 195   2                      CH375_WR_DAT_PORT(0x55);
+ 196   2                      
+ 197   2                      Delay50ms();
+ 198   2      
+ 199   2                      if((i = CH375_RD_DAT_PORT()) != 0xaa)
+ 200   2                      {
+ 201   3                              #ifdef  USB_DEBUG
+                                      Uart0_Tx("CH375 inexistence: ", 19);
+                                      usb_debug_print_hex(&i, 1);
+                                      #endif
+ 205   3                              //return ret;
+ 206   3                              OSDelay(10);
+ 207   3                      }
+ 208   2                      else
+ 209   2                      {
+ 210   3                              break;
+ 211   3                      }
+ 212   2              }
+ 213   1              
+ 214   1              #ifdef  USB_DEBUG       
+                      Uart0_Tx("CH375 exist\n\r", 13);
+                      #endif
+ 217   1      
+ 218   1              init_virtual_com();
+ 219   1      
+ 220   1              USB_enable();
+ 221   1              for(i = 0; i < 20; i++)                                                         // 等待操作成功,通常需要等待10uS-20uS 
+ 222   1          {
+ 223   2                      if(CH375_RD_DAT_PORT() == CMD_RET_SUCCESS)
+ 224   2                      {
+ 225   3                              #ifdef  USB_DEBUG
+                                      Uart0_Tx("USB enabled\n\r", 13);
+                                      #endif
+ 228   3                              ret = TRUE;
+ 229   3                              break;
+ 230   3                      }
+ 231   2              }
+ 232   1      
+ 233   1              return ret;
+ 234   1      }
+ 235          
+ 236          
+C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 5   
+
+ 237          /*端点0数据上传*/
+ 238          void mCh375Ep0Up(void)
+ 239          {
+ 240   1              U8_T i, len;
+ 241   1              if(mVarSetupLength)                                                                             // 长度不为0传输具体长度的数据          
+ 242   1          {
+ 243   2                      if(mVarSetupLength <= CH375_EP0_SIZE)                           // 长度小于8则长输要求的长度, 端点0最大数据包为8bytes
+ 244   2              {
+ 245   3                              len = mVarSetupLength;
+ 246   3                              mVarSetupLength = 0;
+ 247   3              }        
+ 248   2                      else                                                                                            // 长度大于8则传输8个，切总长度减8
+ 249   2              { 
+ 250   3                              len = CH375_EP0_SIZE;
+ 251   3                              mVarSetupLength -= CH375_EP0_SIZE;
+ 252   3                      }
+ 253   2                                                                                               
+ 254   2                  CH375_WR_CMD_PORT(CMD_WR_USB_DATA3);                                // 发出写端点0的命令
+ 255   2              CH375_WR_DAT_PORT(len);                                                         // 写入长度
+ 256   2              for(i = 0; i < len; i++)
+ 257   2                  CH375_WR_DAT_PORT(request.buffer[i]);                       // 循环写入数据
+ 258   2      
+ 259   2                      #ifdef  USB_DEBUG
+                              usb_debug_print_hex(&request.buffer[0], len);
+                              #endif
+ 262   2      
+ 263   2                      Delay5ms();
+ 264   2          }
+ 265   1              else
+ 266   1          {
+ 267   2                      CH375_WR_CMD_PORT(CMD_WR_USB_DATA3);                    // 发出写端点0的命令
+ 268   2                      CH375_WR_DAT_PORT(0);                                                   // 上传0长度数据，这是一个状态阶段
+ 269   2      
+ 270   2                      #ifdef  USB_DEBUG
+                              Uart0_Tx("ZLP\n\r", 5);
+                              #endif
+ 273   2                      Delay5ms();
+ 274   2              }
+ 275   1      }
+ 276          
+ 277          /* 复制描述符以便上传 */
+ 278          void mCh375DesUp(void)
+ 279          {
+ 280   1              U8_T k; 
+ 281   1              for(k = 0; k < CH375_EP0_SIZE; k++) 
+ 282   1          {
+ 283   2               request.buffer[k] = *VarSetupDescr;                      // 依次复制8个描述符
+ 284   2               VarSetupDescr++;
+ 285   2          }
+ 286   1      }
+ 287          
+ 288          /* CH375中断服务程序，使用查询方式 */
+ 289          void mCH375Interrupt(void) 
+ 290          {
+ 291   1              U8_T InterruptStatus;
+ 292   1              U8_T length, c1, len;
+ 293   1      
+ 294   1              CH375_WR_CMD_PORT(CMD_GET_STATUS);                                                              // 获取中断状态并取消中断请求 
+ 295   1              InterruptStatus = CH375_RD_DAT_PORT();                                                  // 获取中断状态
+ 296   1               
+ 297   1              switch(InterruptStatus)                                                                                 // 解析中断源
+ 298   1          {
+C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 6   
+
+ 299   2                      case USB_INT_EP2_OUT:                                                                           // 批量端点下传成功
+ 300   2                              #ifdef  USB_DEBUG
+                                      Uart0_Tx("EP2_OUT:", 9);
+                                      #endif 
+ 303   2                              CH375_WR_CMD_PORT(CMD_RD_USB_DATA);                                             // 发出读数据命令
+ 304   2                              if(length = CH375_RD_DAT_PORT())                                                // 首先读出的是长度
+ 305   2                              {
+ 306   3                                      for(len = 0; len < length; len++)
+ 307   3                                      {
+ 308   4                                              DownBuf[DownCtr++] = CH375_RD_DAT_PORT();
+ 309   4                                      }
+ 310   3                                      #ifdef  USB_DEBUG
+                                              usb_debug_print_hex(DownBuf + DownCtr - length, length);
+                                              #endif
+ 313   3                                      USB_timeout = USB_TIMEOUT;
+ 314   3                              }
+ 315   2                              break;
+ 316   2                      case USB_INT_EP2_IN:                                                                            // 批量端点上传成功,未处理
+ 317   2                              #ifdef  USB_DEBUG
+                                      Uart0_Tx("EP2_IN\n\r", 8);
+                                      #endif
+ 320   2                              ENDP2_UP_SUC_FLAG = 1;                                                                  // 置本次上传成功标志 
+ 321   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);                                              // 释放缓冲区
+ 322   2                              break;
+ 323   2                      case USB_INT_EP1_IN:                                                                            // 中断端点上传成功，未处理
+ 324   2                              #ifdef  USB_DEBUG
+                                      Uart0_Tx("EP1_IN\n\r", 8);
+                                      #endif
+ 327   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);                                              // 释放缓冲区
+ 328   2                              break;
+ 329   2                      case USB_INT_EP1_OUT:                                                                           // 中断端点下传成功，未处理
+ 330   2                              #ifdef  USB_DEBUG
+                                      Uart0_Tx("EP1_OUT\n\r", 9);
+                                      #endif
+ 333   2                              CH375_WR_CMD_PORT(CMD_RD_USB_DATA);                                             // 发出读数据命令
+ 334   2                              if(length = CH375_RD_DAT_PORT())                                                // 首先读出的是长度
+ 335   2                              {
+ 336   3                                      for(len = 0; len < length; len++)
+ 337   3                                              CH375_RD_DAT_PORT();
+ 338   3                              }
+ 339   2                              break;
+ 340   2                      case USB_INT_EP0_SETUP:                                                                         // 控制端点建立成功
+ 341   2                      CH375_WR_CMD_PORT(CMD_RD_USB_DATA);                                             // 读取数据缓冲器
+ 342   2                              length = CH375_RD_DAT_PORT();                                                   // 获得数据长度
+ 343   2                              for(len = 0; len < length; len++)
+ 344   2                  {            
+ 345   3                      request.buffer[len] = CH375_RD_DAT_PORT();                      // 取出输出端点0的数据包
+ 346   3                  }
+ 347   2      
+ 348   2                              #ifdef  USB_DEBUG
+                                      Uart0_Tx("USB_SETUP->Request: ", 20);
+                                      usb_debug_print_hex(&request.buffer[0], length);
+                                      #endif
+ 352   2                                        
+ 353   2                              if(length == 0x08)      // request
+ 354   2                  {
+ 355   3                                  mVarSetupLength = (request.buffer[7] << 8) | request.buffer[6];     // 控制传输请求的数据长度
+ 356   3      
+ 357   3                                      if((c1 = request.r.bmReuestType) & 0x40)                                // 厂商请求,未进行处理
+ 358   3                      {
+ 359   4                              // NO DEAL..............
+ 360   4                                              #ifdef  USB_DEBUG
+C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 7   
+
+                                                      Uart0_Tx("->Vendor request\n\r", 18);
+                                                      #endif
+ 363   4                                      }
+ 364   3      
+ 365   3                                      if((c1 = request.r.bmReuestType) & 0x20)                                        // 类请求,进行相应的处理
+ 366   3                      {
+ 367   4                                              #ifdef  USB_DEBUG
+                                                      Uart0_Tx("->Class request\n\r", 17);
+                                                      #endif
+ 370   4                                              mVarSetupRequest = request.r.bRequest;                                  // 暂存类请求码 
+ 371   4                          switch(mVarSetupRequest)                                // 分析类请求码,并进行处理
+ 372   4                          {
+ 373   5                                                      case SET_LINE_CODING:                               // SET_LINE_CODING
+ 374   5                                                              #ifdef  USB_DEBUG
+                                                                      Uart0_Tx("[COM] SET_LINE_CODING\n\r", 23);
+                                                                      #endif                   
+ 377   5                                  SET_LINE_CODING_Flag = 1;                               // 置SET_LINE_CODING命令标志                                
+ 378   5                                  mVarSetupLength = 0;
+ 379   5                                                              break;
+ 380   5                                                      case GET_LINE_CODING:                               // GET_LINE_CODING
+ 381   5                                                              #ifdef  USB_DEBUG
+                                                                      Uart0_Tx("[COM] GET_LINE_CODING\n\r", 23);
+                                                                      #endif
+ 384   5                                  for(c1 = 0; c1 < 7; c1++)
+ 385   5                                  {   
+ 386   6                                                                      request.buffer[c1] = uartpara.uart_para_buf[c1];
+ 387   6                                  }
+ 388   5                                                              mVarSetupLength = 7;
+ 389   5                                                              break;
+ 390   5                              case SET_CONTROL_LINE_STATE:                        // SET_CONTROL_LINE_STATE 
+ 391   5                                                              #ifdef  USB_DEBUG
+                                                                      Uart0_Tx("[COM] SET_CONTROL_LINE_STATE\n\r", 30);
+                                                                      #endif
+ 394   5                                                              mVarSetupLength = 0;
+ 395   5                                                              break;
+ 396   5                              default:
+ 397   5                                  CH375FLAGERR = 1;                                                               // 不支持的类命令码
+ 398   5                                                              break;
+ 399   5                          } 
+ 400   4                                      }
+ 401   3                                      else if(!((c1 = request.r.bmReuestType) & 0x60))                        // 标准请求,进行相应的处理
+ 402   3                      {
+ 403   4                                              #ifdef  USB_DEBUG
+                                                      Uart0_Tx("->Standard request", 18);
+                                                      #endif
+ 406   4      
+ 407   4                                              mVarSetupRequest = request.r.bRequest;                                          // 暂存标准请求码
+ 408   4                                              switch(request.r.bRequest)                                      // 分析标准请求
+ 409   4                          {
+ 410   5                                                      case DEF_USB_CLR_FEATURE:                                                               // 清除特性
+ 411   5                                                              #ifdef  USB_DEBUG
+                                                                      Uart0_Tx("->Clear feature\n\r", 17);
+                                                                      #endif
+ 414   5                                                              if((c1 = request.r.bmReuestType & 0x1F) == 0X02)        // 不是端点不支持
+ 415   5                                  {
+ 416   6                                                                      switch(request.buffer[4])       //wIndex
+ 417   6                                      {
+ 418   7                                                                              case 0x82:
+ 419   7                                                                                      CH375_WR_CMD_PORT(CMD_SET_ENDP7);               // 清除端点2上传
+ 420   7                                                                                      CH375_WR_DAT_PORT(0x8E);                // 发命令清除端点
+ 421   7                                                                                      break;
+ 422   7                                                                              case 0x02:
+C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 8   
+
+ 423   7                                                                                      CH375_WR_CMD_PORT(CMD_SET_ENDP6);
+ 424   7                                                                                      CH375_WR_DAT_PORT(0x80);                                // 清除端点2下传
+ 425   7                                                                                      break;
+ 426   7                                                                              case 0x81:
+ 427   7                                                                                      CH375_WR_CMD_PORT(CMD_SET_ENDP5);               // 清除端点1上传
+ 428   7                                                                                      CH375_WR_DAT_PORT(0x8E);
+ 429   7                                                                                      break;
+ 430   7                                                                              case 0x01:
+ 431   7                                                                                      CH375_WR_CMD_PORT(CMD_SET_ENDP4);               // 清除端点1下传
+ 432   7                                                                                      CH375_WR_DAT_PORT(0x80);
+ 433   7                                                                                      break;
+ 434   7                                                                              default:
+ 435   7                                                                                      break;
+ 436   7                                                                      }
+ 437   6                                                              }
+ 438   5                                                              else
+ 439   5                                  {
+ 440   6                                                                      CH375FLAGERR = 1;                                                               // 不支持的清除特性,置错误标志
+ 441   6                                                              }
+ 442   5                                                              break;
+ 443   5                                                      case DEF_USB_GET_STATUS:                                                                // 获得状态
+ 444   5                                                              #ifdef  USB_DEBUG
+                                                                      Uart0_Tx("->Get status\n\r", 14);
+                                                                      #endif
+ 447   5                                                              request.buffer[0] = 0;                                                          // 上传两个字节的状态
+ 448   5                                                              request.buffer[1] = 0;
+ 449   5                                                              mVarSetupLength = 2;
+ 450   5                                                              break;
+ 451   5                                                      case DEF_USB_SET_ADDRESS:                                                               // 设置地址
+ 452   5                                                              #ifdef  USB_DEBUG
+                                                                      Uart0_Tx("->Set address\n\r", 15);
+                                                                      #endif
+ 455   5                                                              VarUsbAddress = request.buffer[2];                                      // 暂存USB主机发来的地址
+ 456   5                                                              break;
+ 457   5                                                      case DEF_USB_GET_DESCR:                                                                 // 获得描述符
+ 458   5                                                              #ifdef  USB_DEBUG
+                                                                      Uart0_Tx("->Get descriptor", 16);
+                                                                      #endif
+ 461   5                                                              if(request.buffer[3] == 1)                                                      // 设备描述符上传
+ 462   5                                                              {
+ 463   6                                                                      #ifdef  USB_DEBUG
+                                                                              Uart0_Tx("->device\n\r", 10);
+                                                                              #endif
+ 466   6                                                                      VarSetupDescr = DevDes;
+ 467   6                                                                      if(mVarSetupLength > DevDes[0])
+ 468   6                                                                              mVarSetupLength = DevDes[0];                            // 如果要求长度大于实际长度,则取实际长度
+ 469   6                                                              }
+ 470   5                                                              else if(request.buffer[3] == 2)                                         // 配置描述符上传
+ 471   5                                  {
+ 472   6                                                                      #ifdef  USB_DEBUG
+                                                                              Uart0_Tx("->config\n\r", 10);
+                                                                              #endif
+ 475   6                                                                      VarSetupDescr = ConDes;
+ 476   6                                      if(mVarSetupLength >= 0x43)
+ 477   6                                                                              mVarSetupLength = 0x43;                                         // 如果要求长度大于实际长度,则取实际长度
+ 478   6                                  }
+ 479   5                                                              else if(request.buffer[3] == 3)                                         // 获得字符串描述符
+ 480   5                                  {
+ 481   6                                                                      #ifdef  USB_DEBUG
+                                                                              Uart0_Tx("->string", 8);
+                                                                              #endif
+ 484   6                                                                      switch(request.buffer[2])
+C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 9   
+
+ 485   6                                                                      {
+ 486   7                                                                              case 0:                                                                         // 获取语言ID
+ 487   7                                                                                      #ifdef  USB_DEBUG
+                                                                                              Uart0_Tx("->language\n\r", 12);
+                                                                                              #endif
+ 490   7                                                                                      VarSetupDescr = LangDes;
+ 491   7                                                                                      if(mVarSetupLength > LangDes[0])
+ 492   7                                                                                              mVarSetupLength = LangDes[0];           // 如果要求长度大于实际长度,则取实际长度
+ 493   7                                                                                      break;
+ 494   7                                                                              case 1:                                                                         // 获取厂商字符串
+ 495   7                                                                                      #ifdef  USB_DEBUG
+                                                                                              Uart0_Tx("->manufacturer\n\r", 16);
+                                                                                              #endif
+ 498   7                                                                                      VarSetupDescr = MANUFACTURER_Des;
+ 499   7                                                                                      if(mVarSetupLength > MANUFACTURER_Des[0])
+ 500   7                                                                                              mVarSetupLength = MANUFACTURER_Des[0];// 如果要求长度大于实际长度,则取实际长度
+ 501   7                                                                                      break;
+ 502   7                                                                              case 2:                                                                         // 获取产品字符串
+ 503   7                                                                                      #ifdef  USB_DEBUG
+                                                                                              Uart0_Tx("->product\n\r", 11);
+                                                                                              #endif
+ 506   7                                                                                      VarSetupDescr = PRODUCER_Des;
+ 507   7                                                                                      if(mVarSetupLength > PRODUCER_Des[0])
+ 508   7                                                                                              mVarSetupLength = PRODUCER_Des[0];      // 如果要求长度大于实际长度,则取实际长度
+ 509   7                                                                                      break;
+ 510   7                                                                              case 3:                                                                         // 获取产品序列号
+ 511   7                                                                                      #ifdef  USB_DEBUG
+                                                                                              Uart0_Tx("->serial number\n\r", 17);
+                                                                                              #endif
+ 514   7                                                                                      VarSetupDescr = PRODUCER_SN_Des;
+ 515   7                                                                                      if(mVarSetupLength > PRODUCER_SN_Des[0])
+ 516   7                                                                                              mVarSetupLength = PRODUCER_SN_Des[0];                   // 如果要求长度大于实际长度,则取实际长度
+ 517   7                                                                                      break;
+ 518   7                                                                      }
+ 519   6                                                              }
+ 520   5      
+ 521   5                                                              mCh375DesUp();
+ 522   5                                                              break;
+ 523   5                                                      case DEF_USB_GET_CONFIG:                                                                // 获得配置
+ 524   5                                                              #ifdef  USB_DEBUG
+                                                                      Uart0_Tx("->Get config\n\r", 14);
+                                                                      #endif
+ 527   5                                                              request.buffer[0] = 0;                                                          // 没有配置则传0
+ 528   5                                                              if(CH375CONFLAG) request.buffer[0] = 1;                         // 已经配置则传1
+ 529   5                                                              mVarSetupLength = 1;
+ 530   5                                                              break;
+ 531   5                                                      case DEF_USB_SET_CONFIG:                                        // 设置配置
+ 532   5                                                              #ifdef  USB_DEBUG
+                                                                      Uart0_Tx("->Set config\n\r", 14);
+                                                                      #endif
+ 535   5                                                              CH375CONFLAG = 0;
+ 536   5                                                              if(request.buffer[2] != 0) CH375CONFLAG = 1;            // 设置配置标志
+ 537   5                                                              break;
+ 538   5                                                      case DEF_USB_GET_INTERF:                                                                // 得到接口
+ 539   5                                                              #ifdef  USB_DEBUG
+                                                                      Uart0_Tx("->Get interface\n\r", 17);
+                                                                      #endif
+ 542   5                                                              request.buffer[0] = 1;                                                          // 上传接口数，本事例只支持一个接口
+ 543   5                                                              mVarSetupLength = 1;
+ 544   5                                                              break;
+ 545   5                                                      default:
+ 546   5                                                              #ifdef  USB_DEBUG
+C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 10  
+
+                                                                      Uart0_Tx("->Other standard requests\n\r", 27);
+                                                                      #endif
+ 549   5                                                              CH375FLAGERR = 1;                                                                       // 不支持的标准请求
+ 550   5                                                              break;
+ 551   5                                              }
+ 552   4                                      }
+ 553   3                              }
+ 554   2                              else                                                                    // 不支持的控制传输，不是8字节的控制传
+             -输
+ 555   2                  {
+ 556   3                                      CH375FLAGERR = 1;
+ 557   3                                      #ifdef  USB_DEBUG
+                                              Uart0_Tx("USB_SETUP ERROR\n\r", 17);
+                                              #endif
+ 560   3                              }
+ 561   2      
+ 562   2                              if(!CH375FLAGERR)
+ 563   2                              {
+ 564   3                                      mCh375Ep0Up();                                                                                                  // 没有错误,调用数据上传,若长度为0则上传为状态 3
+ 565   3                              }
+ 566   2                              else 
+ 567   2                  {
+ 568   3                                      CH375_WR_CMD_PORT(CMD_SET_ENDP3);                                                               // 有错误,则设置端点0为STALL，指示一个错误
+ 569   3                                      CH375_WR_DAT_PORT(0x0F);
+ 570   3                                      #ifdef  USB_DEBUG
+                                              Uart0_Tx("USB STALL!\n\r", 12);
+                                              #endif
+ 573   3                              }
+ 574   2                              break;
+ 575   2                      case USB_INT_EP0_IN:
+ 576   2                              #ifdef  USB_DEBUG
+                                      Uart0_Tx("EP0_IN\n\r", 8);
+                                      #endif                                                                                  // 控制端点上传成功
+ 579   2                              if(mVarSetupRequest == DEF_USB_SET_ADDRESS)             // 设置地址
+ 580   2                  {
+ 581   3                                      #ifdef  USB_DEBUG
+                                              Uart0_Tx("EP0_IN\n\r", 8);
+                                              #endif
+ 584   3      
+ 585   3                                      CH375_WR_CMD_PORT(CMD_SET_USB_ADDR);
+ 586   3                                      CH375_WR_DAT_PORT(VarUsbAddress);
+ 587   3      
+ 588   3                                      #ifdef  USB_DEBUG
+                                              Uart0_Tx("Set address as: ", 16);                                                               // 设置USB地址,设置下次事务的USB地址
+                                              usb_debug_print_hex(&VarUsbAddress, 1);
+                                              #endif
+ 592   3                              }
+ 593   2                              else
+ 594   2                              {
+ 595   3                                      #ifdef  USB_DEBUG
+                                              Uart0_Tx("Other EP0 IN\n\r", 14);
+                                              #endif
+ 598   3                                      mCh375DesUp();
+ 599   3                                      mCh375Ep0Up();
+ 600   3                              }
+ 601   2                              
+ 602   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);                                                                      // 释放缓冲区
+ 603   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
+ 604   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
+ 605   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
+ 606   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
+ 607   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
+C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 11  
+
+ 608   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
+ 609   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
+ 610   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
+ 611   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
+ 612   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
+ 613   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
+ 614   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
+ 615   2      
+ 616   2                              break;
+ 617   2                      case USB_INT_EP0_OUT:                                                                                                   // 控制端点下传成功
+ 618   2                              #ifdef  USB_DEBUG
+                                      Uart0_Tx("EP0_OUT\n\r", 9);
+                                      #endif
+ 621   2      
+ 622   2                              CH375_WR_CMD_PORT(CMD_RD_USB_DATA);                                                                     // 发出读数据命令
+ 623   2                              length = CH375_RD_DAT_PORT();                                                                           // 首先读出的是长度
+ 624   2                              if(length == 7)                                                                                                         // SET LINE CODING
+ 625   2                              {
+ 626   3                                      for(len = 0; len < length; len++)
+ 627   3                                      {
+ 628   4                                              uartpara.uart_para_buf[len] = CH375_RD_DAT_PORT();
+ 629   4                                      }
+ 630   3      
+ 631   3                                      #ifdef  USB_DEBUG
+                                              Uart0_Tx("[COM] SET_LINE_CODING\n\r", 23);
+                                              usb_debug_print_hex(&uartpara.uart_para_buf[0], length);
+                                              #endif
+ 635   3      
+ 636   3                                      SET_LINE_CODING_Flag = 1;
+ 637   3                              }
+ 638   2      
+ 639   2                              if(SET_LINE_CODING_Flag == 1)
+ 640   2                  {
+ 641   3                      SET_LINE_CODING_Flag = 0;                                                                       // 类命令SET_LINE_CODING标志清0
+ 642   3                                      //......
+ 643   3                                      for(c1 = 0; c1 < 20; c1++)
+ 644   3                                              Delay10us();
+ 645   3      
+ 646   3                                      mVarSetupLength = 0;
+ 647   3                                      mCh375Ep0Up();
+ 648   3                  }
+ 649   2                              break;
+ 650   2                      default:
+ 651   2                              if((InterruptStatus & 0x03) == 0x03)                                                            // 总线复位
+ 652   2                  {
+ 653   3                                      CH375FLAGERR = 0;                                                                                           // 错误清0
+ 654   3                                      CH375CONFLAG = 0;                                                                                           // 配置清0
+ 655   3                                      mVarSetupLength = 0;
+ 656   3                                      #ifdef  USB_DEBUG
+                                              Uart0_Tx("USB_RESET\n\r", 11);
+                                              #endif
+ 659   3                              }
+ 660   2                              else
+ 661   2                              {
+ 662   3                                      #ifdef  USB_DEBUG
+                                              Uart0_Tx("Other USB interrupt\n\r", 21);
+                                              #endif
+ 665   3                              }
+ 666   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);                                                                              // 释放缓冲区
+ 667   2                              CH375_RD_DAT_PORT();
+ 668   2                              break;
+ 669   2              }
+C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 12  
+
+ 670   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1636    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     22       6
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      5    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =    605    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

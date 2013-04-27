@@ -1,0 +1,149 @@
+C51 COMPILER V9.06   TEMPERATURE                                                           03/13/2013 09:32:25 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE TEMPERATURE
+OBJECT MODULE PLACED IN .\temperature.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\onewire\temperature.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0
+                    -X6020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\
+                    -hsur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;.
+                    -.\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11
+                    -000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\temperature.lst) OBJ
+                    -ECT(.\temperature.obj)
+
+line level    source
+
+   1          /*
+   2          *********************************************************************************
+   3          *     Copyright (c) 2005   ASIX Electronic Corporation      All rights reserved.
+   4          *
+   5          *     This is unpublished proprietary source code of ASIX Electronic Corporation
+   6          *
+   7          *     The copyright notice above does not evidence any actual or intended
+   8          *     publication of such source code.
+   9          *********************************************************************************
+  10          */
+  11          /*================================================================================
+  12          * Module Name : temperature.c
+  13          * Purpose     : 
+  14          * Author      : Louis Su
+  15          * Date        : 
+  16          * Notes       :
+  17          * $Log$
+  18          *================================================================================
+  19          */
+  20          
+  21          /* INCLUDE FILE DECLARATIONS */
+  22          
+  23          #include        "types.h"
+  24          #include        "reg80390.h"
+  25          #include        "onewire.h"
+  26          #include        "onewireapi.h"
+  27          #include        "ax11000.h"
+  28          //#include      "buffer.h"
+  29          #include        "temperature.h"
+  30          #include    <intrins.h>
+  31          #include        <stdio.h>
+  32          /* STATIC VARIABLE DECLARATIONS */
+  33          static  char tr[10];
+  34          /* LOCAL SUBPROGRAM DECLARATIONS */
+  35          
+  36          /* LOCAL SUBPROGRAM BODIES */
+  37          
+  38          /* EXPORTED SUBPROGRAM BODIES */
+  39          
+  40          /*
+  41          *--------------------------------------------------------------------------------
+  42          * int OW_Temprature_GET(void)
+  43          * Purpose : test ONEWIRE device
+  44          * Params  : 
+  45          * Returns : TRUE - successful
+  46          * Note    :
+  47          *--------------------------------------------------------------------------------
+  48          */
+  49          
+  50          char * OW_Temprature_GET(void)
+C51 COMPILER V9.06   TEMPERATURE                                                           03/13/2013 09:32:25 PAGE 2   
+
+  51          {
+  52   1      
+  53   1              U8_T    Read_Data[9];
+  54   1              U8_T    i;
+  55   1              U16_T   temp;
+  56   1              float   temperature;
+  57   1      
+  58   1              for(i=0; i<9; i++) {
+  59   2                      Read_Data[i] = 0;
+  60   2              }
+  61   1      
+  62   1              /* CONVERT */
+  63   1              if (!ONEWIRE_Reset())
+  64   1                      return FALSE;
+  65   1              i = SKIP_ROM;
+  66   1              ONEWIRE_ByteXmit(i);
+  67   1              i = CONVERT_T;
+  68   1              ONEWIRE_ByteXmit(i);
+  69   1              /* end of convert */
+  70   1      
+  71   1              /* ReadScratchpad */
+  72   1              if (!ONEWIRE_Reset())
+  73   1                      return FALSE;
+  74   1              i = SKIP_ROM;
+  75   1              ONEWIRE_ByteXmit(i);
+  76   1              i = READ_SCRPAD;
+  77   1              ONEWIRE_ByteXmit(i);
+  78   1              Read_Data[0] = ONEWIRE_ByteRcvr();
+  79   1              Read_Data[1] = ONEWIRE_ByteRcvr();
+  80   1              /* end of ReadScratchpad */
+  81   1      
+  82   1              temp = Read_Data[0];
+  83   1              temp |= Read_Data[1] << 8;
+  84   1      
+  85   1              if(Read_Data[1] & 0xf0) {
+  86   2                      temperature = (~temp + 1) * 0.0625;
+  87   2                      sprintf (tr, "-%.4f", temperature);
+  88   2              } else {
+  89   2                      temperature = temp * 0.0625;
+  90   2                      sprintf (tr, "%.4f", temperature);
+  91   2              }
+  92   1              return tr;
+  93   1      }
+  94          
+  95          void OW_Temprature_init(void)
+  96          {
+  97   1              switch (AX11000_GetSysClk())
+  98   1              {
+  99   2                      case SCS_100M :
+ 100   2                              /* enable presence detect, clock enable,100MHz */
+ 101   2                              ONEWIRE_Setup(0, 0, OW_PDI_ENB, OW_CLK_ENB|OW_DIV2|OW_DIV0|OW_PRE0);
+ 102   2                              break;
+ 103   2                      case SCS_50M :
+ 104   2                              /* enable presence detect, clock enable, 50MHz */
+ 105   2                              ONEWIRE_Setup(0, 0, OW_PDI_ENB, OW_CLK_ENB|OW_DIV2|OW_PRE0);
+ 106   2                              break;
+ 107   2                      case SCS_25M :
+ 108   2                      default:
+ 109   2                              /* enable presence detect, clock enable, 25MHz */
+ 110   2                              ONEWIRE_Setup(0, 0, OW_PDI_ENB, OW_CLK_ENB|OW_DIV1|OW_DIV0|OW_PRE0);
+ 111   2                              break;
+ 112   2              }
+C51 COMPILER V9.06   TEMPERATURE                                                           03/13/2013 09:32:25 PAGE 3   
+
+ 113   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    354    ----
+   CONSTANT SIZE    =     11    ----
+   XDATA SIZE       =     10      16
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -56,7 +56,7 @@
 
 
 /* extern uart tx function */
-extern U8_T xdata FlagSend0;
+extern U8_T data FlagSend0;
 extern enum ledState LED;
 extern void Uart0_Tx(U8_T *buf,U8_T len);
 extern U8_T frame_gap ;

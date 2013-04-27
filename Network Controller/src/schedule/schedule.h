@@ -15,8 +15,16 @@
 #define WR_TIME_SIZE			72
 #define SCH_TIME_SIZE			1
 
-#define SCAN_DB_SIZE			5 	
+#define SCAN_DB_SIZE			5 	//15
 
+
+//#define BACNET_ID				1
+#define MAX_BACNET				1
+#define	BACNET_SIZE				1
+
+
+#define CHOICE_BACNET_MODBUS_REGISTER    1
+#define CHIOCE_FEATURE_LEN 			1
 
 
 #define	MAX_INTERVALS_PER_DAY	4
@@ -34,7 +42,7 @@ typedef enum
 	MODBUS_WR_DESCRIP_LAST		= MODBUS_WR_DESCRIP_FIRST + WR_DESCRIPTION_SIZE * MAX_WR ,
 	
 	MODBUS_AR_DESCRIP_FIRST		= MODBUS_WR_DESCRIP_LAST ,
-	MODBUS_AR_DESCRIP_LAST		= MODBUS_AR_DESCRIP_FIRST +  AR_DESCRIPTION_SIZE * MAX_AR ,
+	MODBUS_AR_DESCRIP_LAST		= MODBUS_AR_DESCRIP_FIRST + AR_DESCRIPTION_SIZE * MAX_AR ,
 	
 	MODBUS_ID_FIRST				= MODBUS_AR_DESCRIP_LAST ,
 	MODBUS_ID_LAST				= MODBUS_ID_FIRST + ID_SIZE * MAX_ID ,
@@ -52,7 +60,16 @@ typedef enum
 	MODBUS_SCAN_DB_START		= MODBUS_SCAN_DB_CTR + 1, // +1
 	MODBUS_SCAN_DB_LAST			= MODBUS_SCAN_DB_START + SCAN_DB_SIZE * MAX_ID,	// + 5 * 254 = 1270
 
+	MODBUS_GSM_START			= MODBUS_SCAN_DB_LAST,	// 6941
+	MODBUS_GSM_LAST				= MODBUS_GSM_START + 14,					 // LJ
 
+
+	MODBUS_BACNET_START			= MODBUS_GSM_LAST + 62 ,					  // 5952 + 62 = 7014
+	MODBUS_BACNET_LAST			= MODBUS_BACNET_START + 1 ,
+
+
+	BACNET_MODBUS_FEATURE_CHOICE_START  = 7062,
+	BACNET_MODBUS_FEATURE_CHOICE_LAST   = BACNET_MODBUS_FEATURE_CHOICE_START + 1,
 
 	MODBUS_TOTAL_PARAMETERS
 
@@ -157,26 +174,26 @@ typedef struct
 #define NO_DEFINE_ADDRESS			0xB4DC
 
 
-extern unsigned char xdata ar_state_index[2];
-extern unsigned char xdata wr_state_index[3];
-extern unsigned char xdata holiday1_state_index[3];
-extern unsigned char xdata holiday2_state_index[3];
+extern unsigned char far ar_state_index[2];
+extern unsigned char far wr_state_index[3];
+extern unsigned char far holiday1_state_index[3];
+extern unsigned char far holiday2_state_index[3];
 
-extern unsigned char xdata output_state_index[32];
-extern unsigned char xdata schedual1_state_index[32];
-extern unsigned char xdata schedual2_state_index[32];
+extern unsigned char far output_state_index[32];
+extern unsigned char far schedual1_state_index[32];
+extern unsigned char far schedual2_state_index[32];
 extern bit calibrated_time;
 
 extern STR_FLASH flash;
 extern unsigned char bdata REFRESH_STATUS;
-extern unsigned char xdata daylight_enable;
-extern unsigned char xdata daylight_flag;
+extern unsigned char far daylight_enable;
+extern unsigned char far daylight_flag;
 extern bit BIT_FLAG; // 0 -- run schedule 
 
 
-extern STR_WR WR_Roution[MAX_WR];
-extern STR_AR AR_Roution[MAX_AR];
-extern UN_ID ID_Config[MAX_ID];
+extern far STR_WR WR_Roution[MAX_WR];
+extern far STR_AR AR_Roution[MAX_AR];
+extern far UN_ID ID_Config[MAX_ID];
 
 extern unsigned char far schedule_flag;
 extern unsigned char far schedule_id;

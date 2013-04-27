@@ -1,0 +1,1318 @@
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE HTTPD
+OBJECT MODULE PLACED IN .\httpd.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\http\httpd.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) IN
+                    -CDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\
+                    -SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buf
+                    -fer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\S
+                    -rc\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\httpd.lst) OBJECT(.\httpd.obj
+                    -)
+
+line level    source
+
+   1          /*
+   2           ******************************************************************************
+   3           *     Copyright (c) 2006       ASIX Electronic Corporation      All rights reserved.
+   4           *
+   5           *     This is unpublished proprietary source code of ASIX Electronic Corporation
+   6           *
+   7           *     The copyright notice above does not evidence any actual or intended
+   8           *     publication of such source code.
+   9           ******************************************************************************
+  10           */
+  11          /*=============================================================================
+  12           * Module Name: httpd.c
+  13           * Purpose:
+  14           * Author:
+  15           * Date:
+  16           * Notes:
+  17           * $Log: httpd.c,v $
+  18           * Revision 1.1.1.1  2006/06/20 05:50:28  borbin
+  19           * no message
+  20           *
+  21           * Revision 1.2  2006/02/24 00:33:06  borbin
+  22           * no message
+  23           *
+  24           * Revision 1.1.1.1  2006/02/23 00:55:10  borbin
+  25           * no message
+  26           *
+  27           *=============================================================================
+  28           */
+  29          
+  30          /* INCLUDE FILE DECLARATIONS */
+  31          #include "reg80390.h"
+  32          #include "httpd.h"
+  33          #include "filesys.h"
+  34          #include "adapter.h"
+  35          #include "tcpip.h"
+  36          #include "mstimer.h"
+  37          #include "uart.h"
+  38          #if (UART0_ENABLE)
+  39            #include "printd.h"
+  40          #endif
+  41          #include <string.h>
+  42          #include "flash.h"
+  43          #include "hsuart.h"
+  44          #include  "delay.h"
+  45          #include "schedule.h"
+  46          #include "8563.h"
+  47          #include "../main/main.h"
+  48          #include "../i2c/e2prom.h"
+  49          #include "../gsm/gsm.h"
+  50          #include "../scan/scan.h"
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 2   
+
+  51          
+  52          /* NAMING CONSTANT DECLARATIONS */
+  53          
+  54          /* GLOBAL VARIABLES DECLARATIONS */
+  55          
+  56          /* LOCAL VARIABLES DECLARATIONS */
+  57          static HTTP_SERVER_CONN XDATA HTTP_Connects[MAX_HTTP_CONNECT];
+  58          //static U8_T CODE HtmlHeader[] = {"HTTP/1.0 200 OK\r\nCache-control: no-cache\r\nConnection: Keep-Alive\r
+             -\nContent-type: text/html\r\n\r\n"};
+  59          //static U8_T XDATA HtmlHeaderLen = (sizeof(HtmlHeader) - 1);
+  60          //static U8_T XDATA ImageHeader[] = {"HTTP/1.0 200 OK\r\nCache-control: no-cache\r\nConnection: Keep-Alive
+             -\r\nContent-Length: xxxxx\r\nContent-type: image/jpeg\r\n\r\n"};
+  61          //static U8_T XDATA ImageHeaderLen = (sizeof(ImageHeader) - 1);
+  62          //static U8_T XDATA ImageByteCountOffset = 82;
+  63          //static U32_T test_debug = 0;
+  64          //unsigned char  RecvNum=0;
+  65          //U8_T Statesend_tcp[300]={0};
+  66          //U8_T  far datrev[300]={0};
+  67          
+  68          /* LOCAL SUBPROGRAM DECLARATIONS */
+  69          static U8_T http_NewConfig(void);
+  70          static void     http_DivideHtmlFile(HTTP_SERVER_CONN XDATA*, U8_T);
+  71          extern  void Led_ReSet();
+  72          
+  73          extern U8_T bacnet_id ;
+  74          
+  75          /* LOCAL VARIABLES */
+  76          static U8_T XDATA PostTable[MAX_POST_COUNT];
+  77          static U8_T XDATA PostCount = 0;
+  78          static U8_T http_InterfaceId = 0;
+  79          static U8_T far send_tcp[300]={0};
+  80          
+  81          /* GLOBAL VARIABLES */
+  82          U8_T  far Setime[8];
+  83          //U8_T  SetimeFlag;
+  84          U8_T ChangeFlash=0;
+  85          
+  86          
+  87          unsigned char dbuf[6]={0,0,0,0,0,0};
+  88          U8_T  far Para[400]; 
+  89          U8_T  far  Parame[400] = {
+  90          0 , 0x06 , 0 , 0 , 0 , 0x00 , 0, 0,  0, 10 ,
+  91          0 , 63 ,0 , 9,0, 0x64 ,0 ,0xFF ,0, 0xFF ,
+  92          0 , 0xFF ,0, 20, 0, 0 ,  0, 0xFF, 0 , 0xFF ,
+  93          0 , 0xFF ,0,0x01, 0, 24, 0, 2,  0, 1, //16 register for ISP state
+  94          0,  1, 0, 1, 0, 3, 0, 1, 0, 1, 
+  95          0 , 1, 0, 1 ,0, 1, 0, 1, 0, 1, 
+  96          0 ,1, 0, 1 ,0, 1, 0 ,1, 0, 1, 
+  97          0, 1 ,0, 1, 0, 1 ,0, 1, 0, 1, 
+  98          0, 1, 0, 1 ,0, 1, 0, 1, 0, 1, 
+  99          0, 1, 0, 1, 0, 1 ,0 ,1, 0, 1 ,
+ 100          0, 1, 0, 1, 0, 1, 0, 1, 0 ,1 ,
+ 101          0, 1, 0, 1 ,0, 1, 0, 1, 0, 1 ,
+ 102          0 ,1, 0, 1, 0, 1, 0, 1 ,0, 1,
+ 103          0 ,1, 0, 1, 0, 1, 0, 1, 0, 1, 
+ 104          0 ,1, 0, 1, 0, 1, 0, 1, 0, 1 ,
+ 105          0 ,1 ,0, 1, 0, 1 ,0, 1, 0, 1, 
+ 106          0 ,1, 0 ,1, 0, 1, 0, 1, 0, 1 ,
+ 107          0 ,1 ,0 ,1, 0, 1, 0, 1, 0, 1, 
+ 108          0 ,0 ,0, 1, 0, 1, 0, 0, 0, 1 ,//Modified by Evan, for MAC addrss changeable.
+ 109          0 ,1, 0, 1, 0, 1 ,0, 1, 0, 4 ,    
+ 110          
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 3   
+
+ 111          0, 0, 0 ,1, 0, 0xFF ,0 ,0xFF, 0,0xFF,
+ 112          0 ,0xFF ,0, 0, 0 ,0xC0, 0, 0xA8, 0, 0, 
+ 113          0, 0x03, 0, 0xFF ,0,0xFF ,0, 0xFF, 0 ,0, 
+ 114          0, 0xC0, 0, 0xA8, 0, 0, 0 ,4, 0, 0xFF, 
+ 115          0x17 ,0x71, 0, 0xFF, 0, 0xFF ,0, 0xFF ,0, 0xFF, 
+ 116          0xFF, 0xFF ,0xFF, 0xFF, 0xFF, 0xFF ,0, 0xFF, 0xFF,0xFF, 
+ 117          0 ,0xFF ,0, 0xFF, 0, 0xFF, 0, 0xFF ,0, 0, 
+ 118          0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0, 
+ 119          0 ,0, 0 ,0, 0 ,0 ,0, 1, 0 ,1 ,
+ 120          0 ,1 ,0, 1, 0, 1, 0, 1 ,0, 1, 
+ 121          0 ,1, 0, 1, 0, 1, 0, 1, 0, 1, 
+ 122          0, 1, 0 ,1 ,0, 1 ,0, 1 ,0, 1, 
+ 123          0, 1, 0, 1, 0, 1, 0, 1 ,0, 1 ,
+ 124          0, 1, 0, 1, 0 ,1, 0, 1 ,0 ,1 ,
+ 125          0, 1, 0, 1, 0, 1 ,0 ,1, 0 ,1, 
+ 126          0, 1, 0, 1, 0 ,0, 
+ 127          0 ,0x41, 0, 0x37,0, 0x15, 0, 0x0F , //time.windows.com 
+ 128          0 ,0x3D ,0 ,0x81 ,0, 0x2A ,0 ,0x2C,  //ntp.fudan.edu.cn  
+ 129          0, 1 ,0 ,1, 0, 1 ,0, 1,
+ 130          0 ,1 ,0 ,1 ,0 ,1, 0, 1, 0, 1 ,
+ 131          0, 1 ,0 ,1, 0 ,1, 0, 1, 0, 0,     
+ 132          };  
+ 133          
+ 134          U16_T sessonid;
+ 135          U16_T sessonlen;
+ 136          
+ 137          extern enum ledState LED;
+ 138          extern U8_T Sever_id;
+ 139          //sbit En=P3^6;
+ 140          unsigned char far CRClo;
+ 141          unsigned char far CRChi;
+ 142           /**const code**/
+ 143          U32_T address=0;
+ 144          unsigned char   auchCRCHi[256] = {
+ 145          0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+ 146          0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+ 147          0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+ 148          0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+ 149          0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+ 150          0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+ 151          0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+ 152          0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+ 153          0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+ 154          0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+ 155          0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+ 156          0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,//12
+ 157          0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40,
+ 158          0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+ 159          0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
+ 160          0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40
+ 161          } ;     
+ 162          
+ 163          unsigned char  auchCRCLo[256] = {
+ 164          
+ 165          0x00, 0xC0, 0xC1, 0x01, 0xC3, 0x03, 0x02, 0xC2, 0xC6, 0x06, 0x07, 0xC7, 0x05, 0xC5, 0xC4, 0x04,
+ 166          0xCC, 0x0C, 0x0D, 0xCD, 0x0F, 0xCF, 0xCE, 0x0E, 0x0A, 0xCA, 0xCB, 0x0B, 0xC9, 0x09, 0x08, 0xC8,
+ 167          0xD8, 0x18, 0x19, 0xD9, 0x1B, 0xDB, 0xDA, 0x1A, 0x1E, 0xDE, 0xDF, 0x1F, 0xDD, 0x1D, 0x1C, 0xDC,
+ 168          0x14, 0xD4, 0xD5, 0x15, 0xD7, 0x17, 0x16, 0xD6, 0xD2, 0x12, 0x13, 0xD3, 0x11, 0xD1, 0xD0, 0x10,
+ 169          0xF0, 0x30, 0x31, 0xF1, 0x33, 0xF3, 0xF2, 0x32, 0x36, 0xF6, 0xF7, 0x37, 0xF5, 0x35, 0x34, 0xF4,
+ 170          0x3C, 0xFC, 0xFD, 0x3D, 0xFF, 0x3F, 0x3E, 0xFE, 0xFA, 0x3A, 0x3B, 0xFB, 0x39, 0xF9, 0xF8, 0x38,
+ 171          0x28, 0xE8, 0xE9, 0x29, 0xEB, 0x2B, 0x2A, 0xEA, 0xEE, 0x2E, 0x2F, 0xEF, 0x2D, 0xED, 0xEC, 0x2C,
+ 172          0xE4, 0x24, 0x25, 0xE5, 0x27, 0xE7, 0xE6, 0x26, 0x22, 0xE2, 0xE3, 0x23, 0xE1, 0x21, 0x20, 0xE0,
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 4   
+
+ 173          0xA0, 0x60, 0x61, 0xA1, 0x63, 0xA3, 0xA2, 0x62, 0x66, 0xA6, 0xA7, 0x67, 0xA5, 0x65, 0x64, 0xA4,
+ 174          0x6C, 0xAC, 0xAD, 0x6D, 0xAF, 0x6F, 0x6E, 0xAE, 0xAA, 0x6A, 0x6B, 0xAB, 0x69, 0xA9, 0xA8, 0x68,
+ 175          0x78, 0xB8, 0xB9, 0x79, 0xBB, 0x7B, 0x7A, 0xBA, 0xBE, 0x7E, 0x7F, 0xBF, 0x7D, 0xBD, 0xBC, 0x7C,
+ 176          0xB4, 0x74, 0x75, 0xB5, 0x77, 0xB7, 0xB6, 0x76, 0x72, 0xB2, 0xB3, 0x73, 0xB1, 0x71, 0x70, 0xB0,//12
+ 177          0x50, 0x90, 0x91, 0x51, 0x93, 0x53, 0x52, 0x92, 0x96, 0x56, 0x57, 0x97, 0x55, 0x95, 0x94, 0x54,
+ 178          0x9C, 0x5C, 0x5D, 0x9D, 0x5F, 0x9F, 0x9E, 0x5E, 0x5A, 0x9A, 0x9B, 0x5B, 0x99, 0x59, 0x58, 0x98,
+ 179          0x88, 0x48, 0x49, 0x89, 0x4B, 0x8B, 0x8A, 0x4A, 0x4E, 0x8E, 0x8F, 0x4F, 0x8D, 0x4D, 0x4C, 0x8C,
+ 180          0x44, 0x84, 0x85, 0x45, 0x87, 0x47, 0x46, 0x86, 0x82, 0x42, 0x43, 0x83, 0x41, 0x81, 0x80, 0x40
+ 181          
+ 182          } ;
+ 183          
+ 184          
+ 185          //U8_T far *mycode = 0x20000;
+ 186          //U32_T far codepage = 0;
+ 187          
+ 188          extern void  Led_485Send();
+ 189          
+ 190          void assign(U8_T i, U16_T v)
+ 191          {
+ 192   1              dbuf[i] = (U8_T)(v >> 8);
+ 193   1              dbuf[i+1] = (U8_T)v;
+ 194   1      }
+ 195          
+ 196          void SetTransID(U16_T id)  { assign(0, id);  }
+ 197          void SetProtoID(U16_T id)  { assign(2, id);  }
+ 198          void SetLength(U16_T len)  { assign(4, len); }
+ 199          
+ 200          void Set_transaction_ID(U8_T *str, U16_T len)
+ 201          {
+ 202   1              U8_T i;
+ 203   1      
+ 204   1          SetTransID(sessonid) ;
+ 205   1          SetProtoID(0) ;
+ 206   1          SetLength(3 + len);
+ 207   1          for(i = 0; i < 6; i++)
+ 208   1                      str[i] = dbuf[i];               
+ 209   1      }
+ 210          
+ 211          
+ 212          void InitCRC16(void)
+ 213          {
+ 214   1              CRClo = 0xFF;
+ 215   1              CRChi = 0xFF;
+ 216   1      }
+ 217          //-------------------crc16_tstat ---------------------
+ 218          // calculate crc with one byte
+ 219          void CRC16_Tstat(unsigned char ch)
+ 220          {
+ 221   1              unsigned char far uIndex ;
+ 222   1              uIndex = CRChi ^ ch ; // calculate the CRC 
+ 223   1              CRChi = CRClo ^ auchCRCHi[uIndex] ;
+ 224   1              CRClo = auchCRCLo[uIndex] ;
+ 225   1      }
+ 226          
+ 227          
+ 228          // Used to verify the CRC on a received packet.
+ 229          unsigned int CRC16(unsigned char *puchMsg, unsigned char usDataLen)
+ 230          {
+ 231   1              unsigned int uchCRCHi = 0xFF ; // high byte of CRC initialized 
+ 232   1              unsigned char uchCRCLo = 0xFF ; // low byte of CRC initialized 
+ 233   1              unsigned char uIndex ; // will index into CRC lookup table 
+ 234   1              while (usDataLen--) // pass through message buffer 
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 5   
+
+ 235   1              {
+ 236   2                      uIndex = uchCRCHi ^ *puchMsg++ ; // calculate the CRC 
+ 237   2                      uchCRCHi = uchCRCLo ^ auchCRCHi[uIndex] ;
+ 238   2                      uchCRCLo = auchCRCLo[uIndex] ;
+ 239   2              }
+ 240   1              return (uchCRCHi << 8 | uchCRCLo);
+ 241   1      }
+ 242          
+ 243          /*
+ 244           * ----------------------------------------------------------------------------
+ 245           * Function Name: HTTP_Init
+ 246           * Purpose: Initialize HTTP server. 
+ 247           * Params:
+ 248           * Returns:
+ 249           * Note:
+ 250           * ----------------------------------------------------------------------------
+ 251           */
+ 252          void HTTP_Init(void)
+ 253          {
+ 254   1              U8_T    i;
+ 255   1              U16_T   port;
+ 256   1      
+ 257   1              for (i = 0; i < MAX_HTTP_CONNECT; i++)
+ 258   1              {
+ 259   2                      HTTP_Connects[i].State = HTTP_STATE_FREE;
+ 260   2                      HTTP_Connects[i].FileId = 0xff;
+ 261   2              }
+ 262   1      
+ 263   1              port=(((U16_T)Para[240]) << 8) | (Para[241]) ;
+ 264   1              http_InterfaceId = TCPIP_Bind(HTTP_NewConn, HTTP_Event, HTTP_Receive);
+ 265   1              TCPIP_TcpListen(port ,http_InterfaceId);
+ 266   1              //TCPIP_TcpListen(HTTP_SERVER_PORT ,http_InterfaceId);
+ 267   1      
+ 268   1              FSYS_Init();
+ 269   1      }
+ 270          
+ 271          /*
+ 272           * ----------------------------------------------------------------------------
+ 273           * Function Name: HTTP_NewConn
+ 274           * Purpose: 
+ 275           * Params:
+ 276           * Returns:
+ 277           * Note:
+ 278           * ----------------------------------------------------------------------------
+ 279           */
+ 280          U8_T HTTP_NewConn(U32_T XDATA* pip, U16_T remotePort, U8_T socket)
+ 281          {
+ 282   1              U8_T    i;
+ 283   1      
+ 284   1              for (i = 0; i < MAX_HTTP_CONNECT; i++)
+ 285   1              {
+ 286   2                      if (HTTP_Connects[i].State == HTTP_STATE_FREE)
+ 287   2                      {
+ 288   3                              HTTP_Connects[i].State = HTTP_STATE_ACTIVE;
+ 289   3                              HTTP_Connects[i].Timer = (U16_T)SWTIMER_Tick();
+ 290   3                              HTTP_Connects[i].Ip = *pip;
+ 291   3                              HTTP_Connects[i].Port = remotePort;
+ 292   3                              HTTP_Connects[i].TcpSocket = socket;
+ 293   3      
+ 294   3                              return i;
+ 295   3                      }
+ 296   2              }
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 6   
+
+ 297   1              return TCPIP_NO_NEW_CONN;
+ 298   1      }
+ 299          
+ 300          /*
+ 301           * ----------------------------------------------------------------------------
+ 302           * Function Name: HTTP_Event
+ 303           * Purpose: 
+ 304           * Params:
+ 305           * Returns:
+ 306           * Note:
+ 307           * ----------------------------------------------------------------------------
+ 308           */
+ 309          void HTTP_Event(U8_T id, U8_T event)
+ 310          {
+ 311   1              U8_T    fileId = HTTP_Connects[id].FileId;
+ 312   1      
+ 313   1              if (event < TCPIP_CONNECT_XMIT_COMPLETE)
+ 314   1              {
+ 315   2                      HTTP_Connects[id].State = event;
+ 316   2              }
+ 317   1              else if (event == TCPIP_CONNECT_XMIT_COMPLETE)
+ 318   1              {
+ 319   2                      U8_T*   pSour;
+ 320   2                      U16_T   dataLen;
+ 321   2      
+ 322   2                      if (HTTP_Connects[id].State == HTTP_STATE_SEND_HEADER)
+ 323   2                      {
+ 324   3                              {
+ 325   4                                      if (FSYS_Manage[fileId].FType & FILE_TYPE_BIN)
+ 326   4                                              HTTP_Connects[id].Divide.Fragment = 0;
+ 327   4                                      else
+ 328   4                                              http_DivideHtmlFile(&HTTP_Connects[id], fileId);
+ 329   4      
+ 330   4                                      pSour = FSYS_Manage[fileId].PBuf;
+ 331   4                                      dataLen = FSYS_Manage[fileId].FileSize;
+ 332   4      
+ 333   4                                      if (HTTP_Connects[id].Divide.Fragment == 0)
+ 334   4                                      {
+ 335   5                                              TCPIP_TcpSend(HTTP_Connects[id].TcpSocket, pSour, dataLen, TCPIP_SEND_FINAL);
+ 336   5                                              HTTP_Connects[id].State = HTTP_STATE_SEND_FINAL;
+ 337   5                                      }
+ 338   4                                      else
+ 339   4                                      {
+ 340   5                                              HTTP_Connects[id].State = HTTP_STATE_SEND_DATA;
+ 341   5                                              HTTP_Connects[id].Divide.PData = pSour;
+ 342   5                                              HTTP_Connects[id].Divide.LeftLen = dataLen;
+ 343   5                                              HTTP_Connects[id].Divide.CurIndex = 0;
+ 344   5                                              HTTP_Connects[id].Divide.PadFlag = 0;
+ 345   5                                              goto SENDHTML;
+ 346   5                                      }
+ 347   4                              }
+ 348   3                      }
+ 349   2                      else if (HTTP_Connects[id].State == HTTP_STATE_SEND_DATA)
+ 350   2                      {
+ 351   3      SENDHTML:
+ 352   3                              {
+ 353   4                                      BUF_TEXT XDATA*         pText;
+ 354   4                                      U8_T XDATA      pTrue[] = " checked";
+ 355   4                                      U8_T XDATA      pSele[] = "selected";
+ 356   4                                      U8_T*           pSour = HTTP_Connects[id].Divide.PData;
+ 357   4                                      U16_T           leftLen = HTTP_Connects[id].Divide.LeftLen;
+ 358   4                                      U8_T            index = HTTP_Connects[id].Divide.CurIndex;
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 7   
+
+ 359   4      
+ 360   4                                      if (!HTTP_Connects[id].Divide.PadFlag)
+ 361   4                                      {
+ 362   5                                              if (index == 0)
+ 363   5                                                      dataLen = HTTP_Connects[id].Divide.Offset[index];
+ 364   5                                              else if (index == HTTP_Connects[id].Divide.Fragment)
+ 365   5                                                      dataLen = leftLen;
+ 366   5                                              else
+ 367   5                                                      dataLen = HTTP_Connects[id].Divide.Offset[index] -
+ 368   5                                                              HTTP_Connects[id].Divide.Offset[index - 1];
+ 369   5      
+ 370   5                                              if (index == HTTP_Connects[id].Divide.Fragment)
+ 371   5                                              {
+ 372   6                                                      TCPIP_TcpSend(HTTP_Connects[id].TcpSocket, pSour, dataLen, TCPIP_SEND_FINAL);
+ 373   6                                                      HTTP_Connects[id].State = HTTP_STATE_SEND_FINAL;
+ 374   6                                              }
+ 375   5                                              else
+ 376   5                                              {
+ 377   6                                                      TCPIP_TcpSend(HTTP_Connects[id].TcpSocket, pSour, dataLen, TCPIP_SEND_NOT_FINAL);
+ 378   6                                                      HTTP_Connects[id].Divide.PData += dataLen;
+ 379   6                                                      HTTP_Connects[id].Divide.LeftLen -= dataLen;
+ 380   6                                                      HTTP_Connects[id].Divide.PadFlag = 1;
+ 381   6                                              }
+ 382   5                                      }
+ 383   4                                      else
+ 384   4                                      {
+ 385   5                                              if (HTTP_Connects[id].Divide.PostType[index] ==POST_TYPE_RADIO)
+ 386   5                                              {
+ 387   6                                                      if (HTTP_Connects[id].Divide.SetFlag[index] == 1)
+ 388   6                                                              TCPIP_TcpSend(HTTP_Connects[id].TcpSocket, pTrue, 9, TCPIP_SEND_NOT_FINAL);
+ 389   6                                                      else if (HTTP_Connects[id].Divide.SetFlag[index] == 2)
+ 390   6                                                      {
+ 391   7                                                              if (*pSour == ' ')
+ 392   7                                                              {
+ 393   8                                                                      HTTP_Connects[id].Divide.PData += 8;
+ 394   8                                                                      HTTP_Connects[id].Divide.Offset[index] += 8;
+ 395   8                                                                      HTTP_Connects[id].Divide.LeftLen -= 8;
+ 396   8                                                              }
+ 397   7                                                              else
+ 398   7                                                              {
+ 399   8                                                                      HTTP_Connects[id].Divide.PData += 7;
+ 400   8                                                                      HTTP_Connects[id].Divide.Offset[index] += 7;
+ 401   8                                                                      HTTP_Connects[id].Divide.LeftLen -= 7;
+ 402   8                                                              }
+ 403   7                                                              HTTP_Connects[id].Divide.PadFlag = 0;
+ 404   7                                                              HTTP_Connects[id].Divide.CurIndex++;
+ 405   7                                                              goto SENDHTML;
+ 406   7                                                      }
+ 407   6                                              }
+ 408   5                                              else if (HTTP_Connects[id].Divide.PostType[index] == POST_TYPE_TEXT)
+ 409   5                                              {
+ 410   6                                                      pText = POST_Record[HTTP_Connects[id].Divide.RecordIndex[index]].PValue;
+ 411   6                                                      leftLen -= pText->DefaultLength;
+ 412   6                                                      if (!leftLen)
+ 413   6                                                      {
+ 414   7                                                              TCPIP_TcpSend(HTTP_Connects[id].TcpSocket, pText->CurrValue, pText->CurrLength, TCPIP_SEND_FINAL);
+ 415   7                                                              HTTP_Connects[id].State = HTTP_STATE_SEND_FINAL;
+ 416   7                                                              return;
+ 417   7                                                      }
+ 418   6      
+ 419   6                                                      TCPIP_TcpSend(HTTP_Connects[id].TcpSocket, pText->CurrValue, pText->CurrLength, TCPIP_SEND_NOT_FINAL
+             -);
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 8   
+
+ 420   6                                                      HTTP_Connects[id].Divide.PData += pText->DefaultLength;
+ 421   6                                                      HTTP_Connects[id].Divide.Offset[index] += pText->DefaultLength;
+ 422   6                                                      HTTP_Connects[id].Divide.LeftLen =leftLen;
+ 423   6                                              }
+ 424   5                                              else if (HTTP_Connects[id].Divide.PostType[index] == POST_TYPE_SELECT)
+ 425   5                                              {
+ 426   6                                                      if (HTTP_Connects[id].Divide.SetFlag[index] == 1) {
+ 427   7                                                              TCPIP_TcpSend(HTTP_Connects[id].TcpSocket, pSele, 9, TCPIP_SEND_NOT_FINAL);
+ 428   7                                                      }
+ 429   6                                                      else if (HTTP_Connects[id].Divide.SetFlag[index] == 2)
+ 430   6                                                      {
+ 431   7                                                              HTTP_Connects[id].Divide.PData += 9;
+ 432   7                                                              HTTP_Connects[id].Divide.Offset[index] += 9;
+ 433   7                                                              HTTP_Connects[id].Divide.LeftLen -= 9;
+ 434   7      
+ 435   7                                                              HTTP_Connects[id].Divide.PadFlag = 0;
+ 436   7                                                              HTTP_Connects[id].Divide.CurIndex++;
+ 437   7                                                              goto SENDHTML;
+ 438   7                                                      }
+ 439   6                                              }
+ 440   5                                              HTTP_Connects[id].Divide.PadFlag = 0;
+ 441   5                                              HTTP_Connects[id].Divide.CurIndex++;
+ 442   5                                      }
+ 443   4                              }
+ 444   3                      }
+ 445   2                      else if (HTTP_Connects[id].State == HTTP_STATE_SEND_FINAL)
+ 446   2                      {
+ 447   3      //                      HTTP_Connects[id].State = HTTP_STATE_FREE;
+ 448   3                      }
+ 449   2              }
+ 450   1      
+ 451   1      } /* End of HTTP_Event() */
+ 452          
+ 453          /*
+ 454           * ----------------------------------------------------------------------------
+ 455           * Function Name: HTTP_Receive
+ 456           * Purpose: 
+ 457           * Params:
+ 458           * Returns:
+ 459           * Note:
+ 460           * ----------------------------------------------------------------------------
+ 461           */
+ 462          void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
+ 463          {
+ 464   1              HTTP_SERVER_CONN XDATA* pHttpConn = &HTTP_Connects[conn_id];
+ 465   1      
+ 466   1              U32_T i;
+ 467   1          U16_T z;
+ 468   1              U8_T NTFlag = 0;
+ 469   1          U16_T SeCount; 
+ 470   1          U16_T StartAdd;  
+ 471   1          U8_T RealNum;
+ 472   1          U8_T errFlag = 0;
+ 473   1      
+ 474   1              U8_T temp;
+ 475   1              U16_T loop;
+ 476   1          U8_T far temp_number;
+ 477   1              U8_T far temp_address;    
+ 478   1              U8_T far send_buffer;
+ 479   1      
+ 480   1      
+ 481   1      
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 9   
+
+ 482   1      //      P3_4 = ~ P3_4;
+ 483   1      
+ 484   1      
+ 485   1      
+ 486   1              sessonid = ((U16_T)pData[0] << 8) | pData[1];
+ 487   1      
+ 488   1              if((pData[UIP_HEAD] == Para[13]) || (pData[UIP_HEAD] == 0xff))//Address of NetControl 
+ 489   1              {   
+ 490   2                      StartAdd = (pData[UIP_HEAD + 2] << 8) + pData[UIP_HEAD + 3]; //起始地址
+ 491   2                      if(pData[UIP_HEAD + 1] == READ_VARIABLES)
+ 492   2                      {
+ 493   3                              RealNum = 2 * pData[UIP_HEAD + 5];//有效字节数目
+ 494   3                      }
+ 495   2                      else if((pData[UIP_HEAD + 1] == WRITE_VARIABLES) || (pData[UIP_HEAD + 1] == MULTIPLE_WRITE))
+ 496   2                      {
+ 497   3                              RealNum = 6;
+ 498   3                      }
+ 499   2      
+ 500   2                      /*if (pData[UIP_HEAD+1] == DEEPSCAN) //scan
+ 501   2                      {    
+ 502   2                              send_tcp[UIP_HEAD] = pData[UIP_HEAD];
+ 503   2                              send_tcp[UIP_HEAD+1] = DEEPSCAN;
+ 504   2                              send_tcp[UIP_HEAD+2] = Para[13];
+ 505   2                              NTFlag = 5;
+ 506   2                      }       
+ 507   2                      else*/ if(pData[UIP_HEAD + 1] == 0x19) //scan Tsnet
+ 508   2                      {
+ 509   3                              TcpSocket_ME = pHttpConn->TcpSocket;
+ 510   3                              LED = S485_OK;
+ 511   3      
+ 512   3                          Sever_Order = SERVER_TCPIP;
+ 513   3                              Sever_id = pData[UIP_HEAD];
+ 514   3                              TcpIp_Scan = 1;
+ 515   3                          InitCRC16();                                 
+ 516   3                              SeCount = length - 6;
+ 517   3                              StartAdd = 0;
+ 518   3                                       
+ 519   3                              for(z = 0; z < SeCount; z++) 
+ 520   3                  { 
+ 521   4                              send_tcp[StartAdd++] = pData[UIP_HEAD+z];                                                                          
+ 522   4                      CRC16_Tstat(pData[UIP_HEAD+z]);
+ 523   4                  }
+ 524   3                              send_tcp[StartAdd++] = CRChi;
+ 525   3                          send_tcp[StartAdd++] = CRClo;
+ 526   3      
+ 527   3                              Tx_To_Tstat(send_tcp, StartAdd);
+ 528   3                      }
+ 529   2                  else if(pData[UIP_HEAD+1] == READ_VARIABLES)  //读命令
+ 530   2                      {
+ 531   3                              NTFlag = 1;   
+ 532   3                              send_tcp[UIP_HEAD] = pData[UIP_HEAD];
+ 533   3                              send_tcp[UIP_HEAD + 1] = pData[UIP_HEAD + 1];
+ 534   3                              send_tcp[UIP_HEAD + 2] = RealNum;       
+ 535   3                              for(loop = 0; loop < pData[UIP_HEAD + 5]; loop++)
+ 536   3                              {
+ 537   4                                      if((StartAdd + loop) < MODBUS_TIMER_ADDRESS) //前200个register
+ 538   4                                      { 
+ 539   5                                              send_tcp[UIP_HEAD + 3 + loop * 2] = Para[(StartAdd + loop) * 2] ;
+ 540   5                                          send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = Para[(StartAdd + loop) * 2 + 1];//6+3开始
+ 541   5                                      }//前 200个 1对2 ，以后1对1 
+ 542   4                                      else if((StartAdd + loop) >= MODBUS_TIMER_ADDRESS) 
+ 543   4                                      {
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 10  
+
+ 544   5                                              /*      add schedule by chelsea                                                         */                                              
+ 545   5                                              if(StartAdd + loop >= MODBUS_TIMER_ADDRESS && StartAdd + loop < MODBUS_TIMER_ADDRESS + 8)
+ 546   5                                              {        
+ 547   6                                              //  YEAR  MONTH  WEEK DATE  HOUR  MINUTE  SECOND 
+ 548   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2] = 0;
+ 549   6                                                      temp = StartAdd + loop - MODBUS_TIMER_ADDRESS;
+ 550   6                                                      if(temp == 7)   send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = Time.UN.Current.sec;    
+ 551   6                                                      else if(temp == 6)      send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = Time.UN.Current.min;
+ 552   6                                                      else if(temp == 5)      send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = Time.UN.Current.hour;
+ 553   6                                                      else if(temp == 4)      send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = Time.UN.Current.day;
+ 554   6                                                      else if(temp == 3)      send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = Time.UN.Current.dayofweek;
+ 555   6                                                      else if(temp == 2)      send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = Time.UN.Current.month;
+ 556   6                                                      else if(temp == 1)      send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = Time.UN.Current.year;
+ 557   6                                                      else if(temp == 0)      send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = Time.UN.Current.centary;                
+ 558   6                                              }
+ 559   5                                              else if( StartAdd + loop >= MODBUS_WR_DESCRIP_FIRST && StartAdd + loop < MODBUS_WR_DESCRIP_LAST)
+ 560   5                                              {
+ 561   6                                                      temp_number = (StartAdd + loop - MODBUS_WR_DESCRIP_FIRST) / WR_DESCRIPTION_SIZE;
+ 562   6                                                      temp_address = (StartAdd + loop - MODBUS_WR_DESCRIP_FIRST) % WR_DESCRIPTION_SIZE;
+ 563   6                      
+ 564   6                                                      send_buffer = WR_Roution[temp_number].UN.all[temp_address];
+ 565   6                                                  if(temp_address == WR_DESCRIPTION_SIZE - 1 && send_buffer != 0xff)
+ 566   6                                                      {
+ 567   7                                                              if((send_buffer & 0x80) == 0)
+ 568   7                                                              {
+ 569   8                                                                      if(GetBit(temp_number,wr_state_index))
+ 570   8                                                                              send_buffer |= 0x40;
+ 571   8                                                                      else
+ 572   8                                                                              send_buffer &= 0xbf;
+ 573   8                                                              }
+ 574   7                                                              if(GetBit(temp_number,holiday1_state_index))
+ 575   7                                                                      send_buffer |= 0x20;
+ 576   7                                                              else
+ 577   7                                                                      send_buffer &= 0xdf;
+ 578   7                                                              if(GetBit(temp_number,holiday2_state_index))
+ 579   7                                                                      send_buffer |= 0x10;
+ 580   7                                                              else
+ 581   7                                                                      send_buffer &= 0xef;
+ 582   7                                                      }
+ 583   6                                                      
+ 584   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2] = 0;  
+ 585   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = send_buffer;    
+ 586   6                                                      
+ 587   6                                              }
+ 588   5                                              else if( StartAdd + loop >= MODBUS_AR_DESCRIP_FIRST && StartAdd + loop < MODBUS_AR_DESCRIP_LAST)
+ 589   5                                              {
+ 590   6                                                      temp_number = (StartAdd + loop - MODBUS_AR_DESCRIP_FIRST) / AR_DESCRIPTION_SIZE;    // line
+ 591   6                                                      temp_address = (StartAdd + loop - MODBUS_AR_DESCRIP_FIRST) % AR_DESCRIPTION_SIZE;
+ 592   6                                                                                                              
+ 593   6                                                      send_buffer = AR_Roution[temp_number].UN.all[temp_address];
+ 594   6              
+ 595   6                                                      if(temp_address == AR_DESCRIPTION_SIZE - 1)
+ 596   6                                                      {
+ 597   7                                                              if((send_buffer & 0x80) == 0)
+ 598   7                                                              {
+ 599   8                                                                      if(GetBit(temp_number,ar_state_index))
+ 600   8                                                                      send_buffer |= 0x40;
+ 601   8                                                                      else
+ 602   8                                                                      send_buffer &= 0xbf;
+ 603   8                                                              }
+ 604   7                                                      }
+ 605   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2] = 0;  
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 11  
+
+ 606   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = send_buffer;    
+ 607   6                                                      
+ 608   6                                              }
+ 609   5                                              else if( StartAdd + loop>= MODBUS_ID_FIRST && StartAdd < MODBUS_ID_LAST)
+ 610   5                                              {
+ 611   6                                                      temp_number = (StartAdd + loop- MODBUS_ID_FIRST) / ID_SIZE;
+ 612   6                                                      temp_address = (StartAdd + loop - MODBUS_ID_FIRST) % ID_SIZE;
+ 613   6                                                      send_buffer = ID_Config[temp_number].all[temp_address];
+ 614   6                      
+ 615   6                                                      if(temp_address == ID_SIZE - 1 && send_buffer != 0xff)
+ 616   6                                                      {
+ 617   7                                                              if((send_buffer & 0x80) == 0)
+ 618   7                                                              {
+ 619   8                                                                      if(GetBit(temp_number,output_state_index))
+ 620   8                                                                      send_buffer |= 0x40;
+ 621   8                                                                      else
+ 622   8                                                                      send_buffer &= 0xbf;
+ 623   8                                                              }
+ 624   7                                                              if(GetBit(temp_number,schedual1_state_index))
+ 625   7                                                              send_buffer |= 0x20;
+ 626   7                                                              else
+ 627   7                                                              send_buffer &= 0xdf;
+ 628   7                                                              if(GetBit(temp_number,schedual2_state_index))
+ 629   7                                                              send_buffer |= 0x10;
+ 630   7                                                              else
+ 631   7                                                              send_buffer &= 0xef;
+ 632   7                                                      }
+ 633   6                      
+ 634   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2] = 0;  
+ 635   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = send_buffer;    
+ 636   6                                              }
+ 637   5                                              else if( StartAdd + loop >= MODBUS_AR_TIME_FIRST && StartAdd + loop < MODBUS_WR_ONTIME_FIRST )
+ 638   5                                              {
+ 639   6                                                      temp_number = (StartAdd + loop - MODBUS_AR_TIME_FIRST) / AR_TIME_SIZE;
+ 640   6                                                      temp_address = (StartAdd + loop - MODBUS_AR_TIME_FIRST) % AR_TIME_SIZE;
+ 641   6                      
+ 642   6                                                      send_buffer = AR_Roution[temp_number].Time[temp_address];
+ 643   6                      
+ 644   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2] = 0;  
+ 645   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = send_buffer;    
+ 646   6                                              }
+ 647   5                                              else if( StartAdd + loop >= MODBUS_WR_ONTIME_FIRST && StartAdd + loop < MODBUS_WR_OFFTIME_FIRST )
+ 648   5                                              {
+ 649   6                                                      temp_number =   (StartAdd + loop - MODBUS_WR_ONTIME_FIRST) / WR_TIME_SIZE;              
+ 650   6                                                      temp_address = (StartAdd + loop - MODBUS_WR_ONTIME_FIRST) % WR_TIME_SIZE;
+ 651   6                                                      send_buffer = WR_Roution[temp_number].OnTime[temp_address];
+ 652   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2] = 0;  
+ 653   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = send_buffer;    
+ 654   6                                              }
+ 655   5                                              else if( StartAdd + loop >= MODBUS_WR_OFFTIME_FIRST && StartAdd + loop < MODBUS_WR_OFFTIME_LAST )
+ 656   5                                              {
+ 657   6                                                      // --- send first byte -------------                    
+ 658   6                                                      
+ 659   6                                                      temp_number = (StartAdd + loop - MODBUS_WR_OFFTIME_FIRST) / WR_TIME_SIZE;
+ 660   6                                                      temp_address = (StartAdd + loop - MODBUS_WR_OFFTIME_FIRST) % WR_TIME_SIZE;
+ 661   6                      
+ 662   6                                                      send_buffer = WR_Roution[temp_number].OffTime[temp_address];
+ 663   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2] = 0;  
+ 664   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = send_buffer;                            
+ 665   6                                              }
+ 666   5                                              else if((StartAdd + loop) == MODBUS_SCAN_DB_CTR)
+ 667   5                                              {
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 12  
+
+ 668   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2] = 0;  
+ 669   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = db_ctr;
+ 670   6                                              }
+ 671   5                                              else if(((StartAdd + loop) >= MODBUS_SCAN_DB_START) && ((StartAdd + loop) < MODBUS_SCAN_DB_LAST))
+ 672   5                                              {
+ 673   6                                                      temp_number = (StartAdd + loop - MODBUS_SCAN_DB_START) / SCAN_DB_SIZE;
+ 674   6                                                      temp_address = (StartAdd + loop - MODBUS_SCAN_DB_START) % SCAN_DB_SIZE;
+ 675   6                                                      if(temp_address == 0)
+ 676   6                                                      {
+ 677   7                                                              send_buffer = scan_db[temp_number].id;
+ 678   7                                                      }
+ 679   6                                                      else
+ 680   6                                                      {
+ 681   7                                                              send_buffer = (U8_T)(scan_db[temp_number].sn >> (8 * temp_address - 8));
+ 682   7                                                      }
+ 683   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2] = 0;  
+ 684   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = send_buffer;
+ 685   6                                              }
+ 686   5                                              else if(((StartAdd + loop) >= MODBUS_GSM_START) && ((StartAdd + loop) < MODBUS_GSM_LAST))
+ 687   5                                              {
+ 688   6                                                      temp_number = StartAdd + loop - MODBUS_GSM_START;
+ 689   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2] = 0;  
+ 690   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = phoneNumber[temp_number];                                        // LJ
+ 691   6                                              }
+ 692   5      /*-------------------------  read select 485 id  ----------------------------------------*/
+ 693   5                                              else if(((StartAdd + loop) >= MODBUS_BACNET_START) && ((StartAdd + loop) < MODBUS_BACNET_LAST))
+ 694   5                                          {
+ 695   6                                              
+ 696   6      //                                              send_tcp[UIP_HEAD + 3 + loop * 2] = 0;  
+ 697   6      //                                              send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = bacnet_id;
+ 698   6      
+ 699   6                                                      send_tcp[UIP_HEAD] = pData[UIP_HEAD];
+ 700   6                                                      send_tcp[UIP_HEAD + 1] = pData[UIP_HEAD + 1];
+ 701   6                                                      send_tcp[UIP_HEAD + 2] = 0x02;
+ 702   6                                                      send_tcp[UIP_HEAD + 3] = 0x00;
+ 703   6                                                      send_tcp[UIP_HEAD + 4] = bacnet_id;
+ 704   6      
+ 705   6                                              }
+ 706   5      
+ 707   5      ///////////////////////////////////////////////////////////
+ 708   5                                              else if(StartAdd == 0xee10) //for ISP read address of 0xee10
+ 709   5                                              {  
+ 710   6                                                      RealNum = 2;
+ 711   6                                                      send_tcp[UIP_HEAD] = uip_appdata[UIP_HEAD];//地址
+ 712   6                                                      send_tcp[UIP_HEAD+1]= READ_VARIABLES;//命令
+ 713   6                                                      send_tcp[UIP_HEAD+2]= RealNum;
+ 714   6                                                      send_tcp[UIP_HEAD+3] = send_tcp[UIP_HEAD+4]=0;//有效数据00                              
+ 715   6                                              }
+ 716   5                                              else
+ 717   5                                              {
+ 718   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2] = 0;  
+ 719   6                                                      send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = 1;
+ 720   6                                              }                                               
+ 721   5                                      } 
+ 722   4                              }
+ 723   3                      } 
+ 724   2                      else if(pData[UIP_HEAD + 1] == WRITE_VARIABLES) //write: 1.write to flash 2.rite to buffer Para[]1 3.sen
+             -d_tcp
+ 725   2                      {                         
+ 726   3                              NTFlag = 2;
+ 727   3                              if(StartAdd < 200)
+ 728   3                              {
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 13  
+
+ 729   4                                      if(StartAdd == 15) // clear flash to zero
+ 730   4                                      {
+ 731   5                                              if(((pData[UIP_HEAD + 4] << 8) | pData[UIP_HEAD + 5]) == 0x55)
+ 732   5                                              {
+ 733   6                                                      memset(WR_Roution, 0, MAX_WR * WR_STRUCT_LENGTH);
+ 734   6                                                      memset(AR_Roution, 0, MAX_AR * AR_STRUCT_LENGTH);
+ 735   6                                                      memset(ID_Config, 0, MAX_ID * ID_SIZE);
+ 736   6                                                      Para[30] = 0;
+ 737   6                                                      Para[31] = 0;
+ 738   6                                                      ChangeFlash = 1;
+ 739   6                                              }
+ 740   5                                      }
+ 741   4                                      else if(StartAdd == 106)
+ 742   4                                      {
+ 743   5                                              if(Para[213] != pData[UIP_HEAD + 5])
+ 744   5                                              {
+ 745   6                                                      Para[213] = pData[UIP_HEAD + 5];
+ 746   6                                              }
+ 747   5                                              ChangeIP = 1;
+ 748   5                                              ChangeFlash = 2;
+ 749   5                                      }
+ 750   4                                      else if((StartAdd >= 107) && (StartAdd <= 120)) //IP change ,reset cpu
+ 751   4                                      {
+ 752   5                                              if(Para[213] != 1)//static ip mode
+ 753   5                                              {
+ 754   6                                                      Para[2*StartAdd] = pData[UIP_HEAD + 4];                 //write to bufffer array high bit
+ 755   6                                                      Para[2*StartAdd + 1] = pData[UIP_HEAD + 5];     //write to bufffer array low bit
+ 756   6                                                      ChangeFlash = 2;
+ 757   6                                                      ChangeIP = 1;
+ 758   6                                              }
+ 759   5                                      }
+ 760   4                                      else
+ 761   4                                      {
+ 762   5                                              Para[2*StartAdd] = pData[UIP_HEAD + 4];         //write to bufffer array high bit
+ 763   5                                              Para[2*StartAdd + 1] = pData[UIP_HEAD + 5];     //write to bufffer array low bit
+ 764   5                                              ChangeFlash = 1;
+ 765   5                                      }
+ 766   4                              }
+ 767   3                              else if((StartAdd >= SCHEDUAL_MODBUS_ADDRESS) && (StartAdd < SCHEDUAL_MODBUS_ADDRESS + 8))
+ 768   3                              {
+ 769   4                                      switch(StartAdd - SCHEDUAL_MODBUS_ADDRESS)
+ 770   4                                      {
+ 771   5                                              case 0: //century
+ 772   5                                                      if(pData[UIP_HEAD + 5] == 19)
+ 773   5                                                      {
+ 774   6                                                              Set_Clock(PCF_MON, Time.UN.Current.month | 0x80);
+ 775   6                                                      }
+ 776   5                                                      else if(pData[UIP_HEAD + 5] == 20)
+ 777   5                                                      {
+ 778   6                                                              Set_Clock(PCF_MON, Time.UN.Current.month & 0x7f);
+ 779   6                                                      }
+ 780   5                                                      break;
+ 781   5                                              case 1: //year
+ 782   5                                                      Set_Clock(PCF_YEAR, pData[UIP_HEAD + 5]);
+ 783   5                                                      break;
+ 784   5                                              case 2: //month
+ 785   5                                                      if(Time.UN.Current.centary == 19)
+ 786   5                                                      {
+ 787   6                                                              Set_Clock(PCF_MON, pData[UIP_HEAD + 5] | 0x80);
+ 788   6                                                      }
+ 789   5                                                      else if(Time.UN.Current.centary == 20)
+ 790   5                                                      {
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 14  
+
+ 791   6                                                              Set_Clock(PCF_MON, pData[UIP_HEAD + 5] & 0x7f);
+ 792   6                                                      }
+ 793   5                                                      break;
+ 794   5                                              case 3:
+ 795   5                                                      Set_Clock(PCF_WEEK, pData[UIP_HEAD + 5]);
+ 796   5                                                      break;
+ 797   5                                              case 4: //date
+ 798   5                                                      Set_Clock(PCF_DAY, pData[UIP_HEAD + 5]);
+ 799   5                                                      break;
+ 800   5                                              case 5: //hour
+ 801   5                                                      Set_Clock(PCF_HOUR, pData[UIP_HEAD + 5]);
+ 802   5                                                      break;
+ 803   5                                              case 6: //minute
+ 804   5                                                      Set_Clock(PCF_MIN, pData[UIP_HEAD + 5]);
+ 805   5                                                      break;
+ 806   5                                              case 7: //second
+ 807   5                                                      Set_Clock(PCF_SEC, pData[UIP_HEAD + 5]);
+ 808   5                                                      break;
+ 809   5                                      }
+ 810   4                              }
+ 811   3      
+ 812   3                              //.....
+ 813   3      
+ 814   3      
+ 815   3                              else if(StartAdd == MODBUS_BACNET_START)
+ 816   3                              {
+ 817   4                                      
+ 818   4                                      send_tcp[UIP_HEAD] = pData[UIP_HEAD];
+ 819   4                                      send_tcp[UIP_HEAD + 1] = pData[UIP_HEAD + 1];
+ 820   4                                      send_tcp[UIP_HEAD + 2] = 0x1b;                                  //addr 7014
+ 821   4                                      send_tcp[UIP_HEAD + 3] = 0x66;
+ 822   4                                      send_tcp[UIP_HEAD + 4] = 0x00;  
+ 823   4                                      bacnet_id = pData[UIP_HEAD + 5] ;
+ 824   4                                      send_tcp[UIP_HEAD + 5] = bacnet_id;
+ 825   4      
+ 826   4      
+ 827   4                                  ChangeFlash = 1;
+ 828   4                              }
+ 829   3                              
+ 830   3                              
+ 831   3                                                                                              
+ 832   3                              if(StartAdd != 0x10)//for ISP, not respond if address == 0x10
+ 833   3                              { 
+ 834   4                                      for (i = 0; i < 6; i++)                 
+ 835   4                                              send_tcp[i + UIP_HEAD] = uip_appdata[i + UIP_HEAD];
+ 836   4                              }
+ 837   3                              else  //for ISP
+ 838   3                              {
+ 839   4                                      //if(uip_appdata[UIP_HEAD+5] == 0x7f)AX11000_SoftReboot();
+ 840   4                              }
+ 841   3                      }
+ 842   2                      else if(pData[UIP_HEAD+1] == MULTIPLE_WRITE) //multi_write
+ 843   2                      {
+ 844   3                              ChangeFlash = 1;
+ 845   3                              StartAdd = (pData[UIP_HEAD+2] << 8) + pData[UIP_HEAD + 3]; //起始地址
+ 846   3                              if((StartAdd == 100) && (pData[UIP_HEAD + 6] == 12))
+ 847   3                              {
+ 848   4                                      Para[201] = pData[UIP_HEAD + 8];
+ 849   4                                      Para[203] = pData[UIP_HEAD + 10];
+ 850   4                                      Para[205] = pData[UIP_HEAD + 12];
+ 851   4                                      Para[207] = pData[UIP_HEAD + 14];
+ 852   4                                      Para[209] = pData[UIP_HEAD + 16];
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 15  
+
+ 853   4                                      Para[211] = pData[UIP_HEAD + 18];
+ 854   4      
+ 855   4                                      mac_change_enable = 1;
+ 856   4                                      ChangeIP = 1;
+ 857   4                              }
+ 858   3                          else if(StartAdd < SCHEDUAL_MODBUS_ADDRESS)
+ 859   3                              {
+ 860   4                                      for(i = 0; i < pData[UIP_HEAD + 6]; i++)
+ 861   4                                      {
+ 862   5                                              if((StartAdd < 100) || (StartAdd > 105))  
+ 863   5                                                      Para[2 * StartAdd + i] = pData[UIP_HEAD + i];
+ 864   5      
+ 865   5                                      } 
+ 866   4                              }
+ 867   3                              else if(StartAdd == SCHEDUAL_MODBUS_ADDRESS) //200th register ,write time 
+ 868   3                              {
+ 869   4      //                              if((StartAdd - SCHEDUAL_MODBUS_ADDRESS) % 8 == 0)
+ 870   4      //                                      memcpy(Time.UN.Setime,&pData[UIP_HEAD + 7], 8);
+ 871   4                                      if(pData[UIP_HEAD + 5] == 8)
+ 872   4                                      {
+ 873   5                                              if(pData[UIP_HEAD + 5] == pData[UIP_HEAD + 6])
+ 874   5                                              {
+ 875   6                                                      Time.UN.Setime[7] = pData[UIP_HEAD + 14];
+ 876   6                                                      Time.UN.Setime[6] = pData[UIP_HEAD + 13];
+ 877   6                                                      Time.UN.Setime[5] = pData[UIP_HEAD + 12];
+ 878   6                                                      Time.UN.Setime[4] = pData[UIP_HEAD + 11];
+ 879   6                                                      Time.UN.Setime[3] = pData[UIP_HEAD + 10];
+ 880   6                                                      if(pData[UIP_HEAD + 7] == 19)
+ 881   6                                                              pData[UIP_HEAD + 9] |= 0x80;
+ 882   6                                                      else
+ 883   6                                                              pData[UIP_HEAD + 9] &= 0x7f;
+ 884   6                                                      Time.UN.Setime[2] = pData[UIP_HEAD + 9];
+ 885   6                                                      Time.UN.Setime[1] = pData[UIP_HEAD + 8];
+ 886   6                                                      Time.UN.Setime[0] = pData[UIP_HEAD + 7];
+ 887   6                                              }
+ 888   5                                              else
+ 889   5                                              {
+ 890   6                                                      Time.UN.Setime[7] = pData[UIP_HEAD + 22];
+ 891   6                                                      Time.UN.Setime[6] = pData[UIP_HEAD + 20];
+ 892   6                                                      Time.UN.Setime[5] = pData[UIP_HEAD + 18];
+ 893   6                                                      Time.UN.Setime[4] = pData[UIP_HEAD + 16];
+ 894   6                                                      Time.UN.Setime[3] = pData[UIP_HEAD + 14];
+ 895   6                                                      if(pData[UIP_HEAD + 8] == 19)
+ 896   6                                                              pData[UIP_HEAD + 12] |= 0x80;
+ 897   6                                                      else
+ 898   6                                                              pData[UIP_HEAD + 12] &= 0x7f;
+ 899   6                                                      Time.UN.Setime[2] = pData[UIP_HEAD + 12];
+ 900   6                                                      Time.UN.Setime[1] = pData[UIP_HEAD + 10];
+ 901   6                                                      Time.UN.Setime[0] = pData[UIP_HEAD + 8];
+ 902   6                                              }
+ 903   5                                              Initial_Clock();
+ 904   5                                      }
+ 905   4                              }
+ 906   3                      else if ((StartAdd >= MODBUS_WR_DESCRIP_FIRST)&&(StartAdd < MODBUS_WR_DESCRIP_LAST)) //weekly
+ 907   3                      {                                                               
+ 908   4                                      if((StartAdd - MODBUS_WR_DESCRIP_FIRST) % WR_DESCRIPTION_SIZE == 0)
+ 909   4                                      {
+ 910   5                                              i = (StartAdd - MODBUS_WR_DESCRIP_FIRST) / WR_DESCRIPTION_SIZE;
+ 911   5                                              memcpy(WR_Roution[i].UN.all,&pData[UIP_HEAD + 7],WR_DESCRIPTION_SIZE);
+ 912   5                                      }
+ 913   4                      }
+ 914   3                              else if(StartAdd < MODBUS_AR_DESCRIP_LAST && StartAdd >= MODBUS_AR_DESCRIP_FIRST)
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 16  
+
+ 915   3                              {
+ 916   4                                      if((StartAdd - MODBUS_AR_DESCRIP_FIRST) % AR_DESCRIPTION_SIZE == 0)
+ 917   4                                      {
+ 918   5                                              i = (StartAdd - MODBUS_AR_DESCRIP_FIRST) / AR_DESCRIPTION_SIZE;          
+ 919   5                                              memcpy(AR_Roution[i].UN.all,&pData[UIP_HEAD + 7],AR_DESCRIPTION_SIZE);
+ 920   5                                      }
+ 921   4                              }
+ 922   3                              else if(StartAdd < MODBUS_ID_LAST && StartAdd >= MODBUS_ID_FIRST)
+ 923   3                              {
+ 924   4                                      if((StartAdd - MODBUS_ID_FIRST) % ID_SIZE == 0)
+ 925   4                                      {
+ 926   5                                              i = (StartAdd - MODBUS_ID_FIRST) / ID_SIZE;
+ 927   5                                              memcpy(ID_Config[i].all,&pData[UIP_HEAD + 7],ID_SIZE);                                  
+ 928   5                                      }
+ 929   4                              }
+ 930   3                              else if(StartAdd < MODBUS_AR_TIME_LAST && StartAdd >= MODBUS_AR_TIME_FIRST)
+ 931   3                              {
+ 932   4                                      if((StartAdd - MODBUS_AR_TIME_FIRST) % AR_TIME_SIZE == 0)
+ 933   4                                      {
+ 934   5                                              i = (StartAdd - MODBUS_AR_TIME_FIRST) / AR_TIME_SIZE;                   
+ 935   5                                              memcpy(AR_Roution[i].Time,&pData[UIP_HEAD + 7],AR_TIME_SIZE);
+ 936   5                                      }
+ 937   4                              }
+ 938   3                              else if(StartAdd < MODBUS_WR_ONTIME_LAST && StartAdd >= MODBUS_WR_ONTIME_FIRST)
+ 939   3                              {
+ 940   4                                      if((StartAdd - MODBUS_WR_ONTIME_FIRST) % WR_TIME_SIZE == 0)
+ 941   4                                      {
+ 942   5                                              i = (StartAdd - MODBUS_WR_ONTIME_FIRST) / WR_TIME_SIZE;
+ 943   5                                      
+ 944   5                                              memcpy(WR_Roution[i].OnTime,&pData[UIP_HEAD + 7],WR_TIME_SIZE);
+ 945   5                                      }
+ 946   4                              }
+ 947   3                              else if(StartAdd < MODBUS_WR_OFFTIME_LAST && StartAdd >= MODBUS_WR_OFFTIME_FIRST)
+ 948   3                              {
+ 949   4                                      if((StartAdd-MODBUS_WR_OFFTIME_FIRST) % WR_TIME_SIZE == 0)
+ 950   4                                      {
+ 951   5                                              i = (StartAdd - MODBUS_WR_OFFTIME_FIRST) / WR_TIME_SIZE;                                        
+ 952   5                                              memcpy(WR_Roution[i].OffTime,&pData[UIP_HEAD + 7],WR_TIME_SIZE);
+ 953   5                                      }
+ 954   4                              }
+ 955   3      
+ 956   3      
+ 957   3      
+ 958   3                              /////////////////////////////////                         LJ  GSM电话号码
+ 959   3                              else if(StartAdd == MODBUS_GSM_START)
+ 960   3                              {
+ 961   4                                      if(pData[UIP_HEAD + 6] == (PHONE_NUM_SIZE * 2))
+ 962   4                                      {
+ 963   5                                              phoneNumber[0] = pData[UIP_HEAD + 8];
+ 964   5                                              phoneNumber[1] = pData[UIP_HEAD + 10];
+ 965   5                                              phoneNumber[2] = pData[UIP_HEAD + 12];
+ 966   5                                              phoneNumber[3] = pData[UIP_HEAD + 14];
+ 967   5                                              phoneNumber[4] = pData[UIP_HEAD + 16];
+ 968   5                                              phoneNumber[5] = pData[UIP_HEAD + 18];
+ 969   5                                              phoneNumber[6] = pData[UIP_HEAD + 20];
+ 970   5                                              phoneNumber[7] = pData[UIP_HEAD + 22];
+ 971   5                                              phoneNumber[8] = pData[UIP_HEAD + 24];
+ 972   5                                              phoneNumber[9] = pData[UIP_HEAD + 26];
+ 973   5                                              phoneNumber[10] = pData[UIP_HEAD + 28];
+ 974   5                                              phoneNumber[11] = pData[UIP_HEAD + 30];
+ 975   5                                              phoneNumber[12] = pData[UIP_HEAD + 32];
+ 976   5                                              phoneNumber[13] = pData[UIP_HEAD + 34];
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 17  
+
+ 977   5                                      }
+ 978   4                                      ChangeFlash = 1;
+ 979   4      
+ 980   4                              }
+ 981   3                              ////////////////////////////////////
+ 982   3      
+ 983   3      
+ 984   3      
+ 985   3                              else
+ 986   3                              {i=0;}
+ 987   3                              
+ 988   3                              for (i=0;i<6;i++)                       
+ 989   3                              send_tcp[i+UIP_HEAD]=pData[i+UIP_HEAD];
+ 990   3                              NTFlag=3;
+ 991   3                      }
+ 992   2              
+ 993   2      //              sessonid = ((U16_T)pData[0] << 8) | pData[1];
+ 994   2                      Set_transaction_ID(send_tcp, RealNum);
+ 995   2          
+ 996   2                      if(NTFlag == 1) //read
+ 997   2                      {
+ 998   3                              LED = Ethnet_OK;
+ 999   3                              TCPIP_TcpSend(pHttpConn->TcpSocket, send_tcp, RealNum+UIP_HEAD+UIP_CODE_HEAD, TCPIP_SEND_NOT_FINAL);
+1000   3                      }
+1001   2                      else if(NTFlag == 2)//single_write response byte num=6  ChangeFlash=1;
+1002   2                      {
+1003   3                              LED = Ethnet_OK;
+1004   3                              TCPIP_TcpSend(pHttpConn->TcpSocket, send_tcp, RealNum+UIP_HEAD, TCPIP_SEND_NOT_FINAL);
+1005   3                      }
+1006   2                      else if(NTFlag == 3)//multi_write  ChangeFlash=1;
+1007   2                      {
+1008   3                              LED = Ethnet_OK;
+1009   3                              TCPIP_TcpSend(pHttpConn->TcpSocket, send_tcp, RealNum+UIP_HEAD, TCPIP_SEND_NOT_FINAL);            
+1010   3                      } 
+1011   2                      else if(NTFlag == 5)
+1012   2                      {
+1013   3                              LED = Ethnet_OK;
+1014   3                              TCPIP_TcpSend(pHttpConn->TcpSocket, send_tcp, 6+3, TCPIP_SEND_NOT_FINAL);
+1015   3                      }
+1016   2                      else
+1017   2                      {
+1018   3                              return;
+1019   3                      }
+1020   2              } 
+1021   1              else
+1022   1              {
+1023   2                      EA = 0; 
+1024   2                      LED = S485_OK;
+1025   2                      TcpSocket_ME = pHttpConn->TcpSocket;
+1026   2      //              sessonid = ((U16_T)pData[0] << 8) | pData[1];
+1027   2                      if(pData[UIP_HEAD + 1] == READ_VARIABLES)
+1028   2                      {
+1029   3                              sessonlen = 2 * pData[UIP_HEAD + 5];//有效字节数目
+1030   3                      }
+1031   2                      else if((pData[UIP_HEAD + 1] == WRITE_VARIABLES) || (pData[UIP_HEAD + 1] == MULTIPLE_WRITE))
+1032   2                      {
+1033   3                              sessonlen = 6;
+1034   3                      }
+1035   2       
+1036   2                  Sever_Order = SERVER_TCPIP;
+1037   2                      Sever_id = pData[UIP_HEAD];
+1038   2              
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 18  
+
+1039   2                  InitCRC16();                                 
+1040   2                      SeCount = length - 6;
+1041   2                      StartAdd = 0;
+1042   2                               
+1043   2                      for(z = 0; z < SeCount; z++) 
+1044   2                  { 
+1045   3                      send_tcp[StartAdd++] = pData[UIP_HEAD + z];                                                                        
+1046   3                      CRC16_Tstat(pData[UIP_HEAD + z]);
+1047   3                  }
+1048   2                      send_tcp[StartAdd++] = CRChi;
+1049   2                  send_tcp[StartAdd++] = CRClo;
+1050   2              
+1051   2                      EA = 1;
+1052   2                      Tx_To_Tstat(send_tcp, StartAdd);
+1053   2              }
+1054   1      } /* End of HTTP_Receive() */
+1055          
+1056          /*
+1057           * ----------------------------------------------------------------------------
+1058           * Function Name: http_DivideHtmlFile
+1059           * Purpose: 
+1060           * Params:
+1061           * Returns:
+1062           * Note:
+1063           * ----------------------------------------------------------------------------
+1064           */
+1065          void http_DivideHtmlFile(HTTP_SERVER_CONN XDATA* pHttpConn, U8_T id)
+1066          {
+1067   1              BUF_RADIO XDATA*        pRadio;
+1068   1              BUF_TEXT XDATA*         pText;
+1069   1              BUF_SELECT XDATA*       pSelect;
+1070   1              U8_T                            tableIndex = 0;
+1071   1              U8_T                            i, k;
+1072   1      
+1073   1              {
+1074   2                      for (i = 0; i < MAX_POST_RECORDS; i++)
+1075   2                      {
+1076   3                              if (id != POST_Record[i].FileIndex)
+1077   3                                      continue;
+1078   3      
+1079   3                              if (POST_Record[i].PostType == POST_TYPE_TEXT)
+1080   3                              {
+1081   4                                      pText = POST_Record[i].PValue;
+1082   4                                      if (pText->DefaultLength == 0)
+1083   4                                              continue;
+1084   4      
+1085   4                                      pHttpConn->Divide.Offset[tableIndex] = pText->Offset;
+1086   4                                      pHttpConn->Divide.RecordIndex[tableIndex] = i;
+1087   4                                      pHttpConn->Divide.PostType[tableIndex] = POST_TYPE_TEXT;
+1088   4      
+1089   4                                      tableIndex++;
+1090   4                              }
+1091   3                              else if (POST_Record[i].PostType == POST_TYPE_RADIO)
+1092   3                              {
+1093   4                                      pRadio = POST_Record[i].PValue;
+1094   4                                      if (pRadio->DefaultSet == pRadio->CurrentSet)
+1095   4                                              continue;
+1096   4      
+1097   4                                      for (k = 0; k < pRadio->Count; k++)
+1098   4                                      {
+1099   5                                              pHttpConn->Divide.Offset[tableIndex] = pRadio->Offset[k];
+1100   5                                              pHttpConn->Divide.RecordIndex[tableIndex] = i;
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 19  
+
+1101   5                                              pHttpConn->Divide.PostType[tableIndex] = POST_TYPE_RADIO;
+1102   5                                              if (pRadio->CurrentSet == k)
+1103   5                                              {
+1104   6                                                      pHttpConn->Divide.SetFlag[tableIndex] = 1;
+1105   6                                                      tableIndex++;
+1106   6                                              }
+1107   5                                              else if (pRadio->DefaultSet == k)
+1108   5                                              {
+1109   6                                                      pHttpConn->Divide.SetFlag[tableIndex] = 2;
+1110   6                                                      tableIndex++;
+1111   6                                              }
+1112   5                                      }
+1113   4                              }
+1114   3                              else if (POST_Record[i].PostType == POST_TYPE_SELECT)
+1115   3                              {
+1116   4                                      pSelect = POST_Record[i].PValue;
+1117   4                                      if ((pSelect->DefaultSet == pSelect->CurrentSet) ||
+1118   4                                                      (pSelect->CurrentSet >= pSelect->Count))
+1119   4                                      {
+1120   5                                              continue;
+1121   5                                      }
+1122   4                                      for (k = 0; k < pSelect->Count; k++)
+1123   4                                      {
+1124   5                                              if (pSelect->DefaultSet == k)
+1125   5                                              {
+1126   6                                                      pHttpConn->Divide.Offset[tableIndex] = pSelect->Offset[k];
+1127   6                                                      pHttpConn->Divide.RecordIndex[tableIndex] = i;
+1128   6                                                      pHttpConn->Divide.PostType[tableIndex] = POST_TYPE_SELECT;
+1129   6                                                      pHttpConn->Divide.SetFlag[tableIndex] = 2;
+1130   6                                                      tableIndex++;
+1131   6                                              }
+1132   5                                              else if (pSelect->CurrentSet == k)
+1133   5                                              {
+1134   6                                                      pHttpConn->Divide.Offset[tableIndex] = pSelect->Offset[k];
+1135   6                                                      pHttpConn->Divide.RecordIndex[tableIndex] = i;
+1136   6                                                      pHttpConn->Divide.PostType[tableIndex] = POST_TYPE_SELECT;
+1137   6                                                      pHttpConn->Divide.SetFlag[tableIndex] = 1;
+1138   6                                                      tableIndex++;
+1139   6                                              }
+1140   5                                      }                       
+1141   4                              }
+1142   3                              else
+1143   3                                      continue;
+1144   3                      }
+1145   2              }
+1146   1              pHttpConn->Divide.Fragment = tableIndex;
+1147   1      
+1148   1      } /* End of http_DivideHtmlFile() */
+1149          
+1150          /*
+1151           * ----------------------------------------------------------------------------
+1152           * Function Name: http_NewConfig
+1153           * Purpose: 
+1154           * Params:
+1155           * Returns:
+1156           * Note:
+1157           * ----------------------------------------------------------------------------
+1158           */
+1159          U8_T http_NewConfig(void)
+1160          {
+1161   1              BUF_RADIO XDATA         *pRadio;
+1162   1              BUF_TEXT XDATA          *pText;
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 20  
+
+1163   1              BUF_SELECT XDATA        *pSelect;
+1164   1              U8_T                            i;
+1165   1              U8_T                            change;
+1166   1              void                            (*f)(void *pWebData);
+1167   1      
+1168   1      #if (UART0_ENABLE)
+1169   1      //      printd ("POST count = %bx\n\r", PostCount);
+1170   1      #endif
+1171   1              for (i = 0; i < PostCount; i++)
+1172   1              {
+1173   2      #if (UART0_ENABLE)
+1174   2      //              printd ("Post Table %bx\n\r", PostTable[i]);
+1175   2      #endif
+1176   2                      if (POST_Record[PostTable[i]].PostType == POST_TYPE_RADIO)
+1177   2                      {
+1178   3                              change = 0;
+1179   3                              pRadio = POST_Record[PostTable[i]].PValue;
+1180   3                              if (pRadio->UserSet != pRadio->CurrentSet)
+1181   3                              {
+1182   4                                      pRadio->CurrentSet = pRadio->UserSet;
+1183   4                                      change = 1;
+1184   4                              }
+1185   3      
+1186   3                              if (!change)
+1187   3                                      continue;
+1188   3      
+1189   3                              f = fun_tbl[PostTable[i]];
+1190   3                              f(&pRadio->CurrentSet);
+1191   3                      }
+1192   2                      else if (POST_Record[PostTable[i]].PostType == POST_TYPE_TEXT)
+1193   2                      {
+1194   3                              change = 0;
+1195   3                              pText = POST_Record[PostTable[i]].PValue;
+1196   3      
+1197   3                              if ((pText->CurrLength - 1) == pText->UserLength)
+1198   3                              {
+1199   4                                      if (memcmp(pText->CurrValue, pText->UserValue, pText->CurrLength - 1))
+1200   4                                              change = 1;
+1201   4                              }
+1202   3                              else
+1203   3                                      change = 1;
+1204   3      
+1205   3                              if (!change)
+1206   3                                      continue;
+1207   3      
+1208   3                              memcpy(pText->CurrValue, pText->UserValue, pText->UserLength);
+1209   3                              pText->CurrValue[pText->UserLength] = '"';
+1210   3                              pText->CurrLength =  pText->UserLength + 1 ;
+1211   3                              pText->UserLength ++;
+1212   3      
+1213   3                              f = fun_tbl[PostTable[i]];
+1214   3                              f(pText);
+1215   3                      }
+1216   2                      else if (POST_Record[PostTable[i]].PostType == POST_TYPE_SELECT)
+1217   2                      {
+1218   3                              change = 0;
+1219   3                              pSelect = POST_Record[PostTable[i]].PValue;
+1220   3                              if (pSelect->UserSet != pSelect->CurrentSet)
+1221   3                              {
+1222   4                                      pSelect->CurrentSet = pSelect->UserSet;
+1223   4                                      change = 1;
+1224   4                              }
+C51 COMPILER V9.06   HTTPD                                                                 03/13/2013 09:32:26 PAGE 21  
+
+1225   3      
+1226   3                              if (!change)
+1227   3                                      continue;
+1228   3      
+1229   3                              f = fun_tbl[PostTable[i]];
+1230   3                              f(&pSelect->CurrentSet);
+1231   3                      }
+1232   2                      else 
+1233   2                              continue;
+1234   2              }
+1235   1      
+1236   1              return HTTP_POST_SUCCESS;
+1237   1      
+1238   1      } /* End of http_NewConfig() */
+1239          
+1240          
+1241          
+1242          /* End of httpd.c */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =  13691    ----
+   CONSTANT SIZE    =     18    ----
+   XDATA SIZE       =   1701      89
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   1114    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

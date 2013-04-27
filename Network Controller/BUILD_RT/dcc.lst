@@ -1,0 +1,380 @@
+C51 COMPILER V9.06   DCC                                                                   03/13/2013 09:32:38 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE DCC
+OBJECT MODULE PLACED IN .\dcc.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\dcc.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) IN
+                    -CDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\
+                    -SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buf
+                    -fer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\S
+                    -rc\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\dcc.lst) OBJECT(.\dcc.obj)
+
+line level    source
+
+   1          /*####COPYRIGHTBEGIN####
+   2           -------------------------------------------
+   3           Copyright (C) 2006 Steve Karg
+   4          
+   5           This program is free software; you can redistribute it and/or
+   6           modify it under the terms of the GNU General Public License
+   7           as published by the Free Software Foundation; either version 2
+   8           of the License, or (at your option) any later version.
+   9          
+  10           This program is distributed in the hope that it will be useful,
+  11           but WITHOUT ANY WARRANTY; without even the implied warranty of
+  12           MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  13           GNU General Public License for more details.
+  14          
+  15           You should have received a copy of the GNU General Public License
+  16           along with this program; if not, write to:
+  17           The Free Software Foundation, Inc.
+  18           59 Temple Place - Suite 330
+  19           Boston, MA  02111-1307, USA.
+  20          
+  21           As a special exception, if other files instantiate templates or
+  22           use macros or inline functions from this file, or you compile
+  23           this file and link it with other works to produce a work based
+  24           on this file, this file does not by itself cause the resulting
+  25           work to be covered by the GNU General Public License. However
+  26           the source code for this file must still be made available in
+  27           accordance with section (3) of the GNU General Public License.
+  28          
+  29           This exception does not invalidate any other reasons why a work
+  30           based on this file might be covered by the GNU General Public
+  31           License.
+  32           -------------------------------------------
+  33          ####COPYRIGHTEND####*/
+  34          #include <stdint.h>
+  35          #include "../include/bacenum.h"
+  36          #include "../include/bacdcode.h"
+  37          #include "../include/bacdef.h"
+  38          #include "../include/dcc.h"
+  39          
+  40          /** @file dcc.c  Enable/Disable Device Communication Control (DCC) */
+  41          
+  42          /* note: the disable and time are not expected to survive
+  43             over a power cycle or reinitialization. */
+  44          /* note: time duration is given in Minutes, but in order to be accurate,
+  45             we need to count down in seconds. */
+  46          /* infinite time duration is defined as 0 */
+  47          static uint32_t DCC_Time_Duration_Seconds = 0;
+  48          static BACNET_COMMUNICATION_ENABLE_DISABLE DCC_Enable_Disable =
+  49              COMMUNICATION_ENABLE;
+  50          /* password is optionally supported */
+  51          
+C51 COMPILER V9.06   DCC                                                                   03/13/2013 09:32:38 PAGE 2   
+
+  52          BACNET_COMMUNICATION_ENABLE_DISABLE dcc_enable_status(
+  53              void)
+  54          {
+  55   1          return DCC_Enable_Disable;
+  56   1      }
+  57          
+  58          bool dcc_communication_enabled(
+  59              void)
+  60          {
+  61   1          return (DCC_Enable_Disable == COMMUNICATION_ENABLE);
+  62   1      }
+  63          
+  64          /* When network communications are completely disabled,
+  65             only DeviceCommunicationControl and ReinitializeDevice APDUs
+  66             shall be processed and no messages shall be initiated.*/
+  67          bool dcc_communication_disabled(
+  68              void)
+  69          {
+  70   1          return (DCC_Enable_Disable == COMMUNICATION_DISABLE);
+  71   1      }
+  72          
+  73          /* When the initiation of communications is disabled,
+  74             all APDUs shall be processed and responses returned as
+  75             required and no messages shall be initiated with the
+  76             exception of I-Am requests, which shall be initiated only in
+  77             response to Who-Is messages. In this state, a device that
+  78             supports I-Am request initiation shall send one I-Am request
+  79             for any Who-Is request that is received if and only if
+  80             the Who-Is request does not contain an address range or
+  81             the device is included in the address range. */
+  82          bool dcc_communication_initiation_disabled(
+  83              void)
+  84          {
+  85   1          return (DCC_Enable_Disable == COMMUNICATION_DISABLE_INITIATION);
+  86   1      }
+  87          
+  88          /* note: 0 indicates either expired, or infinite duration */
+  89          uint32_t dcc_duration_seconds(
+  90              void)
+  91          {
+  92   1          return DCC_Time_Duration_Seconds;
+  93   1      }
+  94          
+  95          /* called every second or so.  If more than one second,
+  96            then seconds should be the number of seconds to tick away */
+  97          void dcc_timer_seconds(
+  98              uint32_t seconds)
+  99          {
+ 100   1          if (DCC_Time_Duration_Seconds) {
+ 101   2              if (DCC_Time_Duration_Seconds > seconds)
+ 102   2                  DCC_Time_Duration_Seconds -= seconds;
+ 103   2              else
+ 104   2                  DCC_Time_Duration_Seconds = 0;
+ 105   2              /* just expired - do something */
+ 106   2              if (DCC_Time_Duration_Seconds == 0)
+ 107   2                  DCC_Enable_Disable = COMMUNICATION_ENABLE;
+ 108   2          }
+ 109   1      }
+ 110          
+ 111          bool dcc_set_status_duration(
+ 112              BACNET_COMMUNICATION_ENABLE_DISABLE status,
+ 113              uint16_t minutes)
+C51 COMPILER V9.06   DCC                                                                   03/13/2013 09:32:38 PAGE 3   
+
+ 114          {
+ 115   1          bool valid = false;
+ 116   1      
+ 117   1          /* valid? */
+ 118   1          if (status < MAX_BACNET_COMMUNICATION_ENABLE_DISABLE) {
+ 119   2              DCC_Enable_Disable = status;
+ 120   2              if (status == COMMUNICATION_ENABLE) {
+ 121   3                  DCC_Time_Duration_Seconds = 0;
+ 122   3              } else {
+ 123   3                  DCC_Time_Duration_Seconds = minutes * 60;
+ 124   3              }
+ 125   2              valid = true;
+ 126   2          }
+ 127   1      
+ 128   1          return valid;
+ 129   1      }
+ 130          
+ 131          #if BACNET_SVC_DCC_A
+ 132          /* encode service */
+ 133          int dcc_encode_apdu(
+ 134              uint8_t * apdu,
+ 135              uint8_t invoke_id,
+ 136              uint16_t timeDuration,      /* 0=optional */
+ 137              BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
+ 138              BACNET_CHARACTER_STRING * password)
+ 139          {       /* NULL=optional */
+ 140   1          int len = 0;        /* length of each encoding */
+ 141   1          int apdu_len = 0;   /* total length of the apdu, return value */
+ 142   1      
+ 143   1          if (apdu) {
+ 144   2              apdu[0] = PDU_TYPE_CONFIRMED_SERVICE_REQUEST;
+ 145   2              apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU);
+ 146   2              apdu[2] = invoke_id;
+ 147   2              apdu[3] = SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL;
+ 148   2              apdu_len = 4;
+ 149   2              /* optional timeDuration */
+ 150   2              if (timeDuration) {
+ 151   3                  len = encode_context_unsigned(&apdu[apdu_len], 0, timeDuration);
+ 152   3                  apdu_len += len;
+ 153   3              }
+ 154   2              /* enable disable */
+ 155   2              len = encode_context_enumerated(&apdu[apdu_len], 1, enable_disable);
+ 156   2              apdu_len += len;
+ 157   2              /* optional password */
+ 158   2              if (password) {
+ 159   3                  /* FIXME: must be at least 1 character, limited to 20 characters */
+ 160   3                  len =
+ 161   3                      encode_context_character_string(&apdu[apdu_len], 2, password);
+ 162   3                  apdu_len += len;
+ 163   3              }
+ 164   2          }
+ 165   1      
+ 166   1          return apdu_len;
+ 167   1      }
+ 168          #endif
+ 169          
+ 170          /* decode the service request only */
+ 171          int dcc_decode_service_request(
+ 172              uint8_t * apdu,
+ 173              unsigned apdu_len,
+ 174              uint16_t * timeDuration,
+ 175              BACNET_COMMUNICATION_ENABLE_DISABLE * enable_disable,
+C51 COMPILER V9.06   DCC                                                                   03/13/2013 09:32:38 PAGE 4   
+
+ 176              BACNET_CHARACTER_STRING * password)
+ 177          {
+ 178   1          unsigned len = 0;
+ 179   1          uint8_t tag_number = 0;
+ 180   1          uint32_t len_value_type = 0;
+ 181   1          uint32_t value32 = 0;
+ 182   1      
+ 183   1          /* check for value pointers */
+ 184   1          if (apdu_len) {
+ 185   2              /* Tag 0: timeDuration, in minutes --optional--
+ 186   2               * But if not included, take it as indefinite,
+ 187   2               * which we return as "very large" */
+ 188   2              if (decode_is_context_tag(&apdu[len], 0)) {
+ 189   3                  len +=
+ 190   3                      decode_tag_number_and_value(&apdu[len], &tag_number,
+ 191   3                      &len_value_type);
+ 192   3                  len += decode_unsigned(&apdu[len], len_value_type, &value32);
+ 193   3                  if (timeDuration) {
+ 194   4                      *timeDuration = (uint16_t) value32;
+ 195   4                  }
+ 196   3              } else if (timeDuration) {
+ 197   3                  /* zero indicates infinite duration and
+ 198   3                     results in no timeout */
+ 199   3                  *timeDuration = 0;
+ 200   3              }
+ 201   2              /* Tag 1: enable_disable */
+ 202   2              if (!decode_is_context_tag(&apdu[len], 1)) {
+ 203   3                  return -1;
+ 204   3              }
+ 205   2              len +=
+ 206   2                  decode_tag_number_and_value(&apdu[len], &tag_number,
+ 207   2                  &len_value_type);
+ 208   2              len += decode_enumerated(&apdu[len], len_value_type, &value32);
+ 209   2              if (enable_disable) {
+ 210   3                  *enable_disable = (BACNET_COMMUNICATION_ENABLE_DISABLE) value32;
+ 211   3              }
+ 212   2              /* Tag 2: password --optional-- */
+ 213   2              if (len < apdu_len) {
+ 214   3                  if (!decode_is_context_tag(&apdu[len], 2)) {
+ 215   4                      return -1;
+ 216   4                  }
+ 217   3                  len +=
+ 218   3                      decode_tag_number_and_value(&apdu[len], &tag_number,
+ 219   3                      &len_value_type);
+ 220   3                  len +=
+ 221   3                      decode_character_string(&apdu[len], len_value_type, password);
+ 222   3              } else if (password) {
+ 223   3                  characterstring_init_ansi(password, NULL);
+ 224   3              }
+ 225   2          }
+ 226   1      
+ 227   1          return (int) len;
+ 228   1      }
+ 229          
+ 230          #ifdef TEST
+              #include <assert.h>
+              #include <string.h>
+              #include "ctest.h"
+              
+              int dcc_decode_apdu(
+                  uint8_t * apdu,
+                  unsigned apdu_len,
+C51 COMPILER V9.06   DCC                                                                   03/13/2013 09:32:38 PAGE 5   
+
+                  uint8_t * invoke_id,
+                  uint16_t * timeDuration,
+                  BACNET_COMMUNICATION_ENABLE_DISABLE * enable_disable,
+                  BACNET_CHARACTER_STRING * password)
+              {
+                  int len = 0;
+                  unsigned offset = 0;
+              
+                  if (!apdu)
+                      return -1;
+                  /* optional checking - most likely was already done prior to this call */
+                  if (apdu[0] != PDU_TYPE_CONFIRMED_SERVICE_REQUEST)
+                      return -1;
+                  /*  apdu[1] = encode_max_segs_max_apdu(0, MAX_APDU); */
+                  *invoke_id = apdu[2];       /* invoke id - filled in by net layer */
+                  if (apdu[3] != SERVICE_CONFIRMED_DEVICE_COMMUNICATION_CONTROL)
+                      return -1;
+                  offset = 4;
+              
+                  if (apdu_len > offset) {
+                      len =
+                          dcc_decode_service_request(&apdu[offset], apdu_len - offset,
+                          timeDuration, enable_disable, password);
+                  }
+              
+                  return len;
+              }
+              
+              void test_DeviceCommunicationControlData(
+                  Test * pTest,
+                  uint8_t invoke_id,
+                  uint16_t timeDuration,
+                  BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable,
+                  BACNET_CHARACTER_STRING * password)
+              {
+                  uint8_t apdu[480] = { 0 };
+                  int len = 0;
+                  int apdu_len = 0;
+                  uint8_t test_invoke_id = 0;
+                  uint16_t test_timeDuration = 0;
+                  BACNET_COMMUNICATION_ENABLE_DISABLE test_enable_disable;
+                  BACNET_CHARACTER_STRING test_password;
+              
+                  len =
+                      dcc_encode_apdu(&apdu[0], invoke_id, timeDuration, enable_disable,
+                      password);
+                  ct_test(pTest, len != 0);
+                  apdu_len = len;
+              
+                  len =
+                      dcc_decode_apdu(&apdu[0], apdu_len, &test_invoke_id,
+                      &test_timeDuration, &test_enable_disable, &test_password);
+                  ct_test(pTest, len != -1);
+                  ct_test(pTest, test_invoke_id == invoke_id);
+                  ct_test(pTest, test_timeDuration == timeDuration);
+                  ct_test(pTest, test_enable_disable == enable_disable);
+                  ct_test(pTest, characterstring_same(&test_password, password));
+              }
+              
+              void test_DeviceCommunicationControl(
+                  Test * pTest)
+              {
+C51 COMPILER V9.06   DCC                                                                   03/13/2013 09:32:38 PAGE 6   
+
+                  uint8_t invoke_id = 128;
+                  uint16_t timeDuration = 0;
+                  BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable;
+                  BACNET_CHARACTER_STRING password;
+              
+                  timeDuration = 0;
+                  enable_disable = COMMUNICATION_DISABLE_INITIATION;
+                  characterstring_init_ansi(&password, "John 3:16");
+                  test_DeviceCommunicationControlData(pTest, invoke_id, timeDuration,
+                      enable_disable, &password);
+              
+                  timeDuration = 12345;
+                  enable_disable = COMMUNICATION_DISABLE;
+                  test_DeviceCommunicationControlData(pTest, invoke_id, timeDuration,
+                      enable_disable, NULL);
+              
+                  return;
+              }
+              
+              #ifdef TEST_DEVICE_COMMUNICATION_CONTROL
+              int main(
+                  void)
+              {
+                  Test *pTest;
+                  bool rc;
+              
+                  pTest = ct_create("BACnet DeviceCommunicationControl", NULL);
+                  /* individual tests */
+                  rc = ct_addTestFunction(pTest, test_DeviceCommunicationControl);
+                  assert(rc);
+              
+                  ct_setStream(pTest, stdout);
+                  ct_run(pTest);
+                  (void) ct_report(pTest);
+                  ct_destroy(pTest);
+              
+                  return 0;
+              }
+              #endif /* TEST_DEVICE_COMMUNICATION_CONTROL */
+              #endif /* TEST */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1516    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      5      45
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

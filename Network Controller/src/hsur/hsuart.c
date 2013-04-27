@@ -143,7 +143,7 @@ static void		hsur_Rcvr(void);
 static void		hsur_Xmit(void);
 static void		hsur_ReadMsr(void);
 
-
+extern void 	test_run(U8_T dat);
 extern volatile U32_T xTickCount;
 /* LOCAL SUBPROGRAM BODIES */
 
@@ -613,7 +613,8 @@ void HSUR_Func(void)
  */
 void HSUR_Setup(U16_T divisor, U8_T lCtrl, U8_T intEnb, U8_T fCtrl, U8_T mCtrl)
 {
-	U16_T	far i;
+	U16_T	 i;		  /*far*/
+
 
 	for (i=0 ; i<UR2_MAX_RX_SIZE ; i++)
 	{
@@ -623,6 +624,7 @@ void HSUR_Setup(U16_T divisor, U8_T lCtrl, U8_T intEnb, U8_T fCtrl, U8_T mCtrl)
 	{
 		hsurTxBuffer[i] = 0;
 	}
+
 
 	hsurRxBufNum = 0;
 	hsurTxBufNum = 0;
@@ -646,6 +648,7 @@ void HSUR_Setup(U16_T divisor, U8_T lCtrl, U8_T intEnb, U8_T fCtrl, U8_T mCtrl)
 			hsurRxTrigLvl = 14;
 			break;
 	}
+	
 
 	UR2_LCR = UR2_DLAB_ENB;
 	UR2_DLL = (U8_T)(divisor & 0x00FF);
@@ -653,16 +656,29 @@ void HSUR_Setup(U16_T divisor, U8_T lCtrl, U8_T intEnb, U8_T fCtrl, U8_T mCtrl)
 	UR2_LCR &= ~UR2_DLAB_ENB;
 	UR2_LCR = lCtrl;
 	UR2_FCR = fCtrl;
+
+	 
+
 #if   HSUR_RS485_ENABLE
 	UR2_MCR = (mCtrl | UR2_RS485_RECEIVE);
 #else
 	UR2_MCR = mCtrl;
 #endif
-	UR2_IER = intEnb;
+
+
+	 
+
+	UR2_IER  =  intEnb;			/* ! */
+
+//	test_run(10);
+	
 
 	hsurLineControlValue = lCtrl;
 	hsurFifoControlValue = fCtrl;
 	hsurModemControlValue = mCtrl;
+
+	
+
 }
 /*
  *--------------------------------------------------------------------------------
@@ -817,6 +833,7 @@ void HSUR_InitValue(void)
 	hsurGetPtr = 0;
 	hsurPutPtr = 0;
 
+			 /* what's it? */
 	sysClk = CSREPR & 0xC0;
 	switch (sysClk)
 	{
@@ -833,6 +850,8 @@ void HSUR_InitValue(void)
 //			P3 = 0xAA;
 			break;
 	}
+
+
 
 } /* End of UART_Init */
 

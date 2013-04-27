@@ -37,6 +37,7 @@
 #include	"ax11000.h"
 
 
+
 /* STATIC VARIABLE DECLARATIONS */
 static U8_T 	swResetOn = 0;
 static U8_T		globeInt = 0;
@@ -45,7 +46,6 @@ static U8_T		memShadow = 0;
 static U8_T		progWtst = 0;
 static U8_T		dataStretch = 0;
 
-U32_T	CPU_FREQUENCY;
 
 /* LOCAL SUBPROGRAM DECLARATIONS */
 
@@ -54,7 +54,7 @@ U32_T	CPU_FREQUENCY;
 
 
 /* EXPORTED SUBPROGRAM BODIES */
-
+extern void test_run(U8_T);
 /*
  *--------------------------------------------------------------------------------
  * void AX11000_Init(void)
@@ -67,6 +67,11 @@ U32_T	CPU_FREQUENCY;
 void AX11000_Init(void)
 {
 	EA = 0; // turn off globe interrupt
+
+	P0 = 0xFF;
+	P1 = 0xFF;
+	P2 = 0xFF;
+	P3 = 0xFF;
 
 	/* Check program wait-state and data memory wait-state */
 	if (CSREPR & PMS)
@@ -97,6 +102,8 @@ void AX11000_Init(void)
 	{
 		memShadow = 0;
 
+		/* use this configure while fs = 100Mhz.*/
+
 		/* for real chip */
 		switch (CSREPR & (BIT6|BIT7))
 		{
@@ -117,17 +124,6 @@ void AX11000_Init(void)
 				break;
 		}
 	}
-
-	if(cpuSysClk == SCS_100M)
-		CPU_FREQUENCY = 100000000;
-	else if(cpuSysClk == SCS_50M)
-		CPU_FREQUENCY = 50000000;
-	else if(cpuSysClk == SCS_25M)
-		CPU_FREQUENCY = 25000000;
-	else
-		CPU_FREQUENCY = 25000000;
-
-
 
 	progWtst = WTST & 0x07;
 	dataStretch = CKCON & 0x07;
@@ -154,9 +150,15 @@ void AX11000_Init(void)
 		swResetOn = 0;
 	}
 
+
+
+
+
+
+
 	PINT2	= 1;		// INT2 priority is at high level for DMA request.
 
-	EXTINT0(OFF);		// EINT0 interrupt.
+	EXTINT0(OFF);		// EINT0 interrupt.						// 7/2/2012 LJ 打开INT0 会导致死掉
 	EXTINT1(OFF);		// EINT1 interrupt.
 	EXTINT2(OFF);		// EINT2 interrupt for DMA request.
 	EXTINT3(OFF);		// EINT3 interrupt for PCA.
@@ -168,6 +170,13 @@ void AX11000_Init(void)
 		EA = globeInt & BIT0;
 	else
 		EA = 1;		// Enable the globe interrupt.
+
+
+
+//	IE = 0x00;
+
+
+
 }
 
 /*
@@ -254,6 +263,8 @@ void AX11000_SoftReset(void)
 	EA = 0;
 
 	swResetOn = TRUE;
+	
+
 	CSREPR |= SW_RST;
 }
 #endif
@@ -270,7 +281,9 @@ void AX11000_SoftReset(void)
  */
 void AX11000_SoftReboot(void)
 {
+	
 	CSREPR |= SW_RBT;
+	
 }
 #endif
 

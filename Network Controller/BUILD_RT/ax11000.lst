@@ -1,0 +1,386 @@
+C51 COMPILER V9.06   AX11000                                                               03/13/2013 09:32:20 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE AX11000
+OBJECT MODULE PLACED IN .\ax11000.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\cpu\ax11000.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) I
+                    -NCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..
+                    -\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\bu
+                    -ffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\
+                    -Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\ax11000.lst) OBJECT(.\ax1100
+                    -0.obj)
+
+line level    source
+
+   1          /*
+   2           *********************************************************************************
+   3           *     Copyright (c) 2005   ASIX Electronic Corporation      All rights reserved.
+   4           *
+   5           *     This is unpublished proprietary source code of ASIX Electronic Corporation
+   6           *
+   7           *     The copyright notice above does not evidence any actual or intended
+   8           *     publication of such source code.
+   9           *********************************************************************************
+  10           */
+  11          /*================================================================================
+  12           * Module Name : ax11000.c
+  13           * Purpose     : AX11000 initialization and globe values setting.
+  14           * Author      : Robin Lee
+  15           * Date        : 2005-12-27
+  16           * Notes       : In the initial function, all external interrupt are disable in
+  17           *               default. User must enable a specific interrupt in its module.
+  18           *               Several system values are initial in beginning
+  19           * $Log: ax11000.c,v $
+  20           * Revision 1.3  2006/07/20 03:50:52  robin6633
+  21           * 1.Change the header file name "reg80390.h" to "ax110xx.h".
+  22           *
+  23           * Revision 1.2  2006/04/20 01:19:06  robin6633
+  24           * 1.Added watchdog setting.
+  25           * 2.Changed the wait state to fit real chip.
+  26           *
+  27           * Revision 1.1  2006/04/07 11:36:17  robin6633
+  28           * no message
+  29           *
+  30           *================================================================================
+  31           */
+  32          
+  33          /* INCLUDE FILE DECLARATIONS */
+  34          #include        "ax110xx.h"
+  35          #include        "types.h"
+  36          #include        "interrupt.h"
+  37          #include        "ax11000.h"
+  38          
+  39          
+  40          
+  41          /* STATIC VARIABLE DECLARATIONS */
+  42          static U8_T     swResetOn = 0;
+  43          static U8_T             globeInt = 0;
+  44          static U8_T             cpuSysClk = 0;
+  45          static U8_T             memShadow = 0;
+  46          static U8_T             progWtst = 0;
+  47          static U8_T             dataStretch = 0;
+  48          
+  49          
+  50          /* LOCAL SUBPROGRAM DECLARATIONS */
+C51 COMPILER V9.06   AX11000                                                               03/13/2013 09:32:20 PAGE 2   
+
+  51          
+  52          
+  53          /* LOCAL SUBPROGRAM BODIES */
+  54          
+  55          
+  56          /* EXPORTED SUBPROGRAM BODIES */
+  57          extern void test_run(U8_T);
+  58          /*
+  59           *--------------------------------------------------------------------------------
+  60           * void AX11000_Init(void)
+  61           * Purpose : Initiation of the AX11000 core.
+  62           * Params  : None
+  63           * Returns : None
+  64           * Note    : None
+  65           *--------------------------------------------------------------------------------
+  66           */
+  67          void AX11000_Init(void)
+  68          {
+  69   1              EA = 0; // turn off globe interrupt
+  70   1      
+  71   1              P0 = 0xFF;
+  72   1              P1 = 0xFF;
+  73   1              P2 = 0xFF;
+  74   1              P3 = 0xFF;
+  75   1      
+  76   1              /* Check program wait-state and data memory wait-state */
+  77   1              if (CSREPR & PMS)
+  78   1              {
+  79   2                      memShadow = 1;
+  80   2      
+  81   2                      /* for real chip */
+  82   2                      switch (CSREPR & (BIT6|BIT7))
+  83   2                      {
+  84   3                              case SCS_100M :
+  85   3                                      cpuSysClk = SCS_100M;
+  86   3                                      WTST = 0x01;
+  87   3                                      CKCON = 0x01;
+  88   3                                      break;
+  89   3                              case SCS_50M :
+  90   3                                      cpuSysClk = SCS_50M;
+  91   3                                      WTST = 0x00;
+  92   3                                      CKCON = 0x01;
+  93   3                                      break;
+  94   3                              case SCS_25M :
+  95   3                                      cpuSysClk = SCS_25M;
+  96   3                                      WTST = 0x00;
+  97   3                                      CKCON = 0x01;
+  98   3                                      break;
+  99   3                      }
+ 100   2              }
+ 101   1              else
+ 102   1              {
+ 103   2                      memShadow = 0;
+ 104   2      
+ 105   2                      /* use this configure while fs = 100Mhz.*/
+ 106   2      
+ 107   2                      /* for real chip */
+ 108   2                      switch (CSREPR & (BIT6|BIT7))
+ 109   2                      {
+ 110   3                              case SCS_100M :
+ 111   3                                      cpuSysClk = SCS_100M;
+ 112   3                                      WTST = 0x07;
+C51 COMPILER V9.06   AX11000                                                               03/13/2013 09:32:20 PAGE 3   
+
+ 113   3                                      CKCON = 0x01;
+ 114   3                                      break;
+ 115   3                              case SCS_50M :
+ 116   3                                      cpuSysClk = SCS_50M;
+ 117   3                                      WTST = 0x03;
+ 118   3                                      CKCON = 0x01;
+ 119   3                                      break;
+ 120   3                              case SCS_25M :
+ 121   3                                      cpuSysClk = SCS_25M;
+ 122   3                                      WTST = 0x01;
+ 123   3                                      CKCON = 0x01;
+ 124   3                                      break;
+ 125   3                      }
+ 126   2              }
+ 127   1      
+ 128   1              progWtst = WTST & 0x07;
+ 129   1              dataStretch = CKCON & 0x07;
+ 130   1      
+ 131   1              PCON    &= ~SWB_;       // Turn off switchback function.
+ 132   1      
+ 133   1              EIF             &= ~INT5F;      // Clear the flag of interrupt 5.
+ 134   1              EIF             &= ~INT6F;      // Clear the flag of interrupt 6.
+ 135   1              if (WTRF)
+ 136   1              {
+ 137   2                      CSREPR |= SW_RBT;
+ 138   2                      WTRF    = 0;            // Clear Watch Dog Time Out Reset Flag.
+ 139   2              }
+ 140   1      
+ 141   1              if (swResetOn == TRUE)
+ 142   1              {
+ 143   2                      I2CDR = BIT4;
+ 144   2                      I2CCIR = 0x04;
+ 145   2                      do {
+ 146   3                              I2CCIR =0x06;
+ 147   3                              swResetOn = I2CDR;
+ 148   3                      } while (swResetOn & BIT3);
+ 149   2      
+ 150   2                      swResetOn = 0;
+ 151   2              }
+ 152   1      
+ 153   1      
+ 154   1      
+ 155   1      
+ 156   1      
+ 157   1      
+ 158   1      
+ 159   1              PINT2   = 1;            // INT2 priority is at high level for DMA request.
+ 160   1      
+ 161   1              EXTINT0(OFF);           // EINT0 interrupt.                                             // 7/2/2012 LJ 打开INT0 会导致死掉
+ 162   1              EXTINT1(OFF);           // EINT1 interrupt.
+ 163   1              EXTINT2(OFF);           // EINT2 interrupt for DMA request.
+ 164   1              EXTINT3(OFF);           // EINT3 interrupt for PCA.
+ 165   1              EXTINT4(ON);            // EINT4 interrupt for peripheral device.
+ 166   1              EXTINT5(OFF);           // EINT5 interrupt for software timer.
+ 167   1              EXTINT6(ON);            // EINT6 interrupt for wake-up of power management mode and stop mode.
+ 168   1      
+ 169   1              if (globeInt & BIT7)
+ 170   1                      EA = globeInt & BIT0;
+ 171   1              else
+ 172   1                      EA = 1;         // Enable the globe interrupt.
+ 173   1      
+ 174   1      
+C51 COMPILER V9.06   AX11000                                                               03/13/2013 09:32:20 PAGE 4   
+
+ 175   1      
+ 176   1      //      IE = 0x00;
+ 177   1      
+ 178   1      
+ 179   1      
+ 180   1      }
+ 181          
+ 182          /*
+ 183           *--------------------------------------------------------------------------------
+ 184           * U8_T AX11000_GetSysClk(void)
+ 185           * Purpose : Get system clock of AX11000 in initial.
+ 186           * Params  : None
+ 187           * Returns : cpuSysClk - system clock of AX11000
+ 188           * Note    : None
+ 189           *--------------------------------------------------------------------------------
+ 190           */
+ 191          #if GET_SYS_VALUE
+ 192          U8_T AX11000_GetSysClk(void)
+ 193          {
+ 194   1              return cpuSysClk;
+ 195   1      }
+ 196          #endif
+ 197          
+ 198          /*
+ 199           *--------------------------------------------------------------------------------
+ 200           * U8_T AX11000_GetMemSdw(void)
+ 201           * Purpose : Get system memory shadow setting in initial.
+ 202           * Params  : None
+ 203           * Returns : memshadow - memory shadow mode
+ 204           * Note    : None
+ 205           *--------------------------------------------------------------------------------
+ 206           */
+ 207          #if GET_SYS_VALUE
+ 208          U8_T AX11000_GetMemSdw(void)
+ 209          {
+ 210   1              return memShadow;
+ 211   1      }
+ 212          #endif
+ 213          
+ 214          /*
+ 215           *--------------------------------------------------------------------------------
+ 216           * U8_T AX11000_GetProgWst(void)
+ 217           * Purpose : Get system program wait state in initial.
+ 218           * Params  : None
+ 219           * Returns : progwtst - system program wait state of cpu AX11000
+ 220           * Note    : None
+ 221           *--------------------------------------------------------------------------------
+ 222           */
+ 223          #if GET_SYS_VALUE
+ 224          U8_T AX11000_GetProgWst(void)
+ 225          {
+ 226   1              return progWtst;
+ 227   1      }
+ 228          #endif
+ 229          
+ 230          /*
+ 231           *--------------------------------------------------------------------------------
+ 232           * U8_T AX11000_GetDataSth(void)
+ 233           * Purpose : Get system data stretch in initial.
+ 234           * Params  : None
+ 235           * Returns : datastretch - data stretch cycle of cpu AX11000
+ 236           * Note    : None
+C51 COMPILER V9.06   AX11000                                                               03/13/2013 09:32:20 PAGE 5   
+
+ 237           *--------------------------------------------------------------------------------
+ 238           */
+ 239          #if GET_SYS_VALUE
+ 240          U8_T AX11000_GetDataSth(void)
+ 241          {
+ 242   1              return dataStretch;
+ 243   1      }
+ 244          #endif
+ 245          
+ 246          #if AX_SWRST_ENB
+ 247          /*
+ 248           *--------------------------------------------------------------------------------
+ 249           * void AX11000_SoftReset(void)
+ 250           * Purpose : Software reset to reset CPU core.
+ 251           * Params  : None
+ 252           * Returns : None
+ 253           * Note    : None
+ 254           *--------------------------------------------------------------------------------
+ 255           */
+ 256          void AX11000_SoftReset(void)
+ 257          {
+ 258   1              if (EA)
+ 259   1                      globeInt = BIT0 | BIT7; // BIT0:EA bit record ; BIT7:Software reset record.
+ 260   1              else
+ 261   1                      globeInt = BIT7;
+ 262   1      
+ 263   1              EA = 0;
+ 264   1      
+ 265   1              swResetOn = TRUE;
+ 266   1              
+ 267   1      
+ 268   1              CSREPR |= SW_RST;
+ 269   1      }
+ 270          #endif
+ 271          
+ 272          #if AX_SWRBT_ENB
+ 273          /*
+ 274           *--------------------------------------------------------------------------------
+ 275           * void AX11000_SoftReboot(void)
+ 276           * Purpose : Software reboot to restart hardware core of all.
+ 277           * Params  : None
+ 278           * Returns : None
+ 279           * Note    : None
+ 280           *--------------------------------------------------------------------------------
+ 281           */
+ 282          void AX11000_SoftReboot(void)
+ 283          {
+ 284   1              
+ 285   1              CSREPR |= SW_RBT;
+ 286   1              
+ 287   1      }
+ 288          #endif
+ 289          
+ 290          #if AX_WATCHDOG_ENB
+ 291          /*
+ 292           *--------------------------------------------------------------------------------
+ 293           * void AX11000_WatchDogSetting(U8_T wdIntrEnb, U8_T wdRstEnb, U8_T wdPrty, U8_T wdTime)
+ 294           * Purpose : Enable the Watchdog timer.
+ 295           * Params  : None
+ 296           * Returns : None
+ 297           * Note    : None
+ 298           *--------------------------------------------------------------------------------
+C51 COMPILER V9.06   AX11000                                                               03/13/2013 09:32:20 PAGE 6   
+
+ 299           */
+ 300          void AX11000_WatchDogSetting(U8_T wdIntrEnb, U8_T wdRstEnb, U8_T wdPrty, U8_T wdTime)
+ 301          {
+ 302   1              CKCON |= wdTime;
+ 303   1      
+ 304   1              if (wdIntrEnb & WD_INTR_ENABLE)
+ 305   1              {
+ 306   2                      EWDI = 1;
+ 307   2              }
+ 308   1              else
+ 309   1              {
+ 310   2                      EWDI = 0;
+ 311   2              }
+ 312   1      
+ 313   1              if (wdRstEnb & WD_RESET_ENABLE)
+ 314   1              {
+ 315   2                      TA = 0xAA;
+ 316   2                      TA = 0x55;
+ 317   2                      EWT = 1;
+ 318   2              }
+ 319   1              else
+ 320   1              {
+ 321   2                      TA = 0xAA;
+ 322   2                      TA = 0x55;
+ 323   2                      EWT = 0;
+ 324   2              }
+ 325   1      
+ 326   1              if (wdPrty & WD_HIGH_PRIORITY)
+ 327   1              {
+ 328   2                      PWDI = 1;
+ 329   2              }
+ 330   1              else
+ 331   1              {
+ 332   2                      PWDI = 0;
+ 333   2              }
+ 334   1              
+ 335   1              TA = 0xAA;
+ 336   1              TA = 0x55;
+ 337   1              RWT = 1;
+ 338   1              WTRF = 0;
+ 339   1              WDIF = 0;
+ 340   1      }
+ 341          #endif
+ 342          
+ 343          
+ 344          /* End of ax11000.c */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    342    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      6       4
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

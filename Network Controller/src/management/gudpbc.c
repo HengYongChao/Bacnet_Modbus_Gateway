@@ -38,7 +38,7 @@
 #include <string.h>
 #include "8563.h"
 #include "../USB/ch375_com.h"
-#include "../LCD/LCD.h"
+#include	"../LCD/LCD.h"
 
 /* NAMING CONSTANT DECLARATIONS */
 #define GS2E_ENABLE_STATE_MACHINE	0
@@ -54,6 +54,7 @@
 
 
 /* GLOBAL VARIABLES DECLARATIONS */
+extern void test_run(U8_T);
 
 /* LOCAL VARIABLES DECLARATIONS */
 static GUDPBC_CONN gudpbc_Conns[GUDPBC_MAX_CONNS];
@@ -123,7 +124,7 @@ ab[29]=0;
 ab[30]=Para[17];
 ab[31]=0;
 
-}
+ }
 
 #if 1  //LHN ADD for time server
 
@@ -324,22 +325,34 @@ void TimeServer_Deal(U32_T time,U8_T time_zone)
  */
 void I2C_Init(void)
 {
+	
 	switch (CSREPR & (BIT6|BIT7))
 	{
 		case SYS_CLK_100M :
 			/* I2C master mode, interrupt enable, fast mode in slave, 7-bits address, 400KHz at 100M */
 			I2C_Setup(I2C_ENB|I2C_FAST|I2C_MST_IE|I2C_7BIT|I2C_MASTER_MODE, 0x0031, 0x005A);
+		//	I2C_Setup(I2C_ENB|I2C_STANDARD|I2C_MST_IE|I2C_7BIT|I2C_MASTER_MODE, I2C_STD_100M, 0x005A);
+				
+		
 			break;
 		case SYS_CLK_50M :
 			/* I2C master mode, interrupt enable, fast mode in slave, 7-bits address, 400KHz at 50M */
 			I2C_Setup(I2C_ENB|I2C_FAST|I2C_MST_IE|I2C_7BIT|I2C_MASTER_MODE, 0x0018, 0x005A);
+		
+			 	
 			break;
 		case SYS_CLK_25M :
 			/* I2C master mode, interrupt enable, fast mode in slave, 7-bits address, 400KHz at 25M */
 			I2C_Setup(I2C_ENB|I2C_FAST|I2C_MST_IE|I2C_7BIT|I2C_MASTER_MODE, 0x000c, 0x005A);
+		
+			 
+		
 			break;
 	}
+
+
 }
+
 #endif
 
 /*
@@ -370,8 +383,6 @@ void GUDPBC_Init(U16_T localPort)
 	U8_T	i;
 
 	printd("GUDPBC_Init()...\n\r");
-//	printd("NC fw69.11hw26bl14\n\r");
-//	char abc[] = {"NC fw69.11hw26bl14"};
 
 	for (i = 0; i < GUDPBC_MAX_CONNS; i++)
 		gudpbc_Conns[i].State = GUDPBC_STATE_FREE;
@@ -497,10 +508,10 @@ void GUDPBC_Receive(U8_T XDATA* pData, U16_T length, U8_T id)
 	        IntFlashErase(ERA_RUN, 0x60000);
 	        FlagIsp = 1;
 			USB_disable();
+	        
 			lcdreset();
-			Lcd_Initial();
-			Display_Updating();
-	        AX11000_SoftReboot(); 	
+			AX11000_SoftReboot(); 	
+
 	    }
 	}
 } /* End of GUDPBC_Receive() */
@@ -645,10 +656,10 @@ void gudpbc_HandleRebootReq(U8_T XDATA* pData, U16_T length, U8_T id)
 		*(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_REBOOT_ACK;  	
 		TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
 		// May store current status/setting here before restart
+		
 		lcdreset();
-		Lcd_Initial();
-		Display_Updating();
 		AX11000_SoftReboot();
+
 	}
 	else
 	{

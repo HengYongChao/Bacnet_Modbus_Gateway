@@ -1,0 +1,242 @@
+C51 COMPILER V9.06   PRINTD                                                                03/13/2013 09:32:23 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE PRINTD
+OBJECT MODULE PLACED IN .\printd.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\debug\printd.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) 
+                    -INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;.
+                    -.\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\b
+                    -uffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..
+                    -\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\printd.lst) OBJECT(.\printd
+                    -.obj)
+
+line level    source
+
+   1          /*================================================================================
+   2           * Module Name : printd.c
+   3           * Purpose     : AX11000 initialization and globe values setting.
+   4           * Author      : 
+   5           * Date        : 
+   6           * Notes       : 
+   7           *================================================================================
+   8           */
+   9          
+  10          /* INCLUDE FILE DECLARATIONS */
+  11          #include <stdarg.h>
+  12          #include "types.h"
+  13          #include "printd.h"
+  14          #include "uart.h"
+  15          
+  16          /* STATIC VARIABLE DECLARATIONS */
+  17          
+  18          /* LOCAL SUBPROGRAM DECLARATIONS */
+  19          static int prints(const char *string, int width, int pad);
+  20          static int printi(long i, int b, int sg, int width, int pad, int letbase);
+  21          
+  22          /* LOCAL SUBPROGRAM BODIES */
+  23          
+  24          /*
+  25           *--------------------------------------------------------------------------------
+  26           * static int prints(const char *string, int width, int pad)
+  27           * Purpose : None
+  28           * Params  : None
+  29           * Returns : None
+  30           * Note    : None
+  31           *--------------------------------------------------------------------------------
+  32           */
+  33          static int prints(const char *string, int width, int pad)
+  34          {
+  35   1              register int pc = 0, padchar = ' ';
+  36   1      
+  37   1      
+  38   1              if (width > 0) {
+  39   2                      register int len = 0;
+  40   2                      register const char *ptr;
+  41   2                      for (ptr = string; *ptr; ++ptr) ++len;
+  42   2                      if (len >= width) width = 0;
+  43   2                      else width -= len;
+  44   2                      if (pad & PAD_ZERO) padchar = '0';
+  45   2              }
+  46   1              if (!(pad & PAD_RIGHT)) {
+  47   2                      for ( ; width > 0; --width) {
+  48   3                              DEBUG_PORT_PUTCHR(padchar);
+  49   3                              ++pc;
+  50   3                      }
+C51 COMPILER V9.06   PRINTD                                                                03/13/2013 09:32:23 PAGE 2   
+
+  51   2              }
+  52   1              
+  53   1              for ( ; *string ; ++string) {
+  54   2                      DEBUG_PORT_PUTCHR(*string);
+  55   2                      ++pc;
+  56   2              }
+  57   1              
+  58   1              for ( ; width > 0; --width) {
+  59   2                      DEBUG_PORT_PUTCHR ( padchar);
+  60   2                      ++pc;
+  61   2              }
+  62   1      
+  63   1              return pc;
+  64   1      }
+  65          
+  66          /*
+  67           *--------------------------------------------------------------------------------
+  68           * static int printi(long i, int b, int sg, int width, int pad, int letbase)
+  69           * Purpose : None
+  70           * Params  : None
+  71           * Returns : None
+  72           * Note    : None
+  73           *--------------------------------------------------------------------------------
+  74           */
+  75          static int printi(long i, int b, int sg, int width, int pad, int letbase)
+  76          {
+  77   1              char print_buf[PRINT_BUF_LEN];
+  78   1              register char *s;
+  79   1              register long t, neg = 0, pc = 0;
+  80   1              register unsigned long u = i;
+  81   1      
+  82   1              if (i == 0) {
+  83   2                      print_buf[0] = '0';
+  84   2                      print_buf[1] = '\0';
+  85   2                      return prints ( print_buf, width, pad);
+  86   2              }
+  87   1      
+  88   1              if (sg && b == 10 && i < 0) {
+  89   2                      neg = 1;
+  90   2                      u = -i;
+  91   2              }
+  92   1      
+  93   1              s = print_buf + PRINT_BUF_LEN-1;
+  94   1              *s = '\0';
+  95   1      
+  96   1              while (u) {
+  97   2                      t = u % b;
+  98   2                      if( t >= 10 )
+  99   2                              t += letbase - '0' - 10;
+ 100   2                      *--s = t + '0';
+ 101   2                      u /= b;
+ 102   2              }
+ 103   1      
+ 104   1              if (neg) {
+ 105   2                      if( width && (pad & PAD_ZERO) ) {
+ 106   3                              DEBUG_PORT_PUTCHR ('-');
+ 107   3                              ++pc;
+ 108   3                              --width;
+ 109   3                      }
+ 110   2                      else {
+ 111   3                              *--s = '-';
+ 112   3                      }
+C51 COMPILER V9.06   PRINTD                                                                03/13/2013 09:32:23 PAGE 3   
+
+ 113   2              }
+ 114   1              return pc + prints ( s, width, pad);
+ 115   1      }
+ 116          
+ 117          
+ 118          /* EXPORTED SUBPROGRAM BODIES */
+ 119          /*
+ 120           *--------------------------------------------------------------------------------
+ 121           * int printd(const char *format, ...)
+ 122           * Purpose : None
+ 123           * Params  : None
+ 124           * Returns : None
+ 125           * Note    : None
+ 126           *--------------------------------------------------------------------------------
+ 127           */
+ 128          int printd(const char *format, ...)
+ 129          {
+ 130   1              register int width, pad;
+ 131   1              register int pc = 0;
+ 132   1              char scr[2];
+ 133   1              
+ 134   1          va_list args;
+ 135   1              
+ 136   1          va_start( args, format );
+ 137   1      
+ 138   1              for (; *format != 0; ++format) {
+ 139   2                      if (*format == '%') {
+ 140   3                              ++format;
+ 141   3                              width = pad = 0;
+ 142   3                              if (*format == '\0') break;
+ 143   3                              if (*format == '%') goto out;
+ 144   3                              if (*format == '-') {
+ 145   4                                      ++format;
+ 146   4                                      pad = PAD_RIGHT;
+ 147   4                              }
+ 148   3                              while (*format == '0') {
+ 149   4                                      ++format;
+ 150   4                                      pad |= PAD_ZERO;
+ 151   4                              }
+ 152   3                              for ( ; *format >= '0' && *format <= '9'; ++format) {
+ 153   4                                      width *= 10;
+ 154   4                                      width += *format - '0';
+ 155   4                              }
+ 156   3                              switch(*format)
+ 157   3                              {
+ 158   4                                      case 's':
+ 159   4                                          {
+ 160   5                                              register char *s = (char *)va_arg( args, char * );
+ 161   5                                              pc += prints ( s?s:"(null)", width, pad);
+ 162   5                                              continue;
+ 163   5                                              }
+ 164   4                                      case 'b':
+ 165   4                                              ++format;
+ 166   4                                              if (*format == 'd')
+ 167   4                                                      pc += printi ( va_arg( args, char ), 10, 1, width, pad, 'a');
+ 168   4                                              else if (*format == 'u')
+ 169   4                                                      pc += printi ( va_arg( args, unsigned char ), 10, 0, width, pad, 'a');
+ 170   4                                              else if (*format == 'x')
+ 171   4                                                      pc += printi ( va_arg( args, unsigned char ), 16, 0, width, pad, 'a');
+ 172   4                                              continue;
+ 173   4                                      case 'd':
+ 174   4                                              pc += printi ( va_arg( args, int ), 10, 1, width, pad, 'a');
+C51 COMPILER V9.06   PRINTD                                                                03/13/2013 09:32:23 PAGE 4   
+
+ 175   4                                              continue;
+ 176   4                                      case 'x':
+ 177   4                                              pc += printi ( va_arg( args, int ), 16, 0, width, pad, 'a');
+ 178   4                                              continue;
+ 179   4                                      case 'u' :
+ 180   4                                              pc += printi ( va_arg( args, int ), 10, 0, width, pad, 'a');
+ 181   4                                              continue;
+ 182   4                                      case 'l':
+ 183   4                                              ++format;
+ 184   4                                              if (*format == 'x')
+ 185   4                                                      pc += printi ( va_arg( args, long ), 16, 1, width, pad, 'a');
+ 186   4                                              else if (*format == 'u')
+ 187   4                                                      pc += printi ( va_arg( args, long ), 10, 0, width, pad, 'a');
+ 188   4                                              continue;
+ 189   4                                      case 'c' :
+ 190   4                                              scr[0] = (char)va_arg( args, char );
+ 191   4                                              scr[1] = '\0';
+ 192   4                                              pc += prints ( scr, width, pad);
+ 193   4                                              continue;
+ 194   4                              }
+ 195   3                      }
+ 196   2                      else {
+ 197   3                      out:
+ 198   3                              DEBUG_PORT_PUTCHR(*format);
+ 199   3                              ++pc;
+ 200   3                      }
+ 201   2              }
+ 202   1              va_end( args );
+ 203   1              return pc;
+ 204   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2044    ----
+   CONSTANT SIZE    =      7    ----
+   XDATA SIZE       =   ----     118
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,628 @@
+C51 COMPILER V9.06   GSM                                                                   03/13/2013 09:32:38 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE GSM
+OBJECT MODULE PLACED IN .\gsm.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\gsm\gsm.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) INCDI
+                    -R(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\SRC
+                    -\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buffer
+                    -\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\Src\
+                    -FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\gsm.lst) OBJECT(.\gsm.obj)
+
+line level    source
+
+   1          #include <stdio.h>
+   2          #include <string.h>
+   3          #include <intrins.h>
+   4          #include <stdlib.h>
+   5          #include "../gsm/gsm.h"
+   6          #include "../main/main.h"
+   7          
+   8          //#define TIME_TO_WAIT          4                 // baudrate 115200
+   9          #define TIME_TO_WAIT            4                 // baudrate 115200
+  10          #define TIME_TO_WAIT_RSV        4
+  11          //#define TIME_TO_WAIT          81        // baudrate 9600
+  12          #define TIME_BETWEEN_BYTE   300
+  13          #define GSM_INIT_FINISH         255
+  14          
+  15          #define xGSM_DEBUG_OPEN                    // 打开或关闭调试
+  16          #define GSM_USE_DELAY                      // 是否用延时模式
+  17          
+  18          gsm_buf_t gsm_RxBuf;
+  19          gsm_state g_state;
+  20          U8_T init_state = 0;
+  21          //U8_T gsm_flag;
+  22          char phone_num[20] = {0};
+  23          
+  24          U8_T phoneNumber[PHONE_NUM_SIZE + 1] = "+8613127506299";
+  25          
+  26          U8_T gsm_timeout = GSM_TIMEOUT_VALUE;
+  27          
+  28          extern unsigned char  auchCRCHi[256];
+  29          extern unsigned char  auchCRCLo[256];
+  30          extern void InitCRC16(void);
+  31          extern void CRC16_Tstat(unsigned char ch);
+  32          extern  unsigned char far  CRClo;
+  33          extern unsigned  char far  CRChi;
+  34          
+  35          
+  36          void MicroWait( U16_T timeout)
+  37          {
+  38   1              while( timeout--){
+  39   2                      _nop_();
+  40   2              }
+  41   1      }
+  42          
+  43          void gsm_wait_interrupt( void)
+  44          {
+  45   1              TR0 = 1;
+  46   1              while(!TF0);
+  47   1              TF0 = 0;
+  48   1      
+  49   1              TH0 = 0xfd;
+  50   1              TL0 = 0x75;
+  51   1      
+C51 COMPILER V9.06   GSM                                                                   03/13/2013 09:32:38 PAGE 2   
+
+  52   1      //      TH0 = 0xFF;
+  53   1      //      TL0 = 0xAF;
+  54   1      //      TH0 = 0xFA;
+  55   1      //      TL0 = 0xEC;
+  56   1              TR0 = 0;
+  57   1      }
+  58          
+  59          #ifdef GSM_USE_DELAY
+  60          void simulate_read_byte( void) interrupt 0
+  61          {
+  62   1              U8_T ch = 0;
+  63   1              U8_T i = 8;
+  64   1      
+  65   1              EA = 0;
+  66   1      
+  67   1              MicroWait( TIME_TO_WAIT_RSV);
+  68   1      
+  69   1              while ( i--)
+  70   1              {
+  71   2                      ch = ch>>1;
+  72   2                      if( GSM_RX)
+  73   2                              ch |= 0x80;
+  74   2                      MicroWait( TIME_TO_WAIT_RSV);
+  75   2              }
+  76   1      
+  77   1              gsm_RxBuf.buf[gsm_RxBuf.size++] = ch;
+  78   1      
+  79   1              EA = 1;
+  80   1              
+  81   1      }
+  82          #else
+              void simulate_read_byte( void) interrupt 0
+              {
+                      U8_T ch = 0;
+                      U8_T i = 8;
+              
+                      EA = 0;
+                      gsm_wait_interrupt();                              // 等待起始位
+              
+                      while ( i--)
+                      {
+                              ch = ch>>1;
+                              if( GSM_RX)
+                                      ch |= 0x80;
+                              gsm_wait_interrupt();
+                      }
+              //      
+              //      MicroWait( 1);                                                   // 加上等待时间115200下不精准
+                      gsm_RxBuf.buf[gsm_RxBuf.size++] = ch;
+              //      gsm_wait_interrupt();                                    // 等待停止位
+              
+                      EA = 1;
+                      
+              //      return ch;      
+              }
+              #endif
+ 108          
+ 109          
+ 110          #ifdef GSM_USE_DELAY
+ 111          void simulate_write_byte( U8_T ch)
+ 112          {
+ 113   1              U8_T i = 8;
+C51 COMPILER V9.06   GSM                                                                   03/13/2013 09:32:38 PAGE 3   
+
+ 114   1      
+ 115   1      //      TR0 = 1;
+ 116   1      
+ 117   1              GSM_TX = 0;
+ 118   1      
+ 119   1      //      gsm_wait_interrupt();
+ 120   1              MicroWait(TIME_TO_WAIT);
+ 121   1      
+ 122   1              while ( i--)
+ 123   1              {
+ 124   2                      GSM_TX = (bit) (ch & 0x01);
+ 125   2      //              gsm_wait_interrupt();
+ 126   2                      MicroWait(TIME_TO_WAIT);
+ 127   2                      ch = ch>>1;
+ 128   2              }       
+ 129   1      //      gsm_debug( " Send one byte done");
+ 130   1              GSM_TX = 1;
+ 131   1      
+ 132   1      //      TR0 = 0;
+ 133   1      }
+ 134          
+ 135          #else
+              void simulate_write_byte( U8_T ch)
+              {
+                      U8_T i = 8;
+              
+                      GSM_TX = 0;
+              
+                      gsm_wait_interrupt();
+                      MicroWait(TIME_TO_WAIT);
+              
+                      while ( i--)
+                      {
+                              GSM_TX = (bit) (ch & 0x01);
+                              gsm_wait_interrupt();
+                              ch = ch>>1;
+                      }       
+                      GSM_TX = 1;
+              
+              }
+              #endif
+ 155          
+ 156          static U8_T simulate_write_string( char *str, U8_T len)
+ 157          {
+ 158   1              U8_T cnt;
+ 159   1      
+ 160   1      //      gsm_debug( "Start sending string");
+ 161   1              for ( cnt = 0; cnt < len; cnt ++)
+ 162   1              {
+ 163   2                      simulate_write_byte( *str++);
+ 164   2                      MicroWait(3000);
+ 165   2              }
+ 166   1      
+ 167   1              return cnt;
+ 168   1      }
+ 169          
+ 170          void gsm_debug( char *msg)
+ 171          {
+ 172   1              char temp[256] = {0};
+ 173   1      
+ 174   1              sprintf( temp, "%s\r\n", msg);
+ 175   1      #ifdef GSM_DEBUG_OPEN
+C51 COMPILER V9.06   GSM                                                                   03/13/2013 09:32:38 PAGE 4   
+
+                      Uart0_Tx( temp, strlen( temp));
+              #else
+ 178   1              // nothing
+ 179   1      #endif
+ 180   1      }
+ 181          
+ 182          void send_at_cmd ( char *cmd)
+ 183          {
+ 184   1              char temp[256] = {0};
+ 185   1      
+ 186   1              sprintf( temp, "%s\r", cmd);
+ 187   1      //      gsm_debug( "send AT command");
+ 188   1      //      gsm_debug( temp);
+ 189   1              simulate_write_string( temp, strlen(temp));
+ 190   1      }
+ 191          
+ 192          #if 0
+              void GSM_ISR ( void) interrupt 0
+              {
+              //      U8_T ch;
+              
+                      EA = 0;
+              
+              //      ch = simulate_read_byte();
+              
+              //      memcpy( gsm_RxBuf.buf, "OK\r", 3);
+              
+                      if ( gsm_RxBuf.size >= GSM_MAX_RX_LEN)
+                              gsm_RxBuf.size = 0;
+                      gsm_RxBuf.buf[gsm_RxBuf.size++] = simulate_read_byte();
+                      
+                      gsm_timeout = GSM_TIMEOUT_VALUE;
+              
+                      EA = 1;                   
+              }
+              #endif
+ 212          
+ 213          U8_T gsm_msg_process( char *msg)
+ 214          {
+ 215   1              U8_T *temp;
+ 216   1      //      U8_T temp1[64];
+ 217   1              U8_T *sms;
+ 218   1              U8_T *rest;
+ 219   1              U8_T *mod_id;
+ 220   1              U8_T *reg_id;
+ 221   1              U8_T *setpoint;
+ 222   1              U8_T buf[8];
+ 223   1              U16_T point;
+ 224   1              U8_T i;
+ 225   1      
+ 226   1              if  (((GSM_INIT_DONE == g_state) || (GSM_INIT_FINISH == init_state) 
+ 227   1                      || (GSM_WAITING == g_state) || (SMS_SENDING == g_state)) &&  strstr ( msg, ">"))
+ 228   1              {
+ 229   2      //              gsm_debug( gsm_RxBuf.buf);
+ 230   2                      g_state = SMS_READY;
+ 231   2                      memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
+ 232   2                      gsm_RxBuf.size = 0;
+ 233   2      //              gsm_debug( "SMS IS READY!");
+ 234   2              }
+ 235   1              else if ( strstr( msg, "+CMTI"))                                   // 收到短信
+ 236   1              {
+ 237   2                      gsm_debug( gsm_RxBuf.buf);
+C51 COMPILER V9.06   GSM                                                                   03/13/2013 09:32:38 PAGE 5   
+
+ 238   2                      memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
+ 239   2                      gsm_RxBuf.size = 0;
+ 240   2                      gsm_debug( "RECEIVE A MESSAGE!");
+ 241   2      //              send_at_cmd( "AT+CMGR=1");                                 // 发送接收一条短信指令
+ 242   2      //              rev_cnt = 3;
+ 243   2                      g_state = GET_MSG;
+ 244   2              }
+ 245   1              else if( strstr( msg, "+CMGR"))
+ 246   1              {
+ 247   2                      gsm_debug( "DISPLAY THE MESSAGE AND DELETE IT:");
+ 248   2      //              memcpy( temp, msg, strlen(msg));
+ 249   2      //              gsm_debug( temp);
+ 250   2              if( sms = strstr( msg, "\r"))
+ 251   2                      {
+ 252   3      //                      g_state = SET_POINT;
+ 253   3      //                      gsm_debug( "the message is setpoint");
+ 254   3      //                      gsm_debug("SMS is");
+ 255   3      //                      gsm_debug( sms);
+ 256   3      
+ 257   3                              if ( rest = strtok(sms, ";"))
+ 258   3                              {
+ 259   4                                      gsm_debug("+++++++++MOD_ID:");
+ 260   4                                      gsm_debug( rest);
+ 261   4      //                              rest = strtok( NULL, ";");
+ 262   4      //                              if( rest)
+ 263   4                                      {
+ 264   5                                              gsm_debug("+++++++++REG_ID:");
+ 265   5      //                                      gsm_debug( rest);
+ 266   5      //                                      memcpy( temp1, rest, strlen(rest));
+ 267   5                                              if (reg_id = strtok( NULL, ";")){
+ 268   6                                                      gsm_debug( reg_id);
+ 269   6                                                      setpoint = strtok( NULL, ";");
+ 270   6                                                      if( setpoint){
+ 271   7                                                              gsm_debug("+++++++++SETPOINT:");
+ 272   7                                                              gsm_debug( setpoint);
+ 273   7                                                              point = atoi(reg_id);
+ 274   7      
+ 275   7                                                              if( strtok( rest, "\n"))
+ 276   7                                                              {
+ 277   8                                                                      if(strtok( NULL, "\n"))
+ 278   8                                                                      {
+ 279   9                                                                              temp = strtok( NULL, "\n");
+ 280   9      
+ 281   9                                                                              if( mod_id = strtok( temp, "\r"))
+ 282   9                                                                              {
+ 283  10                                                                                      gsm_debug("--------MOD_id");
+ 284  10                                                                                      gsm_debug( mod_id);
+ 285  10                                                                              }
+ 286   9                                                                              else
+ 287   9                                                                              {
+ 288  10                                                                                      gsm_debug("no cr");
+ 289  10                                                                              }
+ 290   9                                                                      }
+ 291   8                                                              }
+ 292   7                                                              else
+ 293   7                                                              {
+ 294   8                                                                      gsm_debug( "can't get mod_id"); 
+ 295   8                                                              }
+ 296   7      
+ 297   7      //                                                      sprintf( temp1, "%d, %d, %d\r\n", atoi(mod_id), point, atoi(setpoint));
+ 298   7      //                                                      gsm_debug( temp1);
+ 299   7      
+C51 COMPILER V9.06   GSM                                                                   03/13/2013 09:32:38 PAGE 6   
+
+ 300   7                                                              buf[0] = atoi(mod_id);
+ 301   7                                                              buf[1] = 0x06;
+ 302   7      //                                                      buf[2] = HIGN_BYTE(point);
+ 303   7      //                                                      buf[3] = LOW_BYTE(point);
+ 304   7                                                              buf[2] = HI_U16(point);
+ 305   7                                                              buf[3] = LO_U16(point);
+ 306   7                                                              buf[4] = 0x00;
+ 307   7                                                              buf[5] = atoi(setpoint);
+ 308   7                              
+ 309   7                                                              for( i = 0; i < 6; i++)
+ 310   7                                                              {
+ 311   8                                                                      CRC16_Tstat(buf[i]);
+ 312   8                                                              }
+ 313   7                              
+ 314   7                                                              buf[6] = CRChi;
+ 315   7                                                              buf[7] = CRClo;
+ 316   7                                                                      
+ 317   7                                                              gsm_debug(buf);
+ 318   7                                                              Tx_To_Tstat(buf, 8);
+ 319   7      
+ 320   7                                                              g_state = GSM_INIT_DONE;
+ 321   7                                                              rev_cnt = 0;
+ 322   7      
+ 323   7                                                              
+ 324   7                                                              send_at_cmd( "AT+CMGD=1");                // 删除该条短信
+ 325   7      
+ 326   7                                                      }
+ 327   6                                                      else
+ 328   6                                                      {
+ 329   7                                                              gsm_debug("can not get endpoint");
+ 330   7                                                      }
+ 331   6                                              }
+ 332   5                                              else
+ 333   5                                              {
+ 334   6                                                      gsm_debug("can not get reg_id");
+ 335   6                                              }
+ 336   5                                      }
+ 337   4                              }
+ 338   3                      }
+ 339   2                      else
+ 340   2                      {
+ 341   3                              gsm_debug( "#######strstr failed!!!");
+ 342   3                              g_state = GET_MSG;
+ 343   3                      }
+ 344   2                      memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
+ 345   2                      gsm_RxBuf.size = 0;
+ 346   2              }
+ 347   1      //      else if( (GET_MSG == g_state) && strstr( msg, "setpoint"))  // 短信设置setpoint
+ 348   1      //      {
+ 349   1      //              gsm_debug( gsm_RxBuf.buf);
+ 350   1      //              memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
+ 351   1      //              gsm_RxBuf.size = 0;
+ 352   1      //              gsm_debug( "RESEIVE SETPOINT!");
+ 353   1      //              g_state = SET_POINT;
+ 354   1      //      }
+ 355   1              else if ( strstr( msg, "+CMGS:"))
+ 356   1              {
+ 357   2                      gsm_debug( gsm_RxBuf.buf);
+ 358   2                      g_state = SMS_SEND_SUCCESS;
+ 359   2                      memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
+ 360   2                      gsm_RxBuf.size = 0;
+ 361   2      //              gsm_debug( "SMS SEND SUCCESS!");
+C51 COMPILER V9.06   GSM                                                                   03/13/2013 09:32:38 PAGE 7   
+
+ 362   2              }
+ 363   1              else if ( (GSM_INIT_FINISH == init_state) && strstr(msg, "OK"))
+ 364   1              {
+ 365   2      //              gsm_debug( gsm_RxBuf.buf);
+ 366   2      //              gsm_debug( "GSM WAITING FOR SOMETHING");
+ 367   2                      memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
+ 368   2                      gsm_RxBuf.size = 0;
+ 369   2                      g_state = GSM_INIT_DONE;
+ 370   2              }
+ 371   1              else if ( (GSM_INIT_FINISH != init_state) &&  strstr ( msg, "OK"))
+ 372   1              {
+ 373   2                      gsm_debug( gsm_RxBuf.buf);
+ 374   2                      init_state++;
+ 375   2      //              gsm_debug( "GSM IS INITING");
+ 376   2                      memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
+ 377   2                      gsm_RxBuf.size = 0;
+ 378   2              }
+ 379   1              else if( (GSM_INIT_FINISH == init_state) && strstr ( msg, "ERROR"))
+ 380   1              {
+ 381   2                      gsm_debug( gsm_RxBuf.buf);
+ 382   2      //              gsm_debug( "GSM INIT FAILED");
+ 383   2                      memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
+ 384   2                      gsm_RxBuf.size = 0;
+ 385   2              }
+ 386   1              else if( (SMS_READY == g_state) && strstr( msg, "OK"))
+ 387   1              {
+ 388   2                      memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
+ 389   2                      gsm_RxBuf.size = 0;
+ 390   2                      g_state = GSM_WAITING;
+ 391   2              }
+ 392   1              else if( (SMS_READY == g_state) && strstr( msg, "ER"))
+ 393   1              {
+ 394   2                      memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
+ 395   2                      gsm_RxBuf.size = 0;
+ 396   2                      g_state = GSM_INIT_DONE;
+ 397   2      //              send_out = FALSE;
+ 398   2              }
+ 399   1              else if( (SMS_SENDING == g_state) && strstr( msg,"OK"))
+ 400   1              {
+ 401   2                      memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
+ 402   2                      gsm_RxBuf.size = 0;
+ 403   2                      g_state = GSM_INIT_DONE;
+ 404   2                      send_out = FALSE;
+ 405   2              }
+ 406   1              else if( (SMS_SENDING == g_state) && strstr( msg,"ER"))
+ 407   1              {
+ 408   2                      memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
+ 409   2                      gsm_RxBuf.size = 0;
+ 410   2                      send_out = TRUE;
+ 411   2              }
+ 412   1              else
+ 413   1              {
+ 414   2      //              gsm_debug( gsm_RxBuf.buf);
+ 415   2                      memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
+ 416   2                      gsm_RxBuf.size = 0;
+ 417   2      //              gsm_debug( "UNKNOWN MESSAGE");
+ 418   2              // do nothing
+ 419   2              }
+ 420   1      
+ 421   1              temp = NULL;
+ 422   1              sms = NULL;
+ 423   1              rest = NULL;
+C51 COMPILER V9.06   GSM                                                                   03/13/2013 09:32:38 PAGE 8   
+
+ 424   1              mod_id = NULL;
+ 425   1              reg_id = NULL;
+ 426   1              setpoint = NULL;
+ 427   1      
+ 428   1              return g_state;
+ 429   1      }
+ 430          
+ 431          void gsm_module_init(void)
+ 432          {
+ 433   1      //      gsm_debug( "Start gsm module init");
+ 434   1              
+ 435   1              switch ( init_state)
+ 436   1              {
+ 437   2                      case 0:
+ 438   2      //                      simulate_write_byte(0x55);
+ 439   2                              send_at_cmd( "AT");                                        // 验证模块正常
+ 440   2      //                      gsm_debug( "Send 'AT' cmd");
+ 441   2      //                      g_state = GSM_INITING;
+ 442   2                              break;
+ 443   2      
+ 444   2                      case 1:
+ 445   2                              send_at_cmd( "ATE1V1"); 
+ 446   2      //                      gsm_debug( "Send ATE1V1");                              
+ 447   2                              break;
+ 448   2      
+ 449   2                      case 2:
+ 450   2                              send_at_cmd( "AT+IPR=0");                          // 自适应波特率
+ 451   2      //                      gsm_debug( "Send IPR");
+ 452   2                              break;
+ 453   2      
+ 454   2                      case 3:
+ 455   2                              send_at_cmd( "AT+CCLK?");
+ 456   2      //                      gsm_debug( "CCLK");
+ 457   2                              break;
+ 458   2      
+ 459   2                      case 4:
+ 460   2                              send_at_cmd( "ATD*#06#");
+ 461   2      //                      gsm_debug( "ATD");
+ 462   2                              break;
+ 463   2      
+ 464   2                      case 5:
+ 465   2                              send_at_cmd( "AT+CMGF=1");
+ 466   2      //                      gsm_debug( "CMGF");
+ 467   2                              break;
+ 468   2      
+ 469   2                      case 6:
+ 470   2                              send_at_cmd( "AT&W");
+ 471   2      //                      gsm_debug( "AT&W");
+ 472   2                              break;
+ 473   2      
+ 474   2      //              case 7:
+ 475   2      //                      send_at_cmd( "AT+CMGR=1");
+ 476   2      //                      break;
+ 477   2      
+ 478   2                      case 7:
+ 479   2                              send_at_cmd( "AT+CMGD=1");
+ 480   2                              break;
+ 481   2      
+ 482   2                      case 8:
+ 483   2                              init_state = GSM_INIT_FINISH;
+ 484   2                              break;
+ 485   2      
+C51 COMPILER V9.06   GSM                                                                   03/13/2013 09:32:38 PAGE 9   
+
+ 486   2                      default:
+ 487   2                              g_state = GSM_INIT_DONE;
+ 488   2                              break;
+ 489   2              }
+ 490   1      
+ 491   1      }
+ 492          
+ 493          void gsm_init(void)
+ 494          {
+ 495   1      //      gsm_debug( "Start gsm init");
+ 496   1              
+ 497   1      #ifndef GSM_USE_DELAY                                                     
+              //      TMOD |= 0x02;                           // 模式1
+              //      TH0 = 0xFF;                                     // 9600波特率
+              //      TL0 = 0xF9;
+              //      TR0 = 0;                                        // TIMER0运行控制,发送或接收时打开
+              //      PT0 = 1;
+              //      ET0 = 1;                                // 开启TIMER0中断
+              //      TF0 = 0;                                        // TIME0标志位
+              
+                      TMOD |= 0x01;   // 16 bits timer
+                      CKCON |= (1 << 3); // timer0 tick = Fosc / 4
+              //      CKCON &= 0xf7; // timer0 tick = Fosc / 12
+              
+                      TH0 = 0xf9;
+              //      TH0 = 0xfd;                                      //9600
+              //      TL0 = 0x75;
+              
+              //      TH0 = 0xFF;
+              //      TL0 = 0xAF;
+              #endif
+ 517   1      
+ 518   1              IE0 = 0;
+ 519   1              IP |= 0x01;                 // 高优先级
+ 520   1              IT0 = 0;                                        // 触发方式,改为level triggered接收误码率小很多
+ 521   1              EX0 = 1;                                        // 开启INT0                     // 此语句导致跑死
+ 522   1              
+ 523   1      
+ 524   1      //      gsm_debug( "gsm init is still running");                
+ 525   1              gsm_RxBuf.size = 0;
+ 526   1              g_state = GSM_NONE;
+ 527   1      
+ 528   1                              
+ 529   1              g_state = GSM_INITING;     
+ 530   1      //      gsm_debug( "gsm init is still running");
+ 531   1      
+ 532   1      //      gsm_debug( "gsm init is still running after module init");
+ 533   1      }
+ 534          
+ 535          void gsm_send_msg ( char *msg)
+ 536          {
+ 537   1              char temp[256] = {0};
+ 538   1              send_at_cmd( "AT+CMGF=1");
+ 539   1              MicroWait( TIME_TO_WAIT);
+ 540   1                      
+ 541   1              if ( g_state == GSM_INIT_DONE || g_state == GSM_WAITING
+ 542   1              || g_state == SMS_READY)
+ 543   1              {
+ 544   2                      memcpy( phone_num, GSM_PHONE_NUM, 14);                                            // 电话号码
+ 545   2              }
+ 546   1              else
+ 547   1                      send_at_cmd( "AT_CMGF=1");
+C51 COMPILER V9.06   GSM                                                                   03/13/2013 09:32:38 PAGE 10  
+
+ 548   1      
+ 549   1              if( strlen(phone_num) > 0)
+ 550   1              {
+ 551   2                      sprintf( temp, "AT+CMGS=\"%s\"", phone_num);                              
+ 552   2                      send_at_cmd( temp);
+ 553   2      //              gsm_debug("send the phone number");
+ 554   2              }
+ 555   1              else
+ 556   1              {
+ 557   2      //              gsm_debug("Number is invalid");
+ 558   2              }
+ 559   1              MicroWait( TIME_TO_WAIT);
+ 560   1      
+ 561   1              if ( g_state == SMS_READY)
+ 562   1              {
+ 563   2                      send_at_cmd( msg);
+ 564   2                      simulate_write_byte( 0x1a);                                                       // 短信发送符
+ 565   2              }
+ 566   1              else
+ 567   1                      send_at_cmd( temp);
+ 568   1      }
+ 569          
+ 570          #if 0
+              void gsmTimer0_ISR(void) interrupt 1
+              {
+                      EA = 0;
+              
+              //      if( g_cnt )
+                              GSM_TX = 1;
+                      EA = 1;
+              }
+              #endif
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2328    ----
+   CONSTANT SIZE    =   1122    ----
+   XDATA SIZE       =    339     814
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

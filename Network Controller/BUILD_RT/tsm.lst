@@ -1,0 +1,383 @@
+C51 COMPILER V9.06   TSM                                                                   01/28/2013 13:37:43 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE TSM
+OBJECT MODULE PLACED IN .\tsm.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\tsm.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) IN
+                    -CDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\
+                    -SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buf
+                    -fer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\S
+                    -rc\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\tsm.lst) OBJECT(.\tsm.obj)
+
+line level    source
+
+   1          /*####COPYRIGHTBEGIN####
+   2           -------------------------------------------
+   3           Copyright (C) 2005 Steve Karg
+   4           Corrections by Ferran Arumi, 2007, Barcelona, Spain
+   5          
+   6           This program is free software; you can redistribute it and/or
+   7           modify it under the terms of the GNU General Public License
+   8           as published by the Free Software Foundation; either version 2
+   9           of the License, or (at your option) any later version.
+  10          
+  11           This program is distributed in the hope that it will be useful,
+  12           but WITHOUT ANY WARRANTY; without even the implied warranty of
+  13           MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  14           GNU General Public License for more details.
+  15          
+  16           You should have received a copy of the GNU General Public License
+  17           along with this program; if not, write to:
+  18           The Free Software Foundation, Inc.
+  19           59 Temple Place - Suite 330
+  20           Boston, MA  02111-1307, USA.
+  21          
+  22           As a special exception, if other files instantiate templates or
+  23           use macros or inline functions from this file, or you compile
+  24           this file and link it with other works to produce a work based
+  25           on this file, this file does not by itself cause the resulting
+  26           work to be covered by the GNU General Public License. However
+  27           the source code for this file must still be made available in
+  28           accordance with section (3) of the GNU General Public License.
+  29          
+  30           This exception does not invalidate any other reasons why a work
+  31           based on this file might be covered by the GNU General Public
+  32           License.
+  33           -------------------------------------------
+  34          ####COPYRIGHTEND####*/
+  35          #include <stdbool.h>
+  36          #include <stdint.h>
+  37          #include <stddef.h>
+  38          #include "../include/bits.h"
+  39          #include "../include/apdu.h"
+  40          #include "../include/bacdef.h"
+  41          #include "../include/bacdcode.h"
+  42          #include "../include/bacenum.h"
+  43          #include "../include/tsm.h"
+  44          #include "../include/config.h"
+  45          #include "../include/datalink.h"
+  46          #include "../include/handlers.h"
+  47          #include "../include/address.h"
+  48          #include "../include/bacaddr.h"
+  49          
+  50          /** @file tsm.c  BACnet Transaction State Machine operations  */
+  51          
+C51 COMPILER V9.06   TSM                                                                   01/28/2013 13:37:43 PAGE 2   
+
+  52          #if (MAX_TSM_TRANSACTIONS)
+  53          /* Really only needed for segmented messages */
+  54          /* and a little for sending confirmed messages */
+  55          /* If we are only a server and only initiate broadcasts, */
+  56          /* then we don't need a TSM layer. */
+  57          
+  58          /* FIXME: not coded for segmentation */
+  59          
+  60          /* declare space for the TSM transactions, and set it up in the init. */
+  61          /* table rules: an Invoke ID = 0 is an unused spot in the table */
+  62          static  BACNET_TSM_DATA  TSM_List[MAX_TSM_TRANSACTIONS];
+  63          
+  64          /* invoke ID for incrementing between subsequent calls. */
+  65          static uint8_t Current_Invoke_ID = 1;
+  66          
+  67          /* returns MAX_TSM_TRANSACTIONS if not found */
+  68          static uint8_t tsm_find_invokeID_index(
+  69              uint8_t invokeID)
+  70          {
+  71   1          unsigned i = 0;     /* counter */
+  72   1          uint8_t index = MAX_TSM_TRANSACTIONS;       /* return value */
+  73   1      
+  74   1          for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
+  75   2              if (TSM_List[i].InvokeID == invokeID) {
+  76   3                  index = (uint8_t) i;
+  77   3                  break;
+  78   3              }
+  79   2          }
+  80   1      
+  81   1          return index;
+  82   1      }
+  83          
+  84          static uint8_t tsm_find_first_free_index(
+  85              void)
+  86          {
+  87   1          unsigned i = 0;     /* counter */
+  88   1          uint8_t index = MAX_TSM_TRANSACTIONS;       /* return value */
+  89   1      
+  90   1          for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
+  91   2              if (TSM_List[i].InvokeID == 0) {
+  92   3                  index = (uint8_t) i;
+  93   3                  break;
+  94   3              }
+  95   2          }
+  96   1      
+  97   1          return index;
+  98   1      }
+  99          
+ 100          bool tsm_transaction_available(
+ 101              void)
+ 102          {
+ 103   1          bool status = false;        /* return value */
+ 104   1          unsigned i = 0;     /* counter */
+ 105   1      
+ 106   1          for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
+ 107   2              if (TSM_List[i].InvokeID == 0) {
+ 108   3                  /* one is available! */
+ 109   3                  status = true;
+ 110   3                  break;
+ 111   3              }
+ 112   2          }
+ 113   1      
+C51 COMPILER V9.06   TSM                                                                   01/28/2013 13:37:43 PAGE 3   
+
+ 114   1          return status;
+ 115   1      }
+ 116          
+ 117          uint8_t tsm_transaction_idle_count(
+ 118              void)
+ 119          {
+ 120   1          uint8_t count = 0;  /* return value */
+ 121   1          unsigned i = 0;     /* counter */
+ 122   1      
+ 123   1          for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
+ 124   2              if ((TSM_List[i].InvokeID == 0) &&
+ 125   2                  (TSM_List[i].state == TSM_STATE_IDLE)) {
+ 126   3                  /* one is available! */
+ 127   3                  count++;
+ 128   3              }
+ 129   2          }
+ 130   1      
+ 131   1          return count;
+ 132   1      }
+ 133          
+ 134          /* sets the invokeID */
+ 135          
+ 136          void tsm_invokeID_set(
+ 137              uint8_t invokeID)
+ 138          {
+ 139   1          if (invokeID == 0) {
+ 140   2              invokeID = 1;
+ 141   2          }
+ 142   1          Current_Invoke_ID = invokeID;
+ 143   1      }
+ 144          
+ 145          /* gets the next free invokeID,
+ 146             and reserves a spot in the table
+ 147             returns 0 if none are available */
+ 148          uint8_t tsm_next_free_invokeID(
+ 149              void)
+ 150          {
+ 151   1          uint8_t index = 0;
+ 152   1          uint8_t invokeID = 0;
+ 153   1          bool found = false;
+ 154   1      
+ 155   1          /* is there even space available? */
+ 156   1          if (tsm_transaction_available()) {
+ 157   2              while (!found) {
+ 158   3                  index = tsm_find_invokeID_index(Current_Invoke_ID);
+ 159   3                  if (index == MAX_TSM_TRANSACTIONS) {
+ 160   4                      /* Not found, so this invokeID is not used */
+ 161   4                      found = true;
+ 162   4                      /* set this id into the table */
+ 163   4                      index = tsm_find_first_free_index();
+ 164   4                      if (index != MAX_TSM_TRANSACTIONS) {
+ 165   5                          TSM_List[index].InvokeID = invokeID = Current_Invoke_ID;
+ 166   5                          TSM_List[index].state = TSM_STATE_IDLE;
+ 167   5                          TSM_List[index].RequestTimer = apdu_timeout();
+ 168   5                          /* update for the next call or check */
+ 169   5                          Current_Invoke_ID++;
+ 170   5                          /* skip zero - we treat that internally as invalid or no free */
+ 171   5                          if (Current_Invoke_ID == 0) {
+ 172   6                              Current_Invoke_ID = 1;
+ 173   6                          }
+ 174   5                      }
+ 175   4                  } else {
+C51 COMPILER V9.06   TSM                                                                   01/28/2013 13:37:43 PAGE 4   
+
+ 176   4                      /* found! This invokeID is already used */
+ 177   4                      /* try next one */
+ 178   4                      Current_Invoke_ID++;
+ 179   4                      /* skip zero - we treat that internally as invalid or no free */
+ 180   4                      if (Current_Invoke_ID == 0) {
+ 181   5                          Current_Invoke_ID = 1;
+ 182   5                      }
+ 183   4                  }
+ 184   3              }
+ 185   2          }
+ 186   1      
+ 187   1          return invokeID;
+ 188   1      }
+ 189          
+ 190          void tsm_set_confirmed_unsegmented_transaction(
+ 191              uint8_t invokeID,
+ 192              BACNET_ADDRESS * dest,
+ 193              BACNET_NPDU_DATA * ndpu_data,
+ 194              uint8_t * apdu,
+ 195              uint16_t apdu_len)
+ 196          {
+ 197   1          uint16_t j = 0;
+ 198   1          uint8_t index;
+ 199   1      
+ 200   1          if (invokeID) {
+ 201   2              index = tsm_find_invokeID_index(invokeID);
+ 202   2              if (index < MAX_TSM_TRANSACTIONS) {
+ 203   3                  /* SendConfirmedUnsegmented */
+ 204   3                  TSM_List[index].state = TSM_STATE_AWAIT_CONFIRMATION;
+ 205   3                  TSM_List[index].RetryCount = 0;
+ 206   3                  /* start the timer */
+ 207   3                  TSM_List[index].RequestTimer = apdu_timeout();
+ 208   3                  /* copy the data */
+ 209   3                  for (j = 0; j < apdu_len; j++) {
+ 210   4                      TSM_List[index].apdu[j] = apdu[j];
+ 211   4                  }
+ 212   3                  TSM_List[index].apdu_len = apdu_len;
+ 213   3                  npdu_copy_data(&TSM_List[index].npdu_data, ndpu_data);
+ 214   3                  bacnet_address_copy(&TSM_List[index].dest, dest);
+ 215   3              }
+ 216   2          }
+ 217   1      
+ 218   1          return;
+ 219   1      }
+ 220          
+ 221          /* used to retrieve the transaction payload */
+ 222          /* if we wanted to find out what we sent (i.e. when we get an ack) */
+ 223          bool tsm_get_transaction_pdu(
+ 224              uint8_t invokeID,
+ 225              BACNET_ADDRESS * dest,
+ 226              BACNET_NPDU_DATA * ndpu_data,
+ 227              uint8_t * apdu,
+ 228              uint16_t * apdu_len)
+ 229          {
+ 230   1          uint16_t j = 0;
+ 231   1          uint8_t index;
+ 232   1          bool found = false;
+ 233   1      
+ 234   1          if (invokeID) {
+ 235   2              index = tsm_find_invokeID_index(invokeID);
+ 236   2              /* how much checking is needed?  state?  dest match? just invokeID? */
+ 237   2              if (index < MAX_TSM_TRANSACTIONS) {
+C51 COMPILER V9.06   TSM                                                                   01/28/2013 13:37:43 PAGE 5   
+
+ 238   3                  /* FIXME: we may want to free the transaction so it doesn't timeout */
+ 239   3                  /* retrieve the transaction */
+ 240   3                  /* FIXME: bounds check the pdu_len? */
+ 241   3                  *apdu_len = (uint16_t) TSM_List[index].apdu_len;
+ 242   3                  for (j = 0; j < *apdu_len; j++) {
+ 243   4                      apdu[j] = TSM_List[index].apdu[j];
+ 244   4                  }
+ 245   3                  npdu_copy_data(ndpu_data, &TSM_List[index].npdu_data);
+ 246   3                  bacnet_address_copy(dest, &TSM_List[index].dest);
+ 247   3                  found = true;
+ 248   3              }
+ 249   2          }
+ 250   1      
+ 251   1          return found;
+ 252   1      }
+ 253          
+ 254          /* called once a millisecond or slower */
+ 255          void tsm_timer_milliseconds(
+ 256              uint16_t milliseconds)
+ 257          {
+ 258   1          unsigned i = 0;     /* counter */
+ 259   1      
+ 260   1          for (i = 0; i < MAX_TSM_TRANSACTIONS; i++) {
+ 261   2              if (TSM_List[i].state == TSM_STATE_AWAIT_CONFIRMATION) {
+ 262   3                  if (TSM_List[i].RequestTimer > milliseconds)
+ 263   3                      TSM_List[i].RequestTimer -= milliseconds;
+ 264   3                  else
+ 265   3                      TSM_List[i].RequestTimer = 0;
+ 266   3                  /* AWAIT_CONFIRMATION */
+ 267   3                  if (TSM_List[i].RequestTimer == 0) {
+ 268   4                      if (TSM_List[i].RetryCount < apdu_retries()) {
+ 269   5                          TSM_List[i].RequestTimer = apdu_timeout();
+ 270   5                          TSM_List[i].RetryCount++;
+ 271   5                          datalink_send_pdu(&TSM_List[i].dest,
+ 272   5                              &TSM_List[i].npdu_data, &TSM_List[i].apdu[0],
+ 273   5                              TSM_List[i].apdu_len);
+ 274   5                      } else {
+ 275   5                          /* note: the invoke id has not been cleared yet
+ 276   5                             and this indicates a failed message:
+ 277   5                             IDLE and a valid invoke id */
+ 278   5                          TSM_List[i].state = TSM_STATE_IDLE;
+ 279   5                      }
+ 280   4                  }
+ 281   3              }
+ 282   2          }
+ 283   1      }
+ 284          
+ 285          /* frees the invokeID and sets its state to IDLE */
+ 286          void tsm_free_invoke_id(
+ 287              uint8_t invokeID)
+ 288          {
+ 289   1          uint8_t index;
+ 290   1      
+ 291   1          index = tsm_find_invokeID_index(invokeID);
+ 292   1          if (index < MAX_TSM_TRANSACTIONS) {
+ 293   2              TSM_List[index].state = TSM_STATE_IDLE;
+ 294   2              TSM_List[index].InvokeID = 0;
+ 295   2          }
+ 296   1      }
+ 297          
+ 298          /** Check if the invoke ID has been made free by the Transaction State Machine.
+ 299           * @param invokeID [in] The invokeID to be checked, normally of last message sent.
+C51 COMPILER V9.06   TSM                                                                   01/28/2013 13:37:43 PAGE 6   
+
+ 300           * @return True if it is free (done with), False if still pending in the TSM.
+ 301           */
+ 302          bool tsm_invoke_id_free(
+ 303              uint8_t invokeID)
+ 304          {
+ 305   1          bool status = true;
+ 306   1          uint8_t index;
+ 307   1      
+ 308   1          index = tsm_find_invokeID_index(invokeID);
+ 309   1          if (index < MAX_TSM_TRANSACTIONS)
+ 310   1              status = false;
+ 311   1      
+ 312   1          return status;
+ 313   1      }
+ 314          
+ 315          /** See if we failed get a confirmation for the message associated
+ 316           *  with this invoke ID.
+ 317           * @param invokeID [in] The invokeID to be checked, normally of last message sent.
+ 318           * @return True if already failed, False if done or segmented or still waiting
+ 319           *         for a confirmation.
+ 320           */
+ 321          bool tsm_invoke_id_failed(
+ 322              uint8_t invokeID)
+ 323          {
+ 324   1          bool status = false;
+ 325   1          uint8_t index;
+ 326   1      
+ 327   1          index = tsm_find_invokeID_index(invokeID);
+ 328   1          if (index < MAX_TSM_TRANSACTIONS) {
+ 329   2              /* a valid invoke ID and the state is IDLE is a
+ 330   2                 message that failed to confirm */
+ 331   2              if (TSM_List[index].state == TSM_STATE_IDLE)
+ 332   2                  status = true;
+ 333   2          }
+ 334   1      
+ 335   1          return status;
+ 336   1      }
+ 337          
+ 338          
+ 339          #endif /* MAX_TSM_TRANSACTIONS */
+ 340          #endif
+ 341          
+ 342          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1805    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   9946      41
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

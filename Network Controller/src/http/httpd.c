@@ -46,6 +46,8 @@
 #include "8563.h"
 #include "../main/main.h"
 #include "../i2c/e2prom.h"
+#include "../gsm/gsm.h"
+#include "../scan/scan.h"
 
 /* NAMING CONSTANT DECLARATIONS */
 
@@ -68,6 +70,7 @@ static U8_T http_NewConfig(void);
 static void	http_DivideHtmlFile(HTTP_SERVER_CONN XDATA*, U8_T);
 extern  void Led_ReSet();
 
+extern U8_T bacnet_id ;
 
 /* LOCAL VARIABLES */
 static U8_T XDATA PostTable[MAX_POST_COUNT];
@@ -80,19 +83,17 @@ U8_T  far Setime[8];
 //U8_T  SetimeFlag;
 U8_T ChangeFlash=0;
 
-U8_T TsataId ;	  // from modbustcp
-U8_T bytesN ;	//Mupitlewrite byte number
 
 unsigned char dbuf[6]={0,0,0,0,0,0};
 U8_T  far Para[400]; 
 U8_T  far  Parame[400] = {
-0, 0x01 , 0 , 1 , 0 , 0x01 , 0, 0,  0, 12 ,	//fireware version :69.11
-0, 69 ,0 , 9,0, 0x64 ,0 ,0x1a ,0, 0xFF ,		//hardware	version :26  [bootloader version :14]
-0, 0xFF ,0, 20, 0, 0 ,  0, 0xFF, 0 , 0x0e ,
-0, 0xFF ,0,0x01, 0, 24, 0, 2,  0, 1, 			//16 register for ISP state
-0, 1, 0, 1, 0, 3, 0, 1, 0, 1, 
-0, 1, 0, 1 ,0, 1, 0, 1, 0, 1, 
-0, 1, 0, 1 ,0, 1, 0 ,1, 0, 1, 
+0 , 0x06 , 0 , 0 , 0 , 0x00 , 0, 0,  0, 10 ,
+0 , 63 ,0 , 9,0, 0x64 ,0 ,0xFF ,0, 0xFF ,
+0 , 0xFF ,0, 20, 0, 0 ,  0, 0xFF, 0 , 0xFF ,
+0 , 0xFF ,0,0x01, 0, 24, 0, 2,  0, 1, //16 register for ISP state
+0,  1, 0, 1, 0, 3, 0, 1, 0, 1, 
+0 , 1, 0, 1 ,0, 1, 0, 1, 0, 1, 
+0 ,1, 0, 1 ,0, 1, 0 ,1, 0, 1, 
 0, 1 ,0, 1, 0, 1 ,0, 1, 0, 1, 
 0, 1, 0, 1 ,0, 1, 0, 1, 0, 1, 
 0, 1, 0, 1, 0, 1 ,0 ,1, 0, 1 ,
@@ -104,7 +105,7 @@ U8_T  far  Parame[400] = {
 0 ,1 ,0, 1, 0, 1 ,0, 1, 0, 1, 
 0 ,1, 0 ,1, 0, 1, 0, 1, 0, 1 ,
 0 ,1 ,0 ,1, 0, 1, 0, 1, 0, 1, 
-0 ,0 ,0, 1, 0, 1, 0, 0, 0, 1 ,	//Modified by Evan, for MAC addrss changeable.
+0 ,0 ,0, 1, 0, 1, 0, 0, 0, 1 ,//Modified by Evan, for MAC addrss changeable.
 0 ,1, 0, 1, 0, 1 ,0, 1, 0, 4 ,    
 
 0, 0, 0 ,1, 0, 0xFF ,0 ,0xFF, 0,0xFF,
@@ -128,10 +129,7 @@ U8_T  far  Parame[400] = {
 0, 1 ,0 ,1, 0, 1 ,0, 1,
 0 ,1 ,0 ,1 ,0 ,1, 0, 1, 0, 1 ,
 0, 1 ,0 ,1, 0 ,1, 0, 1, 0, 0,     
-} ;  
-
-
-
+};  
 
 U16_T sessonid;
 U16_T sessonlen;
@@ -216,7 +214,6 @@ void InitCRC16(void)
 	CRClo = 0xFF;
 	CRChi = 0xFF;
 }
-
 //-------------------crc16_tstat ---------------------
 // calculate crc with one byte
 void CRC16_Tstat(unsigned char ch)
@@ -226,7 +223,6 @@ void CRC16_Tstat(unsigned char ch)
 	CRChi = CRClo ^ auchCRCHi[uIndex] ;
 	CRClo = auchCRCLo[uIndex] ;
 }
-
 
 
 // Used to verify the CRC on a received packet.
@@ -469,7 +465,7 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 
 	U32_T i;
     U16_T z;
-	U8_T NTFlag=0;
+	U8_T NTFlag = 0;
     U16_T SeCount; 
     U16_T StartAdd;  
     U8_T RealNum;
@@ -480,6 +476,12 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
     U8_T far temp_number;
 	U8_T far temp_address;    
 	U8_T far send_buffer;
+
+
+
+//	P3_4 = ~ P3_4;
+
+
 
 	sessonid = ((U16_T)pData[0] << 8) | pData[1];
 
@@ -505,7 +507,7 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 		else*/ if(pData[UIP_HEAD + 1] == 0x19) //scan Tsnet
 		{
 			TcpSocket_ME = pHttpConn->TcpSocket;
-
+			LED = S485_OK;
 
 		    Sever_Order = SERVER_TCPIP;
 			Sever_id = pData[UIP_HEAD];
@@ -522,12 +524,7 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 			send_tcp[StartAdd++] = CRChi;
 		    send_tcp[StartAdd++] = CRClo;
 
-			Tx_To_Tstat(send_tcp, StartAdd);			
-		
-		#if 0
-			DELAY_Ms(40);
-			Uart2_Receive();
-		#endif					 	
+			Tx_To_Tstat(send_tcp, StartAdd);
 		}
 	    else if(pData[UIP_HEAD+1] == READ_VARIABLES)  //读命令
 		{
@@ -655,7 +652,7 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 						send_tcp[UIP_HEAD + 3 + loop * 2] = 0;	
 						send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = send_buffer;	
 					}
-					else if( StartAdd + loop >= MODBUS_WR_OFFTIME_FIRST && StartAdd + loop < MODBUS_TOTAL_PARAMETERS )
+					else if( StartAdd + loop >= MODBUS_WR_OFFTIME_FIRST && StartAdd + loop < MODBUS_WR_OFFTIME_LAST )
 					{
 						// --- send first byte -------------			
 						
@@ -666,6 +663,47 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 						send_tcp[UIP_HEAD + 3 + loop * 2] = 0;	
 						send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = send_buffer;				
 					}
+					else if((StartAdd + loop) == MODBUS_SCAN_DB_CTR)
+					{
+						send_tcp[UIP_HEAD + 3 + loop * 2] = 0;	
+						send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = db_ctr;
+					}
+					else if(((StartAdd + loop) >= MODBUS_SCAN_DB_START) && ((StartAdd + loop) < MODBUS_SCAN_DB_LAST))
+					{
+						temp_number = (StartAdd + loop - MODBUS_SCAN_DB_START) / SCAN_DB_SIZE;
+						temp_address = (StartAdd + loop - MODBUS_SCAN_DB_START) % SCAN_DB_SIZE;
+						if(temp_address == 0)
+						{
+							send_buffer = scan_db[temp_number].id;
+						}
+						else
+						{
+							send_buffer = (U8_T)(scan_db[temp_number].sn >> (8 * temp_address - 8));
+						}
+						send_tcp[UIP_HEAD + 3 + loop * 2] = 0;	
+						send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = send_buffer;
+					}
+					else if(((StartAdd + loop) >= MODBUS_GSM_START) && ((StartAdd + loop) < MODBUS_GSM_LAST))
+					{
+						temp_number = StartAdd + loop - MODBUS_GSM_START;
+						send_tcp[UIP_HEAD + 3 + loop * 2] = 0;	
+						send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = phoneNumber[temp_number];					 // LJ
+					}
+/*-------------------------  read select 485 id  ----------------------------------------*/
+					else if(((StartAdd + loop) >= MODBUS_BACNET_START) && ((StartAdd + loop) < MODBUS_BACNET_LAST))
+				    {
+					
+//						send_tcp[UIP_HEAD + 3 + loop * 2] = 0;	
+//						send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = bacnet_id;
+
+						send_tcp[UIP_HEAD] = pData[UIP_HEAD];
+						send_tcp[UIP_HEAD + 1] = pData[UIP_HEAD + 1];
+						send_tcp[UIP_HEAD + 2] = 0x02;
+						send_tcp[UIP_HEAD + 3] = 0x00;
+						send_tcp[UIP_HEAD + 4] = bacnet_id;
+
+					}
+
 ///////////////////////////////////////////////////////////
 					else if(StartAdd == 0xee10) //for ISP read address of 0xee10
 					{  
@@ -697,7 +735,7 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 						memset(ID_Config, 0, MAX_ID * ID_SIZE);
 						Para[30] = 0;
 						Para[31] = 0;
-						ChangeFlash = 2;
+						ChangeFlash = 1;
 					}
 				}
 				else if(StartAdd == 106)
@@ -723,7 +761,7 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 				{
 					Para[2*StartAdd] = pData[UIP_HEAD + 4]; 	//write to bufffer array high bit
 					Para[2*StartAdd + 1] = pData[UIP_HEAD + 5];	//write to bufffer array low bit
-					ChangeFlash = 2;
+					ChangeFlash = 1;
 				}
 			}
 			else if((StartAdd >= SCHEDUAL_MODBUS_ADDRESS) && (StartAdd < SCHEDUAL_MODBUS_ADDRESS + 8))
@@ -770,6 +808,26 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 						break;
 				}
 			}
+
+			//.....
+
+
+			else if(StartAdd == MODBUS_BACNET_START)
+			{
+				
+				send_tcp[UIP_HEAD] = pData[UIP_HEAD];
+				send_tcp[UIP_HEAD + 1] = pData[UIP_HEAD + 1];
+				send_tcp[UIP_HEAD + 2] = 0x1b;		   			//addr 7014
+				send_tcp[UIP_HEAD + 3] = 0x66;
+				send_tcp[UIP_HEAD + 4] = 0x00;	
+				bacnet_id = pData[UIP_HEAD + 5]	;
+				send_tcp[UIP_HEAD + 5] = bacnet_id;
+
+
+			    ChangeFlash = 1;
+			}
+			
+			
 											
 			if(StartAdd != 0x10)//for ISP, not respond if address == 0x10
 			{ 
@@ -785,37 +843,31 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 		{
 			ChangeFlash = 1;
 			StartAdd = (pData[UIP_HEAD+2] << 8) + pData[UIP_HEAD + 3]; //起始地址
-		
-			bytesN = 12;
-		
-		
-			if(StartAdd == 100)
+			if((StartAdd == 100) && (pData[UIP_HEAD + 6] == 12))
 			{
-				if(pData[UIP_HEAD + 6] == 12)
-				{
-					Para[201] = pData[UIP_HEAD + 8];
-					Para[203] = pData[UIP_HEAD + 10];
-					Para[205] = pData[UIP_HEAD + 12];
-					Para[207] = pData[UIP_HEAD + 14];
-					Para[209] = pData[UIP_HEAD + 16];
-					Para[211] = pData[UIP_HEAD + 18];
-	
-					mac_change_enable = 1;
-					ChangeIP = 1;
-				}
+				Para[201] = pData[UIP_HEAD + 8];
+				Para[203] = pData[UIP_HEAD + 10];
+				Para[205] = pData[UIP_HEAD + 12];
+				Para[207] = pData[UIP_HEAD + 14];
+				Para[209] = pData[UIP_HEAD + 16];
+				Para[211] = pData[UIP_HEAD + 18];
+
+				mac_change_enable = 1;
+				ChangeIP = 1;
 			}
 		    else if(StartAdd < SCHEDUAL_MODBUS_ADDRESS)
 			{
-				for(i = 0; i < RealNum; i++)
+				for(i = 0; i < pData[UIP_HEAD + 6]; i++)
 				{
 					if((StartAdd < 100) || (StartAdd > 105))  
-						Para[StartAdd++] = pData[UIP_HEAD + i];
+						Para[2 * StartAdd + i] = pData[UIP_HEAD + i];
+
 				} 
 			}
 			else if(StartAdd == SCHEDUAL_MODBUS_ADDRESS) //200th register ,write time 
 			{
-	//					if((StartAdd - SCHEDUAL_MODBUS_ADDRESS) % 8 == 0)
-	//						memcpy(Time.UN.Setime,&pData[UIP_HEAD + 7], 8);
+//				if((StartAdd - SCHEDUAL_MODBUS_ADDRESS) % 8 == 0)
+//					memcpy(Time.UN.Setime,&pData[UIP_HEAD + 7], 8);
 				if(pData[UIP_HEAD + 5] == 8)
 				{
 					if(pData[UIP_HEAD + 5] == pData[UIP_HEAD + 6])
@@ -829,7 +881,6 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 							pData[UIP_HEAD + 9] |= 0x80;
 						else
 							pData[UIP_HEAD + 9] &= 0x7f;
-
 						Time.UN.Setime[2] = pData[UIP_HEAD + 9];
 						Time.UN.Setime[1] = pData[UIP_HEAD + 8];
 						Time.UN.Setime[0] = pData[UIP_HEAD + 7];
@@ -845,7 +896,6 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 							pData[UIP_HEAD + 12] |= 0x80;
 						else
 							pData[UIP_HEAD + 12] &= 0x7f;
-
 						Time.UN.Setime[2] = pData[UIP_HEAD + 12];
 						Time.UN.Setime[1] = pData[UIP_HEAD + 10];
 						Time.UN.Setime[0] = pData[UIP_HEAD + 8];
@@ -902,6 +952,36 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 					memcpy(WR_Roution[i].OffTime,&pData[UIP_HEAD + 7],WR_TIME_SIZE);
 				}
 			}
+
+
+
+			/////////////////////////////////			  LJ  GSM电话号码
+			else if(StartAdd == MODBUS_GSM_START)
+			{
+				if(pData[UIP_HEAD + 6] == (PHONE_NUM_SIZE * 2))
+				{
+					phoneNumber[0] = pData[UIP_HEAD + 8];
+					phoneNumber[1] = pData[UIP_HEAD + 10];
+					phoneNumber[2] = pData[UIP_HEAD + 12];
+					phoneNumber[3] = pData[UIP_HEAD + 14];
+					phoneNumber[4] = pData[UIP_HEAD + 16];
+					phoneNumber[5] = pData[UIP_HEAD + 18];
+					phoneNumber[6] = pData[UIP_HEAD + 20];
+					phoneNumber[7] = pData[UIP_HEAD + 22];
+					phoneNumber[8] = pData[UIP_HEAD + 24];
+					phoneNumber[9] = pData[UIP_HEAD + 26];
+					phoneNumber[10] = pData[UIP_HEAD + 28];
+					phoneNumber[11] = pData[UIP_HEAD + 30];
+					phoneNumber[12] = pData[UIP_HEAD + 32];
+					phoneNumber[13] = pData[UIP_HEAD + 34];
+				}
+				ChangeFlash = 1;
+
+			}
+			////////////////////////////////////
+
+
+
 			else
 			{i=0;}
 			
@@ -913,8 +993,6 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 //		sessonid = ((U16_T)pData[0] << 8) | pData[1];
 		Set_transaction_ID(send_tcp, RealNum);
     
-		LED = Ethnet_OK;
-
 		if(NTFlag == 1)	//read
 		{
 			LED = Ethnet_OK;
@@ -943,11 +1021,7 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 	else
 	{
 		EA = 0; 
-
-		LED = Ethnet_OK;
-
-		TsataId = pData[UIP_HEAD];
-
+		LED = S485_OK;
 		TcpSocket_ME = pHttpConn->TcpSocket;
 //		sessonid = ((U16_T)pData[0] << 8) | pData[1];
 		if(pData[UIP_HEAD + 1] == READ_VARIABLES)
@@ -958,7 +1032,7 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 		{
 			sessonlen = 6;
 		}
-
+ 
 	    Sever_Order = SERVER_TCPIP;
 		Sever_id = pData[UIP_HEAD];
 	
@@ -975,13 +1049,7 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 	    send_tcp[StartAdd++] = CRClo;
 	
 		EA = 1;
-//		Uart0_Tx(send_tcp, StartAdd);//////////////////
 		Tx_To_Tstat(send_tcp, StartAdd);
-	#if 0
-		DELAY_Ms(40);
-		Uart2_Receive();
-	#endif
-	
 	}
 } /* End of HTTP_Receive() */
 

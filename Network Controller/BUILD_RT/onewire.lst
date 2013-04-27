@@ -1,0 +1,1351 @@
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 1   
+
+
+C51 COMPILER V9.06, COMPILATION OF MODULE ONEWIRE
+OBJECT MODULE PLACED IN .\onewire.obj
+COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\onewire\onewire.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X602
+                    -0) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur
+                    -\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SR
+                    -C\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\
+                    -;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\onewire.lst) OBJECT(.\on
+                    -ewire.obj)
+
+line level    source
+
+   1          /*
+   2           *********************************************************************************
+   3           *     Copyright (c) 2005       ASIX Electronic Corporation      All rights reserved.
+   4           *
+   5           *     This is unpublished proprietary source code of ASIX Electronic Corporation
+   6           *
+   7           *     The copyright notice above does not evidence any actual or intended
+   8           *     publication of such source code.
+   9           *********************************************************************************
+  10           */
+  11          /*================================================================================
+  12           * Module Name : onewire.c
+  13           * Purpose     : This module handles the OneWire serial interface driver.
+  14           * Author      : Robin Lee
+  15           * Date        : 2005-03-31
+  16           * Notes       :
+  17           * $Log: onewire.c,v $
+  18           * Revision 1.6  2005/11/24 12:51:35  robin6633
+  19           * initiate values of use.
+  20           *
+  21           * Revision 1.5  2005/11/01 13:19:08  robin6633
+  22           * fixed OD_MATCH_ROM state changed.
+  23           *
+  24           * Revision 1.4  2005/08/31 02:06:07  robin6633
+  25           * Added the rom code CRC8 cheching and memory data CRC16 checking.
+  26           *
+  27           * Revision 1.3  2005/08/17 06:48:22  robin6633
+  28           * no message
+  29           *
+  30           * Revision 1.2  2005/06/14 02:50:12  arthur
+  31           * changed interrupt.h include
+  32           *
+  33           * Revision 1.1.1.1  2005/06/06 05:55:57  robin6633
+  34           * no message
+  35           *
+  36           *================================================================================
+  37           */
+  38          
+  39          /* INCLUDE FILE DECLARATIONS */
+  40          #include        <stdio.h>
+  41          #include        "reg80390.h"
+  42          #include        "types.h"
+  43          //#include      "buffer.h"
+  44          #include        "onewire.h"
+  45          #include        "delay.h"
+  46          #include        <intrins.h>
+  47          /* STATIC VARIABLE DECLARATIONS */
+  48          static OW_BUF   owpkt;
+  49          static U8_T             owromcmd = 0;
+  50          static U8_T             owmemcmd = 0;
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 2   
+
+  51          static U8_T             owrombitarray[64];
+  52          static U8_T             rcflag = 0;
+  53          static U8_T             odflag = 0;
+  54          static U16_T    owtxcnt = 0;
+  55          static U16_T    owrxcnt = 0;
+  56          static U8_T             owstate = 0;
+  57          static U8_T             owrdbyte = 0;
+  58          static U8_T             crc8 = 0;
+  59          static U16_T    crc16 = 0;
+  60          static U8_T             owrdmemdata[144];
+  61          static U8_T             intrflag = 0;
+  62          static U8_T             intrenbflag = 0;
+  63          static U8_T             romcodebuf[MAX_SERIAL_BUF_NUM*8] = 
+  64                                          {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+  65          
+  66          static U16_T    lastdiscrepancy = 0;
+  67          static U16_T    lastdeviceflag = 0;
+  68          static U16_T    lastfamilydiscrepancy = 0;
+  69          static U16_T    searchresult = 0;
+  70          static U16_T    serialbufnum = 0;
+  71          
+  72          static U16_T    oddparity[16] = { 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0 };
+  73          static U8_T             crc8table[] = {
+  74                    0, 94,188,226, 97, 63,221,131,194,156,126, 32,163,253, 31, 65,
+  75                  157,195, 33,127,252,162, 64, 30, 95,  1,227,189, 62, 96,130,220,
+  76                   35,125,159,193, 66, 28,254,160,225,191, 93,  3,128,222, 60, 98,
+  77                  190,224,  2, 92,223,129, 99, 61,124, 34,192,158, 29, 67,161,255,
+  78                   70, 24,250,164, 39,121,155,197,132,218, 56,102,229,187, 89,  7,
+  79                  219,133,103, 57,186,228,  6, 88, 25, 71,165,251,120, 38,196,154,
+  80                  101, 59,217,135,  4, 90,184,230,167,249, 27, 69,198,152,122, 36,
+  81                  248,166, 68, 26,153,199, 37,123, 58,100,134,216, 91,  5,231,185,
+  82                  140,210, 48,110,237,179, 81, 15, 78, 16,242,172, 47,113,147,205,
+  83                   17, 79,173,243,112, 46,204,146,211,141,111, 49,178,236, 14, 80,
+  84                  175,241, 19, 77,206,144,114, 44,109, 51,209,143, 12, 82,176,238,
+  85                   50,108,142,208, 83, 13,239,177,240,174, 76, 18,145,207, 45,115,
+  86                  202,148,118, 40,171,245, 23, 73,  8, 86,180,234,105, 55,213,139,
+  87                   87,  9,235,181, 54,104,138,212,149,203, 41,119,244,170, 72, 22,
+  88                  233,183, 85, 11,136,214, 52,106, 43,117,151,201, 74, 20,246,168,
+  89                  116, 42,200,150, 21, 75,169,247,182,232, 10, 84,215,137,107, 53
+  90          };
+  91          
+  92          
+  93          /* LOCAL SUBPROGRAM DECLARATIONS */
+  94          static void             ONEWIRE_IntrBitsEnb(U8_T bits);
+  95          static void             ONEWIRE_IntrBitsDisb(U8_T bits);
+  96          //static BOOL           ONEWIRE_ByteXmit(U8_T owbytedata);
+  97          //static U8_T           ONEWIRE_ByteRcvr(void);
+  98          static void             ONEWIRE_RomFunc(void);
+  99          static void             ONEWIRE_RomCodeToBit(void);
+ 100          
+ 101          #if MEMORY_SECTIONS
+              static void             ONEWIRE_MemCmdChk(void);
+              static void             ONEWIRE_MemFunc(void);
+              #endif
+ 105          
+ 106          
+ 107          /* LOCAL SUBPROGRAM BODIES */
+ 108          
+ 109          /*
+ 110           *--------------------------------------------------------------------------------
+ 111           * static void ONEWIRE_IntrBitsEnb(U8_T Bits)
+ 112           * Purpose :
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 3   
+
+ 113           * Params  :
+ 114           * Returns :
+ 115           * Note    :
+ 116           *--------------------------------------------------------------------------------
+ 117           */
+ 118          static void ONEWIRE_IntrBitsEnb(U8_T bits)
+ 119          {
+ 120   1              U8_T    regval = 0;
+ 121   1      
+ 122   1              intrenbflag = bits;
+ 123   1              ONEWIRE_Cmd(SI_RD, OWIER, &regval);
+ 124   1              regval = regval | bits;
+ 125   1              ONEWIRE_Cmd(SI_WR, OWIER, &regval);
+ 126   1      }
+ 127          
+ 128          /*
+ 129           *--------------------------------------------------------------------------------
+ 130           * static void ONEWIRE_IntrBitsDisb(U8_T bits)
+ 131           * Purpose :
+ 132           * Params  :
+ 133           * Returns :
+ 134           * Note    :
+ 135           *--------------------------------------------------------------------------------
+ 136           */
+ 137          static void ONEWIRE_IntrBitsDisb(U8_T bits)
+ 138          {
+ 139   1              U8_T    regval = 0;
+ 140   1      
+ 141   1              ONEWIRE_Cmd(SI_RD, OWIER, &regval);
+ 142   1              regval = regval & (~bits);
+ 143   1              ONEWIRE_Cmd(SI_WR, OWIER, &regval);
+ 144   1      }
+ 145          
+ 146          /*
+ 147           *--------------------------------------------------------------------------------
+ 148           * static BOOL ONEWIRE_ByteXmit(U8_T owbytedata)
+ 149           * Purpose :
+ 150           * Params  :
+ 151           * Returns :
+ 152           * Note    :
+ 153           *--------------------------------------------------------------------------------
+ 154           */
+ 155          BOOL ONEWIRE_ByteXmit(U8_T owbytedata)
+ 156          {
+ 157   1              U8_T    temprxbyte = 0;
+ 158   1              U8_T    checkflag = 0;
+ 159   1      
+ 160   1              ONEWIRE_Cmd(SI_WR, OWTRR, &owbytedata);
+ 161   1      
+ 162   1              intrflag = 0;
+ 163   1              ONEWIRE_IntrBitsEnb(OW_TSREI_ENB);
+ 164   1              while (1)
+ 165   1              {
+ 166   2                      if (intrflag & OW_TSRE)
+ 167   2                              break;
+ 168   2              }
+ 169   1              intrflag = 0;
+ 170   1      
+ 171   1      //      SiCmd(SI_WR, OWTRR, &owbytedata);
+ 172   1              
+ 173   1              while (1)
+ 174   1              {
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 4   
+
+ 175   2                      ONEWIRE_Cmd(SI_RD, OWISR, &checkflag);
+ 176   2                      if (checkflag & OW_RBF)
+ 177   2                              break;
+ 178   2              }
+ 179   1      
+ 180   1              ONEWIRE_Cmd(SI_RD, OWTRR, &temprxbyte);
+ 181   1      
+ 182   1              return (temprxbyte == owbytedata) ? TRUE : FALSE;
+ 183   1      }
+ 184          
+ 185          /*
+ 186           *--------------------------------------------------------------------------------
+ 187           * static U8_T ONEWIRE_ByteRcvr(void)
+ 188           * Purpose :
+ 189           * Params  :
+ 190           * Returns :
+ 191           * Note    :
+ 192           *--------------------------------------------------------------------------------
+ 193           */
+ 194          U8_T ONEWIRE_ByteRcvr(void)
+ 195          {
+ 196   1              U8_T    temptxbyte = 0;
+ 197   1              U8_T    temprxbyte = 0;
+ 198   1              U8_T    checkflag = 0;
+ 199   1      
+ 200   1              while (1)
+ 201   1              {
+ 202   2                      ONEWIRE_Cmd(SI_RD, OWISR, &checkflag);
+ 203   2                      if (checkflag & OW_TSRE)
+ 204   2                              break;
+ 205   2              }
+ 206   1              temptxbyte = 0xFF;
+ 207   1              ONEWIRE_Cmd(SI_WR, OWTRR, &temptxbyte);
+ 208   1      
+ 209   1              ONEWIRE_IntrBitsEnb(OW_RBFI_ENB);
+ 210   1              while (!(intrflag & OW_RBF)) {};
+ 211   1              intrflag = 0;
+ 212   1      
+ 213   1              ONEWIRE_Cmd(SI_RD, OWTRR, &temprxbyte);
+ 214   1      
+ 215   1              return temprxbyte;
+ 216   1      }
+ 217          
+ 218          /*
+ 219           *--------------------------------------------------------------------------------
+ 220           * static void ONEWIRE_MemCmdChk(void)
+ 221           * Purpose :
+ 222           * Params  :
+ 223           * Returns :
+ 224           * Note    :
+ 225           *--------------------------------------------------------------------------------
+ 226           */
+ 227          #if MEMORY_SECTIONS
+              static void ONEWIRE_MemCmdChk(void)
+              {
+                      if (owstate & MEM_CMD_STATE)
+                      {
+                              if (ONEWIRE_ByteXmit(owmemcmd))
+                              {
+                                      owstate = MEM_SEQ_STATE;
+                                      owtxcnt = 0;
+                                      owrxcnt = 0;
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 5   
+
+                                      crc8 = 0;
+                                      crc16 = 0;
+                              }
+                              else
+                              {
+                                      ONEWIRE_Reset();
+                              }
+                      }
+              }
+              #endif
+ 247          
+ 248          
+ 249          /*
+ 250           *--------------------------------------------------------------------------------
+ 251           * void ONEWIRE_RomFunc(void)
+ 252           * Purpose :
+ 253           * Params  :
+ 254           * Returns :
+ 255           * Note    :
+ 256           *--------------------------------------------------------------------------------
+ 257           */
+ 258          void ONEWIRE_RomFunc(void)
+ 259          {
+ 260   1              U8_T    cmdregval = 0;
+ 261   1              U8_T    crc8check = 0;
+ 262   1              U8_T    i;
+ 263   1      
+ 264   1              if ((owromcmd == SKIP_ROM) || (owromcmd == OD_SKIP_ROM))
+ 265   1              {
+ 266   2              }
+ 267   1              else if (owromcmd == READ_ROM)
+ 268   1              {
+ 269   2                      if (owrxcnt < 8)
+ 270   2                      {
+ 271   3                              owpkt.Romarray[owrxcnt] = ONEWIRE_ByteRcvr();
+ 272   3                              owrxcnt ++;
+ 273   3                              if (owrxcnt == 8)
+ 274   3                              {
+ 275   4                                      owrxcnt = 0;
+ 276   4                                      rcflag = 0;
+ 277   4                                      ONEWIRE_SetCrc8(0);
+ 278   4                                      for (i=0 ; i<8 ; i++)
+ 279   4                                      {
+ 280   5                                              crc8check = ONEWIRE_DoCrc8(owpkt.Romarray[i]);
+ 281   5                                      }
+ 282   4                                      if (crc8check == 0)
+ 283   4                                      {
+ 284   5                                              if (owmemcmd)
+ 285   5                                                      owstate = MEM_CMD_STATE;
+ 286   5                                              else
+ 287   5                                                      owstate = IDLE_STATE;
+ 288   5                                      }
+ 289   4                                      else
+ 290   4                                      {
+ 291   5                                              owstate = IDLE_STATE | CRC_ERR;
+ 292   5                                      }
+ 293   4                              }
+ 294   3                      }
+ 295   2              }
+ 296   1      #if MULTI_DEVICES
+                      if ((owromcmd == MATCH_ROM) || (owromcmd == OD_MATCH_ROM))
+                      {
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 6   
+
+                              if (owtxcnt < 8)
+                              {
+                                      if (!ONEWIRE_ByteXmit(owpkt.Romarray[owtxcnt]))
+                                      {
+                                              odflag = 0;
+                                              /* Setup OneWire Command mode */
+                                              ONEWIRE_Cmd(SI_RD, OWCMDR, &cmdregval);
+                                              cmdregval = cmdregval & ~OW_OD;
+                                              ONEWIRE_Cmd(SI_WR, OWCMDR, &cmdregval);
+                                              ONEWIRE_Reset();
+                                              return;
+                                      }
+                                      owtxcnt ++;
+                                      if (owtxcnt == 8)
+                                      {
+                                              owtxcnt = 0;
+                                              rcflag = 1;
+                                              
+                                              if (owmemcmd)
+                                                      owstate = MEM_CMD_STATE;
+                                              else
+                                                      owstate = IDLE_STATE;
+                                      }
+                              }
+                      }
+              #endif
+ 325   1              else if (owromcmd == SEARCH_ROM)
+ 326   1              {
+ 327   2                      ONEWIRE_SearchRomFunc();
+ 328   2                      owstate = IDLE_STATE;
+ 329   2              }
+ 330   1      }
+ 331          
+ 332          #if MEMORY_SECTIONS
+              /*
+               *--------------------------------------------------------------------------------
+               * static void ONEWIRE_MemFunc(void)
+               * Purpose :
+               * Params  :
+               * Returns :
+               * Note    :
+               *--------------------------------------------------------------------------------
+               */
+              static void ONEWIRE_MemFunc(void)
+              {
+                      U8_T    temprxd = 0;
+                      U8_T    sysclk = 0;
+              
+                      if (owstate & MEM_SEQ_STATE)
+                      {
+                              if (owmemcmd == WRITE_SCRPAD)
+                              {
+                                      if (owtxcnt < 11)
+                                      {
+                                              ONEWIRE_ByteXmit(owpkt.Memarray[owtxcnt]);
+                                              owtxcnt ++;
+                                              if (owtxcnt == 2)
+                                              {
+                                                      owtxcnt ++;
+                                              }
+                                      }
+                                      else
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 7   
+
+                                      {
+                                              owpkt.Memarray[owtxcnt] = ONEWIRE_ByteRcvr();
+                                              owtxcnt ++;
+                                              if (owtxcnt == 13)
+                                              {
+                                                      owtxcnt = 0;
+                                                      owstate = IDLE_STATE;
+                                              }
+                                      }
+                              }
+                              else if (owmemcmd == READ_SCRPAD)
+                              {
+                                      if (owrxcnt < 3)
+                                      {
+                                              owpkt.Memarray[owrxcnt] = ONEWIRE_ByteRcvr();
+                                              owrxcnt ++;
+                                              if (owrxcnt == 3)
+                                              {
+                                                      // ES Byte check
+                                                      if (!(owpkt.Memarray[2] & AA_FLAG) && !(owpkt.Memarray[2] & PF_FLAG))
+                                                              owrdbyte = (owpkt.Memarray[2] & 0x07) - (owpkt.Memarray[0] & 0x07) + 1;
+                                                      else
+                                                              owstate = IDLE_STATE;
+                                              }
+                                      }
+                                      else
+                                      {
+                                              owpkt.Memarray[owrxcnt] = ONEWIRE_ByteRcvr();
+                                              owrxcnt ++;
+                                              if (owrxcnt == 13)
+                                              {
+                                                      owrxcnt = 0;
+                                                      owstate = IDLE_STATE;
+                                              }
+                                      }
+                              }
+                              else if (owmemcmd == COPY_SCRPAD)
+                              {
+                                      if (owtxcnt < 3)
+                                      {
+                                              U32_T   i;
+              
+                                              ONEWIRE_ByteXmit(owpkt.Memarray[owtxcnt]);
+                                              owtxcnt ++;
+                                              if (owtxcnt == 3)
+                                              {
+                                                      sysclk = CSREPR & 0xC0;
+                                                      switch (sysclk)
+                                                      {
+                                                              case SCS_100M :
+                                                                      // Baud rate = 9600 @ 100MHz.
+                                                                      for (i=0 ; i<4800 ; i++)
+                                                                      {
+                                                                      }
+                                                                      break;
+                                                              case SCS_50M :
+                                                                      // Baud rate = 9600 @ 50MHz.
+                                                                      for (i=0 ; i<2400 ; i++)
+                                                                      {
+                                                                      }
+                                                                      break;
+                                                              case SCS_25M :
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 8   
+
+                                                                      // Baud rate = 9600 @ 25MHz.
+                                                                      for (i=0 ; i<1200 ; i++)
+                                                                      {
+                                                                      }
+                                                                      break;
+                                                      }
+                                              }
+                                      }
+                                      else
+                                      {
+                                              temprxd = ONEWIRE_ByteRcvr();
+                                              if (temprxd == 0xAA)
+                                              {
+                                                      owtxcnt = 0;
+                                                      owstate = IDLE_STATE;
+                                              }
+                                      }
+                              }
+                              else if (owmemcmd == CONVERT_T)
+                              {
+                                      owstate = IDLE_STATE;
+                              }
+                              else if (owmemcmd == READ_MEMORY)
+                              {
+                                      if (owtxcnt < 2)
+                                      {
+                                              ONEWIRE_ByteXmit(owpkt.Memarray[owtxcnt]);
+                                              owtxcnt ++;
+                                              if (owtxcnt == 2)
+                                              {
+                                                      owrxcnt = 0;
+                                              }
+                                      }
+                                      else
+                                      {
+                                              owrdmemdata[owrxcnt] = ONEWIRE_ByteRcvr();
+                                              owrxcnt ++;
+                                              if (owrxcnt == MAX_DATA_LEN)
+                                              {
+                                                      owtxcnt = 0;
+                                                      owrxcnt = 0;
+                                                      owstate = IDLE_STATE;
+                                              }
+                                      }
+                                      
+                              }
+                      }
+              }
+              #endif
+ 472          
+ 473          /*
+ 474           *--------------------------------------------------------------------------------
+ 475           * static void ONEWIRE_RomCodeToBit(void)
+ 476           * Purpose :
+ 477           * Params  :
+ 478           * Returns :
+ 479           * Note    :
+ 480           *--------------------------------------------------------------------------------
+ 481           */
+ 482          static void ONEWIRE_RomCodeToBit(void)
+ 483          {
+ 484   1              U8_T    i, j;
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 9   
+
+ 485   1      
+ 486   1              for (i = 0 ; i < 8 ; i ++)
+ 487   1              {
+ 488   2                      for (j = 0 ; j < 8 ; j ++)
+ 489   2                      {
+ 490   3                              owrombitarray[8 * i + j] = (owpkt.Romarray[i] >> j) & BIT0;
+ 491   3                      }
+ 492   2              }
+ 493   1      }
+ 494          
+ 495          
+ 496          /* EXPORTED SUBPROGRAM BODIES */
+ 497          
+ 498          /*
+ 499           *--------------------------------------------------------------------------------
+ 500           * void ONEWIRE_RomCmdChk(void)
+ 501           * Purpose :
+ 502           * Params  :
+ 503           * Returns :
+ 504           * Note    :
+ 505           *--------------------------------------------------------------------------------
+ 506           */
+ 507          void ONEWIRE_RomCmdChk(void)
+ 508          {
+ 509   1              U8_T    cmdregval = 0;
+ 510   1      
+ 511   1                      if (ONEWIRE_ByteXmit(owromcmd))
+ 512   1                      {
+ 513   2                              switch (owromcmd)
+ 514   2                              {
+ 515   3                                      case READ_ROM :
+ 516   3                                              rcflag = 0;
+ 517   3                                              owrxcnt = 0;
+ 518   3                                              owstate = ROM_SEQ_STATE;
+ 519   3                                              break;
+ 520   3                                      #if MULTI_DEVICES
+                                              case MATCH_ROM :
+                                                      rcflag = 0;
+                                                      owstate = ROM_SEQ_STATE;
+                                                      ONEWIRE_RomCodeToBit();
+                                              //      ONEWIRE_SetCmdReg(OW_BIT_CTRL);
+                                                      break;
+                                              #endif
+ 528   3                                      case SEARCH_ROM :
+ 529   3                                              rcflag = 0;
+ 530   3                                              owstate = ROM_SEQ_STATE;
+ 531   3                                      //      ONEWIRE_SetCtrlReg(OW_SRA);
+ 532   3                                              /* initialize for search */
+ 533   3                                      //      lastdiscrepancy = 0;
+ 534   3                                      //      lastdeviceflag = FALSE;
+ 535   3                                      //      lastfamilydiscrepancy = 0;
+ 536   3                                              break;
+ 537   3                                      case SKIP_ROM :
+ 538   3                                              rcflag = 0;
+ 539   3                                              owstate = MEM_CMD_STATE;
+ 540   3                                              break;
+ 541   3                                      case RESUME_ROM :
+ 542   3                                              if (rcflag == 1)
+ 543   3                                              {
+ 544   4                                                      owstate = MEM_CMD_STATE;
+ 545   4                                              }
+ 546   3                                              else
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 10  
+
+ 547   3                                              {
+ 548   4                                                      ONEWIRE_Reset();
+ 549   4                                              }
+ 550   3                                              break;
+ 551   3                                      case OD_SKIP_ROM :
+ 552   3                                              rcflag = 0;
+ 553   3                                              odflag = 1;
+ 554   3                                              owstate = MEM_CMD_STATE;
+ 555   3                                              /* Setup OneWire Command mode */
+ 556   3                                              ONEWIRE_Cmd(SI_RD, OWCMDR, &cmdregval);
+ 557   3                                              cmdregval = cmdregval | OW_OD;
+ 558   3                                              ONEWIRE_Cmd(SI_WR, OWCMDR, &cmdregval);
+ 559   3                                              break;
+ 560   3                                      #if MULTI_DEVICES
+                                              case OD_MATCH_ROM :
+                                                      rcflag = 0;
+                                                      odflag = 1;
+                                                      owstate = ROM_SEQ_STATE;
+                                              //      ONEWIRE_SetCmdReg(OW_BIT_CTRL);
+                                                      /* Setup OneWire Command mode */
+                                                      ONEWIRE_Cmd(SI_RD, OWCMDR, &cmdregval);
+                                                      cmdregval = cmdregval | OW_OD;
+                                                      ONEWIRE_Cmd(SI_WR, OWCMDR, &cmdregval);
+                                                      break;
+                                              #endif
+ 572   3                              }
+ 573   2                      }
+ 574   1      
+ 575   1      }
+ 576          
+ 577          /*
+ 578           *--------------------------------------------------------------------------------
+ 579           * void ONEWIRE_Setup(U8_T ctrlcmd1, U8_T ctrlcmd2, U8_T intrenb, U8_T clkdiv)
+ 580           * Purpose : Setup the operation mode of One Wire.
+ 581           * Params  :
+ 582           * Returns :
+ 583           * Note    :
+ 584           *--------------------------------------------------------------------------------
+ 585           */
+ 586          void ONEWIRE_Setup(U8_T ctrlcmd1, U8_T ctrlcmd2, U8_T intrenb, U8_T clkdiv)
+ 587          {
+ 588   1              U16_T   i;
+ 589   1      
+ 590   1              owpkt.Romcmd = 0;
+ 591   1              owpkt.Memcmd = 0;
+ 592   1              for (i=0 ; i<8 ; i++)
+ 593   1                      owpkt.Romarray[i] = 0;
+ 594   1              for (i=0 ;  i<8 ; i++)
+ 595   1                      owpkt.Memarray[i] = 0;
+ 596   1              owromcmd = 0;
+ 597   1              owmemcmd = 0;
+ 598   1              rcflag = 0;
+ 599   1              odflag = 0;
+ 600   1              owtxcnt = 0;
+ 601   1              owrxcnt = 0;
+ 602   1              owstate = 0;
+ 603   1              owrdbyte = 0;
+ 604   1              crc8 = 0;
+ 605   1              crc16 = 0;
+ 606   1              intrflag = 0;
+ 607   1              intrenbflag = 0;
+ 608   1      
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 11  
+
+ 609   1              lastdiscrepancy = 0;
+ 610   1              lastdeviceflag = 0;
+ 611   1              lastfamilydiscrepancy = 0;
+ 612   1              searchresult = 0;
+ 613   1              serialbufnum = 0;
+ 614   1      
+ 615   1              for (i=0 ; i<64 ; i++)
+ 616   1                      owrombitarray[i] = 0;
+ 617   1              for (i=0 ; i<144 ; i++) 
+ 618   1                      owrdmemdata[i] = 0;
+ 619   1      
+ 620   1              /* Setup OneWire Control mode */
+ 621   1              ONEWIRE_SetCtrlReg(ctrlcmd1);
+ 622   1              /* Setup OneWire Command mode */
+ 623   1              ONEWIRE_SetCmdReg(ctrlcmd2);    
+ 624   1              /* Enable intertupe flag type of OneWire */
+ 625   1              ONEWIRE_IntrBitsEnb(intrenb);
+ 626   1              /* OneWire clock rate selection */
+ 627   1              ONEWIRE_SetClk(clkdiv);
+ 628   1      }
+ 629          
+ 630          /*
+ 631           *--------------------------------------------------------------------------------
+ 632           * void ONEWIRE_SetClk(U8_T clkdiv)
+ 633           * Purpose : Setup the clock devide of One Wire.
+ 634           * Params  :
+ 635           * Returns :
+ 636           * Note    :
+ 637           *--------------------------------------------------------------------------------
+ 638           */
+ 639          void ONEWIRE_SetClk(U8_T clkdiv)
+ 640          {
+ 641   1              /* OneWire clock rate selection */
+ 642   1              ONEWIRE_Cmd(SI_WR, OWCLKDIV, &clkdiv);
+ 643   1      }
+ 644          
+ 645          /*
+ 646           *--------------------------------------------------------------------------------
+ 647           * void ONEWIRE_SetCtrlReg(U8_T ctrlreg)
+ 648           * Purpose : Setup the control register of One Wire.
+ 649           * Params  :
+ 650           * Returns :
+ 651           * Note    :
+ 652           *--------------------------------------------------------------------------------
+ 653           */
+ 654          void ONEWIRE_SetCtrlReg(U8_T ctrlreg)
+ 655          {
+ 656   1              /* Setup OneWire Control mode */
+ 657   1              ONEWIRE_Cmd(SI_WR, OWCTRLR, &ctrlreg);
+ 658   1      }
+ 659          
+ 660          /*
+ 661           *--------------------------------------------------------------------------------
+ 662           * void ONEWIRE_SetCmdReg(U8_T cmdreg)
+ 663           * Purpose : Setup the command register of One Wire.
+ 664           * Params  :
+ 665           * Returns :
+ 666           * Note    :
+ 667           *--------------------------------------------------------------------------------
+ 668           */
+ 669          void ONEWIRE_SetCmdReg(U8_T cmdreg)
+ 670          {
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 12  
+
+ 671   1              U8_T    regval;
+ 672   1      
+ 673   1              ONEWIRE_Cmd(SI_RD, OWCMDR, &regval);
+ 674   1              regval = regval | cmdreg;
+ 675   1              /* Setup OneWire Command mode */
+ 676   1              ONEWIRE_Cmd(SI_WR, OWCMDR, &regval);
+ 677   1      }
+ 678          
+ 679          /*
+ 680           *--------------------------------------------------------------------------------
+ 681           * void ONEWIRE_DeSetCmdReg(U8_T cmdReg)
+ 682           * Purpose : Setup the command register of One Wire.
+ 683           * Params  : cmdReg - command register value.
+ 684           * Returns : None.
+ 685           * Note    : None.
+ 686           *--------------------------------------------------------------------------------
+ 687           */
+ 688          void ONEWIRE_DeSetCmdReg(U8_T cmdReg)
+ 689          {
+ 690   1              U8_T    regVal;
+ 691   1      
+ 692   1              ONEWIRE_Cmd(SI_RD, OWCMDR, &regVal);
+ 693   1              regVal &= ~cmdReg;
+ 694   1              /* Setup OneWire Command mode */
+ 695   1              ONEWIRE_Cmd(SI_WR, OWCMDR, &regVal);
+ 696   1      }
+ 697          
+ 698          /*
+ 699           *--------------------------------------------------------------------------------
+ 700           * void ONEWIRE_Func(void)
+ 701           * Purpose : Handling serial interface OneWire interrupt function.
+ 702           * Params  :
+ 703           * Returns :
+ 704           * Note    :
+ 705           *--------------------------------------------------------------------------------
+ 706           */
+ 707          void ONEWIRE_Func(void)
+ 708          {
+ 709   1              U8_T    owstatus;
+ 710   1      
+ 711   1                      /* Disable Transmit Buffer Empty Interrupt of OneWire */
+ 712   1                      ONEWIRE_IntrBitsDisb(OW_RBFI_ENB | OW_RSRFI_ENB | OW_TBEI_ENB | OW_TSREI_ENB);
+ 713   1              
+ 714   1                      ONEWIRE_Cmd(SI_RD, OWISR, &owstatus);
+ 715   1      
+ 716   1                      if (owstatus & OW_PD)
+ 717   1                      {
+ 718   2                              owromcmd = owpkt.Romcmd;
+ 719   2                              owmemcmd = owpkt.Memcmd;
+ 720   2                              owtxcnt  = 0;
+ 721   2                              owrxcnt  = 0;
+ 722   2                              owstate = ROM_CMD_STATE;
+ 723   2                              intrflag = OW_PDR;
+ 724   2                      }
+ 725   1                      if ((owstatus & OW_RBF) && (intrenbflag & OW_RBFI_ENB))
+ 726   1                      {
+ 727   2                              intrflag |= OW_RBF;
+ 728   2                      }
+ 729   1                      if ((owstatus & OW_TSRE) && (intrenbflag & OW_TSREI_ENB))
+ 730   1                      {
+ 731   2                              intrflag |= OW_TSRE;
+ 732   2                      }
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 13  
+
+ 733   1      }
+ 734          
+ 735          /*
+ 736           *--------------------------------------------------------------------------------
+ 737           * void ONEWIRE_SearchRom(void)
+ 738           * Purpose :
+ 739           * Params  :
+ 740           * Returns :
+ 741           * Note    :
+ 742           *--------------------------------------------------------------------------------
+ 743           */
+ 744          void ONEWIRE_SearchRomFunc(void)
+ 745          {
+ 746   1      //      U16_T   i;
+ 747   1              U16_T   bitnumber = 1;
+ 748   1              U16_T   lastzero = 0;
+ 749   1              U16_T   rombytenumber = 0;
+ 750   1              U16_T   rombit = 0;
+ 751   1              U16_T   cmprombit = 0;
+ 752   1              U8_T    rombytemask = 1;
+ 753   1              U8_T    searchbit = 0;
+ 754   1              U8_T    lastcrc8 = 0;
+ 755   1      
+ 756   1              bitnumber = 1;
+ 757   1              lastzero = 0;
+ 758   1              rombytenumber = 0;
+ 759   1              rombytemask = 1;
+ 760   1              searchresult = 0;
+ 761   1              ONEWIRE_SetCrc8(0);
+ 762   1              // if the last search was not the last one
+ 763   1      //      if (1)
+ 764   1      //      {
+ 765   1                      ONEWIRE_SetCmdReg(OW_BIT_CTRL);
+ 766   1                      // loop to do the search
+ 767   1                      do // loop until through all ROM bytes 0-7
+ 768   1                      {
+ 769   2                              // read a bit and its complement
+ 770   2                              rombit = ONEWIRE_ByteRcvr();
+ 771   2                              cmprombit = ONEWIRE_ByteRcvr();
+ 772   2                              // check for no devices on 1-wire
+ 773   2                              if ((rombit == 1) && (cmprombit == 1))
+ 774   2                                      ONEWIRE_Reset();
+ 775   2                              else
+ 776   2                              {
+ 777   3                                      // all devices coupled have 0 or 1
+ 778   3                                      if (rombit != cmprombit)
+ 779   3                                              searchbit = rombit; // bit write value for search
+ 780   3                                      else
+ 781   3                                      {
+ 782   4                                              // if this discrepancy is before the Last Discrepancy
+ 783   4                                              // on a previous next then pick the same as last time
+ 784   4                                              if (bitnumber < lastdiscrepancy)
+ 785   4                                                      searchbit = ((owpkt.Romarray[rombytenumber] & rombytemask) > 0);
+ 786   4                                              else
+ 787   4                                              // if equal to last pick 1, if not then pick 0
+ 788   4                                                      searchbit = (bitnumber == lastdiscrepancy);
+ 789   4                                              // if 0 was picked then record its position in LastZero
+ 790   4                                              if (searchbit == 0)
+ 791   4                                              {
+ 792   5                                                      lastzero = bitnumber;
+ 793   5                                                      // check for Last discrepancy in family
+ 794   5                                                      if (lastzero < 9)
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 14  
+
+ 795   5                                                              lastfamilydiscrepancy = lastzero;
+ 796   5                                              }
+ 797   4                                      }
+ 798   3                                      // set or clear the bit in the ROM byte rom_byte_number
+ 799   3                                      // with mask rom_byte_mask
+ 800   3                                      if (searchbit == 1)
+ 801   3                                              owpkt.Romarray[rombytenumber] |= rombytemask;
+ 802   3                                      else
+ 803   3                                              owpkt.Romarray[rombytenumber] &= ~rombytemask;
+ 804   3                                      // serial number search direction write bit
+ 805   3                                      if (!ONEWIRE_ByteXmit(searchbit))
+ 806   3                                              searchresult = FALSE;
+ 807   3                                      // increment the byte counter id_bit_number
+ 808   3                                      // and shift the mask rom_byte_mask
+ 809   3                                      bitnumber ++;
+ 810   3                                      rombytemask <<= 1;
+ 811   3                                      // if the mask is 0 then go to new SerialNum byte RomByteNumber and reset mask
+ 812   3                                      if (rombytemask == 0)
+ 813   3                                      {
+ 814   4                                              lastcrc8 = ONEWIRE_DoCrc8(owpkt.Romarray[rombytenumber]); // accumulate the CRC
+ 815   4                                              rombytenumber ++;
+ 816   4                                              rombytemask = 1;
+ 817   4                                      }
+ 818   3                              }
+ 819   2                      }
+ 820   1                      while (rombytenumber < 8) ;
+ 821   1                      ONEWIRE_DeSetCmdReg(OW_BIT_CTRL);
+ 822   1                      // if the search was successful then
+ 823   1                      if ((bitnumber > 64) && (lastcrc8 == 0))
+ 824   1                      {
+ 825   2                              // search successful so set lastdiscrepancy,lastdeviceflag,search_result
+ 826   2                              lastdiscrepancy = lastzero;
+ 827   2                              // check for last device
+ 828   2                              if (lastdiscrepancy == 0)
+ 829   2                              {
+ 830   3                                      lastdeviceflag = 1;
+ 831   3                              }
+ 832   2      
+ 833   2                              searchresult = TRUE;
+ 834   2                      }
+ 835   1      //      }
+ 836   1      }
+ 837          
+ 838          /*
+ 839           *--------------------------------------------------------------------------------
+ 840           * BOOL ONEWIRE_StateChk(U8_T state)
+ 841           * Purpose :
+ 842           * Params  :
+ 843           * Returns :
+ 844           * Note    :
+ 845           *--------------------------------------------------------------------------------
+ 846           */
+ 847          BOOL ONEWIRE_StateChk(U8_T state)
+ 848          {
+ 849   1              if (owstate & state)
+ 850   1              {
+ 851   2                      return TRUE;
+ 852   2              }
+ 853   1              else
+ 854   1              {
+ 855   2                      return FALSE;
+ 856   2              }
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 15  
+
+ 857   1      }
+ 858          
+ 859          /*
+ 860           *--------------------------------------------------------------------------------
+ 861           * BOOL ONEWIRE_LastDeviceChk(void)
+ 862           * Purpose :
+ 863           * Params  :
+ 864           * Returns :
+ 865           * Note    :
+ 866           *--------------------------------------------------------------------------------
+ 867           */
+ 868          BOOL ONEWIRE_LastDeviceChk(void)
+ 869          {
+ 870   1              if (lastdeviceflag)
+ 871   1              {
+ 872   2                      return TRUE;
+ 873   2              }
+ 874   1              else
+ 875   1              {
+ 876   2                      return FALSE;
+ 877   2              }
+ 878   1      }
+ 879          
+ 880          /*
+ 881           *--------------------------------------------------------------------------------
+ 882           * void ONEWIRE_StateFunc(void)
+ 883           * Purpose :
+ 884           * Params  :
+ 885           * Returns :
+ 886           * Note    :
+ 887           *--------------------------------------------------------------------------------
+ 888           */
+ 889          void ONEWIRE_StateFunc(void)
+ 890          {
+ 891   1              if (owstate & ROM_SEQ_STATE)
+ 892   1              {
+ 893   2                      ONEWIRE_RomFunc();
+ 894   2              }
+ 895   1              else if (owstate & ROM_CMD_STATE)
+ 896   1              {
+ 897   2                      ONEWIRE_RomCmdChk();
+ 898   2              }
+ 899   1      #if MEMORY_SECTIONS
+                      else if (owstate & MEM_SEQ_STATE)
+                      {
+                              ONEWIRE_MemFunc();
+                      }
+                      else if (owstate & MEM_CMD_STATE)
+                      {
+                              ONEWIRE_MemCmdChk();
+                      }
+              #endif
+ 909   1      }
+ 910          
+ 911          /*
+ 912           *--------------------------------------------------------------------------------
+ 913           * BOOL ONEWIRE_Reset(void)
+ 914           * Purpose :
+ 915           * Params  :
+ 916           * Returns :
+ 917           * Note    :
+ 918           *--------------------------------------------------------------------------------
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 16  
+
+ 919           */
+ 920          BOOL ONEWIRE_Reset(void)
+ 921          {
+ 922   1              U8_T    resetcmd = 0;
+ 923   1      
+ 924   1              owstate = ROM_CMD_STATE;
+ 925   1              intrflag = 0;
+ 926   1              resetcmd = OW_RESET;
+ 927   1              ONEWIRE_Cmd(SI_WR, OWCTRLR, &resetcmd);
+ 928   1      
+ 929   1              while (1)
+ 930   1              {
+ 931   2                      if (intrflag & OW_PDR)
+ 932   2                              break;
+ 933   2              }
+ 934   1      
+ 935   1              intrflag = 0;
+ 936   1      
+ 937   1              ONEWIRE_Cmd(SI_RD, OWISR, &resetcmd);
+ 938   1      
+ 939   1              return (resetcmd & OW_PDR) ? FALSE : TRUE;
+ 940   1      }
+ 941          
+ 942          /*
+ 943           *--------------------------------------------------------------------------------
+ 944           * void ONEWIRE_SetCrc8(U8_T setval)
+ 945           * Purpose :
+ 946           * Params  :
+ 947           * Returns :
+ 948           * Note    :
+ 949           *--------------------------------------------------------------------------------
+ 950           */
+ 951          void ONEWIRE_SetCrc8(U8_T setval)
+ 952          {
+ 953   1         crc8 = setval;
+ 954   1      }
+ 955          
+ 956          /*
+ 957           *--------------------------------------------------------------------------------
+ 958           * void ONEWIRE_SetCrc16(U16_T setval)
+ 959           * Purpose :
+ 960           * Params  :
+ 961           * Returns :
+ 962           * Note    :
+ 963           *--------------------------------------------------------------------------------
+ 964           */
+ 965          void ONEWIRE_SetCrc16(U16_T setval)
+ 966          {
+ 967   1         crc16 = setval;
+ 968   1      }
+ 969          
+ 970          /*
+ 971           *--------------------------------------------------------------------------------
+ 972           * void ONEWIRE_StartSearch(void)
+ 973           * Purpose :
+ 974           * Params  :
+ 975           * Returns :
+ 976           * Note    :
+ 977           *--------------------------------------------------------------------------------
+ 978           */
+ 979          void ONEWIRE_StartSearch(void)
+ 980          {
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 17  
+
+ 981   1              lastdiscrepancy = 0;
+ 982   1              lastdeviceflag = 0;
+ 983   1              lastfamilydiscrepancy = 0;
+ 984   1              serialbufnum = 0;
+ 985   1      }
+ 986          
+ 987          /*
+ 988           *--------------------------------------------------------------------------------
+ 989           * U8_T ONEWIRE_DoCrc8(U8_T bytedata)
+ 990           * Purpose :
+ 991           * Params  :
+ 992           * Returns :
+ 993           * Note    :
+ 994           *--------------------------------------------------------------------------------
+ 995           */
+ 996          U8_T ONEWIRE_DoCrc8(U8_T bytedata)
+ 997          {
+ 998   1              crc8 = crc8table[crc8 ^ bytedata];
+ 999   1              return crc8;
+1000   1      }
+1001          
+1002          /*
+1003           *--------------------------------------------------------------------------------
+1004           * U16_T DoCrc16(U16_T worddata)
+1005           * Purpose :
+1006           * Params  :
+1007           * Returns :
+1008           * Note    :
+1009           *--------------------------------------------------------------------------------
+1010           */
+1011          U16_T ONEWIRE_DoCrc16(U16_T worddata)
+1012          {
+1013   1              worddata = (worddata ^ (crc16 & 0x00FF)) & 0x00FF;
+1014   1              crc16 >>= 8;
+1015   1      
+1016   1              if (oddparity[worddata & 0x000F] ^ oddparity[worddata >> 4])
+1017   1                      crc16 ^= 0xC001;
+1018   1      
+1019   1              worddata <<= 6;
+1020   1              crc16 ^= worddata;
+1021   1              worddata <<= 1;
+1022   1              crc16 ^= worddata;
+1023   1      
+1024   1              return crc16;
+1025   1      }
+1026          
+1027          /*
+1028           *--------------------------------------------------------------------------------
+1029           * void ONEWIRE_SendPkt(OW_BUF *ptsend)
+1030           * Purpose : 
+1031           * Params  :
+1032           * Returns :
+1033           * Note    :
+1034           *--------------------------------------------------------------------------------
+1035           */
+1036          void ONEWIRE_SendPkt(OW_BUF *ptsend)
+1037          {
+1038   1              owpkt = *ptsend;
+1039   1      }
+1040          
+1041          /*
+1042           *--------------------------------------------------------------------------------
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 18  
+
+1043           * OW_BUF *ONEWIRE_GetCurBuf(void)
+1044           * Purpose : 
+1045           * Params  :
+1046           * Returns :
+1047           * Note    :
+1048           *--------------------------------------------------------------------------------
+1049           */
+1050          OW_BUF *ONEWIRE_GetCurBuf(void)
+1051          {
+1052   1      //      for (i=0 ; i<8 ; i++)
+1053   1      //              P0=owpkt.RomArray[i];
+1054   1              return (&owpkt);
+1055   1      }
+1056          
+1057          #if MEMORY_SECTIONS
+              /*
+               *--------------------------------------------------------------------------------
+               * U8_T *ONEWIRE_GetRdMemData(void)
+               * Purpose :
+               * Params  :
+               * Returns :
+               * Note    :
+               *--------------------------------------------------------------------------------
+               */
+              U8_T *ONEWIRE_GetRdMemData(void)
+              {
+                      return (&owrdmemdata[0]);
+              }
+              #endif
+1072          
+1073          /*
+1074           *--------------------------------------------------------------------------------
+1075           * U8_T *ONEWIRE_GetRomCode(void)
+1076           * Purpose :
+1077           * Params  :
+1078           * Returns :
+1079           * Note    :
+1080           *--------------------------------------------------------------------------------
+1081           */
+1082          U8_T *ONEWIRE_GetRomCode(void)
+1083          {
+1084   1              return (&romcodebuf[0]);
+1085   1      }
+1086          
+1087          /*
+1088           *--------------------------------------------------------------------------------
+1089           * BOOL ONEWIRE_Search(U8_T *ptrom)
+1090           * Purpose : Handling serial interface OneWire interrupt function.
+1091           * Params  :
+1092           * Returns :
+1093           * Note    :
+1094           *--------------------------------------------------------------------------------
+1095           */
+1096          BOOL ONEWIRE_Search(U8_T *ptrom)
+1097          {
+1098   1              U16_T   i, j;
+1099   1              OW_BUF *ptsearch = NULL;
+1100   1      
+1101   1              for (j=0 ; j<MAX_SERIAL_BUF_NUM ; j++)
+1102   1              {
+1103   2                      for (i=0 ; i<8 ; i++)
+1104   2                      {
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 19  
+
+1105   3                              romcodebuf[i+(j*8)] = 0;
+1106   3                      }
+1107   2              }
+1108   1              i=0;
+1109   1              j=0;
+1110   1      //      ptsearch = (OW_BUF *)GetPktBuf();
+1111   1              ptsearch = &owpkt;
+1112   1      
+1113   1              ptsearch->Romcmd = SEARCH_ROM;
+1114   1              for (i=0 ; i<8 ; i++)
+1115   1                      ptsearch->Romarray[i] = 0;
+1116   1              ptsearch->Memcmd = 0;
+1117   1              for (i=0 ; i<8 ; i++)
+1118   1                      ptsearch->Memarray[i] = 0;
+1119   1              ONEWIRE_SendPkt(ptsearch);
+1120   1              ONEWIRE_StartSearch();
+1121   1      
+1122   1              while (1)
+1123   1              {
+1124   2                      if (!ONEWIRE_Reset())
+1125   2                              break;
+1126   2                      while (1)
+1127   2                      {
+1128   3                              ONEWIRE_StateFunc();
+1129   3                              if (ONEWIRE_StateChk(IDLE_STATE) == TRUE)
+1130   3                                      break;
+1131   3                      }
+1132   2                      ptsearch = ONEWIRE_GetCurBuf();
+1133   2      
+1134   2                      for (i=0 ; i<8 ; i++)
+1135   2                      {
+1136   3                              *(ptrom + (i+(j*8))) = ptsearch->Romarray[i];
+1137   3                              romcodebuf[i+(j*8)] = ptsearch->Romarray[i];
+1138   3                      }
+1139   2                      j ++;
+1140   2      
+1141   2                      if (j == MAX_SERIAL_BUF_NUM)
+1142   2                              break;
+1143   2                      if (ONEWIRE_LastDeviceChk())
+1144   2                              break;
+1145   2              }
+1146   1              return TRUE;
+1147   1      }
+1148          
+1149          /*
+1150           *--------------------------------------------------------------------------------
+1151           * BOOL ONEWIRE_Match(OW_BUF *ptmatch)
+1152           * Purpose : Handling serial interface OneWire interrupt function.
+1153           * Params  :
+1154           * Returns :
+1155           * Note    :
+1156           *--------------------------------------------------------------------------------
+1157           */
+1158          #if MULTI_DEVICES
+              BOOL ONEWIRE_Match(OW_BUF *ptmatch)
+              {
+                      ONEWIRE_SendPkt(ptmatch);
+              
+                      if (!ONEWIRE_Reset())
+                              return FALSE;
+              
+                      while (1)
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 20  
+
+                      {
+                              ONEWIRE_StateFunc();
+                              if (ONEWIRE_StateChk(IDLE_STATE) == TRUE)
+                                      break;
+                      }
+                      if (ONEWIRE_StateChk(CRC_ERR) == TRUE)
+                      {
+                              return FALSE;
+                      }
+              
+                      return TRUE;
+              }
+              #endif
+1180          
+1181          /*
+1182           *--------------------------------------------------------------------------------
+1183           * BOOL ONEWIRE_ReadRom(U8_T *ptrom)
+1184           * Purpose : Handling serial interface OneWire interrupt function.
+1185           * Params  :
+1186           * Returns :
+1187           * Note    :
+1188           *--------------------------------------------------------------------------------
+1189           */
+1190          BOOL ONEWIRE_ReadRom(U8_T *ptrom)
+1191          {
+1192   1              U16_T   i;
+1193   1              OW_BUF XDATA    *ptreadrom = NULL;
+1194   1      
+1195   1      //      ptreadrom = (OW_BUF *)GetPktBuf();
+1196   1              ptreadrom = &owpkt;
+1197   1      
+1198   1              ptreadrom->Romcmd = READ_ROM;
+1199   1              for (i=0 ; i<8 ; i++)
+1200   1                      ptreadrom->Romarray[i] = 0;
+1201   1              ptreadrom->Memcmd = 0;
+1202   1      
+1203   1              ONEWIRE_SendPkt(ptreadrom);
+1204   1      
+1205   1              if (!ONEWIRE_Reset())
+1206   1                      return FALSE;
+1207   1      
+1208   1              while (1)
+1209   1              {
+1210   2                      ONEWIRE_StateFunc();
+1211   2                      if (ONEWIRE_StateChk(IDLE_STATE) == TRUE)
+1212   2                              break;
+1213   2              }
+1214   1              if (ONEWIRE_StateChk(CRC_ERR) == TRUE)
+1215   1              {
+1216   2                      return FALSE;
+1217   2              }
+1218   1      
+1219   1              ptreadrom = ONEWIRE_GetCurBuf();
+1220   1              for (i=0 ; i<8 ; i++)
+1221   1              {
+1222   2                      *(ptrom + i) = ptreadrom->Romarray[i];
+1223   2              }
+1224   1      
+1225   1              return TRUE;
+1226   1      }
+1227          
+1228          /*
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 21  
+
+1229           *--------------------------------------------------------------------------------
+1230           * BOOL ONEWIRE_OdSkip(OW_BUF *ptodskip)
+1231           * Purpose : Handling serial interface OneWire interrupt function.
+1232           * Params  :
+1233           * Returns :
+1234           * Note    :
+1235           *--------------------------------------------------------------------------------
+1236           */
+1237          BOOL ONEWIRE_OdSkip(OW_BUF *ptodskip)
+1238          {
+1239   1              ONEWIRE_SendPkt(ptodskip);
+1240   1      
+1241   1              if (!ONEWIRE_Reset())
+1242   1                      return FALSE;
+1243   1      
+1244   1              while (1)
+1245   1              {
+1246   2                      ONEWIRE_StateFunc();
+1247   2                      if (ONEWIRE_StateChk(MEM_CMD_STATE) == TRUE)
+1248   2                              break;
+1249   2              }
+1250   1              
+1251   1              return TRUE;
+1252   1      }
+1253          
+1254          /*
+1255           *--------------------------------------------------------------------------------
+1256           * void ONEWIRE_Cmd(U8_T cmdtype, U8_T owcmdindex, U8_T *owdata)
+1257           * Purpose : Accessing the OneWire interface indirectly through OneWire's SFR.
+1258           * Params  :
+1259           * Returns :
+1260           * Note    :
+1261           *--------------------------------------------------------------------------------
+1262           */
+1263          void ONEWIRE_Cmd(U8_T cmdtype, U8_T owcmdindex, U8_T *owdata)
+1264          {
+1265   1              if (cmdtype == SI_WR)
+1266   1              {
+1267   2                      OWDR = *owdata;
+1268   2                      OWCIR = owcmdindex;
+1269   2              }
+1270   1              else if (cmdtype == SI_RD)
+1271   1              {
+1272   2                      OWCIR = owcmdindex;
+1273   2                      *owdata = OWDR;
+1274   2              }
+1275   1      }
+1276          
+1277          /* End of onewire.c */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   3229    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    568      56
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+C51 COMPILER V9.06   ONEWIRE                                                               03/13/2013 09:32:25 PAGE 22  
+
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -46,10 +46,10 @@ extern idata unsigned char STACK_START[1];
 #define portSTACK_START			( STACK_START )
 
 #define portUSE_PREEMPTION		1
-#define portTICK_RATE_HZ		( ( portTickType ) 100 )  //100hz means 10ms
-#define portMAX_PRIORITIES		( ( unsigned portSHORT ) 15 )
+#define portTICK_RATE_HZ		( ( portTickType ) 100 ) //1000
+#define portMAX_PRIORITIES		( ( unsigned portSHORT ) 10 )
 #define portMINIMAL_STACK_SIZE	( ( unsigned portSHORT ) 1024 - ( unsigned portSHORT ) portSTACK_START )
-#define portTOTAL_HEAP_SIZE		( ( unsigned portSHORT ) ( 20 * 1024 ) )
+#define portTOTAL_HEAP_SIZE		( ( unsigned portSHORT ) ( 15 * 1024 ) )
 
 /* Set the following definitions to 1 to include the component, or zero
 to exclude the component. */

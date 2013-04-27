@@ -61,41 +61,39 @@ void Initial_Clock(void)
 	Set_Clock(7,Time.UN.Setime[2]);//month
 	//for(i=0;i<300;i++);
 	Set_Clock(8,Time.UN.Setime[1]);//year
-
 }
 
-
-
 U8_T Read_Clock(U8_T regaddr)
-{    U8_T i,temp[7];
-     I2C_BUF    Read_Dat;  
-        
-      I2C_RdmRead(0x51, regaddr, &Read_Dat, 7, I2C_STOP_COND);
-             
-         for(i = 0; i < 7; i++)
-             temp[i] = Read_Dat.I2cData[i];
-
-		if(temp[5] & 0x80)
-			Time.UN.Current.centary = 19;
-		else
-			Time.UN.Current.centary = 20;
-           
-        temp[0] = temp[0] & 0x7f;//sec
-    	temp[1] = temp[1] & 0x7f;//min
-        temp[2] = temp[2] & 0x3f;//hour
-    	temp[3] = temp[3] & 0x3f;//day
-        temp[4] = temp[4] & 0x07;//day of week
-	    temp[5] = temp[5] & 0x1f; //month
-        temp[6] = temp[6] & 0xff; //month
-
-        Time.UN.Current.sec       =  BcdToHex(temp[0]);//  Para[407]= 
-        Time.UN.Current.min       =  BcdToHex(temp[1]);// Para[406]= 
-        Time.UN.Current.hour      =  BcdToHex(temp[2]);// Para[405]= 
-        Time.UN.Current.day       =  BcdToHex(temp[3]);// Para[404]= 
-	    Time.UN.Current.dayofweek =  BcdToHex(temp[4]);// Para[403]= 
-        Time.UN.Current.month     =  BcdToHex(temp[5]);// Para[402]= 
-	    Time.UN.Current.year      =  BcdToHex(temp[6]);// Para[401]= 
-//        Time.UN.Current.centary   = 20;                // Para[400]= 
-    
-        return 1;
+{
+	U8_T i, temp[7];
+	I2C_BUF Read_Dat;  
+	
+	I2C_RdmRead(0x51, regaddr, &Read_Dat, 7, I2C_STOP_COND);
+	
+	for(i = 0; i < 7; i++)
+		temp[i] = Read_Dat.I2cData[i];
+	
+	if(temp[5] & 0x80)
+		Time.UN.Current.centary = 19;
+	else
+		Time.UN.Current.centary = 20;
+	
+	temp[0] = temp[0] & 0x7f;//sec
+	temp[1] = temp[1] & 0x7f;//min
+	temp[2] = temp[2] & 0x3f;//hour
+	temp[3] = temp[3] & 0x3f;//day
+	temp[4] = temp[4] & 0x07;//day of week
+	temp[5] = temp[5] & 0x1f; //month
+	temp[6] = temp[6] & 0xff; //month
+	
+	Time.UN.Current.sec = BcdToHex(temp[0]);//  Para[407]= 
+	Time.UN.Current.min = BcdToHex(temp[1]);// Para[406]= 
+	Time.UN.Current.hour = BcdToHex(temp[2]);// Para[405]= 
+	Time.UN.Current.day = BcdToHex(temp[3]);// Para[404]= 
+	Time.UN.Current.dayofweek = BcdToHex(temp[4]);// Para[403]= 
+	Time.UN.Current.month = BcdToHex(temp[5]);// Para[402]= 
+	Time.UN.Current.year = BcdToHex(temp[6]);// Para[401]= 
+//	Time.UN.Current.centary   = 20;                // Para[400]= 
+	
+	return 1;
 }

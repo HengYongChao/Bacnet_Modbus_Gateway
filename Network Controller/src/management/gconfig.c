@@ -294,7 +294,7 @@ void GCONFIG_ReadDefaultConfigData(void)
 											GCONFIG_NETWORK_PROTO_UDP_BCAST );
 
 	gconfig_ConfigData.ConfigPkt.ServerDynamicIP = GCONFIG_GetServerDynamicIP();
-	gconfig_ConfigData.ConfigPkt.ServerStaticIP = 0xc0a80003;	// 192.168.0.3
+	gconfig_ConfigData.ConfigPkt.ServerStaticIP = 0xc0a80041;	// 192.168.0.65
 	gconfig_ConfigData.ConfigPkt.ServerUnicastListenPort = 25000;
 	gconfig_ConfigData.ConfigPkt.ServerMulticastListenPort = 25100;
 	gconfig_ConfigData.ConfigPkt.ServerBroadcastListenPort = 25122;

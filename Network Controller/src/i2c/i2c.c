@@ -61,6 +61,11 @@ static void i2c_SlvRxProcess(void);
 #endif
 
 
+extern void test_run(U8_T dat);
+extern void Uart0_Tx(U8_T *buf,U8_T len); 
+extern U8_T test[10] ;
+extern void test_port(U8_T);
+
 /* LOCAL SUBPROGRAM BODIES */
 
 /*
@@ -74,6 +79,9 @@ static void i2c_SlvRxProcess(void);
  */
 static void i2c_MstStatus(U8_T i2cStatus)
 {
+
+
+
 	if (i2cPktDir == I2C_MST_XMIT)
 	{
 		/* Check the current byte ack */
@@ -88,7 +96,13 @@ static void i2c_MstStatus(U8_T i2cStatus)
 			{
 				if ((i2cCtrl & I2C_10BIT) && (i2cActF & I2C_START_COND))
 				{
+					
+					
+					
 					i2c_MasterXmit((U8_T)(ptI2cTxBuf->I2cAddr.TenBitAddr & 0x00FF), I2C_MASTER_GO | I2C_CMD_WRITE);
+			
+					
+			
 				}
 				else
 				{
@@ -97,6 +111,9 @@ static void i2c_MstStatus(U8_T i2cStatus)
 						/* transmit the first data byte */
 						i2c_MasterXmit(ptI2cTxBuf->I2cData[i2cDataLenCnt], I2C_MASTER_GO | I2C_CMD_WRITE);
 						i2cDataLenCnt ++;
+
+						
+
 					}
 					else if (i2cDataLenCnt == (i2cDataLen-1))
 					{
@@ -105,10 +122,14 @@ static void i2c_MstStatus(U8_T i2cStatus)
 						{
 							i2c_MasterXmit(ptI2cTxBuf->I2cData[i2cDataLenCnt], I2C_MASTER_GO | I2C_CMD_WRITE | I2C_STOP_COND);
 							i2cDataLenCnt = 0;
+
+						
 						}
 						else
 						{
 							i2c_MasterXmit(ptI2cTxBuf->I2cData[i2cDataLenCnt], I2C_MASTER_GO | I2C_CMD_WRITE);
+						
+							
 							i2cDataLenCnt = 0;
 							EA = 0;
 							I2C_FlagClr(I2C_BUSY);
@@ -132,6 +153,10 @@ static void i2c_MstStatus(U8_T i2cStatus)
 			{
 				/* transmit the STOP condition */
 				i2c_MasterXmit(0, I2C_MASTER_GO | I2C_STOP_COND);
+			
+				
+			
+			
 				i2cDataLenCnt = 0;
 				EA = 0;
 				I2C_FlagClr(I2C_BUSY);
@@ -149,6 +174,10 @@ static void i2c_MstStatus(U8_T i2cStatus)
 		else if (i2cStatus & I2C_ARB_LOST)
 		{
 			i2c_MasterXmit(0, I2C_MASTER_GO | I2C_STOP_COND);
+		
+			 
+		
+		
 			i2cDataLenCnt = 0;
 			EA = 0;
 			I2C_FlagClr(I2C_BUSY);
@@ -164,6 +193,8 @@ static void i2c_MstStatus(U8_T i2cStatus)
 				I2C_FlagClr(I2C_BUSY);
 				/* transmit the STOP condition */
 				i2c_MasterXmit(0, I2C_MASTER_GO | I2C_STOP_COND);
+
+
 			}
 			else
 			{
@@ -220,6 +251,9 @@ static void i2c_MstStatus(U8_T i2cStatus)
 			if (i2cActF & I2C_START_COND)
 			{
 				i2c_MasterXmit(0, I2C_MASTER_GO | I2C_STOP_COND);
+			
+				 
+			
 				i2cDataLenCnt = 0;
 				EA = 0;
 				I2C_FlagClr(I2C_BUSY);
@@ -485,11 +519,24 @@ static void i2c_SlvRxProcess(void)
 static void i2c_MasterXmit(U8_T wrData, U8_T mstCmd)
 {
 	/* Record the globe flag of command condition */
+	
+	
+	
 	i2cActF = mstCmd;
 	/* First the master flipper sends the slave address to access */
+	
+
+	
 	I2C_Cmd(SI_WR, I2CTR, &wrData);
 	/* Order command to I2CCR */
+	
+
+	
+
 	I2C_Cmd(SI_WR, I2CCR, &mstCmd);
+
+	
+
 }
 
 /*
@@ -592,11 +639,17 @@ void I2C_Setup(U8_T ctrlCmd, U16_T preClk, U16_T axIdAddr)
 	/* Pre-scale Clock */
 	I2CDR = (U8_T)(0x00FF & preClk);
 	I2CDR = (U8_T)((0xFF00 & preClk) >> 8);
-	I2CCIR = I2CCPR;
+	I2CCIR = I2CCPR;		//addr is 0x00
+
+
+
 	/* Flipper device address for slave mode */
 	I2CDR = (U8_T)(axIdAddr & 0x00FF);
 	I2CDR = (U8_T)((axIdAddr & 0xFF00) >> 8);
 	I2CCIR = I2CSDAR;
+
+
+
 	/* Setup I2C mode */
 	I2C_Cmd(SI_WR, I2CCTL, &ctrlCmd);
 }
@@ -685,44 +738,87 @@ void I2C_PktBuf(I2C_BUF *ptI2cBuf)
 	U8_T	firstAddr;
 
 	I2C_Cmd(SI_RD, I2CCTL, &i2cCtrl); 
+
+	
+
 	if (i2cCtrl & I2C_MASTER_MODE) // I2C Master Mode
 	{
 		i2cDataLenCnt = 0;
 		i2cEndCond = ptI2cBuf->I2cEnd;
 		i2cPktDir = ptI2cBuf->I2cDir;
 		i2cDataLen = ptI2cBuf->DataLen;
+		
 				
 			if (i2cCtrl & I2C_10BIT)
 			{
+
+
 				firstAddr = ((U8_T)((ptI2cBuf->I2cAddr.TenBitAddr & 0x0300) >> 7) | 0xF0);
 				if (i2cPktDir & I2C_XMIT)
 				{
 					ptI2cTxBuf = ptI2cBuf;
 					i2c_MasterXmit(firstAddr & ~BIT0, I2C_MASTER_GO | I2C_CMD_WRITE | I2C_START_COND);
+				
+				  
+				
 				}
 				else
 				{
 					ptI2cRxBuf = ptI2cBuf;
 					i2c_MasterXmit(firstAddr | BIT0, I2C_MASTER_GO | I2C_CMD_WRITE | I2C_START_COND);
+				
+				
+				
+				
 				}
 			}
 			else
 			{
+				
+
 				firstAddr = ptI2cBuf->I2cAddr.SevenBitAddr << 1;
+
 				if (i2cPktDir & I2C_XMIT)
 				{
+				
+
 					ptI2cTxBuf = ptI2cBuf;
-					i2c_MasterXmit(firstAddr & ~BIT0, I2C_MASTER_GO | I2C_CMD_WRITE | I2C_START_COND);
+					
+					 
+					 
+			
+
+
+				i2c_MasterXmit(firstAddr & ~BIT0, I2C_MASTER_GO | I2C_CMD_WRITE | I2C_START_COND);
+					
+					
+					 
+				
+
+
+
 				}
 				else
 				{
+
+					 
+
 					ptI2cRxBuf = ptI2cBuf;
 					i2c_MasterXmit(firstAddr | BIT0, I2C_MASTER_GO | I2C_CMD_WRITE | I2C_START_COND);
+				
+				
+				
 				}
+
+			   
+
 			}
 	}
 	else // I2C Slave Mode
 	{
+	
+	 
+	
 		if (ptI2cBuf->I2cDir & I2C_XMIT)
 		{
 			/* Get the slave data to transmit */
@@ -795,15 +891,30 @@ void I2C_FlagClr(U8_T clrBit)
  */
 void I2C_Cmd(U8_T cmdType, U8_T i2cCmdIndex, U8_T *i2cData)
 {
+	 
+	
+
 	if (cmdType == SI_WR)
 	{
+		
+		
 		I2CDR = *i2cData;
+		 
+
 		I2CCIR = i2cCmdIndex;
+		
+		 
 	}
 	else if (cmdType == SI_RD)
 	{
+		
+		
 		I2CCIR = i2cCmdIndex;
+		
+
 		*i2cData = I2CDR;
+		
+
 	}
 }
 

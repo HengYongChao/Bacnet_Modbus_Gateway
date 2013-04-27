@@ -49,7 +49,12 @@
 #include "hsuart.h"
 #include "uart.h"
 #include "../../../../USB/ch375_com.h"
+#include "../../../../gsm/gsm.h"
+#include "../include/mstp.h"
 
+U8_T siltime = 0;
+//U8_T frame_gap = 0;
+BOOL timegasflag = 0;
 /* Constants required to setup timer 2 to produce the RTOS tick. */
 //#define portCLOCK_DIVISOR				( ( unsigned portLONG ) 12 )
 //#define portMAX_TIMER_VALUE				( ( unsigned portLONG ) 0xffff )
@@ -275,22 +280,40 @@ void vIntPortContextSwitch(void) reentrant
 
 void vTimer2ISR( void ) interrupt 10
 {
-	unsigned portCHAR	isr;
+	unsigned portCHAR isr;
 #pragma ASM
 		PUSH IE
-#pragma ENDASM
+#pragma ENDASM						   
 		isr = EA;
 		EA = 0;
 		if(uart2_timeout)
 			uart2_timeout--;
 		if(uart1_timeout)
-		{ uart1_timeout--;  }
+			uart1_timeout--;
+		if(uart0_timeout)
+			uart0_timeout--;
 		if(USB_timeout)
 			USB_timeout--;
+		if(gsm_timeout)
+			gsm_timeout--;
+	
+
+
+		siltime++;
+		if(siltime >= 1){
+		 	siltime = 0;
+			SilenceTime += 10;
+			}
+		
+
+//		SilenceTime++;
+
+//		P1 = ~P1;
+
 		TICK_INT = 1;
 		SaveSP=SP;
         prvGetCurrentTCB_XBP();
-		EA=isr;
+		EA = isr;
 
 		OSIntCtxSw();
 }
