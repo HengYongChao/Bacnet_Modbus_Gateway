@@ -17,6 +17,10 @@ unsigned char const code aby_Char_Table[10] = {'0','1','2','3','4','5','6','7','
 
 
 
+
+
+
+
 unsigned char const code nAsciiDot[96][2][6] =  {
 
 {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},/*" ",0*/

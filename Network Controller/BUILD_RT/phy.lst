@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   PHY                                                                   05/20/2013 14:16:26 PAGE 1   
+C51 COMPILER V9.06   PHY                                                                   05/24/2013 13:13:41 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE PHY
@@ -62,7 +62,7 @@ line level    source
   47   1      
   48   1              isr = EA;
   49   1              EA = 0;
-C51 COMPILER V9.06   PHY                                                                   05/20/2013 14:16:26 PAGE 2   
+C51 COMPILER V9.06   PHY                                                                   05/24/2013 13:13:41 PAGE 2   
 
   50   1              _nop_();
   51   1              /* abort command */
@@ -126,7 +126,7 @@ line level    source
  109   1      } /* End of phy_WriteReg */
  110          
  111          /*
-C51 COMPILER V9.06   PHY                                                                   05/20/2013 14:16:26 PAGE 3   
+C51 COMPILER V9.06   PHY                                                                   05/24/2013 13:13:41 PAGE 3   
 
  112          * -----------------------------------------------------------------------------
  113           * Function Name: PHY_Init
@@ -190,7 +190,7 @@ line level    source
  171   2                      phyanar = ANAR_SELECTOR_8023 + (ANAR_PAUSE | ANAR_10TFD);
  172   2                      break;
  173   2              case FIXED_10_HALF:
-C51 COMPILER V9.06   PHY                                                                   05/20/2013 14:16:26 PAGE 4   
+C51 COMPILER V9.06   PHY                                                                   05/24/2013 13:13:41 PAGE 4   
 
  174   2                      phyanar = ANAR_SELECTOR_8023 + (ANAR_PAUSE | ANAR_10T);
  175   2                      break;
@@ -254,7 +254,7 @@ line level    source
  233          {
  234   1              phy_WriteReg(MII_PHY_CONTROL, CONTROL_POWER_DOWN);
  235   1      
-C51 COMPILER V9.06   PHY                                                                   05/20/2013 14:16:26 PAGE 5   
+C51 COMPILER V9.06   PHY                                                                   05/24/2013 13:13:41 PAGE 5   
 
  236   1              MAC_Init(phy_NetworkType);
  237   1      

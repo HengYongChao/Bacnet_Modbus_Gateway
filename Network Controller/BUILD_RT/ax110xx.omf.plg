@@ -3,7 +3,7 @@
 <pre>
 <h1>µVision Build Log</h1>
 <h2>Project:</h2>
-F:\work\nc_git\Rev2.3\BUILD_RT\ax110xx.uvproj
+C:\GitHub\Bacnet_Modbus_Gateway\Network Controller\BUILD_RT\ax110xx.uvproj
 Project File Date:  05/15/2013
 
 <h2>Output:</h2>
@@ -24,23 +24,65 @@ linking...
 *** WARNING L30: MEMORY SPACE OVERLAP
     FROM:    I:000031H   
     TO:      I:000035H   
-Program Size: data=128.4 xdata=62970 const=38247 code=175031
+Program Size: data=128.4 xdata=62975 const=38247 code=175142
 creating hex file from "ax110xx.omf"...
 User command #1: ..\hex2bin -s 0 ax110xx.hex
 hex2bin v1.0.1, Copyright (C) 1999 Jacques Pelletier
 Lowest address = 0000003B
-Highest address = 0003A12C
+Highest address = 0003A19B
 User command #2: ..\makeruntime ax110xx.bin NC.bin
 Revision: 1.01
-File length= 237869
+File length= 237980
 Had open souece file.
 Temp file find, delete it.
 Had creat temp file.
-File length= 3412d
+File length= 3419c
 Had open souece file.
-Sum :: c797fdf5
-Header.Checksum = 3a72
-File length= 3412d
+Sum :: c791764d
+Header.Checksum = c220
+File length= 3419c
+Had open souece file.
+Destination file find, delete it.
+Had creat destination file.
+"ax110xx.omf" - 0 Error(s), 1 Warning(s).
+Build target 'AX110XX'
+compiling gudpbc.c...
+compiling gconfig.c...
+compiling httpd.c...
+compiling list.c...
+assembling .\list.src...
+compiling queue.c...
+assembling .\queue.src...
+compiling tasks.c...
+assembling .\tasks.src...
+compiling port.c...
+assembling .\port.src...
+compiling heap_1.c...
+assembling .\heap_1.src...
+compiling LCD.c...
+compiling version.c...
+assembling .\version.src...
+linking...
+*** WARNING L30: MEMORY SPACE OVERLAP
+    FROM:    I:000031H   
+    TO:      I:000035H   
+Program Size: data=128.4 xdata=62975 const=38247 code=175142
+creating hex file from "ax110xx.omf"...
+User command #1: ..\hex2bin -s 0 ax110xx.hex
+hex2bin v1.0.1, Copyright (C) 1999 Jacques Pelletier
+Lowest address = 0000003B
+Highest address = 0003A19B
+User command #2: ..\makeruntime ax110xx.bin NC.bin
+Revision: 1.01
+File length= 237980
+Had open souece file.
+Temp file find, delete it.
+Had creat temp file.
+File length= 3419c
+Had open souece file.
+Sum :: c791764d
+Header.Checksum = c220
+File length= 3419c
 Had open souece file.
 Destination file find, delete it.
 Had creat destination file.

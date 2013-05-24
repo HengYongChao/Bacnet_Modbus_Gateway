@@ -1,4 +1,4 @@
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE     1
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE     1
 
 
 MACRO ASSEMBLER AX51 V3.07c
@@ -65,7 +65,7 @@ LOC    OBJ             LINE     SOURCE
  00A7                    49     XMRHR   DATA    0A7H
  00B0.1                  50     P3_1    BIT     0B0H.1
  00A0.2                  51     P2_2    BIT     0A0H.2
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE     2
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE     2
 
  0090.3                  52     P1_3    BIT     090H.3
  0080.4                  53     P0_4    BIT     080H.4
@@ -133,7 +133,7 @@ LOC    OBJ             LINE     SOURCE
  00E1                   115     UR2_THR DATA    0E1H
  00E8.5                 116     EWDI    BIT     0E8H.5
  00D8.3                 117     WDIF    BIT     0D8H.3
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE     3
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE     3
 
  00CB                   118     RLDH    DATA    0CBH
  00BE                   119     EPCR    DATA    0BEH
@@ -201,7 +201,7 @@ LOC    OBJ             LINE     SOURCE
  00E8                   181     EIE     DATA    0E8H
  0092                   182     WTST    DATA    092H
  00B8.6                 183     PS1     BIT     0B8H.6
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE     4
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE     4
 
  00B8.1                 184     PT0     BIT     0B8H.1
  0091                   185     EIF     DATA    091H
@@ -269,7 +269,7 @@ LOC    OBJ             LINE     SOURCE
 ------                  247     ?PR?_?vTaskDelay?TASKS                   SEGMENT ECODE INSEG 
 ------                  248     ?PR?_?vTaskSuspend?TASKS                 SEGMENT ECODE INSEG 
 ------                  249     ?PR?_?vTaskResume?TASKS                  SEGMENT ECODE INSEG 
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE     5
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE     5
 
 ------                  250     ?PR?_?vTaskStartScheduler?TASKS          SEGMENT ECODE INSEG 
 ------                  251     ?PR?_?vTaskEndScheduler?TASKS            SEGMENT ECODE INSEG 
@@ -337,7 +337,7 @@ LOC    OBJ             LINE     SOURCE
                         313             PUBLIC  _?cTaskResumeAll
                         314             PUBLIC  _?vTaskSuspendAll
                         315             PUBLIC  _?vTaskEndScheduler
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE     6
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE     6
 
                         316             PUBLIC  _?vTaskStartScheduler
                         317             PUBLIC  _?vTaskResume
@@ -405,7 +405,7 @@ LOC    OBJ             LINE     SOURCE
 000023 41               378             DB      041H
 000024 0000       F     379             DW      ucSchedulerSuspended
 000026 00               380             DB      000H
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE     7
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE     7
 
                         381     
 000027 41               382             DB      041H
@@ -473,7 +473,7 @@ LOC    OBJ             LINE     SOURCE
                         444     ;       + Added conditional compilation directives.
                         445     ;       + Extended API.
                         446     ;       + Rearranged function order.
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE     8
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE     8
 
                         447     ;       + Creating a task now causes a context switch if the task being created
                         448     ;         has a higher priority than the calling task - assuming the kernel is
@@ -541,7 +541,7 @@ LOC    OBJ             LINE     SOURCE
                         510     ;       portSTACK_TYPE          *pxTopOfStack;                                          
                                /*< Points to the location of the last item placed on the tasks stack.  THIS MUST BE THE FIRST MEMBER OF THE STRUCT. */
                         511     ;       portSTACK_TYPE          *pxStack;                                               
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE     9
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE     9
 
                                        /*< Points to the start of the stack. */
                         512     ;       unsigned portSHORT      usStackDepth;                                           
@@ -609,7 +609,7 @@ LOC    OBJ             LINE     SOURCE
                         556     ; 
                         557     ; /* Debugging and trace facilities private variables and macros. ------------*/
                         558     ; 
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    10
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    10
 
                         559     ; /*
                         560     ;  * The value used to fill the stack of a task when the task is created.  This
@@ -677,7 +677,7 @@ LOC    OBJ             LINE     SOURCE
                                ousTask;                        \
                         608     ;                                       pcTraceBuffer += sizeof( unsigned portCHAR );   
                                                                        \
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    11
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    11
 
                         609     ;                               }                                                       
                                                                                                                        \
@@ -745,7 +745,7 @@ LOC    OBJ             LINE     SOURCE
                                                                                                                                        \
                         653     ; register tskTCB *pxTCB;                                                               
                                                                                                                        \
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    12
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    12
 
                         654     ;                                                                                       
                                                                                                                                        \
@@ -813,7 +813,7 @@ LOC    OBJ             LINE     SOURCE
                         699     ; static void prvIdleTask( void *pvParameters ) reentrant;
                         700     ; 
                         701     ; /*
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    13
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    13
 
                         702     ;  * Utility to free all memory allocated by the scheduler to hold a TCB, 
                         703     ;  * including the stack pointed to by the TCB.  
@@ -881,7 +881,7 @@ LOC    OBJ             LINE     SOURCE
 00000D A3               763             INC     DPTR
 00000E E9               764             MOV     A,R1
 00000F F0               765             MOVX    @DPTR,A
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    14
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    14
 
 000010 9000FFF4         766             MOV     DPTR,#0FFF4H
 000014 12000000   E     767             LCALL   ?C?ADDXBP
@@ -949,7 +949,7 @@ LOC    OBJ             LINE     SOURCE
 000063 12000000   E     828             LCALL   ?C?ADDXBP
 000067 EF               829             MOV     A,R7
 000068 F0               830             MOVX    @DPTR,A
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    15
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    15
 
 000069 90000010         831             MOV     DPTR,#010H
 00006D 12000000   E     832             LCALL   ?C?XBPOFF
@@ -1017,7 +1017,7 @@ LOC    OBJ             LINE     SOURCE
 0000BC 2406             893             ADD     A,#06H
 0000BE F9               894             MOV     R1,A
 0000BF E4               895             CLR     A
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    16
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    16
 
 0000C0 3A               896             ADDC    A,R2
 0000C1 FA               897             MOV     R2,A
@@ -1085,7 +1085,7 @@ LOC    OBJ             LINE     SOURCE
                         959     ;               }
                         960                             ; SOURCE LINE # 387
                         961     ;               #else
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    17
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    17
 
                         962     ;               {
                         963     ;                       pxTopOfStack = pxNewTCB->pxStack;       
@@ -1153,7 +1153,7 @@ LOC    OBJ             LINE     SOURCE
 000176 C003            1024             PUSH    AR3
 000178 C002            1025             PUSH    AR2
 00017A C001            1026             PUSH    AR1
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    18
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    18
 
 00017C 850083     E    1027             MOV     DPH,?C_XBP
 00017F 850082     E    1028             MOV     DPL,?C_XBP+01H
@@ -1221,7 +1221,7 @@ LOC    OBJ             LINE     SOURCE
 0001CC C9              1088             XCH     A,R1
 0001CD F0              1089             MOVX    @DPTR,A
 0001CE A3              1090             INC     DPTR
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    19
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    19
 
 0001CF EA              1091             MOV     A,R2
 0001D0 F0              1092             MOVX    @DPTR,A
@@ -1289,7 +1289,7 @@ LOC    OBJ             LINE     SOURCE
 00020A F9              1150             MOV     R1,A
 00020B E4              1151             CLR     A
 00020C 3A              1152             ADDC    A,R2
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    20
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    20
 
 00020D FA              1153             MOV     R2,A
 00020E 12000000   E    1154             LCALL   ?C?CLDPTR
@@ -1357,7 +1357,7 @@ LOC    OBJ             LINE     SOURCE
 000252 2418            1213             ADD     A,#018H
 000254 F9              1214             MOV     R1,A
 000255 E4              1215             CLR     A
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    21
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    21
 
 000256 3A              1216             ADDC    A,R2
 000257 FA              1217             MOV     R2,A
@@ -1425,7 +1425,7 @@ LOC    OBJ             LINE     SOURCE
 0002A0 A3              1279             INC     DPTR
 0002A1 759300     E    1280             MOV     DPX,#?C?XDATASEG
 0002A4 E0              1281             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    22
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    22
 
 0002A5 FB              1282             MOV     R3,A
 0002A6 A3              1283             INC     DPTR
@@ -1493,7 +1493,7 @@ LOC    OBJ             LINE     SOURCE
 000302 EA              1345             MOV     A,R2
 000303 F0              1346             MOVX    @DPTR,A
 000304 A3              1347             INC     DPTR
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    23
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    23
 
 000305 E9              1348             MOV     A,R1
 000306 F0              1349             MOVX    @DPTR,A
@@ -1561,7 +1561,7 @@ LOC    OBJ             LINE     SOURCE
 000351 602D            1411             JZ      ?C0010
                        1412     ;               {
                        1413                             ; SOURCE LINE # 454
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    24
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    24
 
                        1414     ;                       /* Pass the TCB out - in an anonymous way.  The calling function
                                /
@@ -1629,7 +1629,7 @@ LOC    OBJ             LINE     SOURCE
 00039C FF              1475             MOV     R7,A
 00039D 90000017        1476             MOV     DPTR,#017H
 0003A1 12000000   E    1477             LCALL   ?C?XBPOFF
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    25
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    25
 
 0003A5 E0              1478             MOVX    A,@DPTR
 0003A6 FE              1479             MOV     R6,A
@@ -1697,7 +1697,7 @@ LOC    OBJ             LINE     SOURCE
                        1538     ; 
                        1539     ;                       vListInsertEnd( ( xList * ) &xTasksWaitingTermination, &( pxTCB-
                                >xGenericListItem ) );
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    26
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    26
 
                        1540     ;               }
                        1541     ;               taskEXIT_CRITICAL();
@@ -1765,7 +1765,7 @@ LOC    OBJ             LINE     SOURCE
 00003A E0              1602             MOVX    A,@DPTR
 00003B FB              1603             MOV     R3,A
 00003C A3              1604             INC     DPTR
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    27
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    27
 
 00003D E0              1605             MOVX    A,@DPTR
 00003E FA              1606             MOV     R2,A
@@ -1833,7 +1833,7 @@ LOC    OBJ             LINE     SOURCE
                        1668                             ; SOURCE LINE # 533
                        1669     ;                               /* The tick count has overflowed since this function was
                                 
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    28
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    28
 
                        1670     ;                               lasted called.  In this case the only time we should eve
                                r 
@@ -1901,7 +1901,7 @@ LOC    OBJ             LINE     SOURCE
 0000ED E0              1729             MOVX    A,@DPTR
 0000EE FB              1730             MOV     R3,A
 0000EF 12000000   E    1731             LCALL   ?C?ULCMP
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    29
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    29
 
 0000F3 4066            1732             JC      ?C0016
                        1733     ;                               {
@@ -1969,7 +1969,7 @@ LOC    OBJ             LINE     SOURCE
 00013B 759300     E    1793             MOV     DPX,#?C?XDATASEG
 00013E E0              1794             MOVX    A,@DPTR
 00013F F8              1795             MOV     R0,A
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    30
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    30
 
 000140 A3              1796             INC     DPTR
 000141 E0              1797             MOVX    A,@DPTR
@@ -2037,7 +2037,7 @@ LOC    OBJ             LINE     SOURCE
 00018E 010000     F    1859             AJMP    ?C0019
                        1860     ;                       {
                        1861                             ; SOURCE LINE # 559
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    31
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    31
 
                        1862     ;                               /* We must remove ourselves from the ready list before a
                                dding 
@@ -2105,7 +2105,7 @@ LOC    OBJ             LINE     SOURCE
 0001D7 FD              1921             MOV     R5,A
 0001D8 A3              1922             INC     DPTR
 0001D9 E0              1923             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    32
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    32
 
 0001DA FE              1924             MOV     R6,A
 0001DB A3              1925             INC     DPTR
@@ -2173,7 +2173,7 @@ LOC    OBJ             LINE     SOURCE
                        1984     ;                                       vListInsert( ( xList * ) pxDelayedTaskList, ( xL
                                istItem * ) &( pxCurrentTCB->xGenericListItem ) );
                        1985                             ; SOURCE LINE # 578
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    33
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    33
 
 000220 A3              1986             INC     DPTR
 000221 E0              1987             MOVX    A,@DPTR
@@ -2241,7 +2241,7 @@ LOC    OBJ             LINE     SOURCE
 000268                 2049     ?C0023:
 000268 9000000D        2050             MOV     DPTR,#0DH
 00026C 02000000   E    2051             LJMP    ?C?ADDXBP
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    34
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    34
 
                        2052     ; END OF _?vTaskDelayUntil
                        2053     
@@ -2309,7 +2309,7 @@ LOC    OBJ             LINE     SOURCE
                        2114     ;                               This task cannot be in an event list as it is the curren
                                tly 
                        2115     ;                               executing task. */
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    35
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    35
 
                        2116     ; 
                        2117     ;                               /* Calculate the time to wake - this may overflow but th
@@ -2377,7 +2377,7 @@ LOC    OBJ             LINE     SOURCE
 000089 F9              2175             MOV     R1,A
 00008A E4              2176             CLR     A
 00008B 3A              2177             ADDC    A,R2
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    36
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    36
 
 00008C FA              2178             MOV     R2,A
 00008D 12000000   E    2179             LCALL   _?vListRemove
@@ -2445,7 +2445,7 @@ LOC    OBJ             LINE     SOURCE
 0000DC FB              2240             MOV     R3,A
 0000DD C3              2241             CLR     C
 0000DE 12000000   E    2242             LCALL   ?C?ULCMP
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    37
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    37
 
 0000E2 90000000   F    2243             MOV     DPTR,#pxCurrentTCB
 0000E6 E0              2244             MOVX    A,@DPTR
@@ -2513,7 +2513,7 @@ LOC    OBJ             LINE     SOURCE
 000123 A3              2302             INC     DPTR
 000124 E9              2303             MOV     A,R1
 000125 F0              2304             MOVX    @DPTR,A
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    38
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    38
 
 000126 90000000   F    2305             MOV     DPTR,#pxDelayedTaskList
 00012A                 2306     ?C0122:
@@ -2581,7 +2581,7 @@ LOC    OBJ             LINE     SOURCE
                        2368     ;                       pxTCB = prvGetTCBFromHandle( pxTask );
                        2369     ;                       ucReturn = pxTCB->ucPriority;
                        2370     ;               }
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    39
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    39
 
                        2371     ;               taskEXIT_CRITICAL();
                        2372     ; 
@@ -2649,7 +2649,7 @@ LOC    OBJ             LINE     SOURCE
                        2428     ;       void vTaskSuspend( xTaskHandle pxTaskToSuspend ) reentrant
                        2429     
 ------                 2430             RSEG  ?PR?_?vTaskSuspend?TASKS
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    40
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    40
 
 000000                 2431     _?vTaskSuspend:
                        2432             USING   0
@@ -2717,7 +2717,7 @@ LOC    OBJ             LINE     SOURCE
 000055 759300     E    2492             MOV     DPX,#?C?XDATASEG
 000058 EB              2493             MOV     A,R3
 000059 F0              2494             MOVX    @DPTR,A
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    41
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    41
 
 00005A A3              2495             INC     DPTR
 00005B EA              2496             MOV     A,R2
@@ -2785,7 +2785,7 @@ LOC    OBJ             LINE     SOURCE
 0000A6 FA              2556             MOV     R2,A
 0000A7 A3              2557             INC     DPTR
 0000A8 E0              2558             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    42
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    42
 
 0000A9 2429            2559             ADD     A,#029H
 0000AB F9              2560             MOV     R1,A
@@ -2853,7 +2853,7 @@ LOC    OBJ             LINE     SOURCE
                        2621                             ; SOURCE LINE # 746
                        2622     ;                       taskYIELD();
                        2623                             ; SOURCE LINE # 747
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    43
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    43
 
 0000FA 12000000   E    2624             LCALL   _?vPortYield
                        2625     ;               }
@@ -2921,7 +2921,7 @@ LOC    OBJ             LINE     SOURCE
                        2687     ;               /* The parameter cannot be NULL as it is impossible to resume the
                        2688     ;               currently executing task. */
                        2689     ;               if( pxTCB != NULL )
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    44
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    44
 
                        2690                             ; SOURCE LINE # 767
 000038 850083     E    2691             MOV     DPH,?C_XBP
@@ -2989,7 +2989,7 @@ LOC    OBJ             LINE     SOURCE
 00008F 7F00            2751             MOV     R7,#00H
 000091                 2752     ?C0036:
 000091 90000003        2753             MOV     DPTR,#03H
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    45
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    45
 
 000095 12000000   E    2754             LCALL   ?C?XBPOFF
 000099 EE              2755             MOV     A,R6
@@ -3057,7 +3057,7 @@ LOC    OBJ             LINE     SOURCE
 0000F1 FF              2817             MOV     R7,A
 0000F2 90000000   F    2818             MOV     DPTR,#ucTopReadyPriority
 0000F6 E0              2819             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    46
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    46
 
 0000F7 FE              2820             MOV     R6,A
 0000F8 EF              2821             MOV     A,R7
@@ -3125,7 +3125,7 @@ LOC    OBJ             LINE     SOURCE
                        2882     ;                               will leave the lists in the correct state for the next y
                                ield. */
                        2883     ;                               taskYIELD();
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    47
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    47
 
                        2884                             ; SOURCE LINE # 782
 00014B 12000000   E    2885             LCALL   _?vPortYield
@@ -3193,7 +3193,7 @@ LOC    OBJ             LINE     SOURCE
 000028 E0              2947             MOVX    A,@DPTR
 000029 FB              2948             MOV     R3,A
 00002A 90000000   F    2949             MOV     DPTR,#sUsingPreemption
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    48
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    48
 
 00002E EA              2950             MOV     A,R2
 00002F F0              2951             MOVX    @DPTR,A
@@ -3261,7 +3261,7 @@ LOC    OBJ             LINE     SOURCE
                        3012     ; /*-----------------------------------------------------------*/
                        3013     ; 
                        3014     ; void vTaskEndScheduler( void ) reentrant
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    49
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    49
 
                        3015     
 ------                 3016             RSEG  ?PR?_?vTaskEndScheduler?TASKS
@@ -3329,7 +3329,7 @@ LOC    OBJ             LINE     SOURCE
 00000C 12000000   E    3077             LCALL   ?C?XBPOFF
 000010 E4              3078             CLR     A
 000011 F0              3079             MOVX    @DPTR,A
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    50
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    50
 
 000012 A2AFC2AF        3080              DB 0A2H, 0AFH, 0C2H, 0AFH, 0C0H, 0D0H;
 000016 C0D0                     
@@ -3397,7 +3397,7 @@ LOC    OBJ             LINE     SOURCE
 000053 3A              3140             ADDC    A,R2
 000054 FA              3141             MOV     R2,A
 000055 12000000   E    3142             LCALL   ?C?PLDPTR
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    51
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    51
 
 000059 E9              3143             MOV     A,R1
 00005A 240A            3144             ADD     A,#0AH
@@ -3465,7 +3465,7 @@ LOC    OBJ             LINE     SOURCE
 0000B2 3A              3206             ADDC    A,R2
 0000B3 FA              3207             MOV     R2,A
 0000B4 12000000   E    3208             LCALL   _?vListRemove
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    52
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    52
 
                        3209     ;                                       prvAddTaskToReadyQueue( pxTCB );
                        3210                             ; SOURCE LINE # 876
@@ -3533,7 +3533,7 @@ LOC    OBJ             LINE     SOURCE
 000113 3A              3272             ADDC    A,R2
 000114 FA              3273             MOV     R2,A
 000115 9000FFFD        3274             MOV     DPTR,#0FFFDH
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    53
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    53
 
 000119 12000000   E    3275             LCALL   ?C?ADDXBP
 00011D EB              3276             MOV     A,R3
@@ -3601,7 +3601,7 @@ LOC    OBJ             LINE     SOURCE
                        3335     ;                                       /* As we have processed some ticks it is appropr
                                iate to yield
                        3336     ;                                       to ensure the highest priority task that is read
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    54
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    54
 
                                y to run is
                        3337     ;                                       the task actually running. */
@@ -3669,7 +3669,7 @@ LOC    OBJ             LINE     SOURCE
                        3398     ;       {
                        3399                             ; SOURCE LINE # 921
                        3400     ;               xTicks = xTickCount;
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    55
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    55
 
                        3401                             ; SOURCE LINE # 922
 00000E 90000000   F    3402             MOV     DPTR,#xTickCount
@@ -3737,7 +3737,7 @@ LOC    OBJ             LINE     SOURCE
 00000E 90000000   F    3463             MOV     DPTR,#usCurrentNumberOfTasks
 000012 E0              3464             MOVX    A,@DPTR
 000013 FF              3465             MOV     R7,A
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    56
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    56
 
 000014 A3              3466             INC     DPTR
 000015 E0              3467             MOVX    A,@DPTR
@@ -3805,7 +3805,7 @@ LOC    OBJ             LINE     SOURCE
                        3524     ;                               }
                        3525     ;                       }while( usQueue > ( unsigned portSHORT ) tskIDLE_PRIORITY );
                        3526     ; 
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    57
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    57
 
                        3527     ;                       if( !listLIST_IS_EMPTY( pxDelayedTaskList ) )
                        3528     ;                       {
@@ -3873,7 +3873,7 @@ LOC    OBJ             LINE     SOURCE
                        3583     ;       }
                        3584     ; 
                        3585     ; #endif
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    58
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    58
 
                        3586     ; 
                        3587     ; 
@@ -3941,7 +3941,7 @@ LOC    OBJ             LINE     SOURCE
 000038 FC              3649             MOV     R4,A
 000039 90000000   F    3650             MOV     DPTR,#xTickCount
 00003D E0              3651             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    59
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    59
 
 00003E F8              3652             MOV     R0,A
 00003F A3              3653             INC     DPTR
@@ -4009,7 +4009,7 @@ LOC    OBJ             LINE     SOURCE
 000085 850082     E    3714             MOV     DPL,?C_XBP+01H
 000088 759300     E    3715             MOV     DPX,#?C?XDATASEG
 00008B E0              3716             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    60
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    60
 
 00008C F9              3717             MOV     R1,A
 00008D A3              3718             INC     DPTR
@@ -4077,7 +4077,7 @@ LOC    OBJ             LINE     SOURCE
 0000E1 759300     E    3780             MOV     DPX,#?C?XDATASEG
 0000E4 EB              3781             MOV     A,R3
 0000E5 F0              3782             MOVX    @DPTR,A
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    61
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    61
 
 0000E6 A3              3783             INC     DPTR
 0000E7 EA              3784             MOV     A,R2
@@ -4145,7 +4145,7 @@ LOC    OBJ             LINE     SOURCE
 00014A FB              3846             MOV     R3,A
 00014B A3              3847             INC     DPTR
 00014C E0              3848             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    62
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    62
 
 00014D FA              3849             MOV     R2,A
 00014E A3              3850             INC     DPTR
@@ -4213,7 +4213,7 @@ LOC    OBJ             LINE     SOURCE
 0001AB E4              3912             CLR     A
 0001AC 3A              3913             ADDC    A,R2
 0001AD FA              3914             MOV     R2,A
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    63
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    63
 
 0001AE 12000000   E    3915             LCALL   ?C?CLDPTR
 0001B2 FF              3916             MOV     R7,A
@@ -4281,7 +4281,7 @@ LOC    OBJ             LINE     SOURCE
                        3978     ;       #if ( configUSE_TICK_HOOK == 1 )
                        3979     ;       {
                        3980     ;               extern void vApplicationTickHook( void );
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    64
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    64
 
                        3981     ; 
                        3982     ;               vApplicationTickHook();
@@ -4349,7 +4349,7 @@ LOC    OBJ             LINE     SOURCE
                        4041     ;                       prvDeleteTCB( ( tskTCB * ) pxTCB );
                        4042     ;               }               
                        4043     ; 
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    65
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    65
 
                        4044     ;               while( !listLIST_IS_EMPTY( &xPendingReadyList ) )
                        4045     ;               {
@@ -4417,7 +4417,7 @@ LOC    OBJ             LINE     SOURCE
                        4107                             ; SOURCE LINE # 1153
 00002E 80DA            4108             SJMP    ?C0072
 000030                 4109     ?C0073:
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    66
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    66
 
                        4110     ; 
                        4111     ;       /* listGET_OWNER_OF_NEXT_ENTRY walks through the list, so the tasks of the
@@ -4485,7 +4485,7 @@ LOC    OBJ             LINE     SOURCE
 000091 E0              4172             MOVX    A,@DPTR
 000092 F9              4173             MOV     R1,A
 000093 C003            4174             PUSH    AR3
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    67
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    67
 
 000095 C002            4175             PUSH    AR2
 000097 C001            4176             PUSH    AR1
@@ -4553,7 +4553,7 @@ LOC    OBJ             LINE     SOURCE
 000102 F583            4238             MOV     DPH,A
 000104 759300     E    4239             MOV     DPX,#?C?XDATASEG
 000107 EB              4240             MOV     A,R3
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    68
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    68
 
 000108 F0              4241             MOVX    @DPTR,A
 000109 A3              4242             INC     DPTR
@@ -4621,7 +4621,7 @@ LOC    OBJ             LINE     SOURCE
 000017 EA              4304             MOV     A,R2
 000018 F0              4305             MOVX    @DPTR,A
 000019 A3              4306             INC     DPTR
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    69
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    69
 
 00001A E9              4307             MOV     A,R1
 00001B F0              4308             MOVX    @DPTR,A
@@ -4689,7 +4689,7 @@ LOC    OBJ             LINE     SOURCE
 000067 E0              4369             MOVX    A,@DPTR
 000068 FE              4370             MOV     R6,A
 000069 A3              4371             INC     DPTR
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    70
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    70
 
 00006A E0              4372             MOVX    A,@DPTR
 00006B FF              4373             MOV     R7,A
@@ -4757,7 +4757,7 @@ LOC    OBJ             LINE     SOURCE
 0000B9 E0              4435             MOVX    A,@DPTR
 0000BA FF              4436             MOV     R7,A
 0000BB 90000000   F    4437             MOV     DPTR,#pxCurrentTCB
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    71
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    71
 
 0000BF E0              4438             MOVX    A,@DPTR
 0000C0 FB              4439             MOV     R3,A
@@ -4825,7 +4825,7 @@ LOC    OBJ             LINE     SOURCE
 00010A FA              4500             MOV     R2,A
 00010B 9000FFFD        4501             MOV     DPTR,#0FFFDH
 00010F 12000000   E    4502             LCALL   ?C?ADDXBP
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    72
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    72
 
 000113 EB              4503             MOV     A,R3
 000114 F0              4504             MOVX    @DPTR,A
@@ -4893,7 +4893,7 @@ LOC    OBJ             LINE     SOURCE
                        4564     ; signed portCHAR cTaskRemoveFromEventList( const xList *pxEventList ) reentrant
                        4565     
 ------                 4566             RSEG  ?PR?_?cTaskRemoveFromEventList?TASKS
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    73
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    73
 
 000000                 4567     _?cTaskRemoveFromEventList:
                        4568             USING   0
@@ -4961,7 +4961,7 @@ LOC    OBJ             LINE     SOURCE
 00004D 12000000   E    4630             LCALL   ?C?PLDPTR
 000051 8006            4631             SJMP    ?C0079
 000053                 4632     ?C0078:
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    74
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    74
 
 000053 7B00            4633             MOV     R3,#00H
 000055 7A00            4634             MOV     R2,#00H
@@ -5029,7 +5029,7 @@ LOC    OBJ             LINE     SOURCE
 0000A9 FF              4696             MOV     R7,A
 0000AA FE              4697             MOV     R6,A
 0000AB FD              4698             MOV     R5,A
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    75
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    75
 
 0000AC FC              4699             MOV     R4,A
 0000AD 850083     E    4700             MOV     DPH,?C_XBP
@@ -5097,7 +5097,7 @@ LOC    OBJ             LINE     SOURCE
 00010F A3              4762             INC     DPTR
 000110 EA              4763             MOV     A,R2
 000111 F0              4764             MOVX    @DPTR,A
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    76
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    76
 
 000112 A3              4765             INC     DPTR
 000113 E9              4766             MOV     A,R1
@@ -5165,7 +5165,7 @@ LOC    OBJ             LINE     SOURCE
 00015C A3              4827             INC     DPTR
 00015D E0              4828             MOVX    A,@DPTR
 00015E FA              4829             MOV     R2,A
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    77
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    77
 
 00015F A3              4830             INC     DPTR
 000160 E0              4831             MOVX    A,@DPTR
@@ -5233,7 +5233,7 @@ LOC    OBJ             LINE     SOURCE
                        4893     ; 
                        4894     ; static void prvIdleTask( void *pvParameters ) reentrant
                        4895     
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    78
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    78
 
 ------                 4896             RSEG  ?PR?_?prvIdleTask?TASKS
 000000                 4897     _?prvIdleTask:
@@ -5301,7 +5301,7 @@ LOC    OBJ             LINE     SOURCE
                        4958     ;                       see if any other task has become available.  If we are using 
                        4959     ;                       preemption we don't need to do this as any task becoming availab
                                le
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    79
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    79
 
                        4960     ;                       will automatically get the processor anyway. */
                        4961     ;                       taskYIELD();    
@@ -5369,7 +5369,7 @@ LOC    OBJ             LINE     SOURCE
 000033 E0              5021             MOVX    A,@DPTR
 000034 FB              5022             MOV     R3,A
 000035 A3              5023             INC     DPTR
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    80
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    80
 
 000036 E0              5024             MOVX    A,@DPTR
 000037 FA              5025             MOV     R2,A
@@ -5437,7 +5437,7 @@ LOC    OBJ             LINE     SOURCE
 000090 2408            5086             ADD     A,#08H
 000092 F9              5087             MOV     R1,A
 000093 E4              5088             CLR     A
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    81
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    81
 
 000094 3A              5089             ADDC    A,R2
 000095 A801            5090             MOV     R0,AR1
@@ -5505,7 +5505,7 @@ LOC    OBJ             LINE     SOURCE
 0000EB 7410            5150             MOV     A,#010H
 0000ED F0              5151             MOVX    @DPTR,A
 0000EE D001            5152             POP     AR1
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    82
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    82
 
 0000F0 D002            5153             POP     AR2
 0000F2 D003            5154             POP     AR3
@@ -5573,7 +5573,7 @@ LOC    OBJ             LINE     SOURCE
 000147 FA              5214             MOV     R2,A
 000148 A3              5215             INC     DPTR
 000149 E0              5216             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    83
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    83
 
 00014A 2418            5217             ADD     A,#018H
 00014C F9              5218             MOV     R1,A
@@ -5641,7 +5641,7 @@ LOC    OBJ             LINE     SOURCE
 0001A0 850083     E    5280             MOV     DPH,?C_XBP
 0001A3 850082     E    5281             MOV     DPL,?C_XBP+01H
 0001A6 759300     E    5282             MOV     DPX,#?C?XDATASEG
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    84
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    84
 
 0001A9 E0              5283             MOVX    A,@DPTR
 0001AA FB              5284             MOV     R3,A
@@ -5709,7 +5709,7 @@ LOC    OBJ             LINE     SOURCE
 0001FE C001            5345             PUSH    AR1
 000200 850083     E    5346             MOV     DPH,?C_XBP
 000203 850082     E    5347             MOV     DPL,?C_XBP+01H
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    85
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    85
 
 000206 759300     E    5348             MOV     DPX,#?C?XDATASEG
 000209 E0              5349             MOVX    A,@DPTR
@@ -5777,7 +5777,7 @@ LOC    OBJ             LINE     SOURCE
 000027 A4              5410             MUL     AB
 000028 2400       F    5411             ADD     A,#LOW (pxReadyTasksLists)
 00002A F9              5412             MOV     R1,A
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    86
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    86
 
 00002B 7400       F    5413             MOV     A,#HIGH (pxReadyTasksLists)
 00002D 35F0            5414             ADDC    A,B
@@ -5845,7 +5845,7 @@ LOC    OBJ             LINE     SOURCE
 000076 F0              5476             MOVX    @DPTR,A
 000077 A3              5477             INC     DPTR
 000078 7400       F    5478             MOV     A,#LOW (xDelayedTaskList1)
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    87
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    87
 
 00007A F0              5479             MOVX    @DPTR,A
                        5480     ;       pxOverflowDelayedTaskList = &xDelayedTaskList2;
@@ -5913,7 +5913,7 @@ LOC    OBJ             LINE     SOURCE
 0000D8 7900       F    5541             MOV     R1,#LOW (?SC_0)
 0000DA 9000FFFD        5542             MOV     DPTR,#0FFFDH
 0000DE 12000000   E    5543             LCALL   ?C?ADDXBP
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    88
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    88
 
 0000E2 EB              5544             MOV     A,R3
 0000E3 F0              5545             MOVX    @DPTR,A
@@ -5981,7 +5981,7 @@ LOC    OBJ             LINE     SOURCE
                        5607     ;                               pxTCB = ( tskTCB * ) listGET_OWNER_OF_HEAD_ENTRY( ( ( xL
                                ist * ) &xTasksWaitingTermination ) );
                        5608     ;                               vListRemove( &( pxTCB->xGenericListItem ) );
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    89
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    89
 
                        5609     ;                               --usCurrentNumberOfTasks;
                        5610     ;                       }
@@ -6049,7 +6049,7 @@ LOC    OBJ             LINE     SOURCE
 00003D E0              5672             MOVX    A,@DPTR
 00003E 4A              5673             ORL     A,R2
 00003F 4B              5674             ORL     A,R3
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    90
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    90
 
 000040 7003            5675             JNZ     $ + 5H
 000042 010000     F    5676             AJMP    ?C0099
@@ -6117,7 +6117,7 @@ LOC    OBJ             LINE     SOURCE
                        5737     ;                       vPortFree( pxNewTCB );                  
                        5738                             ; SOURCE LINE # 1406
 000095 850083     E    5739             MOV     DPH,?C_XBP
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    91
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    91
 
 000098 850082     E    5740             MOV     DPL,?C_XBP+01H
 00009B 759300     E    5741             MOV     DPX,#?C?XDATASEG
@@ -6185,7 +6185,7 @@ LOC    OBJ             LINE     SOURCE
                        5802     ; 
                        5803     ;       return pxNewTCB;
                        5804                             ; SOURCE LINE # 1416
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    92
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    92
 
 0000E8 850083     E    5805             MOV     DPH,?C_XBP
 0000EB 850082     E    5806             MOV     DPL,?C_XBP+01H
@@ -6253,7 +6253,7 @@ LOC    OBJ             LINE     SOURCE
                        5864             USING   0
                        5865                             ; SOURCE LINE # 1455
                        5866     ; {
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    93
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    93
 
                        5867     ;       pxCurrentTCB->pxTopOfStack = C_XBP;
                        5868                             ; SOURCE LINE # 1457
@@ -6308,7 +6308,7 @@ LOC    OBJ             LINE     SOURCE
                        5917     ; END OF _?prvSetCurrentTCB_XBP
                        5918     
                        5919             END
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    94
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    94
 
 SYMBOL TABLE LISTING
 ------ ----- -------
@@ -6376,7 +6376,7 @@ N A M E                                    T Y P E  V A L U E     ATTRIBUTES
 ?C0079. . . . . . . . . . . . . . . . .    EC ADDR  0059H     R   SEG=?PR?_?CTASKREMOVEFROMEVENTLIST?TASKS
 ?C0080. . . . . . . . . . . . . . . . .    EC ADDR  0126H     R   SEG=?PR?_?CTASKREMOVEFROMEVENTLIST?TASKS
 ?C0081. . . . . . . . . . . . . . . . .    EC ADDR  00EFH     R   SEG=?PR?_?CTASKREMOVEFROMEVENTLIST?TASKS
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    95
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    95
 
 ?C0082. . . . . . . . . . . . . . . . .    EC ADDR  0156H     R   SEG=?PR?_?CTASKREMOVEFROMEVENTLIST?TASKS
 ?C0083. . . . . . . . . . . . . . . . .    EC ADDR  018EH     R   SEG=?PR?_?CTASKREMOVEFROMEVENTLIST?TASKS
@@ -6444,7 +6444,7 @@ N A M E                                    T Y P E  V A L U E     ATTRIBUTES
 ?PR?_?XTASKGETTICKCOUNT?TASKS . . . . .    EC SEG   00004AH       REL=INSEG, ALN=BYTE
 ?SC_0 . . . . . . . . . . . . . . . . .    C  ADDR  0000H     R   SEG=?CO?TASKS
 ?XD?TASKS . . . . . . . . . . . . . . .    X  SEG   0001DFH       REL=UNIT, ALN=BYTE
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    96
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    96
 
 _?CTASKREMOVEFROMEVENTLIST. . . . . . .    EC ADDR  0000H     R   SEG=?PR?_?CTASKREMOVEFROMEVENTLIST?TASKS
 _?CTASKRESUMEALL. . . . . . . . . . . .    EC ADDR  0000H     R   SEG=?PR?_?CTASKRESUMEALL?TASKS
@@ -6512,7 +6512,7 @@ CH. . . . . . . . . . . . . . . . . . .    D  ADDR  00C5H     A
 CKCON . . . . . . . . . . . . . . . . .    D  ADDR  008EH     A   
 CL. . . . . . . . . . . . . . . . . . .    D  ADDR  00C4H     A   
 CMOD. . . . . . . . . . . . . . . . . .    D  ADDR  00C2H     A   
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    97
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    97
 
 CPRL2 . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.0   A   
 CSCHEDULERRUNNING . . . . . . . . . . .    X  ADDR  01DDH     R   SEG=?XD?TASKS
@@ -6580,7 +6580,7 @@ LSAIER. . . . . . . . . . . . . . . . .    D  ADDR  00A1H     A
 LSCR. . . . . . . . . . . . . . . . . .    D  ADDR  00A2H     A   
 LSR . . . . . . . . . . . . . . . . . .    D  ADDR  00A3H     A   
 LSSR. . . . . . . . . . . . . . . . . .    D  ADDR  00A3H     A   
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    98
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    98
 
 MCIR. . . . . . . . . . . . . . . . . .    D  ADDR  00B6H     A   
 MD0 . . . . . . . . . . . . . . . . . .    D  ADDR  00F9H     A   
@@ -6648,7 +6648,7 @@ PT2 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.5   A
 PWDI. . . . . . . . . . . . . . . . . .    B  ADDR  00F8H.5   A   
 PX0 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.0   A   
 PX1 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.2   A   
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE    99
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE    99
 
 PXCURRENTTCB. . . . . . . . . . . . . .    X  ADDR  01A2H     R   SEG=?XD?TASKS
 PXDELAYEDTASKLIST . . . . . . . . . . .    X  ADDR  01C2H     R   SEG=?XD?TASKS
@@ -6716,7 +6716,7 @@ TXD . . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.1   A
 UCMISSEDTICKS . . . . . . . . . . . . .    X  ADDR  01A9H     R   SEG=?XD?TASKS
 UCSCHEDULERSUSPENDED. . . . . . . . . .    X  ADDR  01A5H     R   SEG=?XD?TASKS
 UCTASKNUMBER. . . . . . . . . . . . . .    X  ADDR  0000H     R   SEG=?XD?TASKS
-AX51 MACRO ASSEMBLER  TASKS                                                                 05/22/13 16:19:28 PAGE   100
+AX51 MACRO ASSEMBLER  TASKS                                                                 05/24/13 13:18:44 PAGE   100
 
 UCTOPREADYPRIORITY. . . . . . . . . . .    X  ADDR  01DEH     R   SEG=?XD?TASKS
 UCTOPUSEDPRIORITY . . . . . . . . . . .    X  ADDR  016BH     R   SEG=?XD?TASKS

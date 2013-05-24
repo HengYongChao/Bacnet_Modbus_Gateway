@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 1   
+C51 COMPILER V9.06   I2C                                                                   05/24/2013 13:13:44 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE I2C
@@ -62,7 +62,7 @@ line level    source
   48          static U8_T             i2cSlvTxPkt[SLV_MAX_PKT_NUM];
   49          
   50          
-C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 2   
+C51 COMPILER V9.06   I2C                                                                   05/24/2013 13:13:44 PAGE 2   
 
   51          /* LOCAL SUBPROGRAM DECLARATIONS */
   52          static void i2c_MstStatus(U8_T i2cStatus);
@@ -126,7 +126,7 @@ line level    source
  110   6                                                      {
  111   7                                                              i2c_MasterXmit(ptI2cTxBuf->I2cData[i2cDataLenCnt], I2C_MASTER_GO | I2C_CMD_WRITE);
  112   7                                                              i2cDataLenCnt = 0;
-C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 3   
+C51 COMPILER V9.06   I2C                                                                   05/24/2013 13:13:44 PAGE 3   
 
  113   7                                                              EA = 0;
  114   7                                                              I2C_FlagClr(I2C_BUSY);
@@ -190,7 +190,7 @@ line level    source
  172   4                              }
  173   3                      }
  174   2                      else if ((!(i2cStatus & I2C_NO_ACK)) && (!(i2cStatus & I2C_TIP)) && (!(i2cStatus & I2C_BUS_BUSY)))
-C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 4   
+C51 COMPILER V9.06   I2C                                                                   05/24/2013 13:13:44 PAGE 4   
 
  175   2                      {
  176   3                              if (i2cActF & I2C_STOP_COND)
@@ -254,7 +254,7 @@ line level    source
  233   4                                      I2C_FlagClr(I2C_BUSY);
  234   4                                      EA = 1;
  235   4                              }
-C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 5   
+C51 COMPILER V9.06   I2C                                                                   05/24/2013 13:13:44 PAGE 5   
 
  236   3                      }
  237   2                      else
@@ -318,7 +318,7 @@ line level    source
                                               i2c_SlvRxProcess();
                                               #endif
  297   4                                      i2cDataLenCnt = 0;
-C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 6   
+C51 COMPILER V9.06   I2C                                                                   05/24/2013 13:13:44 PAGE 6   
 
  298   4                              }
  299   3                              else if (i2cStatus & I2C_SLV_RESTART)
@@ -382,7 +382,7 @@ line level    source
                * Purpose : Handling received command functions in I2C slave mode And replying
                *           packets corresponding with the received command.
                * Params  : none
-C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 7   
+C51 COMPILER V9.06   I2C                                                                   05/24/2013 13:13:44 PAGE 7   
 
                * Returns : none
                * Note    : none
@@ -446,7 +446,7 @@ line level    source
                                       CLI_MacWr((U32_T)realReg, &i2cSlvRxPkt[3], (U8_T)realLen);
                               }
                       }
-C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 8   
+C51 COMPILER V9.06   I2C                                                                   05/24/2013 13:13:44 PAGE 8   
 
                       else if ((slvCmd & 0xF0) == I2C_SLV_IRSFR)
                       {
@@ -510,7 +510,7 @@ line level    source
  481           * Returns : none
  482           * Note    : none
  483           *--------------------------------------------------------------------------------
-C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 9   
+C51 COMPILER V9.06   I2C                                                                   05/24/2013 13:13:44 PAGE 9   
 
  484           */
  485          static void i2c_MasterXmit(U8_T wrData, U8_T mstCmd)
@@ -574,7 +574,7 @@ line level    source
  543           *           slvCmd - slave command of the current byte data.
  544           * Returns : none
  545           * Note    : none
-C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 10  
+C51 COMPILER V9.06   I2C                                                                   05/24/2013 13:13:44 PAGE 10  
 
  546           *--------------------------------------------------------------------------------
  547           */
@@ -638,7 +638,7 @@ line level    source
  605           *--------------------------------------------------------------------------------
  606           * void I2C_Func(void)
  607           * Purpose : Handling serial interface I2C interrupt function.
-C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 11  
+C51 COMPILER V9.06   I2C                                                                   05/24/2013 13:13:44 PAGE 11  
 
  608           * Params  : none
  609           * Returns : none
@@ -702,7 +702,7 @@ line level    source
  667   5                                              i2c_SlvStatus(i2cStatus);
  668   5                                      }
  669   4                              }
-C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 12  
+C51 COMPILER V9.06   I2C                                                                   05/24/2013 13:13:44 PAGE 12  
 
  670   3                      }
  671   2              }
@@ -766,7 +766,7 @@ line level    source
  729   3                              //ptI2cTxBuf->ptI2c = ??;
  730   3                              ptI2cBuf->DataLen = i2cDataLen;
  731   3                      }
-C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 13  
+C51 COMPILER V9.06   I2C                                                                   05/24/2013 13:13:44 PAGE 13  
 
  732   2                      else
  733   2                      {
@@ -830,7 +830,7 @@ line level    source
  791           *           *i2cData - a pointer store the data.
  792           * Returns : none
  793           * Note    : none
-C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 14  
+C51 COMPILER V9.06   I2C                                                                   05/24/2013 13:13:44 PAGE 14  
 
  794           *--------------------------------------------------------------------------------
  795           */

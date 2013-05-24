@@ -1,4 +1,4 @@
-AX51 MACRO ASSEMBLER  HEAP_1                                                                05/22/13 16:19:28 PAGE     1
+AX51 MACRO ASSEMBLER  HEAP_1                                                                05/24/13 13:18:44 PAGE     1
 
 
 MACRO ASSEMBLER AX51 V3.07c
@@ -65,7 +65,7 @@ LOC    OBJ             LINE     SOURCE
  00A7                    49     XMRHR   DATA    0A7H
  00B0.1                  50     P3_1    BIT     0B0H.1
  00A0.2                  51     P2_2    BIT     0A0H.2
-AX51 MACRO ASSEMBLER  HEAP_1                                                                05/22/13 16:19:28 PAGE     2
+AX51 MACRO ASSEMBLER  HEAP_1                                                                05/24/13 13:18:44 PAGE     2
 
  0090.3                  52     P1_3    BIT     090H.3
  0080.4                  53     P0_4    BIT     080H.4
@@ -133,7 +133,7 @@ LOC    OBJ             LINE     SOURCE
  00E1                   115     UR2_THR DATA    0E1H
  00E8.5                 116     EWDI    BIT     0E8H.5
  00D8.3                 117     WDIF    BIT     0D8H.3
-AX51 MACRO ASSEMBLER  HEAP_1                                                                05/22/13 16:19:28 PAGE     3
+AX51 MACRO ASSEMBLER  HEAP_1                                                                05/24/13 13:18:44 PAGE     3
 
  00CB                   118     RLDH    DATA    0CBH
  00BE                   119     EPCR    DATA    0BEH
@@ -201,7 +201,7 @@ LOC    OBJ             LINE     SOURCE
  00E8                   181     EIE     DATA    0E8H
  0092                   182     WTST    DATA    092H
  00B8.6                 183     PS1     BIT     0B8H.6
-AX51 MACRO ASSEMBLER  HEAP_1                                                                05/22/13 16:19:28 PAGE     4
+AX51 MACRO ASSEMBLER  HEAP_1                                                                05/24/13 13:18:44 PAGE     4
 
  00B8.1                 184     PT0     BIT     0B8H.1
  0091                   185     EIF     DATA    091H
@@ -269,7 +269,7 @@ LOC    OBJ             LINE     SOURCE
 ------                  247     ?C_INITSEG           SEGMENT CODE 
 ------                  248     ?XD?HEAP_1           SEGMENT XDATA 
                         249             EXTRN   CODE (_?cTaskResumeAll)
-AX51 MACRO ASSEMBLER  HEAP_1                                                                05/22/13 16:19:28 PAGE     5
+AX51 MACRO ASSEMBLER  HEAP_1                                                                05/24/13 13:18:44 PAGE     5
 
                         250             EXTRN   CODE (_?vTaskSuspendAll)
                         251             EXTRN   CODE (?C?ADDXBP)
@@ -337,7 +337,7 @@ LOC    OBJ             LINE     SOURCE
                         313     ;  * See heap_2.c and heap_3.c for alternative implementations, and the memory
                         314     ;  * management pages of http://www.FreeRTOS.org for more information.
                         315     ;  */
-AX51 MACRO ASSEMBLER  HEAP_1                                                                05/22/13 16:19:28 PAGE     6
+AX51 MACRO ASSEMBLER  HEAP_1                                                                05/24/13 13:18:44 PAGE     6
 
                         316     ; #include <stdlib.h>
                         317     ; #include "projdefs.h"
@@ -405,7 +405,7 @@ LOC    OBJ             LINE     SOURCE
                         379                             ; SOURCE LINE # 87
                         380     ;       {
                         381                             ; SOURCE LINE # 88
-AX51 MACRO ASSEMBLER  HEAP_1                                                                05/22/13 16:19:28 PAGE     7
+AX51 MACRO ASSEMBLER  HEAP_1                                                                05/24/13 13:18:44 PAGE     7
 
                         382     ;               /* Byte alignment required. */
                         383     ;               usWantedSize += ( portBYTE_ALIGNMENT - ( usWantedSize & heapBYTE_ALIGNME
@@ -473,7 +473,7 @@ LOC    OBJ             LINE     SOURCE
 000069 FE               444             MOV     R6,A
 00006A A3               445             INC     DPTR
 00006B E0               446             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  HEAP_1                                                                05/22/13 16:19:28 PAGE     8
+AX51 MACRO ASSEMBLER  HEAP_1                                                                05/24/13 13:18:44 PAGE     8
 
 00006C FF               447             MOV     R7,A
 00006D 90000000   F     448             MOV     DPTR,#usNextFreeByte+01H
@@ -541,7 +541,7 @@ LOC    OBJ             LINE     SOURCE
 000013 850082     E     510             MOV     DPL,?C_XBP+01H
 000016 759300     E     511             MOV     DPX,#?C?XDATASEG
 000019 E0               512             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  HEAP_1                                                                05/22/13 16:19:28 PAGE     9
+AX51 MACRO ASSEMBLER  HEAP_1                                                                05/24/13 13:18:44 PAGE     9
 
 00001A F9               513             MOV     R1,A
 00001B A3               514             INC     DPTR
@@ -589,7 +589,7 @@ LOC    OBJ             LINE     SOURCE
                         556     ; END OF _?vPortInitialiseBlocks
                         557     
                         558             END
-AX51 MACRO ASSEMBLER  HEAP_1                                                                05/22/13 16:19:28 PAGE    10
+AX51 MACRO ASSEMBLER  HEAP_1                                                                05/24/13 13:18:44 PAGE    10
 
 SYMBOL TABLE LISTING
 ------ ----- -------
@@ -657,7 +657,7 @@ DPH1. . . . . . . . . . . . . . . . . .    D  ADDR  0085H     A
 DPL . . . . . . . . . . . . . . . . . .    D  ADDR  0082H     A   
 DPL0. . . . . . . . . . . . . . . . . .    D  ADDR  0082H     A   
 DPL1. . . . . . . . . . . . . . . . . .    D  ADDR  0084H     A   
-AX51 MACRO ASSEMBLER  HEAP_1                                                                05/22/13 16:19:28 PAGE    11
+AX51 MACRO ASSEMBLER  HEAP_1                                                                05/24/13 13:18:44 PAGE    11
 
 DPS . . . . . . . . . . . . . . . . . .    D  ADDR  0086H     A   
 DPX . . . . . . . . . . . . . . . . . .    D  ADDR  0093H     A   
@@ -725,7 +725,7 @@ P . . . . . . . . . . . . . . . . . . .    B  ADDR  00D0H.0   A
 P0. . . . . . . . . . . . . . . . . . .    D  ADDR  0080H     A   
 P0_0. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.0   A   
 P0_1. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.1   A   
-AX51 MACRO ASSEMBLER  HEAP_1                                                                05/22/13 16:19:28 PAGE    12
+AX51 MACRO ASSEMBLER  HEAP_1                                                                05/24/13 13:18:44 PAGE    12
 
 P0_2. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.2   A   
 P0_3. . . . . . . . . . . . . . . . . .    B  ADDR  0080H.3   A   
@@ -793,7 +793,7 @@ RWT . . . . . . . . . . . . . . . . . .    B  ADDR  00D8H.0   A
 RXD . . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.0   A   
 SBUF0 . . . . . . . . . . . . . . . . .    D  ADDR  0099H     A   
 SBUF1 . . . . . . . . . . . . . . . . .    D  ADDR  00C1H     A   
-AX51 MACRO ASSEMBLER  HEAP_1                                                                05/22/13 16:19:28 PAGE    13
+AX51 MACRO ASSEMBLER  HEAP_1                                                                05/24/13 13:18:44 PAGE    13
 
 SCON0 . . . . . . . . . . . . . . . . .    D  ADDR  0098H     A   
 SCON1 . . . . . . . . . . . . . . . . .    D  ADDR  00C0H     A   

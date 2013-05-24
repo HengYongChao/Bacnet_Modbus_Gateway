@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 1   
+C51 COMPILER V9.06   SCHEDULE                                                              05/24/2013 13:13:48 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE SCHEDULE
@@ -62,7 +62,7 @@ line level    source
   47          sbit ID_CHANGED = REFRESH_STATUS^2;
   48          
   49          extern unsigned char T;
-C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 2   
+C51 COMPILER V9.06   SCHEDULE                                                              05/24/2013 13:13:48 PAGE 2   
 
   50          unsigned char far daylight_enable;
   51          unsigned char far daylight_flag;
@@ -126,7 +126,7 @@ line level    source
  109   1                      unsigned int word;
  110   1                      unsigned char byte[2];
  111   1              }crc_16;
-C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 3   
+C51 COMPILER V9.06   SCHEDULE                                                              05/24/2013 13:13:48 PAGE 3   
 
  112   1      
  113   1              tstat_id = id;
@@ -190,7 +190,7 @@ line level    source
  171   1                      unsigned int word;
  172   1                      unsigned char byte[2];
  173   1              }crc;
-C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 4   
+C51 COMPILER V9.06   SCHEDULE                                                              05/24/2013 13:13:48 PAGE 4   
 
  174   1              
  175   1      //      unsigned char output_value;
@@ -254,7 +254,7 @@ line level    source
  233   1                      if(output) 
  234   1                      {
  235   2                              if(GetBit(id_index, output_state_index) == 0)
-C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 5   
+C51 COMPILER V9.06   SCHEDULE                                                              05/24/2013 13:13:48 PAGE 5   
 
  236   2                              {
  237   3                                      SetBit(id_index & 0x07, &output_state_index[id_index >> 3]);
@@ -318,7 +318,7 @@ line level    source
  295   1              if(dayofweek != previous_dayofweek || calibrated_time == 1)
  296   1              {
  297   2                      previous_dayofweek = dayofweek;
-C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 6   
+C51 COMPILER V9.06   SCHEDULE                                                              05/24/2013 13:13:48 PAGE 6   
 
  298   2                      calibrated_time = 0;             
  299   2                      switch(temp_month)
@@ -382,7 +382,7 @@ line level    source
  357   3                                              dayofyear=0xd5 + temp_day;
  358   3                                      else
  359   3                                              dayofyear=0xd4 + temp_day;                      
-C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 7   
+C51 COMPILER V9.06   SCHEDULE                                                              05/24/2013 13:13:48 PAGE 7   
 
  360   3                                      break;
  361   3                              case 9:
@@ -446,7 +446,7 @@ line level    source
  419   2                      if(!AR_A_M)  //auto 
  420   2                       {
  421   3                              mask = 0x01;
-C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 8   
+C51 COMPILER V9.06   SCHEDULE                                                              05/24/2013 13:13:48 PAGE 8   
 
  422   3                              /* Assume bit0 from octet0 = Jan 1st */
  423   3                              /* octet_index = ora_current.day_of_year / 8;*/
@@ -510,7 +510,7 @@ line level    source
  481          { 
  482   1              unsigned char w, i;
  483   1              signed char j, timeout = 0;
-C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 9   
+C51 COMPILER V9.06   SCHEDULE                                                              05/24/2013 13:13:48 PAGE 9   
 
  484   1              unsigned char mask;
  485   1      //      unsigned char mask_r;
@@ -574,7 +574,7 @@ line level    source
  543   4                              }
  544   3                      }
  545   2                      else
-C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 10  
+C51 COMPILER V9.06   SCHEDULE                                                              05/24/2013 13:13:48 PAGE 10  
 
  546   2                              ClearBit(i & 0x07, &holiday1_state_index[i >> 3]);
  547   2      
@@ -638,7 +638,7 @@ line level    source
  605   3                      }
  606   2                      else // manual
  607   2                      {
-C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 11  
+C51 COMPILER V9.06   SCHEDULE                                                              05/24/2013 13:13:48 PAGE 11  
 
  608   3                              if(WR_FLAG != 0xff)
  609   3                              {
@@ -702,7 +702,7 @@ line level    source
  667   6                                              }
  668   5                                      }
  669   4                                      wr1_valid = 1;
-C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 12  
+C51 COMPILER V9.06   SCHEDULE                                                              05/24/2013 13:13:48 PAGE 12  
 
  670   4                              }
  671   3                              else
@@ -766,7 +766,7 @@ line level    source
  729   5      //                                      SendSchedualData(i, ID_OUTPUT);  
  730   5      //                                      test0 = 7;
  731   5                                      #if 1
-C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 13  
+C51 COMPILER V9.06   SCHEDULE                                                              05/24/2013 13:13:48 PAGE 13  
 
  732   5                                              temp_bit = GetBit(i, first_time_schedual);
  733   5                                              if(ID_OUTPUT != GetBit(i,output_state_index) || temp_bit == 0)

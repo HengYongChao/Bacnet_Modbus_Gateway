@@ -9,3 +9,9 @@
 *.obj
 *._ia
 *.OBJ
+*.SRC
+*.lnp
+*.bin
+*.SBR
+*.bak
+*.hex

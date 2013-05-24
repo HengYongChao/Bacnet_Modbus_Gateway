@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   DNSC                                                                  05/20/2013 14:16:28 PAGE 1   
+C51 COMPILER V9.06   DNSC                                                                  05/24/2013 13:13:43 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE DNSC
@@ -62,7 +62,7 @@ line level    source
               #include <stdio.h>
               #include <string.h>
               
-C51 COMPILER V9.06   DNSC                                                                  05/20/2013 14:16:28 PAGE 2   
+C51 COMPILER V9.06   DNSC                                                                  05/24/2013 13:13:43 PAGE 2   
 
               /* NAMING CONSTANT DECLARATIONS */
               
@@ -126,7 +126,7 @@ line level    source
                * Function Name: DNSC_Receive
                * Purpose: 
                * Params:
-C51 COMPILER V9.06   DNSC                                                                  05/20/2013 14:16:28 PAGE 3   
+C51 COMPILER V9.06   DNSC                                                                  05/24/2013 13:13:43 PAGE 3   
 
                * Returns:
                * Note:
@@ -190,7 +190,7 @@ line level    source
                * Returns:
                * Note:
                * ----------------------------------------------------------------------------
-C51 COMPILER V9.06   DNSC                                                                  05/20/2013 14:16:28 PAGE 4   
+C51 COMPILER V9.06   DNSC                                                                  05/24/2013 13:13:43 PAGE 4   
 
                */
               U32_T DNSC_GetIp(void)
@@ -254,7 +254,7 @@ line level    source
                       U16_T nameLen = strlen(pName); 
                       DnsHeader dnsh;
                       DnsQuestion dnsq;
-C51 COMPILER V9.06   DNSC                                                                  05/20/2013 14:16:28 PAGE 5   
+C51 COMPILER V9.06   DNSC                                                                  05/24/2013 13:13:43 PAGE 5   
 
               
                       // Prepare DNS header
@@ -318,7 +318,7 @@ line level    source
               #if (UART0_ENABLE)
                               PRINTD(DEBUG_MSG,  ("Buffer length is too small.\n\r"));
               #endif          
-C51 COMPILER V9.06   DNSC                                                                  05/20/2013 14:16:28 PAGE 6   
+C51 COMPILER V9.06   DNSC                                                                  05/24/2013 13:13:43 PAGE 6   
 
                               return ip;
                       }
@@ -382,7 +382,7 @@ line level    source
               
                               if (dnsh.total_answers > 0)
                               {
-C51 COMPILER V9.06   DNSC                                                                  05/20/2013 14:16:28 PAGE 7   
+C51 COMPILER V9.06   DNSC                                                                  05/24/2013 13:13:43 PAGE 7   
 
                                       // Handle ARCOUNT field at here
                                       // ...
@@ -446,7 +446,7 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
    CODE SIZE        =   ----    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
-C51 COMPILER V9.06   DNSC                                                                  05/20/2013 14:16:28 PAGE 8   
+C51 COMPILER V9.06   DNSC                                                                  05/24/2013 13:13:43 PAGE 8   
 
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----

@@ -436,6 +436,31 @@ void GUDPBC_Event(U8_T id, U8_T event)
 
 } /* End of GUDPBC_Event() */
 
+
+
+U8_T udp_receive_reboot(void)
+{
+	U8_T   socket,id;
+	U8_T    *pData;
+ //evan move the bootloader jump interface from gudpc.c to http.c 
+ // which webpage function have take charge that .c file.
+
+	    if((pData[0] == 0xee) && (pData[1] == 0x10))
+	    {   
+			gudpbc_HandleSearchReq(pData, id); 
+	        IntFlashErase(ERA_RUN, 0x60000);
+	        FlagIsp = 1;
+			USB_disable();
+			lcdreset();
+			Lcd_Initial();
+			Display_Updating();
+	        AX11000_SoftReboot(); 	
+		}
+
+   return 	socket;
+}
+
+
 /*
  * ----------------------------------------------------------------------------
  * Function Name: GUDPBC_Receive
@@ -568,6 +593,9 @@ void gudpbc_HandleSetReq(U8_T XDATA* pData, U16_T length, U8_T id)
 //{
 //	gconfig_ConfigData.FirmwareUpgradeMode = mode;
 //} /* End of GCONFIG_SetFirmwareUpgradeMode() */
+
+
+
 
 
 /*

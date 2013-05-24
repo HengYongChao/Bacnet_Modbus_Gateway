@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   ADAPTER                                                               05/20/2013 14:16:28 PAGE 1   
+C51 COMPILER V9.06   ADAPTER                                                               05/24/2013 13:13:43 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE ADAPTER
@@ -62,7 +62,7 @@ line level    source
   47          static U8_T eth_EthHeadLen = 0;
   48          static U16_T eth_PayLoadOffset = 0;
   49          #if (!STOE_TRANSPARENT)
-C51 COMPILER V9.06   ADAPTER                                                               05/20/2013 14:16:28 PAGE 2   
+C51 COMPILER V9.06   ADAPTER                                                               05/24/2013 13:13:43 PAGE 2   
 
   50          static BOOL eth_GatewayArpStaticFlag = FALSE;
   51          static U32_T eth_ArpSendIntervalTime = 5;
@@ -126,7 +126,7 @@ line level    source
  109   1              STOE_Start();
  110   1      
  111   1      } /* End of ETH_Start */
-C51 COMPILER V9.06   ADAPTER                                                               05/20/2013 14:16:28 PAGE 3   
+C51 COMPILER V9.06   ADAPTER                                                               05/24/2013 13:13:43 PAGE 3   
 
  112          
  113          /*
@@ -190,7 +190,7 @@ line level    source
                                       if (!PPPOE_Receive(TCPIP_GetRcvBuffer(), length))
                                               return;
                               }
-C51 COMPILER V9.06   ADAPTER                                                               05/20/2013 14:16:28 PAGE 4   
+C51 COMPILER V9.06   ADAPTER                                                               05/24/2013 13:13:43 PAGE 4   
 
                               else
                               {
@@ -254,7 +254,7 @@ line level    source
  233          
  234          /*
  235          * -----------------------------------------------------------------------------
-C51 COMPILER V9.06   ADAPTER                                                               05/20/2013 14:16:28 PAGE 5   
+C51 COMPILER V9.06   ADAPTER                                                               05/24/2013 13:13:43 PAGE 5   
 
  236           * Function Name: ETH_SendPkt
  237           * Purpose: Copy Data to Mac ram and send to Ethernet.
@@ -318,7 +318,7 @@ line level    source
  294   2                      {
  295   3      #if STOE_TRANSPARENT
                                       if (ETH_IsPppoe)
-C51 COMPILER V9.06   ADAPTER                                                               05/20/2013 14:16:28 PAGE 6   
+C51 COMPILER V9.06   ADAPTER                                                               05/24/2013 13:13:43 PAGE 6   
 
                                               len = 48 + eth_EthHeadLen;
                                       else
@@ -382,7 +382,7 @@ line level    source
  356   2              }
  357   1      
  358   1              receiveIp = *(U32_T *)&pBuf[28];
-C51 COMPILER V9.06   ADAPTER                                                               05/20/2013 14:16:28 PAGE 7   
+C51 COMPILER V9.06   ADAPTER                                                               05/24/2013 13:13:43 PAGE 7   
 
  359   1              if (gatewayIp != receiveIp)
  360   1              {
@@ -446,7 +446,7 @@ line level    source
  418   2                              eth_ArpSendIntervalTime = 60;
  419   2                              break;
  420   2                      case 60:
-C51 COMPILER V9.06   ADAPTER                                                               05/20/2013 14:16:28 PAGE 8   
+C51 COMPILER V9.06   ADAPTER                                                               05/24/2013 13:13:43 PAGE 8   
 
  421   2                              eth_ArpSendIntervalTime = 120;
  422   2                              break;
@@ -510,7 +510,7 @@ line level    source
  480   1              return;
  481   1      }
  482          
-C51 COMPILER V9.06   ADAPTER                                                               05/20/2013 14:16:28 PAGE 9   
+C51 COMPILER V9.06   ADAPTER                                                               05/24/2013 13:13:43 PAGE 9   
 
  483          /*
  484          * -----------------------------------------------------------------------------

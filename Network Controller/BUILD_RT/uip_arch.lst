@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   UIP_ARCH                                                              05/20/2013 14:16:28 PAGE 1   
+C51 COMPILER V9.06   UIP_ARCH                                                              05/24/2013 13:13:42 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE UIP_ARCH
@@ -62,7 +62,7 @@ line level    source
   47          #define BUF ((uip_tcpip_hdr *)&uip_buf[0])
   48          #define IP_PROTO_TCP    6
   49          
-C51 COMPILER V9.06   UIP_ARCH                                                              05/20/2013 14:16:28 PAGE 2   
+C51 COMPILER V9.06   UIP_ARCH                                                              05/24/2013 13:13:42 PAGE 2   
 
   50          /*-----------------------------------------------------------------------------------*/
   51          void
@@ -126,7 +126,7 @@ line level    source
               uip_ipchksum(void)
               {
                 return uip_chksum((U16_T *)&uip_buf[TCPIP_EthHeadLen], 20);
-C51 COMPILER V9.06   UIP_ARCH                                                              05/20/2013 14:16:28 PAGE 3   
+C51 COMPILER V9.06   UIP_ARCH                                                              05/24/2013 13:13:42 PAGE 3   
 
               }
               #endif
@@ -190,7 +190,7 @@ line level    source
                 }
                 if((sum += (U16_T)htons((U16_T)IP_PROTO_TCP)) < (U16_T)htons((U16_T)IP_PROTO_TCP)) {
                   ++sum;
-C51 COMPILER V9.06   UIP_ARCH                                                              05/20/2013 14:16:28 PAGE 4   
+C51 COMPILER V9.06   UIP_ARCH                                                              05/24/2013 13:13:42 PAGE 4   
 
                 }
               

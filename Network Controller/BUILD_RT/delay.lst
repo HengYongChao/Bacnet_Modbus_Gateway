@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   DELAY                                                                 05/20/2013 14:16:26 PAGE 1   
+C51 COMPILER V9.06   DELAY                                                                 05/24/2013 13:13:41 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE DELAY
@@ -62,7 +62,7 @@ line level    source
   47           * Params:
   48           * Returns:
   49           * Note:
-C51 COMPILER V9.06   DELAY                                                                 05/20/2013 14:16:26 PAGE 2   
+C51 COMPILER V9.06   DELAY                                                                 05/24/2013 13:13:41 PAGE 2   
 
   50           * ----------------------------------------------------------------------------
   51           */
@@ -126,7 +126,7 @@ line level    source
  109          void DELAY_Ms(U16_T loop)
  110          {
  111   1              U16_T   x, y;
-C51 COMPILER V9.06   DELAY                                                                 05/20/2013 14:16:26 PAGE 3   
+C51 COMPILER V9.06   DELAY                                                                 05/24/2013 13:13:41 PAGE 3   
 
  112   1      
  113   1              for (y = 0; y < loop; y++)

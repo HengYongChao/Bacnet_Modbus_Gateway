@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   TEMPERATURE                                                           05/20/2013 14:16:30 PAGE 1   
+C51 COMPILER V9.06   TEMPERATURE                                                           05/24/2013 13:13:45 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE TEMPERATURE
@@ -62,7 +62,7 @@ line level    source
   47          *--------------------------------------------------------------------------------
   48          */
   49          
-C51 COMPILER V9.06   TEMPERATURE                                                           05/20/2013 14:16:30 PAGE 2   
+C51 COMPILER V9.06   TEMPERATURE                                                           05/24/2013 13:13:45 PAGE 2   
 
   50          char * OW_Temprature_GET(void)
   51          {
@@ -126,7 +126,7 @@ line level    source
  109   2                              /* enable presence detect, clock enable, 25MHz */
  110   2                              ONEWIRE_Setup(0, 0, OW_PDI_ENB, OW_CLK_ENB|OW_DIV1|OW_DIV0|OW_PRE0);
  111   2                              break;
-C51 COMPILER V9.06   TEMPERATURE                                                           05/20/2013 14:16:30 PAGE 3   
+C51 COMPILER V9.06   TEMPERATURE                                                           05/24/2013 13:13:45 PAGE 3   
 
  112   2              }
  113   1      }

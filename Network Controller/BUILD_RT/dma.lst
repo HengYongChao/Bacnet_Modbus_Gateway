@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   DMA                                                                   05/20/2013 14:16:26 PAGE 1   
+C51 COMPILER V9.06   DMA                                                                   05/24/2013 13:13:41 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE DMA
@@ -62,7 +62,7 @@ line level    source
   48   1      
   49   1              isr = EA;
   50   1              EA = 0;
-C51 COMPILER V9.06   DMA                                                                   05/20/2013 14:16:26 PAGE 2   
+C51 COMPILER V9.06   DMA                                                                   05/24/2013 13:13:41 PAGE 2   
 
   51   1              _nop_();
   52   1              DCIR = regaddr;
@@ -126,7 +126,7 @@ line level    source
  110   1      
  111   1      } /* End of DMA_Start */
  112          
-C51 COMPILER V9.06   DMA                                                                   05/20/2013 14:16:26 PAGE 3   
+C51 COMPILER V9.06   DMA                                                                   05/24/2013 13:13:41 PAGE 3   
 
  113          /*
  114           * ----------------------------------------------------------------------------
@@ -190,7 +190,7 @@ line level    source
  172   1              DMA_WriteReg(SW_DMA_SOUR_ADDR_REG, temp, 3);
  173   1              *ptempshort = pdest;
  174   1              DMA_WriteReg(SW_DMA_TARGET_ADDR_REG, temp, 3);
-C51 COMPILER V9.06   DMA                                                                   05/20/2013 14:16:26 PAGE 4   
+C51 COMPILER V9.06   DMA                                                                   05/24/2013 13:13:41 PAGE 4   
 
  175   1              *ptempshort = length;
  176   1              DMA_WriteReg(SW_DMA_BYTE_COUNT_REG, temp + 1, 2);
@@ -254,7 +254,7 @@ line level    source
  234   1      
  235   1              desttemp[1]--;  /* for Keil C memory type */
  236   1              DMA_WriteReg(SW_DMA_TARGET_ADDR_REG, &desttemp[1], 3);
-C51 COMPILER V9.06   DMA                                                                   05/20/2013 14:16:26 PAGE 5   
+C51 COMPILER V9.06   DMA                                                                   05/24/2013 13:13:41 PAGE 5   
 
  237   1      
  238   1              if (desttemp[1] == 0)
@@ -318,7 +318,7 @@ line level    source
                       *ptempshort = psour;
                       DMA_WriteReg(SW_DMA_SOUR_ADDR_REG, temp, 3);
                       *ptempshort = pdest;
-C51 COMPILER V9.06   DMA                                                                   05/20/2013 14:16:26 PAGE 6   
+C51 COMPILER V9.06   DMA                                                                   05/24/2013 13:13:41 PAGE 6   
 
                       DMA_WriteReg(SW_DMA_TARGET_ADDR_REG, temp, 3);
                       *ptempshort = length;
@@ -382,7 +382,7 @@ line level    source
                       else
                               return 0;
               
-C51 COMPILER V9.06   DMA                                                                   05/20/2013 14:16:26 PAGE 7   
+C51 COMPILER V9.06   DMA                                                                   05/24/2013 13:13:41 PAGE 7   
 
               } /* DMA_Grant */
               #endif /* End of #if (DMA_SRAM_RANGE == DMA_COPY_LARGE_THAN_64K) */

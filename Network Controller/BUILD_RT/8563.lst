@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   8563                                                                  05/20/2013 14:16:30 PAGE 1   
+C51 COMPILER V9.06   8563                                                                  05/24/2013 13:13:44 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE 8563
@@ -62,7 +62,7 @@ line level    source
   48   1              //for(i=0;i<500;i++);
   49   1              Set_Clock(1,0);
   50   1              //for(i=0;i<500;i++);
-C51 COMPILER V9.06   8563                                                                  05/20/2013 14:16:30 PAGE 2   
+C51 COMPILER V9.06   8563                                                                  05/24/2013 13:13:44 PAGE 2   
 
   51   1              Set_Clock(2,Time.UN.Setime[7]); //sec
   52   1              //for(i=0;i<500;i++);
@@ -126,7 +126,7 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
    EDATA SIZE       =   ----    ----
-C51 COMPILER V9.06   8563                                                                  05/20/2013 14:16:30 PAGE 3   
+C51 COMPILER V9.06   8563                                                                  05/24/2013 13:13:44 PAGE 3   
 
    HDATA SIZE       =   ----    ----
    XDATA CONST SIZE =   ----    ----

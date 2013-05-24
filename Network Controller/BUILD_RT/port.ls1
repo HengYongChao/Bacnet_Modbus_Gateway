@@ -1,4 +1,4 @@
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE     1
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE     1
 
 
 MACRO ASSEMBLER AX51 V3.07c
@@ -65,7 +65,7 @@ LOC    OBJ             LINE     SOURCE
  00A7                    49     XMRHR   DATA    0A7H
  00B0.1                  50     P3_1    BIT     0B0H.1
  00A0.2                  51     P2_2    BIT     0A0H.2
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE     2
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE     2
 
  0090.3                  52     P1_3    BIT     090H.3
  0080.4                  53     P0_4    BIT     080H.4
@@ -133,7 +133,7 @@ LOC    OBJ             LINE     SOURCE
  00E1                   115     UR2_THR DATA    0E1H
  00E8.5                 116     EWDI    BIT     0E8H.5
  00D8.3                 117     WDIF    BIT     0D8H.3
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE     3
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE     3
 
  00CB                   118     RLDH    DATA    0CBH
  00BE                   119     EPCR    DATA    0BEH
@@ -201,7 +201,7 @@ LOC    OBJ             LINE     SOURCE
  00E8                   181     EIE     DATA    0E8H
  0092                   182     WTST    DATA    092H
  00B8.6                 183     PS1     BIT     0B8H.6
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE     4
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE     4
 
  00B8.1                 184     PT0     BIT     0B8H.1
  0091                   185     EIF     DATA    091H
@@ -269,7 +269,7 @@ LOC    OBJ             LINE     SOURCE
 ------                  247     ?PR?_?vPortEndScheduler?PORT             SEGMENT ECODE INSEG 
 ------                  248     ?PR?_?vPortContextSwitch?PORT            SEGMENT ECODE INSEG 
 ------                  249     ?PR?_?OSIntCtxSw?PORT                    SEGMENT ECODE INSEG 
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE     5
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE     5
 
 ------                  250     ?PR?_?vIntPortContextSwitch?PORT         SEGMENT ECODE INSEG 
 ------                  251     ?PR?vTimer2ISR?PORT  SEGMENT ECODE INSEG 
@@ -337,7 +337,7 @@ LOC    OBJ             LINE     SOURCE
                         313     ; 
                         314     ;       A special exception to the GPL can be applied should you wish to distribute
                         315     ;       a combined work that includes FreeRTOS, without being obliged to provide
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE     6
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE     6
 
                         316     ;       the source code for any proprietary components.  See the licensing section 
                         317     ;       of http://www.FreeRTOS.org for full details of how and when the exception
@@ -405,7 +405,7 @@ LOC    OBJ             LINE     SOURCE
                         376     ; /* Used during a context switch to point to the next byte in RAM from/to which
                         377     ; an XRAM byte is to be copied. */
                         378     ; //data static portSTACK_TYPE * data pxRAMStack;
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE     7
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE     7
 
                         379     ; //static  portSTACK_TYPE data * data pxRAMStack;
                         380     ; 
@@ -473,7 +473,7 @@ LOC    OBJ             LINE     SOURCE
 000034 F0               439             MOVX    @DPTR,A
 000035 A3               440             INC     DPTR
 000036 E9               441             MOV     A,R1
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE     8
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE     8
 
 000037 F0               442             MOVX    @DPTR,A
                         443     ; 
@@ -541,7 +541,7 @@ LOC    OBJ             LINE     SOURCE
 00009C 850082     E     502             MOV     DPL,?C_XBP+01H
 00009F 759300     E     503             MOV     DPX,#?C?XDATASEG
 0000A2 E0               504             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE     9
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE     9
 
 0000A3 FB               505             MOV     R3,A
 0000A4 A3               506             INC     DPTR
@@ -609,7 +609,7 @@ LOC    OBJ             LINE     SOURCE
                         567     ;       *--stk                   = 'B';                 /* B   */
                         568                             ; SOURCE LINE # 122
 00010B 850083     E     569             MOV     DPH,?C_XBP
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE    10
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE    10
 
 00010E 850082     E     570             MOV     DPL,?C_XBP+01H
 000111 759300     E     571             MOV     DPX,#?C?XDATASEG
@@ -677,7 +677,7 @@ LOC    OBJ             LINE     SOURCE
 00017F 850083     E     633             MOV     DPH,?C_XBP
 000182 850082     E     634             MOV     DPL,?C_XBP+01H
 000185 759300     E     635             MOV     DPX,#?C?XDATASEG
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE    11
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE    11
 
 000188 E0               636             MOVX    A,@DPTR
 000189 FB               637             MOV     R3,A
@@ -745,7 +745,7 @@ LOC    OBJ             LINE     SOURCE
 0001EE FA               697             MOV     R2,A
 0001EF A3               698             INC     DPTR
 0001F0 E0               699             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE    12
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE    12
 
 0001F1 F9               700             MOV     R1,A
 0001F2 12000000   E     701             LCALL   ?C?PSTPTR
@@ -813,7 +813,7 @@ LOC    OBJ             LINE     SOURCE
                         763     ; /* Following is the registers pushed into hardware stack manually to support the dalla
                                s 390 */
                         764     ;     *--stk           = 0x80;                /* IE, EA is enabled  */
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE    13
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE    13
 
                         765                             ; SOURCE LINE # 145
 00026A 850083     E     766             MOV     DPH,?C_XBP
@@ -881,7 +881,7 @@ LOC    OBJ             LINE     SOURCE
 0002BB FA               822             MOV     R2,A
 0002BC A3               823             INC     DPTR
 0002BD E0               824             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE    14
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE    14
 
 0002BE F9               825             MOV     R1,A
                         826     ; 
@@ -949,7 +949,7 @@ LOC    OBJ             LINE     SOURCE
 000036 7F01             887             MOV     R7,#01H
                         888     ; }
                         889                             ; SOURCE LINE # 179
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE    15
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE    15
 
 000038                  890     ?C0002:
 000038 90000002         891             MOV     DPTR,#02H
@@ -1017,7 +1017,7 @@ LOC    OBJ             LINE     SOURCE
 00000C 02000000   E     949             LJMP    _?LoadCtx
                         950     ; END OF _?vPortContextSwitch
                         951     
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE    16
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE    16
 
                         952     ; 
                         953     ; }
@@ -1085,7 +1085,7 @@ LOC    OBJ             LINE     SOURCE
                        1014     ;               prvGetCurrentTCB_XBP();
                        1015     ;       Call vTaskSwitchContext();                                    
                        1016     ;       Get the stack pointer of the task to resume:                           
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE    17
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE    17
 
                        1017     ;               prvSetCurrentTCB_XBP;
                        1018     ;       Restore all processor registers from the new task's stack;             
@@ -1153,7 +1153,7 @@ LOC    OBJ             LINE     SOURCE
 000002 C0F0            1080             PUSH    B
 000004 C093            1081             PUSH    DPX
 000006 C083            1082             PUSH    DPH
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE    18
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE    18
 
 000008 C082            1083             PUSH    DPL
 00000A C0D0            1084             PUSH    PSW
@@ -1221,7 +1221,7 @@ LOC    OBJ             LINE     SOURCE
                        1146                             ; SOURCE LINE # 291
 00004A 858100     F    1147             MOV     SaveSP,SP
                        1148     ;         prvGetCurrentTCB_XBP();
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE    19
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE    19
 
                        1149                             ; SOURCE LINE # 292
 00004D 12000000   E    1150             LCALL   _?prvGetCurrentTCB_XBP
@@ -1289,7 +1289,7 @@ LOC    OBJ             LINE     SOURCE
 000016 12000000   E    1212             LCALL   _DMA_WriteReg
                        1213     ; 
                        1214     ;       EXTINT5(ON);    /* Enable INT5 interrupt for software timer. */
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE    20
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE    20
 
                        1215                             ; SOURCE LINE # 311
 00001A D2EB            1216             SETB    EINT5
@@ -1300,7 +1300,7 @@ LOC    OBJ             LINE     SOURCE
                        1221     ; END OF prvSetupTimerInterrupt
                        1222     
                        1223             END
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE    21
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE    21
 
 SYMBOL TABLE LISTING
 ------ ----- -------
@@ -1368,7 +1368,7 @@ CANDR . . . . . . . . . . . . . . . . .    D  ADDR  00DFH     A
 CCAPH0. . . . . . . . . . . . . . . . .    D  ADDR  00B9H     A   
 CCAPH1. . . . . . . . . . . . . . . . .    D  ADDR  00BAH     A   
 CCAPH2. . . . . . . . . . . . . . . . .    D  ADDR  00BBH     A   
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE    22
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE    22
 
 CCAPH3. . . . . . . . . . . . . . . . .    D  ADDR  00BCH     A   
 CCAPH4. . . . . . . . . . . . . . . . .    D  ADDR  00BDH     A   
@@ -1436,7 +1436,7 @@ I2CDR . . . . . . . . . . . . . . . . .    D  ADDR  0097H     A
 IE. . . . . . . . . . . . . . . . . . .    D  ADDR  00A8H     A   
 IE0 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.1   A   
 IE1 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.3   A   
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE    23
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE    23
 
 INT0. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.2   A   
 INT1. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.3   A   
@@ -1504,7 +1504,7 @@ P3_4. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.4   A
 P3_5. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.5   A   
 P3_6. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.6   A   
 P3_7. . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.7   A   
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE    24
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE    24
 
 PCON. . . . . . . . . . . . . . . . . .    D  ADDR  0087H     A   
 PINT2 . . . . . . . . . . . . . . . . .    B  ADDR  00F8H.0   A   
@@ -1572,7 +1572,7 @@ TEMP?741. . . . . . . . . . . . . . . .    X  ADDR  0000H     R   SEG=?XD?PRVSET
 TF0 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.5   A   
 TF1 . . . . . . . . . . . . . . . . . .    B  ADDR  0088H.7   A   
 TF2 . . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.7   A   
-AX51 MACRO ASSEMBLER  PORT                                                                  05/22/13 16:19:28 PAGE    25
+AX51 MACRO ASSEMBLER  PORT                                                                  05/24/13 13:18:44 PAGE    25
 
 TH0 . . . . . . . . . . . . . . . . . .    D  ADDR  008CH     A   
 TH1 . . . . . . . . . . . . . . . . . .    D  ADDR  008DH     A   

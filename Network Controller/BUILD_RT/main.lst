@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 1   
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE MAIN
@@ -62,7 +62,7 @@ line level    source
   48           *=============================================================================
   49           */
   50          
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 2   
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 2   
 
   51          /* INCLUDE FILE DECLARATIONS */
   52          #include "reg80390.h"
@@ -126,7 +126,7 @@ line level    source
               #else
  111          #define DBGMSG(A) {}
  112          #endif
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 3   
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 3   
 
  113          #define TIME_OUT_COUNTER        (250/SWTIMER_INTERVAL)  //250
  114          #define Hardware_Rev22       22
@@ -190,7 +190,7 @@ line level    source
  172          
  173          
  174          /* LOCAL SUBPROGRAM DECLARATIONS */
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 4   
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 4   
 
  175          //static void UpdateIpSettings(U32_T);
  176          static void CheckArpTable(void);
@@ -254,7 +254,7 @@ line level    source
  234          {
  235   1               U32_T gateWay,subnet;
  236   1      
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 5   
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 5   
 
  237   1               if(ip > 0)
  238   1               {
@@ -318,7 +318,7 @@ line level    source
  296   3                              uip_len = app_arp_buf.uip_len;
  297   3                              ETH_Send(app_arp_buf.PayLoadOffset);
  298   3                              uip_len = 0;
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 6   
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 6   
 
  299   3                              app_arp_buf.wait = 0;
  300   3                      }
@@ -382,7 +382,7 @@ line level    source
  357   2                      STOE_DisableIpFilter();
  358   2      #endif
  359   2                      cmdDhcpFlag = 1;
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 7   
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 7   
 
  360   2                      dhcpTimeStart = SWTIMER_Tick();
  361   2              }
@@ -446,7 +446,7 @@ line level    source
                               }
               #else   /* polling mode */
  421   2                      STOE_ProcessInterrupt();
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 8   
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 8   
 
  422   2      #endif
  423   2      
@@ -510,7 +510,7 @@ line level    source
  481          
  482          U8_T BeatSta = 0;
  483          volatile U8_T far LEDS _at_ 0x200000;   //LED Address > 80000, or will compete with SRAM which the range is 
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 9   
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 9   
 
              -0-0x80000!!
  484          
@@ -574,7 +574,7 @@ line level    source
  542   1               {      DisPlay1 = 0;
  543   2                      DisPlay2 = 1; }
  544   1              else {
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 10  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 10  
 
  545   2              DisPlay1 = 1;
  546   2              DisPlay2 = 0;  }
@@ -638,7 +638,7 @@ line level    source
  604   1                      LedSta = 0xfb;  
  605   1              else
  606   1                      LedSta = 0xf9;                             
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 11  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 11  
 
  607   1              LEDS = LedSta; 
  608   1              LE = 1;
@@ -702,7 +702,7 @@ line level    source
  666   2                      DisPlay2 = 0; }
  667   1              else {
  668   2              DisPlay1 = 0;
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 12  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 12  
 
  669   2              DisPlay2 = 1;  }
  670   1              
@@ -766,7 +766,7 @@ line level    source
  728   1              if(Hardware_Revision >= Hardware_Rev22)
  729   1               {      DisPlay1 = 0;
  730   2                      DisPlay2 = 1; }
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 13  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 13  
 
  731   1              else {
  732   2              DisPlay1 = 1;
@@ -830,7 +830,7 @@ line level    source
  790          
  791          void Uart0_Tx(U8_T *buf,U8_T len)
  792          {     
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 14  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 14  
 
  793   1              U8_T i;
  794   1      
@@ -894,7 +894,7 @@ line level    source
  852   4                                      {
  853   5                                              if((StartAdd + i) < MODBUS_TIMER_ADDRESS) //200
  854   5                                              {  
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 15  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 15  
 
  855   6                                                      uart0_TxBuf[3 + 2 * i] = Para[2 * (StartAdd + i)];  
  856   6                                                      uart0_TxBuf[4 + 2 * i] = Para[2 * (StartAdd + i) + 1];
@@ -958,7 +958,7 @@ line level    source
  914   7                                                      }
  915   6                                                      uart0_TxBuf[3 + 2 * i] = 0;     
  916   6                                                      uart0_TxBuf[4 + 2 * i] = send_buffer;   
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 16  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 16  
 
  917   6                                              }
  918   5                                              else if(((StartAdd + i) >= MODBUS_AR_DESCRIP_FIRST) && ((StartAdd + i) < MODBUS_AR_DESCRIP_LAST))
@@ -1022,7 +1022,7 @@ line level    source
  976   5                                              {
  977   6                                                      temp_number = (StartAdd + i - MODBUS_WR_ONTIME_FIRST) / WR_TIME_SIZE;           
  978   6                                                      temp_address = (StartAdd + i - MODBUS_WR_ONTIME_FIRST) % WR_TIME_SIZE;
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 17  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 17  
 
  979   6                                                      send_buffer = WR_Roution[temp_number].OnTime[temp_address];
  980   6                                                      uart0_TxBuf[3 + 2 * i] = 0;     
@@ -1086,7 +1086,7 @@ line level    source
 1038   7                                                              Para[212] = uart0_RxBuf[4];
 1039   7                                                              Para[213] = uart0_RxBuf[5];
 1040   7                                                              ChangeIP = 1;
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 18  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 18  
 
 1041   7                                                              ChangeFlash = 2;
 1042   7                                                      }
@@ -1150,7 +1150,7 @@ line level    source
 1100   6                                                      case 7: //second
 1101   6                                                              Set_Clock(PCF_SEC, uart0_RxBuf[5]);
 1102   6                                                              break;
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 19  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 19  
 
 1103   6                                              }
 1104   5                                      }
@@ -1214,7 +1214,7 @@ line level    source
 1162   7                                                              Time.UN.Setime[2] = uart0_RxBuf[9];
 1163   7                                                              Time.UN.Setime[1] = uart0_RxBuf[8];
 1164   7                                                              Time.UN.Setime[0] = uart0_RxBuf[7];
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 20  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 20  
 
 1165   7                                                      }
 1166   6                                                      else
@@ -1278,7 +1278,7 @@ line level    source
 1224   4                                      else if((StartAdd >= MODBUS_WR_OFFTIME_FIRST) && (StartAdd < MODBUS_WR_OFFTIME_LAST))
 1225   4                                      {
 1226   5                                              if((StartAdd - MODBUS_WR_OFFTIME_FIRST) % WR_TIME_SIZE == 0)
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 21  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 21  
 
 1227   5                                              {
 1228   6                                                      i = (StartAdd - MODBUS_WR_OFFTIME_FIRST) / WR_TIME_SIZE;                                        
@@ -1342,7 +1342,7 @@ line level    source
 1286   1              U16_T  length = 0;
 1287   1              U16_T  uart1_cnt;
 1288   1      
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 22  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 22  
 
 1289   1      
 1290   1      //      Uart0_Tx(uart1_RxBuf,uart1_RxCount);
@@ -1406,7 +1406,7 @@ line level    source
 1348   3      
 1349   3              //              Uart0_Tx(forward_buffer,length);
 1350   3                      
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 23  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 23  
 
 1351   3                      }
 1352   2                      else if(Sever_Order == SERVER_RS232)
@@ -1470,7 +1470,7 @@ line level    source
 1408   8                                                                      }
 1409   7                                                                      else
 1410   7                                                                      {
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 24  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 24  
 
 1411   8                                                                              scan_response_state = UNIQUE_ID_FROM_MULTIPLE;
 1412   8                                                                      }
@@ -1534,7 +1534,7 @@ line level    source
 1470   1      
 1471   1              Lcd_Show_String(2,1,"sn = ",1,5);
 1472   1              Lcd_show_for_32bit(2,6,sn,1);
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 25  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 25  
 
 1473   1      
 1474   1              
@@ -1598,7 +1598,7 @@ line level    source
 1532   3                              if(TcpIp_Scan == 1)
 1533   3                              {
 1534   4                                      TcpIp_Scan = 0;
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 26  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 26  
 
 1535   4                                      TCPIP_TcpSend(TcpSocket_ME, forward_buffer, uart2_count, TCPIP_SEND_NOT_FINAL);
 1536   4                              }
@@ -1662,7 +1662,7 @@ line level    source
 1593   7                                                                      current_db.sn = ((U32_T)forward_buffer[6] << 24) | ((U32_T)forward_buffer[5] << 16) | ((U32_T)forw
              -ard_buffer[4] << 8) | forward_buffer[3];
 1594   7                                                                      if(uart2_count == 9)
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 27  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 27  
 
 1595   7                                                                      {
 1596   8                                                                              scan_response_state = UNIQUE_ID;
@@ -1726,7 +1726,7 @@ line level    source
 1654   1              for (;;)                                
 1655   1              {       
 1656   2                      if(err485)
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 28  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 28  
 
 1657   2                      {
 1658   3                              Led_485ERR();
@@ -1790,7 +1790,7 @@ line level    source
 1716   2                       if(ChangeIP > 0)  //LHN add
 1717   2                       {
 1718   3                              ChangeIP++;
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 29  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 29  
 
 1719   3                              if(ChangeIP >= 4)
 1720   3                              {
@@ -1854,7 +1854,7 @@ line level    source
 1775   2                        if(LED==S485_OK){  
 1776   3                                            Led_485Send();vTaskDelay(xDelayPeriod1);Led_485RxD();vTaskDelay(xDelayPeriod1);
 1777   3                                                    LED=None;Led_ReSet();         }
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 30  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 30  
 
 1778   2                          
 1779   2      
@@ -1918,7 +1918,7 @@ line level    source
 1837   2                      if(uart2_timeout == 0)
 1838   2                      {
 1839   3                              Uart2_Receive();
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 31  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 31  
 
 1840   3                      }
 1841   2              }
@@ -1982,7 +1982,7 @@ line level    source
 1899   4                                      //      Uart0_Tx(Data,48);
 1900   4                                      //      DELAY_Ms(5);
 1901   4                                              TCPIP_UdpSend(Time_Server.UdpSocket, 0, 0, Data,48);
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 32  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 32  
 
 1902   4                                      }
 1903   3                              }
@@ -2046,7 +2046,7 @@ line level    source
 1961   7                                                              UpBuf[UpCtr++] = Para[3];
 1962   7                                                              UpBuf[UpCtr++] = Para[5];
 1963   7                                                              UpBuf[UpCtr++] = Para[7];
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 33  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 33  
 
 1964   7                                                              InitCRC16();
 1965   7                                                              for(len = 0; len < UpCtr; len++)
@@ -2110,7 +2110,7 @@ line level    source
 2023  10                                                                                      U8_T temp_number = (StartAdd + len - MODBUS_WR_DESCRIP_FIRST) / WR_DESCRIPTION_SIZE;
 2024  10                                                                                      U8_T temp_address = (StartAdd + len - MODBUS_WR_DESCRIP_FIRST) % WR_DESCRIPTION_SIZE;
 2025  10                                                                                      U8_T send_buffer = WR_Roution[temp_number].UN.all[temp_address];
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 34  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 34  
 
 2026  10                                                                                  if((temp_address == (WR_DESCRIPTION_SIZE - 1)) && (send_buffer != 0xff))
 2027  10                                                                                      {
@@ -2174,7 +2174,7 @@ line level    source
 2085  11                                                                                                      send_buffer |= 0x20;
 2086  11                                                                                              else
 2087  11                                                                                                      send_buffer &= 0xdf;
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 35  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 35  
 
 2088  11      
 2089  11                                                                                              if(GetBit(temp_number, schedual2_state_index))
@@ -2238,7 +2238,7 @@ line level    source
 2147   7                                                      }
 2148   6                                                      else if(DownBuf[1] == swrite) 
 2149   6                                                      {
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 36  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 36  
 
 2150   7                                                              if(((DownBuf[2] << 8) | DownBuf[3]) < 200)
 2151   7                                                              {
@@ -2302,7 +2302,7 @@ line level    source
 2208   4                                      {
 2209   5                                              length = UpCtr;
 2210   5                                              UpCtr = 0;
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 37  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 37  
 
 2211   5                                              ENDP2_NEED_UP_FLAG = 0;
 2212   5                                      }
@@ -2366,7 +2366,7 @@ line level    source
 2270   3                                      g_state = GSM_INIT_DONE;
 2271   3                                      break;
 2272   3                              case SMS_SEND_SUCCESS:
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 38  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 38  
 
 2273   3                                      g_state = GSM_INIT_DONE;
 2274   3                                      break;
@@ -2430,7 +2430,7 @@ line level    source
 2332   1              switch (CSREPR & (BIT6|BIT7))
 2333   1                      {
 2334   2                  case SCS_25M:
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 39  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 39  
 
 2335   2                              baudRateDiv = UR2_BR25_19200;
 2336   2                              break;
@@ -2494,7 +2494,7 @@ line level    source
 2393   1              FlagIsp=1; 
 2394   1      
 2395   1              display_ip();
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 40  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 40  
 
 2396   1              Hardware_Revision = Read_Hardware_Revision();
 2397   1      
@@ -2558,7 +2558,7 @@ line level    source
 MODULE INFORMATION:   STATIC OVERLAYABLE
    CODE SIZE        =  16652    ----
    CONSTANT SIZE    =    393    ----
-C51 COMPILER V9.06   MAIN                                                                  05/22/2013 13:52:24 PAGE 41  
+C51 COMPILER V9.06   MAIN                                                                  05/24/2013 13:13:41 PAGE 41  
 
    XDATA SIZE       =    778     185
    PDATA SIZE       =   ----    ----

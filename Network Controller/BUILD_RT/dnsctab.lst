@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   DNSCTAB                                                               05/20/2013 14:16:28 PAGE 1   
+C51 COMPILER V9.06   DNSCTAB                                                               05/24/2013 13:13:43 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE DNSCTAB
@@ -62,7 +62,7 @@ line level    source
               static U32_T XDATA dnsctab_HostIpTable[DNSCTAB_MAX_RECORD];
               static U8_T  XDATA dnsctab_HostName[DNSCTAB_MAX_HOST_NAME_LEN + 1];
               static U8_T  XDATA dnsctab_OldestRecord; // Oldest record for overwrite
-C51 COMPILER V9.06   DNSCTAB                                                               05/20/2013 14:16:28 PAGE 2   
+C51 COMPILER V9.06   DNSCTAB                                                               05/24/2013 13:13:43 PAGE 2   
 
               /* LOCAL SUBPROGRAM DECLARATIONS */
               
@@ -126,7 +126,7 @@ line level    source
               //              printd ("Host name length is greater than 255 bytes.\n\r");
               #endif
                       }
-C51 COMPILER V9.06   DNSCTAB                                                               05/20/2013 14:16:28 PAGE 3   
+C51 COMPILER V9.06   DNSCTAB                                                               05/24/2013 13:13:43 PAGE 3   
 
               
                       return DNSC_STATE_FREE;
@@ -190,7 +190,7 @@ line level    source
               {
                       DNSC_SetDnsIP(ip);      
               } /* End of DNSCTAB_SetDnsIP() */
-C51 COMPILER V9.06   DNSCTAB                                                               05/20/2013 14:16:28 PAGE 4   
+C51 COMPILER V9.06   DNSCTAB                                                               05/24/2013 13:13:43 PAGE 4   
 
               
               #endif /* INCLUDE_DNS_CLIENT */
