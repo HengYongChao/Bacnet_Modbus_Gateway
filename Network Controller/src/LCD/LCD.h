@@ -11,7 +11,8 @@ void Lcd_Show_Data(char pos_x,char pos_y,unsigned int number,char dot,char mode)
 void Lcd_show_for_32bit(char pos_x,char pos_y,unsigned long number,char mode);
 void Lcd_All_Off(void);
 void lcdreset(void);
-
+void Display_Updating(void);
+void Display_reboot(void);
 
 
 

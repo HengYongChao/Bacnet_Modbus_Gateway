@@ -1,14 +1,15 @@
-C51 COMPILER V9.06   PRINTD                                                                03/13/2013 09:32:23 PAGE 1   
+C51 COMPILER V9.06   PRINTD                                                                05/20/2013 14:16:28 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE PRINTD
 OBJECT MODULE PLACED IN .\printd.obj
-COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\debug\printd.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) 
+COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\debug\printd.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) 
                     -INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;.
                     -.\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\b
                     -uffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..
-                    -\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\printd.lst) OBJECT(.\printd
-                    -.obj)
+                    -\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;..
+                    -\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\printd.lst) OBJECT(.\prin
+                    -td.obj)
 
 line level    source
 
@@ -61,9 +62,9 @@ line level    source
   47   2                      for ( ; width > 0; --width) {
   48   3                              DEBUG_PORT_PUTCHR(padchar);
   49   3                              ++pc;
-  50   3                      }
-C51 COMPILER V9.06   PRINTD                                                                03/13/2013 09:32:23 PAGE 2   
+C51 COMPILER V9.06   PRINTD                                                                05/20/2013 14:16:28 PAGE 2   
 
+  50   3                      }
   51   2              }
   52   1              
   53   1              for ( ; *string ; ++string) {
@@ -125,9 +126,9 @@ line level    source
  109   3                      }
  110   2                      else {
  111   3                              *--s = '-';
- 112   3                      }
-C51 COMPILER V9.06   PRINTD                                                                03/13/2013 09:32:23 PAGE 3   
+C51 COMPILER V9.06   PRINTD                                                                05/20/2013 14:16:28 PAGE 3   
 
+ 112   3                      }
  113   2              }
  114   1              return pc + prints ( s, width, pad);
  115   1      }
@@ -176,7 +177,7 @@ line level    source
  158   4                                      case 's':
  159   4                                          {
  160   5                                              register char *s = (char *)va_arg( args, char * );
- 161   5                                              pc += prints ( s?s:"(null)", width, pad);
+ 161   5                                              pc += prints ( s?s:"(null)", width, pad);                       //(null)
  162   5                                              continue;
  163   5                                              }
  164   4                                      case 'b':
@@ -189,9 +190,9 @@ line level    source
  171   4                                                      pc += printi ( va_arg( args, unsigned char ), 16, 0, width, pad, 'a');
  172   4                                              continue;
  173   4                                      case 'd':
- 174   4                                              pc += printi ( va_arg( args, int ), 10, 1, width, pad, 'a');
-C51 COMPILER V9.06   PRINTD                                                                03/13/2013 09:32:23 PAGE 4   
+C51 COMPILER V9.06   PRINTD                                                                05/20/2013 14:16:28 PAGE 4   
 
+ 174   4                                              pc += printi ( va_arg( args, int ), 10, 1, width, pad, 'a');
  175   4                                              continue;
  176   4                                      case 'x':
  177   4                                              pc += printi ( va_arg( args, int ), 16, 0, width, pad, 'a');

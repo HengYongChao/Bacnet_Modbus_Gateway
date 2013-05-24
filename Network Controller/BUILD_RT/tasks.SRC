@@ -1,6 +1,6 @@
 ; .\tasks.SRC generated from: ..\src\FreeRtossource\tasks.c
 ; COMPILER INVOKED BY:
-;        d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\tasks.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\tasks.lst) SRC(.\tasks.SRC)
+;        E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\tasks.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\tasks.lst) SRC(.\tasks.SRC)
 
 $MOD_CONT
 $NOMOD51
@@ -322,7 +322,7 @@ RB18	BIT	0C0H.2
 
 	RSEG  ?XD?TASKS
    ucTaskNumber:   DS   1
-pxReadyTasksLists:   DS   240
+pxReadyTasksLists:   DS   360
 usCurrentNumberOfTasks:   DS   2
 ucTopUsedPriority:   DS   1
      xTickCount:   DS   4
@@ -3588,8 +3588,6 @@ _?usTaskGetNumberOfTasks:
 ; 
 ; 
 ; 
-; 
-; 
 ; /*-----------------------------------------------------------
 ;  * SCHEDULER INTERNALS AVAILABLE FOR PORTING PURPOSES
 ;  * documented in task.h
@@ -3601,7 +3599,7 @@ _?usTaskGetNumberOfTasks:
 	RSEG  ?PR?_?vTaskIncrementTick?TASKS
 _?vTaskIncrementTick:
 	USING	0
-			; SOURCE LINE # 1043
+			; SOURCE LINE # 1041
 	MOV  	DPTR,#0FFFDH
 	LCALL	?C?ADDXBP
 ; {
@@ -3609,15 +3607,15 @@ _?vTaskIncrementTick:
 ; 	Increments the tick then checks to see if the new tick value will cause any
 ; 	tasks to be unblocked. */
 ; 	if( ucSchedulerSuspended == ( unsigned portCHAR ) pdFALSE )
-			; SOURCE LINE # 1048
+			; SOURCE LINE # 1046
 	MOV  	DPTR,#ucSchedulerSuspended
 	MOVX 	A,@DPTR
 	JZ   	$ + 5H
 	AJMP 	?C0059
 ; 	{
-			; SOURCE LINE # 1049
+			; SOURCE LINE # 1047
 ; 		++xTickCount;
-			; SOURCE LINE # 1050
+			; SOURCE LINE # 1048
 	MOV  	DPTR,#xTickCount
 	MOVX 	A,@DPTR
 	MOV  	R4,A
@@ -3643,7 +3641,7 @@ _?vTaskIncrementTick:
 	MOV  	DPTR,#xTickCount
 	LCALL	?C?LSTXDATA
 ; 		if( xTickCount == ( portTickType ) 0 )
-			; SOURCE LINE # 1051
+			; SOURCE LINE # 1049
 	CLR  	A
 	MOV  	R7,A
 	MOV  	R6,A
@@ -3665,13 +3663,13 @@ _?vTaskIncrementTick:
 	LCALL	?C?ULCMP
 	JNZ  	?C0061
 ; 		{
-			; SOURCE LINE # 1052
+			; SOURCE LINE # 1050
 ; 			volatile xList *pxTemp;
 ; 
 ; 			/* Tick count has overflowed so we need to swap the delay lists.  If there are
 ; 			any items in pxDelayedTaskList here then there is an error! */
 ; 			pxTemp = pxDelayedTaskList;
-			; SOURCE LINE # 1057
+			; SOURCE LINE # 1055
 	MOV  	DPTR,#pxDelayedTaskList
 	MOVX 	A,@DPTR
 	MOV  	R1,A
@@ -3692,7 +3690,7 @@ _?vTaskIncrementTick:
 	MOV  	A,R1
 	MOVX 	@DPTR,A
 ; 			pxDelayedTaskList = pxOverflowDelayedTaskList;
-			; SOURCE LINE # 1058
+			; SOURCE LINE # 1056
 	MOV  	DPTR,#pxOverflowDelayedTaskList
 	MOVX 	A,@DPTR
 	MOV  	R1,A
@@ -3711,7 +3709,7 @@ _?vTaskIncrementTick:
 	MOV  	A,R1
 	MOVX 	@DPTR,A
 ; 			pxOverflowDelayedTaskList = pxTemp;
-			; SOURCE LINE # 1059
+			; SOURCE LINE # 1057
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -3732,11 +3730,11 @@ _?vTaskIncrementTick:
 	MOV  	A,R1
 	MOVX 	@DPTR,A
 ; 		}
-			; SOURCE LINE # 1060
+			; SOURCE LINE # 1058
 ; 
 ; 		/* See if this tick has made a timeout expire. */
 ; 		prvCheckDelayedTasks();
-			; SOURCE LINE # 1063
+			; SOURCE LINE # 1061
 ?C0061:
 	MOV  	DPTR,#pxDelayedTaskList
 	MOVX 	A,@DPTR
@@ -3963,19 +3961,19 @@ _?vTaskIncrementTick:
 	LCALL	_?vListInsertEnd
 	AJMP 	?C0061
 ; 	}
-			; SOURCE LINE # 1064
+			; SOURCE LINE # 1062
 ?C0059:
 ; 	else
 ; 	{
-			; SOURCE LINE # 1066
+			; SOURCE LINE # 1064
 ; 		++ucMissedTicks;
-			; SOURCE LINE # 1067
+			; SOURCE LINE # 1065
 	MOV  	DPTR,#ucMissedTicks
 	MOVX 	A,@DPTR
 	INC  	A
 	MOVX 	@DPTR,A
 ; 	}
-			; SOURCE LINE # 1068
+			; SOURCE LINE # 1066
 ; 
 ; 	#if ( configUSE_TICK_HOOK == 1 )
 ; 	{
@@ -3986,7 +3984,7 @@ _?vTaskIncrementTick:
 ; 	#endif
 ; 
 ; }
-			; SOURCE LINE # 1078
+			; SOURCE LINE # 1076
 ?C0069:
 	MOV  	DPTR,#03H
 	LJMP 	?C?ADDXBP
@@ -4060,34 +4058,34 @@ _?vTaskIncrementTick:
 	RSEG  ?PR?_?vTaskSwitchContext?TASKS
 _?vTaskSwitchContext:
 	USING	0
-			; SOURCE LINE # 1142
+			; SOURCE LINE # 1140
 ; {
 ; 	if( ucSchedulerSuspended != pdFALSE )
-			; SOURCE LINE # 1144
+			; SOURCE LINE # 1142
 	MOV  	DPTR,#ucSchedulerSuspended
 	MOVX 	A,@DPTR
 	JZ   	$ + 5H
 	AJMP 	?C0071
 ; 	{
-			; SOURCE LINE # 1145
+			; SOURCE LINE # 1143
 ; 		/* The scheduler is currently suspended - do not allow a context
 ; 		switch. */
 ; 		return;
 ; 	}
-			; SOURCE LINE # 1149
+			; SOURCE LINE # 1147
 ?C0070:
 ?C0072:
 ; 
 ; 	/* Find the highest priority queue that contains ready tasks. */
 ; 	while( listLIST_IS_EMPTY( &( pxReadyTasksLists[ ucTopReadyPriority ] ) ) )
-			; SOURCE LINE # 1152
+			; SOURCE LINE # 1150
 	MOV  	DPTR,#ucTopReadyPriority
 	MOVX 	A,@DPTR
 	MOV  	B,#018H
 	MUL  	AB
 	ADD  	A,#LOW (pxReadyTasksLists)
 	MOV  	DPL,A
-	CLR  	A
+	MOV  	A,B
 	ADDC 	A,#HIGH (pxReadyTasksLists)
 	MOV  	DPH,A
 	MOV  	DPX,#?C?XDATASEG
@@ -4098,29 +4096,29 @@ _?vTaskSwitchContext:
 	ORL  	A,R6
 	JNZ  	?C0073
 ; 	{
-			; SOURCE LINE # 1153
+			; SOURCE LINE # 1151
 ; 		--ucTopReadyPriority;
-			; SOURCE LINE # 1154
+			; SOURCE LINE # 1152
 	MOV  	DPTR,#ucTopReadyPriority
 	MOVX 	A,@DPTR
 	DEC  	A
 	MOVX 	@DPTR,A
 ; 	}
-			; SOURCE LINE # 1155
+			; SOURCE LINE # 1153
 	SJMP 	?C0072
 ?C0073:
 ; 
 ; 	/* listGET_OWNER_OF_NEXT_ENTRY walks through the list, so the tasks of the
 ; 	same priority get an equal share of the processor time. */
 ; 	listGET_OWNER_OF_NEXT_ENTRY( pxCurrentTCB, &( pxReadyTasksLists[ ucTopReadyPriority ] ) );
-			; SOURCE LINE # 1159
+			; SOURCE LINE # 1157
 	MOV  	DPTR,#ucTopReadyPriority
 	MOVX 	A,@DPTR
 	MOV  	B,#018H
 	MUL  	AB
 	ADD  	A,#LOW (pxReadyTasksLists+05H)
 	MOV  	DPL,A
-	CLR  	A
+	MOV  	A,B
 	ADDC 	A,#HIGH (pxReadyTasksLists+05H)
 	MOV  	DPH,A
 	MOV  	DPX,#?C?XDATASEG
@@ -4143,7 +4141,7 @@ _?vTaskSwitchContext:
 	MUL  	AB
 	ADD  	A,#LOW (pxReadyTasksLists+05H)
 	MOV  	DPL,A
-	CLR  	A
+	MOV  	A,B
 	ADDC 	A,#HIGH (pxReadyTasksLists+05H)
 	MOV  	DPH,A
 	MOV  	DPX,#?C?XDATASEG
@@ -4161,7 +4159,7 @@ _?vTaskSwitchContext:
 	MUL  	AB
 	ADD  	A,#LOW (pxReadyTasksLists+02H)
 	MOV  	DPL,A
-	CLR  	A
+	MOV  	A,B
 	ADDC 	A,#HIGH (pxReadyTasksLists+02H)
 	MOV  	DPH,A
 	MOV  	DPX,#?C?XDATASEG
@@ -4182,7 +4180,7 @@ _?vTaskSwitchContext:
 	MUL  	AB
 	ADD  	A,#LOW (pxReadyTasksLists+05H)
 	MOV  	DPL,A
-	CLR  	A
+	MOV  	A,B
 	ADDC 	A,#HIGH (pxReadyTasksLists+05H)
 	MOV  	DPH,A
 	MOV  	DPX,#?C?XDATASEG
@@ -4212,7 +4210,7 @@ _?vTaskSwitchContext:
 	MUL  	AB
 	ADD  	A,#LOW (pxReadyTasksLists+05H)
 	MOV  	DPL,A
-	CLR  	A
+	MOV  	A,B
 	ADDC 	A,#HIGH (pxReadyTasksLists+05H)
 	MOV  	DPH,A
 	MOV  	DPX,#?C?XDATASEG
@@ -4235,7 +4233,7 @@ _?vTaskSwitchContext:
 	MUL  	AB
 	ADD  	A,#LOW (pxReadyTasksLists+05H)
 	MOV  	DPL,A
-	CLR  	A
+	MOV  	A,B
 	ADDC 	A,#HIGH (pxReadyTasksLists+05H)
 	MOV  	DPH,A
 	MOV  	DPX,#?C?XDATASEG
@@ -4254,7 +4252,7 @@ _?vTaskSwitchContext:
 	MUL  	AB
 	ADD  	A,#LOW (pxReadyTasksLists+05H)
 	MOV  	DPL,A
-	CLR  	A
+	MOV  	A,B
 	ADDC 	A,#HIGH (pxReadyTasksLists+05H)
 	MOV  	DPH,A
 	MOV  	DPX,#?C?XDATASEG
@@ -4282,7 +4280,7 @@ _?vTaskSwitchContext:
 	MOVX 	@DPTR,A
 ; 	vWriteTraceToBuffer();
 ; }
-			; SOURCE LINE # 1161
+			; SOURCE LINE # 1159
 ?C0071:
 	RET  	
 ; END OF _?vTaskSwitchContext
@@ -4294,7 +4292,7 @@ _?vTaskSwitchContext:
 	RSEG  ?PR?_?vTaskPlaceOnEventList?TASKS
 _?vTaskPlaceOnEventList:
 	USING	0
-			; SOURCE LINE # 1164
+			; SOURCE LINE # 1162
 	MOV  	DPTR,#0FFFCH
 	LCALL	?C?ADDXBP
 	LCALL	?C?LSTXDATA
@@ -4320,7 +4318,7 @@ _?vTaskPlaceOnEventList:
 ; 	This is placed in the list in priority order so the highest priority task
 ; 	is the first to be woken by the event. */
 ; 	vListInsert( ( xList * ) pxEventList, ( xListItem * ) &( pxCurrentTCB->xEventListItem ) );
-			; SOURCE LINE # 1174
+			; SOURCE LINE # 1172
 	MOV  	DPTR,#pxCurrentTCB
 	MOVX 	A,@DPTR
 	MOV  	R3,A
@@ -4359,7 +4357,7 @@ _?vTaskPlaceOnEventList:
 ; 	/* Calculate the time at which the task should be woken if the event does
 ; 	not occur.  This may overflow but this doesn't matter. */
 ; 	xTimeToWake = xTickCount + xTicksToWait;
-			; SOURCE LINE # 1178
+			; SOURCE LINE # 1176
 	MOV  	DPTR,#07H
 	LCALL	?C?XBPOFF
 	MOVX 	A,@DPTR
@@ -4404,7 +4402,7 @@ _?vTaskPlaceOnEventList:
 ; 	to the blocked list as the same list item is used for both lists.  We have
 ; 	exclusive access to the ready lists as the scheduler is locked. */
 ; 	vListRemove( ( xListItem * ) &( pxCurrentTCB->xGenericListItem ) );
-			; SOURCE LINE # 1183
+			; SOURCE LINE # 1181
 	MOV  	DPTR,#pxCurrentTCB
 	MOVX 	A,@DPTR
 	MOV  	R3,A
@@ -4421,7 +4419,7 @@ _?vTaskPlaceOnEventList:
 	LCALL	_?vListRemove
 ; 
 ; 	listSET_LIST_ITEM_VALUE( &( pxCurrentTCB->xGenericListItem ), xTimeToWake );
-			; SOURCE LINE # 1185
+			; SOURCE LINE # 1183
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -4452,7 +4450,7 @@ _?vTaskPlaceOnEventList:
 	LCALL	?C?LSTPTR
 ; 
 ; 	if( xTimeToWake < xTickCount )
-			; SOURCE LINE # 1187
+			; SOURCE LINE # 1185
 	MOV  	DPTR,#xTickCount
 	MOVX 	A,@DPTR
 	MOV  	R4,A
@@ -4486,10 +4484,10 @@ _?vTaskPlaceOnEventList:
 	MOV  	R3,A
 	JNC  	?C0075
 ; 	{
-			; SOURCE LINE # 1188
+			; SOURCE LINE # 1186
 ; 		/* Wake time has overflowed.  Place this item in the overflow list. */
 ; 		vListInsert( ( xList * ) pxOverflowDelayedTaskList, ( xListItem * ) &( pxCurrentTCB->xGenericListItem ) );
-			; SOURCE LINE # 1190
+			; SOURCE LINE # 1188
 	INC  	DPTR
 	MOVX 	A,@DPTR
 	MOV  	R2,A
@@ -4512,15 +4510,15 @@ _?vTaskPlaceOnEventList:
 	MOVX 	@DPTR,A
 	MOV  	DPTR,#pxOverflowDelayedTaskList
 ; 	}
-			; SOURCE LINE # 1191
+			; SOURCE LINE # 1189
 	SJMP 	?C0123
 ?C0075:
 ; 	else
 ; 	{
-			; SOURCE LINE # 1193
+			; SOURCE LINE # 1191
 ; 		/* The wake time has not overflowed, so we can use the current block list. */
 ; 		vListInsert( ( xList * ) pxDelayedTaskList, ( xListItem * ) &( pxCurrentTCB->xGenericListItem ) );
-			; SOURCE LINE # 1195
+			; SOURCE LINE # 1193
 	INC  	DPTR
 	MOVX 	A,@DPTR
 	MOV  	R2,A
@@ -4553,9 +4551,9 @@ _?vTaskPlaceOnEventList:
 	MOV  	R1,A
 	LCALL	_?vListInsert
 ; 	}
-			; SOURCE LINE # 1196
+			; SOURCE LINE # 1194
 ; }
-			; SOURCE LINE # 1197
+			; SOURCE LINE # 1195
 ?C0077:
 	MOV  	DPTR,#0BH
 	LJMP 	?C?ADDXBP
@@ -4568,7 +4566,7 @@ _?vTaskPlaceOnEventList:
 	RSEG  ?PR?_?cTaskRemoveFromEventList?TASKS
 _?cTaskRemoveFromEventList:
 	USING	0
-			; SOURCE LINE # 1200
+			; SOURCE LINE # 1198
 	MOV  	DPTR,#0FFFDH
 	LCALL	?C?ADDXBP
 	MOV  	A,R3
@@ -4595,7 +4593,7 @@ _?cTaskRemoveFromEventList:
 ; 	get called - the lock count on the queue will get modified instead.  This
 ; 	means we can always expect exclusive access to the event list here. */
 ; 	pxUnblockedTCB = ( tskTCB * ) listGET_OWNER_OF_HEAD_ENTRY( pxEventList );
-			; SOURCE LINE # 1214
+			; SOURCE LINE # 1212
 	MOV  	DPTR,#03H
 	LCALL	?C?XBPOFF
 	MOVX 	A,@DPTR
@@ -4648,7 +4646,7 @@ _?cTaskRemoveFromEventList:
 	MOV  	A,R1
 	MOVX 	@DPTR,A
 ; 	vListRemove( &( pxUnblockedTCB->xEventListItem ) );
-			; SOURCE LINE # 1215
+			; SOURCE LINE # 1213
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -4667,15 +4665,15 @@ _?cTaskRemoveFromEventList:
 	LCALL	_?vListRemove
 ; 
 ; 	if( ucSchedulerSuspended == ( unsigned portCHAR ) pdFALSE )
-			; SOURCE LINE # 1217
+			; SOURCE LINE # 1215
 	MOV  	DPTR,#ucSchedulerSuspended
 	MOVX 	A,@DPTR
 	JZ   	$ + 5H
 	AJMP 	?C0080
 ; 	{
-			; SOURCE LINE # 1218
+			; SOURCE LINE # 1216
 ; 		vListRemove( &( pxUnblockedTCB->xGenericListItem ) );
-			; SOURCE LINE # 1219
+			; SOURCE LINE # 1217
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -4693,7 +4691,7 @@ _?cTaskRemoveFromEventList:
 	MOV  	R2,A
 	LCALL	_?vListRemove
 ; 		prvAddTaskToReadyQueue( pxUnblockedTCB );
-			; SOURCE LINE # 1220
+			; SOURCE LINE # 1218
 	CLR  	A
 	MOV  	R7,A
 	MOV  	R6,A
@@ -4777,16 +4775,16 @@ _?cTaskRemoveFromEventList:
 	MOV  	R2,A
 	MOV  	R3,#MBYTE (pxReadyTasksLists)
 ; 	}
-			; SOURCE LINE # 1221
+			; SOURCE LINE # 1219
 	SJMP 	?C0124
 ?C0080:
 ; 	else
 ; 	{
-			; SOURCE LINE # 1223
+			; SOURCE LINE # 1221
 ; 		/* We cannot access the delayed or ready lists, so will hold this
 ; 		task pending until the scheduler is resumed. */
 ; 		vListInsertEnd( ( xList * ) &( xPendingReadyList ), &( pxUnblockedTCB->xEventListItem ) );
-			; SOURCE LINE # 1226
+			; SOURCE LINE # 1224
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -4818,11 +4816,11 @@ _?cTaskRemoveFromEventList:
 ?C0124:
 	LCALL	_?vListInsertEnd
 ; 	}
-			; SOURCE LINE # 1227
+			; SOURCE LINE # 1225
 ?C0082:
 ; 
 ; 	if( pxUnblockedTCB->ucPriority > pxCurrentTCB->ucPriority )
-			; SOURCE LINE # 1229
+			; SOURCE LINE # 1227
 	MOV  	DPTR,#pxCurrentTCB
 	MOVX 	A,@DPTR
 	MOV  	R3,A
@@ -4859,26 +4857,26 @@ _?cTaskRemoveFromEventList:
 	MOV  	R7,#00H
 	JC   	?C0083
 ; 	{
-			; SOURCE LINE # 1230
+			; SOURCE LINE # 1228
 ; 		/* Return true if the task removed from the event list has
 ; 		a higher priority than the calling task.  This allows
 ; 		the calling task to know if it should force a context 
 ; 		switch now. */
 ; 		return ( signed portCHAR ) pdTRUE;
-			; SOURCE LINE # 1235
+			; SOURCE LINE # 1233
 	MOV  	R7,#01H
 ; 	}
-			; SOURCE LINE # 1236
+			; SOURCE LINE # 1234
 ?C0083:
 ; 	else
 ; 	{
-			; SOURCE LINE # 1238
+			; SOURCE LINE # 1236
 ; 		return ( signed portCHAR ) pdFALSE;
-			; SOURCE LINE # 1239
+			; SOURCE LINE # 1237
 ; 	}
-			; SOURCE LINE # 1240
+			; SOURCE LINE # 1238
 ; }
-			; SOURCE LINE # 1241
+			; SOURCE LINE # 1239
 ?C0084:
 	MOV  	DPTR,#06H
 	LJMP 	?C?ADDXBP
@@ -4898,7 +4896,7 @@ _?cTaskRemoveFromEventList:
 	RSEG  ?PR?_?prvIdleTask?TASKS
 _?prvIdleTask:
 	USING	0
-			; SOURCE LINE # 1251
+			; SOURCE LINE # 1249
 	MOV  	DPTR,#0FFFDH
 	LCALL	?C?ADDXBP
 	MOV  	A,R3
@@ -4912,7 +4910,7 @@ _?prvIdleTask:
 ; {
 ; 	/* Stop warnings. */
 ; 	pvParameters = pvParameters;
-			; SOURCE LINE # 1254
+			; SOURCE LINE # 1252
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -4936,17 +4934,17 @@ _?prvIdleTask:
 	MOVX 	@DPTR,A
 ; 
 ; 	for( ;; )
-			; SOURCE LINE # 1256
+			; SOURCE LINE # 1254
 ?C0086:
 ; 	{
-			; SOURCE LINE # 1257
+			; SOURCE LINE # 1255
 ; 		/* See if any tasks have been deleted. */
 ; 		prvCheckTasksWaitingTermination();
-			; SOURCE LINE # 1259
+			; SOURCE LINE # 1257
 	LCALL	_?prvCheckTasksWaitingTermination
 ; 
 ; 		if( sUsingPreemption == pdFALSE )
-			; SOURCE LINE # 1261
+			; SOURCE LINE # 1259
 	MOV  	DPTR,#sUsingPreemption
 	MOVX 	A,@DPTR
 	JNZ  	?C0117
@@ -4955,18 +4953,18 @@ _?prvIdleTask:
 ?C0117:
 	JNZ  	?C0086
 ; 		{
-			; SOURCE LINE # 1262
+			; SOURCE LINE # 1260
 ; 			/* If we are not using preemption we keep forcing a task switch to
 ; 			see if any other task has become available.  If we are using 
 ; 			preemption we don't need to do this as any task becoming available
 ; 			will automatically get the processor anyway. */
 ; 			taskYIELD();	
-			; SOURCE LINE # 1267
+			; SOURCE LINE # 1265
 	LCALL	_?vPortYield
 ; 		}
-			; SOURCE LINE # 1268
+			; SOURCE LINE # 1266
 ; 	}
-			; SOURCE LINE # 1269
+			; SOURCE LINE # 1267
 	SJMP 	?C0086
 ; END OF _?prvIdleTask
 
@@ -4989,7 +4987,7 @@ _?prvIdleTask:
 	RSEG  ?PR?_?prvInitialiseTCBVariables?TASKS
 _?prvInitialiseTCBVariables:
 	USING	0
-			; SOURCE LINE # 1284
+			; SOURCE LINE # 1282
 	MOV  	DPTR,#0FFFEH
 	LCALL	?C?ADDXBP
 	MOV  	A,R4
@@ -5009,7 +5007,7 @@ _?prvInitialiseTCBVariables:
 	MOVX 	@DPTR,A
 ; {
 ; 	pxTCB->usStackDepth = usStackDepth;
-			; SOURCE LINE # 1286
+			; SOURCE LINE # 1284
 	MOV  	DPTR,#03H
 	LCALL	?C?XBPOFF
 	MOVX 	A,@DPTR
@@ -5038,7 +5036,7 @@ _?prvInitialiseTCBVariables:
 ; 
 ; 	/* Make sure the name is not too long before copying it into the TCB. */
 ; 	if( strlen( pcName ) < ( unsigned portSHORT ) tskMAX_TASK_NAME_LEN )
-			; SOURCE LINE # 1289
+			; SOURCE LINE # 1287
 	MOV  	DPTR,#05H
 	LCALL	?C?XBPOFF
 	MOVX 	A,@DPTR
@@ -5057,11 +5055,11 @@ _?prvInitialiseTCBVariables:
 	SUBB 	A,#00H
 	JNC  	?C0090
 ; 	{
-			; SOURCE LINE # 1290
+			; SOURCE LINE # 1288
 ; 		portENTER_CRITICAL();
 	 DB 0A2H, 0AFH, 0C2H, 0AFH, 0C0H, 0D0H;
 ; 			strcpy( pxTCB->pcTaskName, pcName );
-			; SOURCE LINE # 1292
+			; SOURCE LINE # 1290
 	MOV  	DPTR,#05H
 	LCALL	?C?XBPOFF
 	MOVX 	A,@DPTR
@@ -5099,16 +5097,16 @@ _?prvInitialiseTCBVariables:
 ; 		portEXIT_CRITICAL();
 	 DB 0D0H, 0D0H, 092H, 0AFH;
 ; 	}
-			; SOURCE LINE # 1294
+			; SOURCE LINE # 1292
 	SJMP 	?C0091
 ?C0090:
 ; 	else
 ; 	{
-			; SOURCE LINE # 1296
+			; SOURCE LINE # 1294
 ; 		portENTER_CRITICAL();
 	 DB 0A2H, 0AFH, 0C2H, 0AFH, 0C0H, 0D0H;
 ; 			strncpy( pxTCB->pcTaskName, pcName, ( unsigned portSHORT ) tskMAX_TASK_NAME_LEN );
-			; SOURCE LINE # 1298
+			; SOURCE LINE # 1296
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -5158,7 +5156,7 @@ _?prvInitialiseTCBVariables:
 ; 		portEXIT_CRITICAL();
 	 DB 0D0H, 0D0H, 092H, 0AFH;
 ; 		pxTCB->pcTaskName[ ( unsigned portSHORT ) tskMAX_TASK_NAME_LEN - ( unsigned portSHORT ) 1 ] = '\0';
-			; SOURCE LINE # 1300
+			; SOURCE LINE # 1298
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -5177,31 +5175,31 @@ _?prvInitialiseTCBVariables:
 	CLR  	A
 	LCALL	?C?CSTPTR
 ; 	}
-			; SOURCE LINE # 1301
+			; SOURCE LINE # 1299
 ?C0091:
 ; 
 ; 	/* This is used as an array index so must ensure it's not too large. */
 ; 	if( ucPriority >= ( unsigned portCHAR ) portMAX_PRIORITIES )
-			; SOURCE LINE # 1304
+			; SOURCE LINE # 1302
 	MOV  	DPTR,#08H
 	LCALL	?C?XBPOFF
 	MOVX 	A,@DPTR
 	CLR  	C
-	SUBB 	A,#0AH
+	SUBB 	A,#0FH
 	JC   	?C0092
 ; 	{
-			; SOURCE LINE # 1305
+			; SOURCE LINE # 1303
 ; 		ucPriority = ( unsigned portCHAR ) portMAX_PRIORITIES - ( unsigned portCHAR ) 1;
-			; SOURCE LINE # 1306
+			; SOURCE LINE # 1304
 	MOV  	DPTR,#08H
 	LCALL	?C?XBPOFF
-	MOV  	A,#09H
+	MOV  	A,#0EH
 	MOVX 	@DPTR,A
 ; 	}
-			; SOURCE LINE # 1307
+			; SOURCE LINE # 1305
 ?C0092:
 ; 	pxTCB->ucPriority = ucPriority;
-			; SOURCE LINE # 1308
+			; SOURCE LINE # 1306
 	MOV  	DPTR,#08H
 	LCALL	?C?XBPOFF
 	MOVX 	A,@DPTR
@@ -5225,7 +5223,7 @@ _?prvInitialiseTCBVariables:
 	LCALL	?C?CSTPTR
 ; 
 ; 	vListInitialiseItem( &( pxTCB->xGenericListItem ) );
-			; SOURCE LINE # 1310
+			; SOURCE LINE # 1308
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -5243,7 +5241,7 @@ _?prvInitialiseTCBVariables:
 	MOV  	R2,A
 	LCALL	_?vListInitialiseItem
 ; 	vListInitialiseItem( &( pxTCB->xEventListItem ) );
-			; SOURCE LINE # 1311
+			; SOURCE LINE # 1309
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -5264,7 +5262,7 @@ _?prvInitialiseTCBVariables:
 ; 	/* Set the pxTCB as a link back from the xListItem.  This is so we can get 
 ; 	back to	the containing TCB from a generic item in a list. */
 ; 	listSET_LIST_ITEM_OWNER( &( pxTCB->xGenericListItem ), pxTCB );
-			; SOURCE LINE # 1315
+			; SOURCE LINE # 1313
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -5304,7 +5302,7 @@ _?prvInitialiseTCBVariables:
 ; 
 ; 	/* Event lists are always in priority order. */
 ; 	listSET_LIST_ITEM_VALUE( &( pxTCB->xEventListItem ), ( portTickType ) ucPriority );
-			; SOURCE LINE # 1318
+			; SOURCE LINE # 1316
 	MOV  	DPTR,#08H
 	LCALL	?C?XBPOFF
 	MOVX 	A,@DPTR
@@ -5330,7 +5328,7 @@ _?prvInitialiseTCBVariables:
 	MOV  	R2,A
 	LCALL	?C?LSTPTR
 ; 	listSET_LIST_ITEM_OWNER( &( pxTCB->xEventListItem ), pxTCB );
-			; SOURCE LINE # 1319
+			; SOURCE LINE # 1317
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -5368,7 +5366,7 @@ _?prvInitialiseTCBVariables:
 	MOV  	R2,A
 	LCALL	?C?PSTPTR
 ; }
-			; SOURCE LINE # 1320
+			; SOURCE LINE # 1318
 	MOV  	DPTR,#09H
 	LJMP 	?C?ADDXBP
 ; END OF _?prvInitialiseTCBVariables
@@ -5380,7 +5378,7 @@ _?prvInitialiseTCBVariables:
 	RSEG  ?PR?_?prvInitialiseTaskLists?TASKS
 _?prvInitialiseTaskLists:
 	USING	0
-			; SOURCE LINE # 1323
+			; SOURCE LINE # 1321
 	MOV  	DPTR,#0FFFDH
 	LCALL	?C?ADDXBP
 ; {
@@ -5388,7 +5386,7 @@ _?prvInitialiseTaskLists:
 ; portSHORT sReturn;
 ; 
 ; 	for( ucPriority = ( unsigned portCHAR) 0; ucPriority < ( unsigned portCHAR ) portMAX_PRIORITIES; ucPriority++ )
-			; SOURCE LINE # 1328
+			; SOURCE LINE # 1326
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -5401,12 +5399,12 @@ _?prvInitialiseTaskLists:
 	MOVX 	A,@DPTR
 	MOV  	R7,A
 	CLR  	C
-	SUBB 	A,#0AH
+	SUBB 	A,#0FH
 	JNC  	?C0095
 ; 	{
-			; SOURCE LINE # 1329
+			; SOURCE LINE # 1327
 ; 		vListInitialise( ( xList * ) &( pxReadyTasksLists[ ucPriority ] ) );
-			; SOURCE LINE # 1330
+			; SOURCE LINE # 1328
 	MOV  	A,R7
 	MOV  	B,#018H
 	MUL  	AB
@@ -5418,7 +5416,7 @@ _?prvInitialiseTaskLists:
 	MOV  	R3,#MBYTE (pxReadyTasksLists)
 	LCALL	_?vListInitialise
 ; 	}
-			; SOURCE LINE # 1331
+			; SOURCE LINE # 1329
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -5429,19 +5427,19 @@ _?prvInitialiseTaskLists:
 ?C0095:
 ; 
 ; 	vListInitialise( ( xList * ) &xDelayedTaskList1 );
-			; SOURCE LINE # 1333
+			; SOURCE LINE # 1331
 	MOV  	R3,#MBYTE (xDelayedTaskList1)
 	MOV  	R2,#HIGH (xDelayedTaskList1)
 	MOV  	R1,#LOW (xDelayedTaskList1)
 	LCALL	_?vListInitialise
 ; 	vListInitialise( ( xList * ) &xDelayedTaskList2 );
-			; SOURCE LINE # 1334
+			; SOURCE LINE # 1332
 	MOV  	R3,#MBYTE (xDelayedTaskList2)
 	MOV  	R2,#HIGH (xDelayedTaskList2)
 	MOV  	R1,#LOW (xDelayedTaskList2)
 	LCALL	_?vListInitialise
 ; 	vListInitialise( ( xList * ) &xPendingReadyList );
-			; SOURCE LINE # 1335
+			; SOURCE LINE # 1333
 	MOV  	R3,#MBYTE (xPendingReadyList)
 	MOV  	R2,#HIGH (xPendingReadyList)
 	MOV  	R1,#LOW (xPendingReadyList)
@@ -5455,21 +5453,21 @@ _?prvInitialiseTaskLists:
 ; 
 ; 	#if( INCLUDE_vTaskSuspend == 1 )
 ; 	{
-			; SOURCE LINE # 1344
+			; SOURCE LINE # 1342
 ; 		vListInitialise( ( xList * ) &xSuspendedTaskList );
-			; SOURCE LINE # 1345
+			; SOURCE LINE # 1343
 	MOV  	R3,#MBYTE (xSuspendedTaskList)
 	MOV  	R2,#HIGH (xSuspendedTaskList)
 	MOV  	R1,#LOW (xSuspendedTaskList)
 	LCALL	_?vListInitialise
 ; 	}
-			; SOURCE LINE # 1346
+			; SOURCE LINE # 1344
 ; 	#endif
 ; 
 ; 	/* Start with pxDelayedTaskList using list1 and the pxOverflowDelayedTaskList 
 ; 	using list2. */
 ; 	pxDelayedTaskList = &xDelayedTaskList1;
-			; SOURCE LINE # 1351
+			; SOURCE LINE # 1349
 	MOV  	DPTR,#pxDelayedTaskList
 	MOV  	A,#MBYTE (xDelayedTaskList1)
 	MOVX 	@DPTR,A
@@ -5480,7 +5478,7 @@ _?prvInitialiseTaskLists:
 	MOV  	A,#LOW (xDelayedTaskList1)
 	MOVX 	@DPTR,A
 ; 	pxOverflowDelayedTaskList = &xDelayedTaskList2;
-			; SOURCE LINE # 1352
+			; SOURCE LINE # 1350
 	MOV  	DPTR,#pxOverflowDelayedTaskList
 	MOV  	A,#MBYTE (xDelayedTaskList2)
 	MOVX 	@DPTR,A
@@ -5493,7 +5491,7 @@ _?prvInitialiseTaskLists:
 ; 
 ; 	/* Add the idle task at the lowest priority. */
 ; 	sReturn = sTaskCreate( prvIdleTask, ( const portCHAR * const ) "IDLE", tskIDLE_STACK_SIZE, ( void * ) NULL, tskIDLE_PRIORITY, ( xTaskHandle * ) NULL );
-			; SOURCE LINE # 1355
+			; SOURCE LINE # 1353
 	MOV  	R3,#00H
 	MOV  	R2,#00H
 	MOV  	R1,#00H
@@ -5566,7 +5564,7 @@ _?prvInitialiseTaskLists:
 	MOVX 	@DPTR,A
 ; 
 ; 	return sReturn;
-			; SOURCE LINE # 1357
+			; SOURCE LINE # 1355
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	INC  	DPTR
@@ -5577,7 +5575,7 @@ _?prvInitialiseTaskLists:
 	MOVX 	A,@DPTR
 	MOV  	R7,A
 ; }
-			; SOURCE LINE # 1358
+			; SOURCE LINE # 1356
 ?C0097:
 	MOV  	DPTR,#03H
 	LJMP 	?C?ADDXBP
@@ -5590,7 +5588,7 @@ _?prvInitialiseTaskLists:
 	RSEG  ?PR?_?prvCheckTasksWaitingTermination?TASKS
 _?prvCheckTasksWaitingTermination:
 	USING	0
-			; SOURCE LINE # 1361
+			; SOURCE LINE # 1359
 ; {							
 ; 	#if( INCLUDE_vTaskDelete == 1 )
 ; 	{				
@@ -5617,7 +5615,7 @@ _?prvCheckTasksWaitingTermination:
 ; 	}
 ; 	#endif
 ; }
-			; SOURCE LINE # 1387
+			; SOURCE LINE # 1385
 	RET  	
 ; END OF _?prvCheckTasksWaitingTermination
 
@@ -5628,7 +5626,7 @@ _?prvCheckTasksWaitingTermination:
 	RSEG  ?PR?_?prvAllocateTCBAndStack?TASKS
 _?prvAllocateTCBAndStack:
 	USING	0
-			; SOURCE LINE # 1390
+			; SOURCE LINE # 1388
 	MOV  	DPTR,#0FFFEH
 	LCALL	?C?ADDXBP
 	MOV  	A,R6
@@ -5644,7 +5642,7 @@ _?prvAllocateTCBAndStack:
 ; 	/* Allocate space for the TCB.  Where the memory comes from depends on
 ; 	the implementation of the port malloc function. */
 ; 	pxNewTCB = ( tskTCB * ) pvPortMalloc( sizeof( tskTCB ) );
-			; SOURCE LINE # 1396
+			; SOURCE LINE # 1394
 	MOV  	R6,#00H
 	MOV  	R7,#03AH
 	LCALL	_?pvPortMalloc
@@ -5661,7 +5659,7 @@ _?prvAllocateTCBAndStack:
 	MOVX 	@DPTR,A
 ; 
 ; 	if( pxNewTCB != NULL )
-			; SOURCE LINE # 1398
+			; SOURCE LINE # 1396
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -5677,12 +5675,12 @@ _?prvAllocateTCBAndStack:
 	JNZ  	$ + 5H
 	AJMP 	?C0099
 ; 	{
-			; SOURCE LINE # 1399
+			; SOURCE LINE # 1397
 ; 		/* Allocate space for the stack used by the task being created.  
 ; 		The base of the stack memory stored in the TCB so the task can 
 ; 		be deleted later if required. */
 ; 		pxNewTCB->pxStack = ( portSTACK_TYPE * ) pvPortMalloc( usStackDepth * sizeof( portSTACK_TYPE ) );
-			; SOURCE LINE # 1403
+			; SOURCE LINE # 1401
 	MOV  	DPTR,#03H
 	LCALL	?C?XBPOFF
 	MOVX 	A,@DPTR
@@ -5712,7 +5710,7 @@ _?prvAllocateTCBAndStack:
 	LCALL	?C?PSTPTR
 ; 
 ; 		if( pxNewTCB->pxStack == NULL )
-			; SOURCE LINE # 1405
+			; SOURCE LINE # 1403
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -5734,10 +5732,10 @@ _?prvAllocateTCBAndStack:
 	ORL  	A,R3
 	JNZ  	?C0100
 ; 		{
-			; SOURCE LINE # 1406
+			; SOURCE LINE # 1404
 ; 			/* Could not allocate the stack.  Delete the allocated TCB. */
 ; 			vPortFree( pxNewTCB );			
-			; SOURCE LINE # 1408
+			; SOURCE LINE # 1406
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -5751,7 +5749,7 @@ _?prvAllocateTCBAndStack:
 	MOV  	R1,A
 	LCALL	_?vPortFree
 ; 			pxNewTCB = NULL;			
-			; SOURCE LINE # 1409
+			; SOURCE LINE # 1407
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -5762,15 +5760,15 @@ _?prvAllocateTCBAndStack:
 	INC  	DPTR
 	MOVX 	@DPTR,A
 ; 		}		
-			; SOURCE LINE # 1410
+			; SOURCE LINE # 1408
 	SJMP 	?C0099
 ?C0100:
 ; 		else
 ; 		{
-			; SOURCE LINE # 1412
+			; SOURCE LINE # 1410
 ; 			/* Just to help debugging. */
 ; 			memset( pxNewTCB->pxStack, tskSTACK_FILL_BYTE, usStackDepth * sizeof( portSTACK_TYPE ) );
-			; SOURCE LINE # 1414
+			; SOURCE LINE # 1412
 	MOV  	DPTR,#03H
 	LCALL	?C?XBPOFF
 	MOVX 	A,@DPTR
@@ -5797,13 +5795,13 @@ _?prvAllocateTCBAndStack:
 	LCALL	?C?PLDPTR
 	LCALL	?C?MEMSET
 ; 		}
-			; SOURCE LINE # 1415
+			; SOURCE LINE # 1413
 ; 	}
-			; SOURCE LINE # 1416
+			; SOURCE LINE # 1414
 ?C0099:
 ; 
 ; 	return pxNewTCB;
-			; SOURCE LINE # 1418
+			; SOURCE LINE # 1416
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -5816,7 +5814,7 @@ _?prvAllocateTCBAndStack:
 	MOVX 	A,@DPTR
 	MOV  	R1,A
 ; }
-			; SOURCE LINE # 1419
+			; SOURCE LINE # 1417
 ?C0102:
 	MOV  	DPTR,#05H
 	LJMP 	?C?ADDXBP
@@ -5864,10 +5862,10 @@ _?prvAllocateTCBAndStack:
 	RSEG  ?PR?_?prvGetCurrentTCB_XBP?TASKS
 _?prvGetCurrentTCB_XBP:
 	USING	0
-			; SOURCE LINE # 1457
+			; SOURCE LINE # 1455
 ; {
 ; 	pxCurrentTCB->pxTopOfStack = C_XBP;
-			; SOURCE LINE # 1459
+			; SOURCE LINE # 1457
 	MOV  	R2,C_XBP
 	MOV  	R1,C_XBP+01H
 	MOV  	R3,#?C?XDATAMTYPE
@@ -5885,7 +5883,7 @@ _?prvGetCurrentTCB_XBP:
 	MOV  	R1,A
 	LCALL	?C?PSTPTR
 ; }
-			; SOURCE LINE # 1460
+			; SOURCE LINE # 1458
 	RET  	
 ; END OF _?prvGetCurrentTCB_XBP
 
@@ -5896,10 +5894,10 @@ _?prvGetCurrentTCB_XBP:
 	RSEG  ?PR?_?prvSetCurrentTCB_XBP?TASKS
 _?prvSetCurrentTCB_XBP:
 	USING	0
-			; SOURCE LINE # 1463
+			; SOURCE LINE # 1461
 ; {
 ; 	C_XBP=pxCurrentTCB->pxTopOfStack;
-			; SOURCE LINE # 1465
+			; SOURCE LINE # 1463
 	MOV  	DPTR,#pxCurrentTCB
 	MOVX 	A,@DPTR
 	MOV  	R3,A
@@ -5914,7 +5912,7 @@ _?prvSetCurrentTCB_XBP:
 	MOV  	C_XBP,R2
 	MOV  	C_XBP+01H,R7
 ; }
-			; SOURCE LINE # 1466
+			; SOURCE LINE # 1464
 	RET  	
 ; END OF _?prvSetCurrentTCB_XBP
 

@@ -1,7 +1,6 @@
 
 #include "e2prom.h"
 #include "../cpu/ax11000.h"
-extern void test_run(U8_T dat);
 //  -------------
 //  note:	
 // 	1. every time use new chip, should initial e2prom using WINDOWS ISP
@@ -51,10 +50,7 @@ U8_T E2prom_Read_Byte(U8_T addr, U8_T *value)
 
 U8_T E2prom_Read_Byte_From_Absolute_Address(U8_T addr, U8_T *value)
 {
-
 	I2C_RdmRead(ADDROFDEV, addr, &Read_Data, 1, I2C_STOP_COND);
-	
-
 	*value = Read_Data.I2cData[0];
 	return 1;
 }
@@ -62,7 +58,7 @@ U8_T E2prom_Read_Byte_From_Absolute_Address(U8_T addr, U8_T *value)
 
 U8_T E2prom_Read_Int(U8_T addr, U16_T *value)
 {
-//	U8_T temp,temp1;
+	//U8_T temp,temp1;
 //	E2prom_Read_Byte(addr,&temp);
 //	E2prom_Read_Byte(addr + 1,&temp1);
 //	*value = temp + temp1 * 256;

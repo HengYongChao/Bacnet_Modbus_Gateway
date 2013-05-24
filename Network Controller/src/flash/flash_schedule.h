@@ -8,10 +8,9 @@ typedef enum
 	T_ANNUAL_DES,
 	T_ANNUAL_TIME,
 	T_ID,
-	T_SCAN,	 
+	T_SCAN,
 	T_BACNET,
-	T_GSM, 
-	T_FEATURE_SEL,
+	T_GSM,
 	T_TOTAL
 };
 
@@ -31,7 +30,6 @@ typedef struct
 	U32_T len;
 	U8_T dat[500];
 }STR_flag_flash;
-
 
 
 void Flash_Inital(void);

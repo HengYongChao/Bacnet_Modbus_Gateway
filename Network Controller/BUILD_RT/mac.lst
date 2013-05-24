@@ -1,13 +1,15 @@
-C51 COMPILER V9.06   MAC                                                                   03/13/2013 09:32:20 PAGE 1   
+C51 COMPILER V9.06   MAC                                                                   05/20/2013 14:16:26 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE MAC
 OBJECT MODULE PLACED IN .\mac.obj
-COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\ethernet\mac.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) 
+COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\ethernet\mac.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) 
                     -INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;.
                     -.\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\b
                     -uffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..
-                    -\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\mac.lst) OBJECT(.\mac.obj)
+                    -\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;..
+                    -\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\mac.lst) OBJECT(.\mac.obj
+                    -)
 
 line level    source
 
@@ -60,10 +62,10 @@ line level    source
   47           * ----------------------------------------------------------------------------
   48           */
   49          void mac_ReadReg(U8_T regaddr, U8_T XDATA* pbuf, U8_T length)
+C51 COMPILER V9.06   MAC                                                                   05/20/2013 14:16:26 PAGE 2   
+
   50          {
   51   1              U8_T    isr;
-C51 COMPILER V9.06   MAC                                                                   03/13/2013 09:32:20 PAGE 2   
-
   52   1      
   53   1              isr = EA;
   54   1              EA = 0;
@@ -124,10 +126,10 @@ line level    source
  109   1              /* phy power up */
  110   1              PHY_PowerUp();
  111   1      
+C51 COMPILER V9.06   MAC                                                                   05/20/2013 14:16:26 PAGE 3   
+
  112   1              /* reset embedded phy */
  113   1              temp[0] = (PHY_SELECT_EMBEDDED | BIT1);
-C51 COMPILER V9.06   MAC                                                                   03/13/2013 09:32:20 PAGE 3   
-
  114   1              mac_WriteReg(MAC_PHY_CTL_REG, temp, 1);
  115   1      
  116   1              DELAY_Ms(2);
@@ -188,10 +190,10 @@ line level    source
  171   1      
  172   1              /* set RX filter. */
  173   1              temp[0] = BIT6;
+C51 COMPILER V9.06   MAC                                                                   05/20/2013 14:16:26 PAGE 4   
+
  174   1              mac_WriteReg(MAC_RX_CTL_REG, temp, 1);
  175   1              MAC_SetRxFilter(MAC_RCV_BROADCAST);
-C51 COMPILER V9.06   MAC                                                                   03/13/2013 09:32:20 PAGE 4   
-
  176   1      
  177   1              PBDP->MacInfo.LinkSpeed = 0; // Ethernet not linkup.
  178   1      
@@ -252,10 +254,10 @@ line level    source
  233   1              mac_ReadReg(MAC_WAKEUP_LINK_INT_STATUS_REG, &mac_InterruptStatus, 1);
  234   1      
  235   1              /* enable mac interrupt */
+C51 COMPILER V9.06   MAC                                                                   05/20/2013 14:16:26 PAGE 5   
+
  236   1              mac_InterruptEnable();
  237   1      #endif
-C51 COMPILER V9.06   MAC                                                                   03/13/2013 09:32:20 PAGE 5   
-
  238   1      
  239   1      } /* End of MAC_Start() */
  240          
@@ -316,10 +318,10 @@ line level    source
  295   1              mac_ReadReg(MAC_RX_CTL_REG, &temp, 1);
  296   1      
  297   1              /* set rcv filter. */
+C51 COMPILER V9.06   MAC                                                                   05/20/2013 14:16:26 PAGE 6   
+
  298   1              temp &= 0xc0;
  299   1              if (filter & MAC_RCV_PROMISCUOUS)
-C51 COMPILER V9.06   MAC                                                                   03/13/2013 09:32:20 PAGE 6   
-
  300   1                      temp |= PACKET_TYPE_PROMISCOUS;
  301   1              if (filter & MAC_RCV_ALL_MULTICAST)
  302   1                      temp |= PACKET_TYPE_ALL_MULTI;
@@ -380,10 +382,10 @@ line level    source
  357           * ----------------------------------------------------------------------------
  358           */
  359          void MAC_SetInterruptFlag(void)
+C51 COMPILER V9.06   MAC                                                                   05/20/2013 14:16:26 PAGE 7   
+
  360          {
  361   1              mac_ReadReg(MAC_WAKEUP_LINK_INT_STATUS_REG, &mac_InterruptStatus, 1);
-C51 COMPILER V9.06   MAC                                                                   03/13/2013 09:32:20 PAGE 7   
-
  362   1              if (!(mac_InterruptStatus & STATUS_PRIMARY_LINK_CHANGE))
  363   1                      mac_InterruptStatus = 0;
  364   1      
@@ -444,10 +446,10 @@ line level    source
  419   2                      PBDP->MacInfo.LinkSpeed = 100;
  420   2                      PBDP->MacInfo.MediumLinkType |= MEDIUM_MII_100M_MODE;
  421   2                      PBDP->MacInfo.FullDuplex = FALSE;
+C51 COMPILER V9.06   MAC                                                                   05/20/2013 14:16:26 PAGE 8   
+
  422   2      //              printf ("Link to 100 HALF.\n\r");
  423   2              } 
-C51 COMPILER V9.06   MAC                                                                   03/13/2013 09:32:20 PAGE 8   
-
  424   1              /* Determine if we're linked to 10 full duplex. */
  425   1              else if (phylinkstatus & ANLPAR_10TFD)
  426   1              {
@@ -508,10 +510,10 @@ line level    source
  481   1              else
  482   1              {
  483   2                      mac_InterruptStatus = 0;                
+C51 COMPILER V9.06   MAC                                                                   05/20/2013 14:16:26 PAGE 9   
+
  484   2                      if (PBDP->MacInfo.LinkSpeed)
  485   2                      {
-C51 COMPILER V9.06   MAC                                                                   03/13/2013 09:32:20 PAGE 9   
-
  486   3                              PBDP->MacInfo.LinkSpeed = 0;
  487   3      
  488   3                              /* disable receive */
@@ -572,10 +574,10 @@ line level    source
                       {
                               if (PBDP->MacInfo.LinkSpeed == 0)
                               {
+C51 COMPILER V9.06   MAC                                                                   05/20/2013 14:16:26 PAGE 10  
+
                                       if (PBDP->MacInfo.NetworkType != MAC_FORCE_ENBEDDED_PHY_10_HALF)
                                       {
-C51 COMPILER V9.06   MAC                                                                   03/13/2013 09:32:20 PAGE 10  
-
                                               mac_GetMediaType();
                                       }
                                       else
@@ -636,10 +638,10 @@ line level    source
                       if (type & MAC_PRIMARY_PHY_LINK_WAKEUP)
                               temp |= WAKEUP_BY_PRIMARY_LINK_UP;
                       if (type & MAC_MAGIC_PACKET_WAKEUP)
+C51 COMPILER V9.06   MAC                                                                   05/20/2013 14:16:26 PAGE 11  
+
                               temp |= WAKEUP_BY_MAGIC_PACKET;
                       if (type & MAC_EXTERNAL_PIN_WAKEUP)
-C51 COMPILER V9.06   MAC                                                                   03/13/2013 09:32:20 PAGE 11  
-
                               temp |= WAKEUP_BY_EXTER_PIN_TRIG;
                       if (type & MAC_MS_FRAME_WAKEUP)
                               temp |= WAKEUP_BY_MICROSOFT_FRAME;
@@ -700,10 +702,10 @@ line level    source
                       U8_T XDATA*     pMask;
                       U8_T XDATA      wakeupCmd, offset0, offset1;
                       U8_T            mode, i, maskLen, x, y;
+C51 COMPILER V9.06   MAC                                                                   05/20/2013 14:16:26 PAGE 12  
+
                       U8_T            frame[64];
               
-C51 COMPILER V9.06   MAC                                                                   03/13/2013 09:32:20 PAGE 12  
-
                       mode = pWuf->Mode;
                       offset0 = pWuf->Offset0;
                       offset1 = pWuf->Offset1;
@@ -764,10 +766,10 @@ line level    source
                                       {
                                               if (pMask[3 - x] & (1 << y))
                                               {
+C51 COMPILER V9.06   MAC                                                                   05/20/2013 14:16:26 PAGE 13  
+
                                                       if ((8*x + y + offset0*2) > pWuf->Length)
                                                               return 0;
-C51 COMPILER V9.06   MAC                                                                   03/13/2013 09:32:20 PAGE 13  
-
               
                                                       frame[maskLen] = pWuf->Pframe[8*x + y + offset0*2];
                                                       maskLen++;
@@ -828,10 +830,10 @@ line level    source
                                                       maskLen++;
                                               }
                                       }
+C51 COMPILER V9.06   MAC                                                                   05/20/2013 14:16:26 PAGE 14  
+
                               }
               
-C51 COMPILER V9.06   MAC                                                                   03/13/2013 09:32:20 PAGE 14  
-
                               pMask = (U8_T XDATA*)&mask1;
                               for (x = 0; x < 4; x++)
                               {
@@ -892,10 +894,10 @@ line level    source
  853          
  854          #if (MAC_MULTICAST_FILTER == MAC_SUPPORT)
  855          /*
+C51 COMPILER V9.06   MAC                                                                   05/20/2013 14:16:26 PAGE 15  
+
  856          * -----------------------------------------------------------------------------
  857           * Function Name: mac_ComputeCrc32
-C51 COMPILER V9.06   MAC                                                                   03/13/2013 09:32:20 PAGE 15  
-
  858           * Purpose:
  859           * Params:
  860           * Returns:
@@ -956,9 +958,9 @@ line level    source
  915          #endif
  916          
  917          
- 918          /* End of mac.c */
+C51 COMPILER V9.06   MAC                                                                   05/20/2013 14:16:26 PAGE 16  
 
-C51 COMPILER V9.06   MAC                                                                   03/13/2013 09:32:20 PAGE 16  
+ 918          /* End of mac.c */
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE

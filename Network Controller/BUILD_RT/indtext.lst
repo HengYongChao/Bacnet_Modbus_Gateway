@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   INDTEXT                                                               03/13/2013 09:32:32 PAGE 1   
+C51 COMPILER V9.06   INDTEXT                                                               03/29/2013 16:57:10 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE INDTEXT
@@ -7,8 +7,8 @@ COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\indtext.c LARG
                     -) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\
                     -;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC
                     -\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;
-                    -..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\indtext.lst) OBJECT(.\ind
-                    -text.obj)
+                    -..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version) DEFINE(KEIL_AX11
+                    -000) VARBANKING DEBUG PRINT(.\indtext.lst) OBJECT(.\indtext.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   48   1          do {
   49   2              c1 = (unsigned char) *s1;
   50   2              c2 = (unsigned char) *s2;
-C51 COMPILER V9.06   INDTEXT                                                               03/13/2013 09:32:32 PAGE 2   
+C51 COMPILER V9.06   INDTEXT                                                               03/29/2013 16:57:10 PAGE 2   
 
   51   2              c1 = (unsigned char) tolower(c1);
   52   2              c2 = (unsigned char) tolower(c2);
@@ -126,7 +126,7 @@ line level    source
  110   1      }
  111          
  112          unsigned indtext_by_string_default(
-C51 COMPILER V9.06   INDTEXT                                                               03/13/2013 09:32:32 PAGE 3   
+C51 COMPILER V9.06   INDTEXT                                                               03/29/2013 16:57:10 PAGE 3   
 
  113              INDTEXT_DATA * data_list,
  114              const char *search_name,
@@ -190,7 +190,7 @@ line level    source
  172          
  173          const char *indtext_by_index(
  174              INDTEXT_DATA * data_list,
-C51 COMPILER V9.06   INDTEXT                                                               03/13/2013 09:32:32 PAGE 4   
+C51 COMPILER V9.06   INDTEXT                                                               03/29/2013 16:57:10 PAGE 4   
 
  175              unsigned index)
  176          {
@@ -254,7 +254,7 @@ line level    source
                   /* case insensitive versions */
                   ct_test(pTest, indtext_by_istring(data_list, "JOSHUA", NULL) == true);
                   ct_test(pTest, indtext_by_istring(data_list, "joshua", NULL) == true);
-C51 COMPILER V9.06   INDTEXT                                                               03/13/2013 09:32:32 PAGE 5   
+C51 COMPILER V9.06   INDTEXT                                                               03/29/2013 16:57:10 PAGE 5   
 
                   valid = indtext_by_istring(data_list, "ANNA", &index);
                   ct_test(pTest, index == indtext_by_istring_default(data_list, "ANNA",

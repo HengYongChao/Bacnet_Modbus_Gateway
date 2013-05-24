@@ -1,9 +1,9 @@
-AX51 MACRO ASSEMBLER  START390                                                              03/13/13 09:32:20 PAGE     1
+AX51 MACRO ASSEMBLER  START390                                                              05/20/13 14:16:26 PAGE     1
 
 
 MACRO ASSEMBLER AX51 V3.07c
 OBJECT MODULE PLACED IN .\START390.obj
-ASSEMBLER INVOKED BY: d:\Keil_4_9.06\C51\BIN\AX51.EXE ..\src\cpu\START390.A51 MOD_CONT INCDIR(..\SRC\cpu\;..\SRC\etherne
+ASSEMBLER INVOKED BY: E:\Keil_4_9.06\C51\BIN\AX51.EXE ..\src\cpu\START390.A51 MOD_CONT INCDIR(..\SRC\cpu\;..\SRC\etherne
                       t\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\uip\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;
                       ..\SRC\gs2e\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\) SET(LARGE) DEBU
                       G PRINT(.\START390.lst) OBJECT(.\START390.obj) EP
@@ -65,7 +65,7 @@ LOC    OBJ             LINE     SOURCE
                     +1   53     
                     +1   54     
                     +1   55     
-AX51 MACRO ASSEMBLER  START390                                                              03/13/13 09:32:20 PAGE     2
+AX51 MACRO ASSEMBLER  START390                                                              05/20/13 14:16:26 PAGE     2
 
                     +1   56     
                     +1   57     
@@ -133,7 +133,7 @@ LOC    OBJ             LINE     SOURCE
                     +1  119     
                     +1  120     
                     +1  121     
-AX51 MACRO ASSEMBLER  START390                                                              03/13/13 09:32:20 PAGE     3
+AX51 MACRO ASSEMBLER  START390                                                              05/20/13 14:16:26 PAGE     3
 
                     +1  122     
                     +1  123     
@@ -201,7 +201,7 @@ LOC    OBJ             LINE     SOURCE
                         185     ;     LX51 <your object file list>, START390.OBJ <controls>
                         186     ;
                         187     ;------------------------------------------------------------------------------
-AX51 MACRO ASSEMBLER  START390                                                              03/13/13 09:32:20 PAGE     4
+AX51 MACRO ASSEMBLER  START390                                                              05/20/13 14:16:26 PAGE     4
 
                         188     ;
                         189     ;------------------------------------------------------------------------------
@@ -269,7 +269,7 @@ LOC    OBJ             LINE     SOURCE
                         250     ;  in the linker invocation.
                         251     ;
  0000                   252     PPAGEENABLE     EQU     0       ; set to 1 if pdata object are used.
-AX51 MACRO ASSEMBLER  START390                                                              03/13/13 09:32:20 PAGE     5
+AX51 MACRO ASSEMBLER  START390                                                              05/20/13 14:16:26 PAGE     5
 
  00F4                   253     PPAGE           EQU     0F4H    ; define PPAGE number. 
                         254     ;
@@ -337,7 +337,7 @@ LOC    OBJ             LINE     SOURCE
   00A2              +1  314     sfr LCR                 = 0xA2;// Local Bus Command Register
   00A3              +1  315     sfr LSR                 = 0xA3;// Local Bus Status Register
   00A4              +1  316     sfr LDALR               = 0xA4;// Local Bus Device Address Low Register
-AX51 MACRO ASSEMBLER  START390                                                              03/13/13 09:32:20 PAGE     6
+AX51 MACRO ASSEMBLER  START390                                                              05/20/13 14:16:26 PAGE     6
 
   00A5              +1  317     sfr LDAHR               = 0xA5;// Local Bus Device Address High Register
   00A6              +1  318     sfr LDCSR               = 0xA6;// Local Bus Device Chip Select Register
@@ -405,7 +405,7 @@ LOC    OBJ             LINE     SOURCE
   00DF              +1  379     sfr CANDR               = 0xDF;// CAN Bus Data Register
                     +1  380     
   00E0              +1  381     sfr ACC                 = 0xE0;// Accumulator
-AX51 MACRO ASSEMBLER  START390                                                              03/13/13 09:32:20 PAGE     7
+AX51 MACRO ASSEMBLER  START390                                                              05/20/13 14:16:26 PAGE     7
 
                     +1  382     
                     +1  383     
@@ -473,7 +473,7 @@ LOC    OBJ             LINE     SOURCE
                     +1  444     
 0088.0              +1  445     sbit    IT0             = 0x88;
 0088.1              +1  446     sbit    IE0             = 0x89;
-AX51 MACRO ASSEMBLER  START390                                                              03/13/13 09:32:20 PAGE     8
+AX51 MACRO ASSEMBLER  START390                                                              05/20/13 14:16:26 PAGE     8
 
 0088.2              +1  447     sbit    IT1             = 0x8A;
 0088.3              +1  448     sbit    IE1             = 0x8B;
@@ -541,7 +541,7 @@ LOC    OBJ             LINE     SOURCE
                     +1  510     
                     +1  511     
                     +1  512     
-AX51 MACRO ASSEMBLER  START390                                                              03/13/13 09:32:20 PAGE     9
+AX51 MACRO ASSEMBLER  START390                                                              05/20/13 14:16:26 PAGE     9
 
                     +1  513     
                     +1  514     
@@ -609,7 +609,7 @@ LOC    OBJ             LINE     SOURCE
 00A8.5              +1  576     sbit ET2                = 0xAD;       /* 1=Enable Timer 2 interrupt */
 00A8.6              +1  577     sbit ES1                = 0xAE;       /* 1=Enable Serial port 1 interrupt */
 00A8.7              +1  578     sbit EA                 = 0xAF;       /* 0=Disable all interrupts */
-AX51 MACRO ASSEMBLER  START390                                                              03/13/13 09:32:20 PAGE    10
+AX51 MACRO ASSEMBLER  START390                                                              05/20/13 14:16:26 PAGE    10
 
                     +1  579     
                     +1  580     
@@ -677,7 +677,7 @@ LOC    OBJ             LINE     SOURCE
                     +1  642     
                     +1  643     
                     +1  644     
-AX51 MACRO ASSEMBLER  START390                                                              03/13/13 09:32:20 PAGE    11
+AX51 MACRO ASSEMBLER  START390                                                              05/20/13 14:16:26 PAGE    11
 
                     +1  645     
 00C8.0              +1  646     sbit CPRL2              = 0xC8;
@@ -745,7 +745,7 @@ LOC    OBJ             LINE     SOURCE
                     +1  708     
                     +1  709     
                     +1  710     
-AX51 MACRO ASSEMBLER  START390                                                              03/13/13 09:32:20 PAGE    12
+AX51 MACRO ASSEMBLER  START390                                                              05/20/13 14:16:26 PAGE    12
 
                     +1  711     
                     +1  712     
@@ -813,7 +813,7 @@ LOC    OBJ             LINE     SOURCE
                     +1  774     
                     +1  775     
                     +1  776     
-AX51 MACRO ASSEMBLER  START390                                                              03/13/13 09:32:20 PAGE    13
+AX51 MACRO ASSEMBLER  START390                                                              05/20/13 14:16:26 PAGE    13
 
                     +1  777     
                     +1  778     
@@ -881,7 +881,7 @@ LOC    OBJ             LINE     SOURCE
                         840     ENDIF
                         841     
                         842     IF XDATALEN <> 0
-AX51 MACRO ASSEMBLER  START390                                                              03/13/13 09:32:20 PAGE    14
+AX51 MACRO ASSEMBLER  START390                                                              05/20/13 14:16:26 PAGE    14
 
 00000F 90000000         843                     MOV     DPTR,#XDATASTART
 000013 7F00             844                     MOV     R7,#BYTE0 (XDATALEN)
@@ -945,7 +945,7 @@ LOC    OBJ             LINE     SOURCE
                                 
                                 
                         904                     END
-AX51 MACRO ASSEMBLER  START390                                                              03/13/13 09:32:20 PAGE    15
+AX51 MACRO ASSEMBLER  START390                                                              05/20/13 14:16:26 PAGE    15
 
 SYMBOL TABLE LISTING
 ------ ----- -------
@@ -1013,7 +1013,7 @@ EIF . . . . . . . . . . . . .  D  ADDR  0091H     A
 EINT2 . . . . . . . . . . . .  B  ADDR  00E8H.0   A   
 EINT3 . . . . . . . . . . . .  B  ADDR  00E8H.1   A   
 EINT4 . . . . . . . . . . . .  B  ADDR  00E8H.2   A   
-AX51 MACRO ASSEMBLER  START390                                                              03/13/13 09:32:20 PAGE    16
+AX51 MACRO ASSEMBLER  START390                                                              05/20/13 14:16:26 PAGE    16
 
 EINT5 . . . . . . . . . . . .  B  ADDR  00E8H.3   A   
 EINT6 . . . . . . . . . . . .  B  ADDR  00E8H.4   A   
@@ -1081,7 +1081,7 @@ P0_5. . . . . . . . . . . . .  B  ADDR  0080H.5   A
 P0_6. . . . . . . . . . . . .  B  ADDR  0080H.6   A   
 P0_7. . . . . . . . . . . . .  B  ADDR  0080H.7   A   
 P1. . . . . . . . . . . . . .  D  ADDR  0090H     A   
-AX51 MACRO ASSEMBLER  START390                                                              03/13/13 09:32:20 PAGE    17
+AX51 MACRO ASSEMBLER  START390                                                              05/20/13 14:16:26 PAGE    17
 
 P1_0. . . . . . . . . . . . .  B  ADDR  0090H.0   A   
 P1_1. . . . . . . . . . . . .  B  ADDR  0090H.1   A   
@@ -1149,7 +1149,7 @@ RXD . . . . . . . . . . . . .  B  ADDR  00B0H.0   A
 SBUF0 . . . . . . . . . . . .  D  ADDR  0099H     A   
 SBUF1 . . . . . . . . . . . .  D  ADDR  00C1H     A   
 SCON0 . . . . . . . . . . . .  D  ADDR  0098H     A   
-AX51 MACRO ASSEMBLER  START390                                                              03/13/13 09:32:20 PAGE    18
+AX51 MACRO ASSEMBLER  START390                                                              05/20/13 14:16:26 PAGE    18
 
 SCON1 . . . . . . . . . . . .  D  ADDR  00C0H     A   
 SDSTSR. . . . . . . . . . . .  D  ADDR  0094H     A   

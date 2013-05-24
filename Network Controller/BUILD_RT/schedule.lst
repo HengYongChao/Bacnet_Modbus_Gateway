@@ -1,14 +1,15 @@
-C51 COMPILER V9.06   SCHEDULE                                                              03/13/2013 09:32:28 PAGE 1   
+C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE SCHEDULE
 OBJECT MODULE PLACED IN .\schedule.obj
-COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\schedule\schedule.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6
+COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\schedule\schedule.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6
                     -020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hs
                     -ur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\
                     -SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX1100
-                    -0\;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\schedule.lst) OBJECT(.
-                    -\schedule.obj)
+                    -0\;..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusT
+                    -CP;..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\schedule.lst) OBJECT
+                    -(.\schedule.obj)
 
 line level    source
 
@@ -61,9 +62,9 @@ line level    source
   47          sbit ID_CHANGED = REFRESH_STATUS^2;
   48          
   49          extern unsigned char T;
-  50          unsigned char far daylight_enable;
-C51 COMPILER V9.06   SCHEDULE                                                              03/13/2013 09:32:28 PAGE 2   
+C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 2   
 
+  50          unsigned char far daylight_enable;
   51          unsigned char far daylight_flag;
   52          bit calibrated_time = 0;
   53          bit cycle_minutes_timeout;
@@ -125,9 +126,9 @@ line level    source
  109   1                      unsigned int word;
  110   1                      unsigned char byte[2];
  111   1              }crc_16;
- 112   1      
-C51 COMPILER V9.06   SCHEDULE                                                              03/13/2013 09:32:28 PAGE 3   
+C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 3   
 
+ 112   1      
  113   1              tstat_id = id;
  114   1              send_data[0] = tstat_id;
  115   1              send_data[1] = 0x03;
@@ -189,9 +190,9 @@ line level    source
  171   1                      unsigned int word;
  172   1                      unsigned char byte[2];
  173   1              }crc;
- 174   1              
-C51 COMPILER V9.06   SCHEDULE                                                              03/13/2013 09:32:28 PAGE 4   
+C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 4   
 
+ 174   1              
  175   1      //      unsigned char output_value;
  176   1      //      unsigned char ort_num = 0;
  177   1      
@@ -253,9 +254,9 @@ line level    source
  233   1                      if(output) 
  234   1                      {
  235   2                              if(GetBit(id_index, output_state_index) == 0)
- 236   2                              {
-C51 COMPILER V9.06   SCHEDULE                                                              03/13/2013 09:32:28 PAGE 5   
+C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 5   
 
+ 236   2                              {
  237   3                                      SetBit(id_index & 0x07, &output_state_index[id_index >> 3]);
  238   3                                      ID_CHANGED = 0;
  239   3                              }
@@ -317,9 +318,9 @@ line level    source
  295   1              if(dayofweek != previous_dayofweek || calibrated_time == 1)
  296   1              {
  297   2                      previous_dayofweek = dayofweek;
- 298   2                      calibrated_time = 0;             
-C51 COMPILER V9.06   SCHEDULE                                                              03/13/2013 09:32:28 PAGE 6   
+C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 6   
 
+ 298   2                      calibrated_time = 0;             
  299   2                      switch(temp_month)
  300   2                      {
  301   3                              case 1:
@@ -381,9 +382,9 @@ line level    source
  357   3                                              dayofyear=0xd5 + temp_day;
  358   3                                      else
  359   3                                              dayofyear=0xd4 + temp_day;                      
- 360   3                                      break;
-C51 COMPILER V9.06   SCHEDULE                                                              03/13/2013 09:32:28 PAGE 7   
+C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 7   
 
+ 360   3                                      break;
  361   3                              case 9:
  362   3                                      if((temp_year & 0x03) == 0x00)
  363   3                                              dayofyear = 0xf4 + temp_day;
@@ -445,9 +446,9 @@ line level    source
  419   2                      if(!AR_A_M)  //auto 
  420   2                       {
  421   3                              mask = 0x01;
- 422   3                              /* Assume bit0 from octet0 = Jan 1st */
-C51 COMPILER V9.06   SCHEDULE                                                              03/13/2013 09:32:28 PAGE 8   
+C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 8   
 
+ 422   3                              /* Assume bit0 from octet0 = Jan 1st */
  423   3                              /* octet_index = ora_current.day_of_year / 8;*/
  424   3                              octet_index = dayofyear >> 3;
  425   3                              /* bit_index = ora_current.day_of_year % 8;*/
@@ -509,9 +510,9 @@ line level    source
  481          { 
  482   1              unsigned char w, i;
  483   1              signed char j, timeout = 0;
- 484   1              unsigned char mask;
-C51 COMPILER V9.06   SCHEDULE                                                              03/13/2013 09:32:28 PAGE 9   
+C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 9   
 
+ 484   1              unsigned char mask;
  485   1      //      unsigned char mask_r;
  486   1              for(i = 0; i < MAX_WR; i++)
  487   1              {
@@ -573,9 +574,9 @@ line level    source
  543   4                              }
  544   3                      }
  545   2                      else
- 546   2                              ClearBit(i & 0x07, &holiday1_state_index[i >> 3]);
-C51 COMPILER V9.06   SCHEDULE                                                              03/13/2013 09:32:28 PAGE 10  
+C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 10  
 
+ 546   2                              ClearBit(i & 0x07, &holiday1_state_index[i >> 3]);
  547   2      
  548   2                      if(!WR_A_M) // auto 
  549   2                      {
@@ -637,9 +638,9 @@ line level    source
  605   3                      }
  606   2                      else // manual
  607   2                      {
- 608   3                              if(WR_FLAG != 0xff)
-C51 COMPILER V9.06   SCHEDULE                                                              03/13/2013 09:32:28 PAGE 11  
+C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 11  
 
+ 608   3                              if(WR_FLAG != 0xff)
  609   3                              {
  610   4                                      if(WR_VALUE)
  611   4                                      {
@@ -701,9 +702,9 @@ line level    source
  667   6                                              }
  668   5                                      }
  669   4                                      wr1_valid = 1;
- 670   4                              }
-C51 COMPILER V9.06   SCHEDULE                                                              03/13/2013 09:32:28 PAGE 12  
+C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 12  
 
+ 670   4                              }
  671   3                              else
  672   3                                      ClearBit(i & 0x07, &schedual1_state_index[i >> 3]);
  673   3      
@@ -765,9 +766,9 @@ line level    source
  729   5      //                                      SendSchedualData(i, ID_OUTPUT);  
  730   5      //                                      test0 = 7;
  731   5                                      #if 1
- 732   5                                              temp_bit = GetBit(i, first_time_schedual);
-C51 COMPILER V9.06   SCHEDULE                                                              03/13/2013 09:32:28 PAGE 13  
+C51 COMPILER V9.06   SCHEDULE                                                              05/20/2013 14:16:33 PAGE 13  
 
+ 732   5                                              temp_bit = GetBit(i, first_time_schedual);
  733   5                                              if(ID_OUTPUT != GetBit(i,output_state_index) || temp_bit == 0)
  734   5                                              { 
  735   6      //                                              test0 = 8;

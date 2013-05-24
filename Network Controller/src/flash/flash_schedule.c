@@ -9,9 +9,7 @@ STR_FLASH flash;
 STR_Flash_POS xdata Flash_Position[18] /*_at_ 0x800*/;
 
 static U8_T far tempbuf[1500] = {0};
-
 U8_T bacnet_id;
-extern BOOL  MODBUS_OR_BACNET_FUNCTION_SELECT_ON_UART0;
 extern U8_T far Para[400]; 
 
 /* caclulate detailed position for every table */
@@ -51,7 +49,7 @@ void Flash_Inital(void)
 			case T_SCAN:
 				baseAddr += len;
 				len = SCAN_DB_SIZE * MAX_ID;		// 5*254
-				break;	
+				break;
 				
 			case T_BACNET:
 				baseAddr += len;
@@ -59,12 +57,9 @@ void Flash_Inital(void)
 				break;
 			case T_GSM:
 				baseAddr += len;
-				len = PHONE_NUM_SIZE;				// 14	
+				len = PHONE_NUM_SIZE;				// 14						
 				
-			case T_FEATURE_SEL:
-				baseAddr += len;	
-				len = CHIOCE_FEATURE_LEN;			  	//1
-									
+							
 			default:
 				break;
 		}
@@ -153,6 +148,7 @@ void Flash_Write_Schedule(void)
 				for(loop2 = 0; loop2 < ptr_flash.len; loop2++)
 					IntFlashWriteByte(0x70000 + base_addr + loop2, tempbuf[loop2]);
 				break;
+		
 /*******************************************************************************************/
 			case T_BACNET:
 				for(loop1 = 0; loop1 < MAX_BACNET; loop1++)
@@ -171,17 +167,7 @@ void Flash_Write_Schedule(void)
 				for(loop2 = 0; loop2 < ptr_flash.len; loop2++)
 					IntFlashWriteByte(0x70000 + base_addr + loop2, tempbuf[loop2]);
 				break;
-/*********************************************************************************************/
-//			case T_FEATURE_SEL:
-//				 for(loop1 = 0; loop1 < CHIOCE_FEATURE_LEN; loop1++)
-//				 {
-//				   memcpy(&tempbuf[loop1], MODBUS_OR_BACNET_FUNCTION_SELECT_ON_UART0, 1);
-//				 }
-//				for(loop2 = 0; loop2 < ptr_flash.len; loop2++)
-//					IntFlashWriteByte(0x70000 + base_addr + loop2, tempbuf[loop2]);
-//				break;
-
- 			default:	
+			default:	
 				break;
 		
 		}
@@ -262,16 +248,7 @@ void Flash_Read_Schedule(void)
 					memcpy((U8_T *)&scan_db[loop1], &tempbuf[SCAN_DB_SIZE * loop1], SCAN_DB_SIZE);					
 				}
 				break;
-/***********************************************************************************************/
-			case T_BACNET:
-				for(loop2 = 0; loop2 < ptr_flash.len; loop2++)
-					IntFlashReadByte(0x70000 + base_addr + loop2, &tempbuf[loop2]);
-				for(loop1 = 0; loop1 < MAX_BACNET; loop1++)
-				{
-					memcpy((U8_T *)&bacnet_id, &tempbuf[BACNET_SIZE * loop1], BACNET_SIZE);					
-				}
-				break;
-/*--------------------------------------------------------------------------------------------*/
+
 			case T_GSM:
 				for(loop2 = 0; loop2 < ptr_flash.len; loop2++)
 					IntFlashReadByte(0x70000 + base_addr + loop2, &tempbuf[loop2]);
@@ -280,15 +257,6 @@ void Flash_Read_Schedule(void)
 					memcpy(&phoneNumber[loop1], &tempbuf[ loop1], 1);					
 				}
 				break;
-//		    case T_FEATURE_SEL:
-//				for(loop2 = 0; loop2 < ptr_flash.len; loop2++)
-//					IntFlashReadByte(0x70000 + base_addr + loop2, &tempbuf[loop2]);
-//
-//				for(loop1 = 0; loop1 < CHIOCE_FEATURE_LEN; loop1++)
-//				{
-//					memcpy(MODBUS_OR_BACNET_FUNCTION_SELECT_ON_UART0, &tempbuf[ loop1], 1);					
-//				}
-//				break;
 
 
 			default:

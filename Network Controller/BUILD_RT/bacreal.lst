@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   BACREAL                                                               03/13/2013 09:32:34 PAGE 1   
+C51 COMPILER V9.06   BACREAL                                                               03/29/2013 16:57:10 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE BACREAL
@@ -7,8 +7,8 @@ COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\bacreal.c LARG
                     -) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\
                     -;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC
                     -\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;
-                    -..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\bacreal.lst) OBJECT(.\bac
-                    -real.obj)
+                    -..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version) DEFINE(KEIL_AX11
+                    -000) VARBANKING DEBUG PRINT(.\bacreal.lst) OBJECT(.\bacreal.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   48          /* http://www.unixpapa.com/incnote/byteorder.html */
   49          #ifndef BIG_ENDIAN
               #error Define BIG_ENDIAN=0 or BIG_ENDIAN=1 for BACnet Stack in compiler settings
-C51 COMPILER V9.06   BACREAL                                                               03/13/2013 09:32:34 PAGE 2   
+C51 COMPILER V9.06   BACREAL                                                               03/29/2013 16:57:10 PAGE 2   
 
               #endif
   52          
@@ -126,7 +126,7 @@ line level    source
  110   1          return len;
  111   1      }
  112          
-C51 COMPILER V9.06   BACREAL                                                               03/13/2013 09:32:34 PAGE 3   
+C51 COMPILER V9.06   BACREAL                                                               03/29/2013 16:57:10 PAGE 3   
 
  113          /* from clause 20.2.6 Encoding of a Real Number Value */
  114          /* returns the number of apdu bytes consumed */
@@ -190,7 +190,7 @@ line level    source
  172   1          my_data.byte[7] = apdu[0];
  173   1      #endif
  174   1      
-C51 COMPILER V9.06   BACREAL                                                               03/13/2013 09:32:34 PAGE 4   
+C51 COMPILER V9.06   BACREAL                                                               03/29/2013 16:57:10 PAGE 4   
 
  175   1          *double_value = my_data.double_value;
  176   1      
@@ -254,7 +254,7 @@ line level    source
  234   1          uint32_t len_value;
  235   1          int len = 0;
  236   1      
-C51 COMPILER V9.06   BACREAL                                                               03/13/2013 09:32:34 PAGE 5   
+C51 COMPILER V9.06   BACREAL                                                               03/29/2013 16:57:10 PAGE 5   
 
  237   1          if (decode_is_context_tag(&apdu[len], tag_number)) {
  238   2              len +=
@@ -318,7 +318,7 @@ line level    source
               
                   /* configure output */
                   ct_setStream(pTest, stdout);
-C51 COMPILER V9.06   BACREAL                                                               03/13/2013 09:32:34 PAGE 6   
+C51 COMPILER V9.06   BACREAL                                                               03/29/2013 16:57:10 PAGE 6   
 
                   ct_run(pTest);
                   (void) ct_report(pTest);

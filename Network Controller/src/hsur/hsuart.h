@@ -158,9 +158,8 @@
 
 
 /* MACRO DECLARATIONS */
-#define	UART2_TIMEOUT	40
-#define	UART1_TIMEOUT	40
-#define	UART0_TIMEOUT	40
+#define	UART2_TIMEOUT	25
+#define	UART1_TIMEOUT	15
 
 /* TYPE DECLARATIONS */
 
@@ -207,4 +206,7 @@ U8_T	HSUR_GetModemStatus(U8_T intrSynth);
 BOOL	HSUR_XonByApp(void);
 BOOL	HSUR_XoffByApp(void);
 
+
+U8_T	HSUR_GetByteNb(U8_T* pDat);
+void	HSUR_SetupPort(U16_T divBaudRate, U8_T lctrl);
 #endif /* End of HSUART_H */

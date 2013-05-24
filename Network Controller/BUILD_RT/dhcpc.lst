@@ -1,14 +1,15 @@
-C51 COMPILER V9.06   DHCPC                                                                 03/13/2013 09:32:23 PAGE 1   
+C51 COMPILER V9.06   DHCPC                                                                 05/20/2013 14:16:28 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE DHCPC
 OBJECT MODULE PLACED IN .\dhcpc.obj
-COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\dhcp\dhcpc.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) IN
+COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\dhcp\dhcpc.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) IN
                     -CDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\
                     -SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buf
                     -fer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\S
-                    -rc\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\dhcpc.lst) OBJECT(.\dhcpc.obj
-                    -)
+                    -rc\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;..\s
+                    -rc\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\dhcpc.lst) OBJECT(.\dhcpc.o
+                    -bj)
 
 line level    source
 
@@ -61,9 +62,9 @@ line level    source
   47          #define DHCPC_MESSAGE_SUCCESS           2
   48          
   49          
-  50          /* STATIC VARIABLE DECLARATIONS */
-C51 COMPILER V9.06   DHCPC                                                                 03/13/2013 09:32:23 PAGE 2   
+C51 COMPILER V9.06   DHCPC                                                                 05/20/2013 14:16:28 PAGE 2   
 
+  50          /* STATIC VARIABLE DECLARATIONS */
   51          static DHCP_INFO        dhcpInfo;
   52          static U8_T                     dhcpConnID = 0;
   53          static DHCP_HEADER      dhcpBuffer;
@@ -125,9 +126,9 @@ line level    source
  109   1              dhcpInfo.OptionsCounter = 0;
  110   1              dhcpInfo.Secs = 0;
  111   1              dhcpInfo.TimeoutInterval = DHCP_REQUEST_TIMEOUT;
- 112   1              for (i=0 ; i<4 ; i++)
-C51 COMPILER V9.06   DHCPC                                                                 03/13/2013 09:32:23 PAGE 3   
+C51 COMPILER V9.06   DHCPC                                                                 05/20/2013 14:16:28 PAGE 3   
 
+ 112   1              for (i=0 ; i<4 ; i++)
  113   1              {
  114   2                      dhcpInfo.ServerId[i] = 0;
  115   2                      dhcpInfo.ClientOfferedIp[i] = 0;
@@ -189,9 +190,9 @@ line level    source
  171   1              if (event == TCPIP_CONNECT_CANCEL)
  172   1              {
  173   2                      dhcpInfo.State = DHCP_IDLE_STATE;
- 174   2                      TCPIP_UdpClose(dhcpInfo.SocketId);
-C51 COMPILER V9.06   DHCPC                                                                 03/13/2013 09:32:23 PAGE 4   
+C51 COMPILER V9.06   DHCPC                                                                 05/20/2013 14:16:28 PAGE 4   
 
+ 174   2                      TCPIP_UdpClose(dhcpInfo.SocketId);
  175   2              }
  176   1      }
  177          
@@ -253,9 +254,9 @@ line level    source
  233           * Params  :
  234           * Returns :
  235           * Note    :
- 236           *--------------------------------------------------------------------------------
-C51 COMPILER V9.06   DHCPC                                                                 03/13/2013 09:32:23 PAGE 5   
+C51 COMPILER V9.06   DHCPC                                                                 05/20/2013 14:16:28 PAGE 5   
 
+ 236           *--------------------------------------------------------------------------------
  237           */
  238          S8_T DHCP_GetState(void)
  239          {
@@ -317,9 +318,9 @@ line level    source
  294   1              for (i=0 ; i<DHCP_CHADDR_LEN ; i++)
  295   1              {
  296   2                      if (i < MAC_ADDRESS_LEN)
- 297   2                              pDiscover->ChAddr[i] = dhcpMacAddr[i];
-C51 COMPILER V9.06   DHCPC                                                                 03/13/2013 09:32:23 PAGE 6   
+C51 COMPILER V9.06   DHCPC                                                                 05/20/2013 14:16:28 PAGE 6   
 
+ 297   2                              pDiscover->ChAddr[i] = dhcpMacAddr[i];
  298   2                      else
  299   2                              pDiscover->ChAddr[i] = 0;
  300   2              }
@@ -381,9 +382,9 @@ line level    source
  355   1      
  356   1              pRequest = &dhcpBuffer;
  357   1      
- 358   1              pRequest->Op = DHCP_C_TO_S;
-C51 COMPILER V9.06   DHCPC                                                                 03/13/2013 09:32:23 PAGE 7   
+C51 COMPILER V9.06   DHCPC                                                                 05/20/2013 14:16:28 PAGE 7   
 
+ 358   1              pRequest->Op = DHCP_C_TO_S;
  359   1              pRequest->Htype = DHCP_HTYPE_ETHERNET;
  360   1              pRequest->Hlen = DHCP_HLEN_ETHERNET;
  361   1              pRequest->Hops = 0;
@@ -445,9 +446,9 @@ line level    source
              -unter));
  417   1      
  418   1              dhcpInfo.State = DHCP_REQUEST_STATE;
- 419   1      }
-C51 COMPILER V9.06   DHCPC                                                                 03/13/2013 09:32:23 PAGE 8   
+C51 COMPILER V9.06   DHCPC                                                                 05/20/2013 14:16:28 PAGE 8   
 
+ 419   1      }
  420          
  421          /*
  422           *--------------------------------------------------------------------------------
@@ -509,9 +510,9 @@ line level    source
                       optItem[0] = 0;
                       dhcp_OptionsAppend(DHCP_OPTION_END, 0, optItem);
                       while ((dhcpInfo.OptionsCounter < DHCP_OPTIONS_LEN))
-                      {
-C51 COMPILER V9.06   DHCPC                                                                 03/13/2013 09:32:23 PAGE 9   
+C51 COMPILER V9.06   DHCPC                                                                 05/20/2013 14:16:28 PAGE 9   
 
+                      {
                               pRelease->Options[dhcpInfo.OptionsCounter ++] = 0;
                       }
               
@@ -573,9 +574,9 @@ line level    source
                       dhcp_OptMagicCookie();
               
                       /* Add DHCP_REQUEST option */
-                      optItem[0] = DHCP_DECLINE;
-C51 COMPILER V9.06   DHCPC                                                                 03/13/2013 09:32:23 PAGE 10  
+C51 COMPILER V9.06   DHCPC                                                                 05/20/2013 14:16:28 PAGE 10  
 
+                      optItem[0] = DHCP_DECLINE;
                       dhcp_OptionsAppend(DHCP_OPTION_MSG_TYPE, 1, optItem);
               
                       /* Add DHCP_OPTION_END option */
@@ -637,9 +638,9 @@ line level    source
  600   4                              }
  601   3                              if ((*(dhcpInfo.pOpt + 0) == 0x63) && (*(dhcpInfo.pOpt + 1) == 0x82) &&
  602   3                              (*(dhcpInfo.pOpt + 2) == 0x53) && (*(dhcpInfo.pOpt + 3) == 0x63))
- 603   3                              {
-C51 COMPILER V9.06   DHCPC                                                                 03/13/2013 09:32:23 PAGE 11  
+C51 COMPILER V9.06   DHCPC                                                                 05/20/2013 14:16:28 PAGE 11  
 
+ 603   3                              {
  604   4                                      dhcpInfo.OptionsCounter += 4;
  605   4                                      dhcpInfo.pOpt += dhcpInfo.OptionsCounter;
  606   4                                      
@@ -701,9 +702,9 @@ line level    source
  662   1              U8_T    len;
  663   1      
  664   1              switch(*(dhcpInfo.pOpt))
- 665   1              {
-C51 COMPILER V9.06   DHCPC                                                                 03/13/2013 09:32:23 PAGE 12  
+C51 COMPILER V9.06   DHCPC                                                                 05/20/2013 14:16:28 PAGE 12  
 
+ 665   1              {
  666   2                      case DHCP_OPTION_SUBNET_MASK:
  667   2                              memcpy(&(dhcpInfo.NetMask), (dhcpInfo.pOpt + 2), 4);
  668   2                              len = *(dhcpInfo.pOpt + 1) + 2;
@@ -765,9 +766,9 @@ line level    source
  724           *--------------------------------------------------------------------------------
  725           */
  726          void dhcp_OptMagicCookie(void)
- 727          {
-C51 COMPILER V9.06   DHCPC                                                                 03/13/2013 09:32:23 PAGE 13  
+C51 COMPILER V9.06   DHCPC                                                                 05/20/2013 14:16:28 PAGE 13  
 
+ 727          {
  728   1              *(dhcpInfo.pOpt + 0) = 0x63;
  729   1              *(dhcpInfo.pOpt + 1) = 0x82;
  730   1              *(dhcpInfo.pOpt + 2) = 0x53;
@@ -829,9 +830,9 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
-   EDATA SIZE       =   ----    ----
-C51 COMPILER V9.06   DHCPC                                                                 03/13/2013 09:32:23 PAGE 14  
+C51 COMPILER V9.06   DHCPC                                                                 05/20/2013 14:16:28 PAGE 14  
 
+   EDATA SIZE       =   ----    ----
    HDATA SIZE       =   ----    ----
    XDATA CONST SIZE =   ----    ----
    FAR CONST SIZE   =   ----    ----

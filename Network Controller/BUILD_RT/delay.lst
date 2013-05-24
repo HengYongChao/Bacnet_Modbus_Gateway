@@ -1,14 +1,15 @@
-C51 COMPILER V9.06   DELAY                                                                 03/13/2013 09:32:21 PAGE 1   
+C51 COMPILER V9.06   DELAY                                                                 05/20/2013 14:16:26 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE DELAY
 OBJECT MODULE PLACED IN .\delay.obj
-COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\mstimer\delay.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020)
+COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\mstimer\delay.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020)
                     - INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;
                     -..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\
                     -buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;.
-                    -.\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\delay.lst) OBJECT(.\delay.
-                    -obj)
+                    -.\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;.
+                    -.\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\delay.lst) OBJECT(.\dela
+                    -y.obj)
 
 line level    source
 
@@ -61,9 +62,9 @@ line level    source
   47           * Params:
   48           * Returns:
   49           * Note:
-  50           * ----------------------------------------------------------------------------
-C51 COMPILER V9.06   DELAY                                                                 03/13/2013 09:32:21 PAGE 2   
+C51 COMPILER V9.06   DELAY                                                                 05/20/2013 14:16:26 PAGE 2   
 
+  50           * ----------------------------------------------------------------------------
   51           */
   52          void DELAY_Init(void)
   53          {
@@ -125,9 +126,9 @@ line level    source
  109          void DELAY_Ms(U16_T loop)
  110          {
  111   1              U16_T   x, y;
- 112   1      
-C51 COMPILER V9.06   DELAY                                                                 03/13/2013 09:32:21 PAGE 3   
+C51 COMPILER V9.06   DELAY                                                                 05/20/2013 14:16:26 PAGE 3   
 
+ 112   1      
  113   1              for (y = 0; y < loop; y++)
  114   1              {
  115   2                      x = delay_MsLoop;

@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 1   
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE BACDCODE
@@ -7,8 +7,8 @@ COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\bacdcode.c LAR
                     -0) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur
                     -\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SR
                     -C\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\
-                    -;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\bacdcode.lst) OBJECT(.\b
-                    -acdcode.obj)
+                    -;..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version) DEFINE(KEIL_AX1
+                    -1000) VARBANKING DEBUG PRINT(.\bacdcode.lst) OBJECT(.\bacdcode.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   48          /* max-segments-accepted
   49             B'000'      Unspecified number of segments accepted.
   50             B'001'      2 segments accepted.
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 2   
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 2   
 
   51             B'010'      4 segments accepted.
   52             B'011'      8 segments accepted.
@@ -126,7 +126,7 @@ line level    source
  110   1          else if (max_segs < 16)
  111   1              octet = 0x30;
  112   1          else if (max_segs < 32)
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 3   
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 3   
 
  113   1              octet = 0x40;
  114   1          else if (max_segs < 64)
@@ -190,7 +190,7 @@ line level    source
  172   2                  max_segs = 65;
  173   2                  break;
  174   2              default:
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 4   
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 4   
 
  175   2                  break;
  176   2          }
@@ -254,7 +254,7 @@ line level    source
  234   2          }
  235   1      
  236   1          /* NOTE: additional len byte(s) after extended tag byte */
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 5   
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 5   
 
  237   1          /* if larger than 4 */
  238   1          if (len_value_type <= 4) {
@@ -318,7 +318,7 @@ line level    source
  296   2              len++;
  297   2          }
  298   1          /* set type field to closing tag */
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 6   
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 6   
 
  299   1          apdu[0] |= 7;
  300   1      
@@ -382,7 +382,7 @@ line level    source
  358   1      }
  359          
  360          /* from clause 20.2.1.3.2 Constructed Data */
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 7   
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 7   
 
  361          /* returns the number of apdu bytes consumed */
  362          bool decode_is_closing_tag(
@@ -446,7 +446,7 @@ line level    source
  420              uint32_t apdu_len_remaining,
  421              uint8_t * tag_number,
  422              uint32_t * value)
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 8   
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 8   
 
  423          {
  424   1          int len = 0;
@@ -510,7 +510,7 @@ line level    source
  482   1              (my_tag_number == tag_number));
  483   1      }
  484          
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 9   
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 9   
 
  485          bool decode_is_context_tag_with_length(
  486              uint8_t * apdu,
@@ -574,7 +574,7 @@ line level    source
  544              uint8_t tag_number,
  545              bool boolean_value)
  546          {
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 10  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 10  
 
  547   1          int len = 0;        /* return value */
  548   1      
@@ -638,7 +638,7 @@ line level    source
  606              uint8_t * apdu)
  607          {
  608   1          return encode_tag(&apdu[0], BACNET_APPLICATION_TAG_NULL, false, 0);
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 11  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 11  
 
  609   1      }
  610          
@@ -702,7 +702,7 @@ line level    source
  668   2              if (bytes_used <= MAX_BITSTRING_BYTES) {
  669   3                  len = 1;
  670   3                  for (i = 0; i < bytes_used; i++) {
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 12  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 12  
 
  671   4                      bitstring_set_octet(bit_string, (uint8_t) i,
  672   4                          byte_reverse_bits(apdu[len++]));
@@ -766,7 +766,7 @@ line level    source
  730          
  731          int encode_application_bitstring(
  732              uint8_t * apdu,
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 13  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 13  
 
  733              BACNET_BIT_STRING * bit_string)
  734          {
@@ -830,7 +830,7 @@ line level    source
  792   2          }
  793   1      }
  794          
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 14  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 14  
 
  795          int decode_context_object_id(
  796              uint8_t * apdu,
@@ -894,7 +894,7 @@ line level    source
  854              uint8_t * apdu,
  855              int object_type,
  856              uint32_t instance)
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 15  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 15  
 
  857          {
  858   1          int len = 0;
@@ -958,7 +958,7 @@ line level    source
  916   1          return apdu_len;
  917   1      }
  918          
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 16  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 16  
 
  919          /* from clause 20.2.8 Encoding of an Octet String Value */
  920          /* and 20.2.1 General Rules for Encoding BACnet Tags */
@@ -1022,7 +1022,7 @@ line level    source
  978   3                  len += len_value;
  979   3              }
  980   2          } else {
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 17  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 17  
 
  981   2              len = BACNET_STATUS_ERROR;
  982   2          }
@@ -1086,7 +1086,7 @@ line level    source
 1040   1              (int) characterstring_length(char_string) + 1 /* for encoding */ ;
 1041   1          len += encode_tag(&apdu[0], tag_number, true, (uint32_t) string_len);
 1042   1          if ((len + string_len) < MAX_APDU) {
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 18  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 18  
 
 1043   2              len += encode_bacnet_character_string(&apdu[len], char_string);
 1044   2          } else {
@@ -1150,7 +1150,7 @@ line level    source
 1102              uint8_t * apdu,
 1103              uint32_t len_value,
 1104              uint32_t * value)
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 19  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 19  
 
 1105          {
 1106   1          uint16_t unsigned16_value = 0;
@@ -1214,7 +1214,7 @@ line level    source
 1164   2              len = encode_unsigned16(&apdu[0], (uint16_t) value);
 1165   2          } else if (value < 0x1000000) {
 1166   2              len = encode_unsigned24(&apdu[0], value);
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 20  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 20  
 
 1167   2          } else {
 1168   2              len = encode_unsigned32(&apdu[0], value);
@@ -1278,7 +1278,7 @@ line level    source
 1226   1          uint32_t unsigned_value = 0;
 1227   1          int len;
 1228   1      
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 21  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 21  
 
 1229   1          len = decode_unsigned(apdu, len_value, &unsigned_value);
 1230   1          if (value) {
@@ -1342,7 +1342,7 @@ line level    source
 1288              uint8_t * apdu,
 1289              uint8_t tag_number,
 1290              uint32_t value)
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 22  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 22  
 
 1291          {
 1292   1          int len = 0;        /* return value */
@@ -1406,7 +1406,7 @@ line level    source
 1350   1      
 1351   1          if (decode_is_context_tag(&apdu[len], tag_number)) {
 1352   2              len +=
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 23  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 23  
 
 1353   2                  decode_tag_number_and_value(&apdu[len], &tag_number, &len_value);
 1354   2              len += decode_signed(&apdu[len], len_value, value);
@@ -1470,7 +1470,7 @@ line level    source
 1412              int32_t value)
 1413          {
 1414   1          int len = 0;        /* return value */
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 24  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 24  
 
 1415   1      
 1416   1          /* length of signed int is variable, as per 20.2.11 */
@@ -1534,7 +1534,7 @@ line level    source
 1474   1      
 1475   1          /* assumes that the tag only consumes 2 octet */
 1476   1          len = encode_bacnet_double(value, &apdu[2]);
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 25  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 25  
 
 1477   1      
 1478   1          len +=
@@ -1598,7 +1598,7 @@ line level    source
 1536              BACNET_TIME * btime)
 1537          {
 1538   1          int len = 0;        /* return value */
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 26  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 26  
 
 1539   1      
 1540   1          /* length of time is 4 octets, as per 20.2.13 */
@@ -1662,7 +1662,7 @@ line level    source
 1598              uint8_t tag_number,
 1599              BACNET_TIME * btime)
 1600          {
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 27  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 27  
 
 1601   1          int len = 0;
 1602   1      
@@ -1726,7 +1726,7 @@ line level    source
 1660   1              (uint32_t) len);
 1661   1      
 1662   1          return len;
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 28  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 28  
 
 1663   1      
 1664   1      }
@@ -1790,7 +1790,7 @@ line level    source
 1722   2              len += decode_date(&apdu[len], bdate);
 1723   2          } else {
 1724   2              len = BACNET_STATUS_ERROR;
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 29  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 29  
 
 1725   2          }
 1726   1          return len;
@@ -1854,7 +1854,7 @@ line level    source
               
                   return test_len;
               }
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 30  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 30  
 
               
               static void print_apdu(
@@ -1918,7 +1918,7 @@ line level    source
                   uint32_t value = 0, test_value = 0;
               
                   for (tag_number = 0;; tag_number++) {
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 31  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 31  
 
                       len = encode_opening_tag(&apdu[0], tag_number);
                       test_len = get_apdu_len(IS_EXTENDED_TAG_NUMBER(apdu[0]), 0);
@@ -1982,7 +1982,7 @@ line level    source
                       ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_ENUMERATED);
                       ct_test(pTest, len == apdu_len);
                       /* encode back the value */
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 32  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 32  
 
                       encode_application_enumerated(&encoded_array[0], decoded_value);
                       ct_test(pTest, memcmp(&array[0], &encoded_array[0],
@@ -2046,7 +2046,7 @@ line level    source
               {
                   uint8_t double_array[8] = { 0 };
                   uint8_t encoded_array[8] = { 0 };
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 33  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 33  
 
                   double value = 42.123;
                   double decoded_value = 0.0;
@@ -2110,7 +2110,7 @@ line level    source
                   ct_test(pTest, tag_number == BACNET_APPLICATION_TAG_UNSIGNED_INT);
                   ct_test(pTest, IS_CONTEXT_SPECIFIC(apdu[0]) == false);
               }
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 34  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 34  
 
               
               void testBACDCodeUnsigned(
@@ -2174,7 +2174,7 @@ line level    source
                   ct_test(pTest, diff == 0);
                   if (diff) {
                       printf("value=%ld decoded_value=%ld\n", (long) value,
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 35  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 35  
 
                           (long) decoded_value);
                       print_apdu(&array[0], sizeof(array));
@@ -2238,7 +2238,7 @@ line level    source
               
               void testBACDCodeOctetString(
                   Test * pTest)
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 36  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 36  
 
               {
                   uint8_t array[MAX_APDU] = { 0 };
@@ -2302,7 +2302,7 @@ line level    source
                   uint8_t encoded_array[MAX_APDU] = { 0 };
                   BACNET_CHARACTER_STRING char_string;
                   BACNET_CHARACTER_STRING test_char_string;
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 37  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 37  
 
                   char test_value[MAX_APDU] = { "" };
                   int i;      /* for loop counter */
@@ -2366,7 +2366,7 @@ line level    source
                   };
                   uint16_t type = OBJECT_BINARY_INPUT;
                   uint16_t decoded_type = OBJECT_ANALOG_OUTPUT;
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 38  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 38  
 
                   uint32_t instance = 123;
                   uint32_t decoded_instance = 0;
@@ -2430,7 +2430,7 @@ line level    source
                   for (bit = 0; bit < (MAX_BITSTRING_BYTES * 8); bit++) {
                       ct_test(pTest, bitstring_bit(&bit_string, bit) == false);
                   }
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 39  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 39  
 
                   /* test encode/decode -- true */
                   for (bit = 0; bit < (MAX_BITSTRING_BYTES * 8); bit++) {
@@ -2494,7 +2494,7 @@ line level    source
                   ct_test(pTest, in == out);
                   ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
               
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 40  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 40  
 
                   /* 16 bit number */
                   in = 0xdead;
@@ -2558,7 +2558,7 @@ line level    source
                   ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
               
               }
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 41  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 41  
 
               
               void testSignedContextDecodes(
@@ -2622,7 +2622,7 @@ line level    source
                   outLen2 = decode_context_signed(apdu, large_context_tag - 1, &out);
               
                   ct_test(pTest, inLen == outLen);
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 42  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 42  
 
                   ct_test(pTest, in == out);
                   ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
@@ -2686,7 +2686,7 @@ line level    source
               
                   inLen = encode_context_enumerated(apdu, large_context_tag, in);
                   outLen = decode_context_enumerated(apdu, large_context_tag, &out);
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 43  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 43  
 
                   outLen2 = decode_context_enumerated(apdu, large_context_tag - 1, &out);
               
@@ -2750,7 +2750,7 @@ line level    source
                   inLen = encode_context_enumerated(apdu, large_context_tag, in);
                   outLen = decode_context_enumerated(apdu, large_context_tag, &out);
                   outLen2 = decode_context_enumerated(apdu, large_context_tag - 1, &out);
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 44  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 44  
 
               
                   ct_test(pTest, inLen == outLen);
@@ -2814,7 +2814,7 @@ line level    source
                   int outLen;
                   int outLen2;
                   uint8_t large_context_tag = 0xfe;
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 45  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 45  
 
               
                   /* 64 bit number */
@@ -2878,7 +2878,7 @@ line level    source
                   inLen = encode_context_object_id(apdu, 10, in_type, in_id);
                   outLen = decode_context_object_id(apdu, 10, &out_type, &out_id);
                   outLen2 = decode_context_object_id(apdu, 9, &out_type, &out_id);
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 46  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 46  
 
               
                   ct_test(pTest, inLen == outLen);
@@ -2942,7 +2942,7 @@ line level    source
                   uint8_t apdu[MAX_APDU];
                   int inLen;
                   int outLen;
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 47  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 47  
 
                   int outLen2;
                   uint8_t large_context_tag = 0xfe;
@@ -3006,7 +3006,7 @@ line level    source
                   inLen = encode_context_octet_string(apdu, large_context_tag, &in);
                   outLen = decode_context_octet_string(apdu, large_context_tag, &out);
                   outLen2 = decode_context_octet_string(apdu, large_context_tag - 1, &out);
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 48  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 48  
 
               
                   ct_test(pTest, outLen2 == BACNET_STATUS_ERROR);
@@ -3070,7 +3070,7 @@ line level    source
               
                   BACNET_DATE in;
                   BACNET_DATE out;
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 49  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 49  
 
               
                   in.day = 3;
@@ -3134,7 +3134,7 @@ line level    source
                   rc = ct_addTestFunction(pTest, testBACDCodeMaxSegsApdu);
                   assert(rc);
                   rc = ct_addTestFunction(pTest, testBACDCodeBitString);
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 50  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 50  
 
                   assert(rc);
               
@@ -3199,7 +3199,7 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
    FAR CONST SIZE   =   ----    ----
 END OF MODULE INFORMATION.
 
-C51 COMPILER V9.06   BACDCODE                                                              03/13/2013 09:32:33 PAGE 51  
+C51 COMPILER V9.06   BACDCODE                                                              03/29/2013 16:57:10 PAGE 51  
 
 
 C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

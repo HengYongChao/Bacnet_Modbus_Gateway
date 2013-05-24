@@ -1,6 +1,6 @@
 ; .\heap_1.SRC generated from: ..\src\FreeRtossource\portable\MemMang\heap_1.c
 ; COMPILER INVOKED BY:
-;        d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\portable\MemMang\heap_1.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\heap_1.lst) SRC(.\heap_1.SRC)
+;        E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\portable\MemMang\heap_1.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\heap_1.lst) SRC(.\heap_1.SRC)
 
 $MOD_CONT
 $NOMOD51
@@ -258,7 +258,7 @@ RB18	BIT	0C0H.2
 
 	RSEG  ?XD?HEAP_1
  usNextFreeByte:   DS   2
-          xHeap:   DS   15364
+          xHeap:   DS   20484
 
 	RSEG  ?C_INITSEG
 	DB	042H
@@ -411,7 +411,7 @@ _?pvPortMalloc:
 	MOV  	A,R4
 	ADDC 	A,R6
 	CLR  	C
-	SUBB 	A,#03CH
+	SUBB 	A,#050H
 	JNC  	?C0002
 ; 		{
 			; SOURCE LINE # 97

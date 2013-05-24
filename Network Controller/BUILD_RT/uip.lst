@@ -1,13 +1,14 @@
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 1   
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE UIP
 OBJECT MODULE PLACED IN .\uip.obj
-COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\tcpip\uip.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) INC
+COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\tcpip\uip.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) INC
                     -DIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\S
                     -RC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buff
                     -er\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\Sr
-                    -c\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\uip.lst) OBJECT(.\uip.obj)
+                    -c\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;..\sr
+                    -c\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\uip.lst) OBJECT(.\uip.obj)
 
 line level    source
 
@@ -61,9 +62,9 @@ line level    source
   48          some basic ICMP stuff). The implementation couples the IP, TCP and the
   49          application layers very tightly. To keep the size of the compiled code
   50          down, this code also features heavy usage of the goto statement.
-  51          
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 2   
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 2   
 
+  51          
   52          The principle is that we have a small buffer, called the uip_buf, in
   53          which the device driver puts an incoming packet. The TCP/IP stack
   54          parses the headers in the packet, and calls upon the application. If
@@ -125,9 +126,9 @@ line level    source
  107          #endif /* UIP_URGDATA > 0 */
  108          
  109          volatile U16_T idata uip_len, uip_slen;  /* The uip_len is either 8 or 16 bits, depending on the maximum p
-             -acket size. */
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 3   
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 3   
 
+             -acket size. */
  110          volatile U8_T idata uip_flags;  /* The uip_flags variable is used for communication between the TCP/IP sta
              -ck and the application program. */
  111          struct uip_conn xdata *uip_conn;  /* uip_conn always points to the current connection. */
@@ -189,9 +190,9 @@ line level    source
  165          static uip_tcpip_hdr* BUF = GEN_BUF;
  166          static uip_udpip_hdr* UDPBUF = GEN_UDPBUF;
  167          static uip_icmpip_hdr* ICMPBUF = GEN_ICMPBUF;
- 168          
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 4   
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 4   
 
+ 168          
  169          #if UIP_STATISTICS == 1
               struct uip_stats uip_stat;
               #define UIP_STAT(s) s
@@ -253,9 +254,9 @@ line level    source
  227   2              }
  228   1      
  229   1              /* Check if this port is already in use, and if so try to find another one. */
- 230   1              for(c = 0; c < UIP_CONNS; ++c) {
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 5   
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 5   
 
+ 230   1              for(c = 0; c < UIP_CONNS; ++c) {
  231   2                      conn = &uip_conns[c];
  232   2                      if(conn->tcpstateflags != CLOSED && conn->lport == htons(lastport)) {
  233   3                              goto again;
@@ -317,9 +318,9 @@ line level    source
  289   1      again:
  290   1              ++lastport;
  291   1      
- 292   1              if(lastport >= 32000) {
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 6   
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 6   
 
+ 292   1              if(lastport >= 32000) {
  293   2                      lastport = 4096;
  294   2              }
  295   1        
@@ -381,9 +382,9 @@ line level    source
  351   2                      if(uip_listenports[c] == 0) {
  352   3                              uip_listenports[c] = port;
  353   3                              return;
- 354   3                      }
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 7   
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 7   
 
+ 354   3                      }
  355   2              }
  356   1      }
  357          
@@ -445,9 +446,9 @@ line level    source
                               /* Copy the fragment into the reassembly buffer, at the right offset. */
                               memcpy(&uip_reassbuf[IP_HLEN + offset], (char *)BUF + (int)((BUF->vhl & 0x0f) * 4), len);
                     
-                              /* Update the bitmap. */
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 8   
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 8   
 
+                              /* Update the bitmap. */
                               if(offset / (8 * 8) == (offset + len) / (8 * 8)) {
                                       /* If the two endpoints are in the same byte, we only update that byte. */
                                       uip_reassbitmap[offset / (8 * 8)] |= bitmap_bits[(offset / 8 ) & 7] &
@@ -509,9 +510,9 @@ line level    source
               
                nullreturn:
                 return 0;
-              }
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 9   
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 9   
 
+              }
               #endif /* UIP_REASSEMBL */
  480          
  481          /*-----------------------------------------------------------------------------------*/
@@ -573,9 +574,9 @@ line level    source
  537   3                              ++(uip_connr->timer);
  538   3                              if(uip_connr->timer == UIP_TIME_WAIT_TIMEOUT) {
  539   4                                      uip_connr->tcpstateflags = CLOSED;
- 540   4                                      uip_flags = UIP_ABORT;
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 10  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 10  
 
+ 540   4                                      uip_flags = UIP_ABORT;
  541   4                                      UIP_APPCALL();
  542   4      
  543   4                                      /* We also send a reset packet to the remote host. */
@@ -637,9 +638,9 @@ line level    source
  599   6      
  600   6                                                      case FIN_WAIT_1:
  601   6                                                      case CLOSING:
- 602   6                                                      case LAST_ACK:
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 11  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 11  
 
+ 602   6                                                      case LAST_ACK:
  603   6                                                              /* In all these states we should retransmit a FINACK. */
  604   6                                                              goto tcp_send_finack;
  605   6                                              }
@@ -701,9 +702,9 @@ line level    source
  661   1      #if UIP_ACTIVE_OPEN
  662   1              if (flag == UIP_ACTIVE_SEND)
  663   1              {
- 664   2                      switch(uip_connr->tcpstateflags & TS_MASK)
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 12  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 12  
 
+ 664   2                      switch(uip_connr->tcpstateflags & TS_MASK)
  665   2                      {
  666   3                      case SYN_SENT:
  667   3                              BUF->flags = 0;
@@ -765,9 +766,9 @@ line level    source
  723   2              }
  724   1      
  725   1              /* If we are configured to use ping IP address configuration and hasn't been 
- 726   1                 assigned an IP address yet, we accept all ICMP packets. */
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 13  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 13  
 
+ 726   1                 assigned an IP address yet, we accept all ICMP packets. */
  727   1      #if UIP_PINGADDRCONF
                       if((uip_hostaddr[0] | uip_hostaddr[1]) == 0) {
                               if(BUF->proto == UIP_PROTO_ICMP) {
@@ -829,9 +830,9 @@ line level    source
  785   1                 from ECHO to ECHO_REPLY and adjust the ICMP checksum before we return the packet. */
  786   1              if(ICMPBUF->type != ICMP_ECHO)
  787   1              {
- 788   2                      if ((ICMPBUF->type == ICMP_ECHO_REPLY) && TCPIP_PingRespCallBack)
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 14  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 14  
 
+ 788   2                      if ((ICMPBUF->type == ICMP_ECHO_REPLY) && TCPIP_PingRespCallBack)
  789   2                              TCPIP_PingRespCallBack();
  790   2      
  791   2                      goto drop;
@@ -893,9 +894,9 @@ line level    source
  847   1              /* Demultiplex this UDP packet between the UDP "connections". */
  848   1              for(uip_udp_conn = &uip_udp_conns[0]; uip_udp_conn < &uip_udp_conns[UIP_UDP_CONNS]; ++uip_udp_conn)
  849   1              {
- 850   2                      if(uip_udp_conn->lport != 0 && UDPBUF->destport == uip_udp_conn->lport &&
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 15  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 15  
 
+ 850   2                      if(uip_udp_conn->lport != 0 && UDPBUF->destport == uip_udp_conn->lport &&
  851   2                         ((uip_udp_conn->rport == 0) || (UDPBUF->srcport == uip_udp_conn->rport)) &&
  852   2                         (((uip_udp_conn->ripaddr[0] == 0) && (uip_udp_conn->ripaddr[1] == 0)) ||
  853   2                         ((uip_udp_conn->ripaddr[0] == 0xffff) &&(uip_udp_conn->ripaddr[1] == 0xffff)) ||
@@ -957,9 +958,9 @@ line level    source
  909   1              BUF->len[1] = (uip_len & 0xff);
  910   1        
  911   1              BUF->proto = UIP_PROTO_UDP;
- 912   1      
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 16  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 16  
 
+ 912   1      
  913   1              UDPBUF->udplen = HTONS(uip_slen + 8);
  914   1              UDPBUF->udpchksum = 0;
  915   1      #if (!CHECKSUM_OFFLOAD)
@@ -1021,9 +1022,9 @@ line level    source
  971   1              if((BUF->flags & TCP_CTL) != TCP_SYN)
  972   1                      goto reset;
  973   1        
- 974   1              tmp16 = BUF->destport;
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 17  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 17  
 
+ 974   1              tmp16 = BUF->destport;
  975   1              /* Next, check listening connections. */  
  976   1              for(c = 0; c < UIP_LISTENPORTS; ++c) {
  977   2                      if(tmp16 == uip_listenports[c])
@@ -1085,9 +1086,9 @@ line level    source
 1033   1              tmp16 = BUF->destipaddr[1];
 1034   1              BUF->destipaddr[1] = BUF->srcipaddr[1];
 1035   1              BUF->srcipaddr[1] = tmp16;
-1036   1      
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 18  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 18  
 
+1036   1      
 1037   1        
 1038   1              /* And send out the RST packet! */
 1039   1              goto tcp_send_noconn;
@@ -1149,9 +1150,9 @@ line level    source
 1094   1      
 1095   1              /* rcv_nxt should be the seqno from the incoming packet + 1. */
 1096   1              uip_connr->rcv_nxt[3] = BUF->seqno[3];
-1097   1              uip_connr->rcv_nxt[2] = BUF->seqno[2];
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 19  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 19  
 
+1097   1              uip_connr->rcv_nxt[2] = BUF->seqno[2];
 1098   1              uip_connr->rcv_nxt[1] = BUF->seqno[1];
 1099   1              uip_connr->rcv_nxt[0] = BUF->seqno[0];
 1100   1              uip_add_rcv_nxt(1);
@@ -1213,9 +1214,9 @@ line level    source
 1155   1              BUF->tcpoffset = 6 << 4;
 1156   1              goto tcp_send;
 1157   1      
-1158   1              /* This label will be jumped to if we found an active connection. */
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 20  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 20  
 
+1158   1              /* This label will be jumped to if we found an active connection. */
 1159   1      found:
 1160   1      
 1161   1              uip_conn = uip_connr;
@@ -1277,9 +1278,9 @@ line level    source
 1217   5                                      }
 1218   4                                      m = m - (uip_connr->sv >> 2);
 1219   4                                      uip_connr->sv += m;
-1220   4                                      uip_connr->rto = (uip_connr->sa >> 3) + uip_connr->sv;
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 21  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 21  
 
+1220   4                                      uip_connr->rto = (uip_connr->sa >> 3) + uip_connr->sv;
 1221   4                              }
 1222   3                              /* Set the acknowledged flag. */
 1223   3                              uip_flags = UIP_ACKDATA;
@@ -1341,9 +1342,9 @@ line level    source
 1279   2                              if(uip_flags & UIP_ACKDATA) {
 1280   3                                      uip_connr->tcpstateflags = ESTABLISHED;
 1281   3                                      uip_flags = UIP_CONNECTED;
-1282   3                                      uip_connr->len = 0;
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 22  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 22  
 
+1282   3                                      uip_connr->len = 0;
 1283   3                                      if(uip_len > 0) {
 1284   4                                              uip_flags |= UIP_NEWDATA;
 1285   4                                              uip_add_rcv_nxt(uip_len);
@@ -1405,9 +1406,9 @@ line level    source
 1340   3                                      uip_slen = 0;
 1341   3                                      UIP_APPCALL();
 1342   3                                      goto appsend;
-1343   3                              }
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 23  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 23  
 
+1343   3                              }
 1344   2      
 1345   2                              uip_flags = UIP_ABORT;
 1346   2                              UIP_APPCALL();
@@ -1469,9 +1470,9 @@ line level    source
 1402   2          
 1403   2                              /* If uip_len > 0 we have TCP data in the packet, and we flag this
 1404   2                                 by setting the UIP_NEWDATA flag and update the sequence number
-1405   2                                 we acknowledge. If the application has stopped the dataflow
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 24  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 24  
 
+1405   2                                 we acknowledge. If the application has stopped the dataflow
 1406   2                                 using uip_stop(), we must not accept any data packets from the
 1407   2                                 remote host. */
 1408   2                              if(uip_len > 0 && !(uip_connr->tcpstateflags & UIP_STOPPED)) {
@@ -1533,9 +1534,9 @@ line level    source
 1464   4                                              uip_connr->tcpstateflags = FIN_WAIT_1;
 1465   4                                              uip_connr->nrtx = 0;
 1466   4                                              BUF->flags = TCP_FIN | TCP_ACK;
-1467   4                                              goto tcp_send_nodata;   
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 25  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 25  
 
+1467   4                                              goto tcp_send_nodata;   
 1468   4                                      }
 1469   3      
 1470   3                                      if (uip_extraflag & UIP_SEND_NONE)
@@ -1597,9 +1598,9 @@ line level    source
 1526   4                                              BUF->flags = TCP_ACK;
 1527   4                                              goto tcp_send_noopts;
 1528   4                                      }
-1529   3                              }
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 26  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 26  
 
+1529   3                              }
 1530   2                              goto drop;
 1531   2      
 1532   2                      case LAST_ACK:
@@ -1661,9 +1662,9 @@ line level    source
 1588   2                      case TIME_WAIT:
 1589   2                              goto tcp_send_ack;
 1590   2          
-1591   2                      case CLOSING:
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 27  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 27  
 
+1591   2                      case CLOSING:
 1592   2                              if(uip_flags & UIP_ACKDATA) {
 1593   3                                      uip_connr->tcpstateflags = TIME_WAIT;
 1594   3                                      uip_connr->timer = 0;
@@ -1725,9 +1726,9 @@ line level    source
 1650   1              BUF->tcpchksum = 0;
 1651   1      #if (!CHECKSUM_OFFLOAD)
                       BUF->tcpchksum = ~(uip_tcpchksum());
-              #endif
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 28  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 28  
 
+              #endif
 1654   1      
 1655   1      ip_send_nolen:
 1656   1      
@@ -1789,9 +1790,9 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =     47    ----
-   BIT SIZE         =   ----    ----
-C51 COMPILER V9.06   UIP                                                                   03/13/2013 09:32:22 PAGE 29  
+C51 COMPILER V9.06   UIP                                                                   05/20/2013 14:16:27 PAGE 29  
 
+   BIT SIZE         =   ----    ----
    EDATA SIZE       =   ----    ----
    HDATA SIZE       =   ----    ----
    XDATA CONST SIZE =   ----    ----

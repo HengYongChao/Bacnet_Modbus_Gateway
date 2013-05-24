@@ -12,43 +12,33 @@
 #include "filesys.h"
 #include "httpd.h"
 
-#include "reg80390.h"
-#include "adapter.h"
-#include "temperature.h"
-#include "printd.h"
-#include "mstimer.h"
-#include <stdio.h>
-#include <string.h>
 
 /* GLOBAL VARIABLE DECLARATIONS */
 const void *fun_tbl[] =
 {
-	FUN_RADIO_p0,
-	FUN_RADIO_p1,
-	FUN_RADIO_p2,
-	FUN_RADIO_p3,
-	FUN_RADIO_p4,
-	FUN_RADIO_p5,
-	FUN_RADIO_p6,
-	FUN_RADIO_p7,
+	FUN_TEXT_tftps_ip,
+	FUN_TEXT_file_name,
 	NULL,
-	FUN_SELECT_p0,
-	FUN_SELECT_p1,
-	FUN_SELECT_p2,
-	FUN_SELECT_p3,
-	FUN_SELECT_p4,
-	FUN_SELECT_p5,
-	FUN_SELECT_p6,
-	FUN_SELECT_p7,
-	FUN_TEXT_temperature,
-	FUN_TEXT_p0,
-	FUN_TEXT_p1,
-	FUN_TEXT_p2,
-	FUN_TEXT_p3,
-	FUN_TEXT_p4,
-	FUN_TEXT_p5,
-	FUN_TEXT_p6,
-	FUN_TEXT_p7
+	NULL,
+	FUN_SELECT_ipchg,
+	FUN_SELECT_pswchg,
+	FUN_SELECT_dbr,
+	FUN_SELECT_data,
+	FUN_SELECT_parity,
+	FUN_SELECT_stop,
+	FUN_SELECT_flow,
+	FUN_SELECT_rs485,
+	FUN_SELECT_dhcp,
+	FUN_TEXT_static_ip,
+	FUN_TEXT_mask,
+	FUN_TEXT_gateway_ip,
+	FUN_TEXT_username,
+	FUN_TEXT_password,
+	NULL,
+	FUN_TEXT_new_usn,
+	FUN_TEXT_old_psw,
+	FUN_TEXT_new_psw,
+	FUN_TEXT_cfm_psw
 };
 
 
@@ -58,722 +48,302 @@ const void *fun_tbl[] =
 /* LOCAL SUBPROGRAM DECLARATIONS */
 /*
  * ----------------------------------------------------------------------------
- * Function Name: FUN_RADIO_p0
+ * Function Name: FUN_TEXT_tftps_ip
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_RADIO_p0 (void *pWebData)
+void FUN_TEXT_tftps_ip (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	if (*((U8_T *)pWebData) == 0)
-	{
-		P3 &= ~0x01;
 
-		BUF_Text[1].CurrValue[0] = '1';
-		BUF_Select[0].CurrentSet = 1;
-	}
-	else
-	{
-		P3 |= 0x01;
-
-		BUF_Text[1].CurrValue[0] = '0';
-		BUF_Select[0].CurrentSet = 0;
-	}
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name: FUN_RADIO_p1
+ * Function Name: FUN_TEXT_file_name
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_RADIO_p1 (void *pWebData)
+void FUN_TEXT_file_name (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	if (*((U8_T *)pWebData) == 0)
-	{
-		P3 &= ~0x02;
 
-		BUF_Text[2].CurrValue[0] = '1';
-		BUF_Select[1].CurrentSet = 1;
-	}
-	else
-	{
-		P3 |= 0x02;
-
-		BUF_Text[2].CurrValue[0] = '0';
-		BUF_Select[1].CurrentSet = 0;
-	}
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name: FUN_RADIO_p2
+ * Function Name:  FUN_SELECT_ipchg
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_RADIO_p2 (void *pWebData)
+void FUN_SELECT_ipchg (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	if (*((U8_T *)pWebData) == 0)
-	{
-		P3 &= ~0x04;
 
-		BUF_Text[3].CurrValue[0] = '1';
-		BUF_Select[2].CurrentSet = 1;
-	}
-	else
-	{
-		P3 |= 0x04;
-
-		BUF_Text[3].CurrValue[0] = '0';
-		BUF_Select[2].CurrentSet = 0;
-	}
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name: FUN_RADIO_p3
+ * Function Name:  FUN_SELECT_pswchg
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_RADIO_p3 (void *pWebData)
+void FUN_SELECT_pswchg (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	if (*((U8_T *)pWebData) == 0)
-	{
-		P3 &= ~0x08;
 
-		BUF_Text[4].CurrValue[0] = '1';
-		BUF_Select[3].CurrentSet = 1;
-	}
-	else
-	{
-		P3 |= 0x08;
-
-		BUF_Text[4].CurrValue[0] = '0';
-		BUF_Select[3].CurrentSet = 0;
-	}
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name: FUN_RADIO_p4
+ * Function Name:  FUN_SELECT_dbr
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_RADIO_p4 (void *pWebData)
+void FUN_SELECT_dbr (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	if (*((U8_T *)pWebData) == 0)
-	{
-		P3 &= ~0x10;
 
-		BUF_Text[5].CurrValue[0] = '1';
-		BUF_Select[4].CurrentSet = 1;
-	}
-	else
-	{
-		P3 |= 0x10;
-
-		BUF_Text[5].CurrValue[0] = '0';
-		BUF_Select[4].CurrentSet = 0;
-	}
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name: FUN_RADIO_p5
+ * Function Name:  FUN_SELECT_data
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_RADIO_p5 (void *pWebData)
+void FUN_SELECT_data (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	if (*((U8_T *)pWebData) == 0)
-	{
-		P3 &= ~0x20;
 
-		BUF_Text[6].CurrValue[0] = '1';
-		BUF_Select[5].CurrentSet = 1;
-	}
-	else
-	{
-		P3 |= 0x20;
-
-		BUF_Text[6].CurrValue[0] = '0';
-		BUF_Select[5].CurrentSet = 0;
-	}
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name: FUN_RADIO_p6
+ * Function Name:  FUN_SELECT_parity
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_RADIO_p6 (void *pWebData)
+void FUN_SELECT_parity (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	if (*((U8_T *)pWebData) == 0)
-	{
-		P3 &= ~0x40;
 
-		BUF_Text[7].CurrValue[0] = '1';
-		BUF_Select[6].CurrentSet = 1;
-	}
-	else
-	{
-		P3 |= 0x40;
-
-		BUF_Text[7].CurrValue[0] = '0';
-		BUF_Select[6].CurrentSet = 0;
-	}
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name: FUN_RADIO_p7
+ * Function Name:  FUN_SELECT_stop
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_RADIO_p7 (void *pWebData)
+void FUN_SELECT_stop (void *pWebData)
 {
 	// TODO: Add your specialized code here
-if (*((U8_T *)pWebData) == 0)
-	{
-		P3 &= ~0x80;
 
-		BUF_Text[8].CurrValue[0] = '1';
-		BUF_Select[7].CurrentSet = 1;
-	}
-	else
-	{
-		P3 |= 0x80;
-
-		BUF_Text[8].CurrValue[0] = '0';
-		BUF_Select[7].CurrentSet = 0;
-	}
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name:  FUN_SELECT_p0
+ * Function Name:  FUN_SELECT_flow
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_SELECT_p0 (void *pWebData)
+void FUN_SELECT_flow (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	if (*((U8_T *)pWebData) == 1)
-	{
-		P3 &= ~0x01;
-		
-		BUF_Text[1].CurrValue[0] = '1';
-		BUF_Radio[0].CurrentSet = 0;
-	}
-	else
-	{
-		P3 |= 0x01;
 
-		BUF_Text[1].CurrValue[0] = '0';
-		BUF_Radio[0].CurrentSet = 1;
-	}
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name:  FUN_SELECT_p1
+ * Function Name:  FUN_SELECT_rs485
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_SELECT_p1 (void *pWebData)
+void FUN_SELECT_rs485 (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	if (*((U8_T *)pWebData) == 1)
-	{
-		P3 &= ~0x02;
-		
-		BUF_Text[2].CurrValue[0] = '1';
-		BUF_Radio[1].CurrentSet = 0;
-	}
-	else
-	{
-		P3 |= 0x02;
 
-		BUF_Text[2].CurrValue[0] = '0';
-		BUF_Radio[1].CurrentSet = 1;
-	}
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name:  FUN_SELECT_p2
+ * Function Name:  FUN_SELECT_dhcp
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_SELECT_p2 (void *pWebData)
+void FUN_SELECT_dhcp (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	if (*((U8_T *)pWebData) == 1)
-	{
-		P3 &= ~0x04;
-		
-		BUF_Text[3].CurrValue[0] = '1';
-		BUF_Radio[2].CurrentSet = 0;
-	}
-	else
-	{
-		P3 |= 0x04;
 
-		BUF_Text[3].CurrValue[0] = '0';
-		BUF_Radio[2].CurrentSet = 1;
-	}
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name:  FUN_SELECT_p3
+ * Function Name: FUN_TEXT_static_ip
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_SELECT_p3 (void *pWebData)
+void FUN_TEXT_static_ip (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	if (*((U8_T *)pWebData) == 1)
-	{
-		P3 &= ~0x08;
-		
-		BUF_Text[4].CurrValue[0] = '1';
-		BUF_Radio[3].CurrentSet = 0;
-	}
-	else
-	{
-		P3 |= 0x08;
 
-		BUF_Text[4].CurrValue[0] = '0';
-		BUF_Radio[3].CurrentSet = 1;
-	}
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name:  FUN_SELECT_p4
+ * Function Name: FUN_TEXT_mask
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_SELECT_p4 (void *pWebData)
+void FUN_TEXT_mask (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	if (*((U8_T *)pWebData) == 1)
-	{
-		P3 &= ~0x10;
-		
-		BUF_Text[5].CurrValue[0] = '1';
-		BUF_Radio[4].CurrentSet = 0;
-	}
-	else
-	{
-		P3 |= 0x10;
 
-		BUF_Text[5].CurrValue[0] = '0';
-		BUF_Radio[4].CurrentSet = 1;
-	}
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name:  FUN_SELECT_p5
+ * Function Name: FUN_TEXT_gateway_ip
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_SELECT_p5 (void *pWebData)
+void FUN_TEXT_gateway_ip (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	if (*((U8_T *)pWebData) == 1)
-	{
-		P3 &= ~0x20;
 
-		BUF_Text[6].CurrValue[0] = '1';
-		BUF_Radio[5].CurrentSet = 0;
-	}
-	else
-	{
-		P3 |= 0x20;
-
-		BUF_Text[6].CurrValue[0] = '0';
-		BUF_Radio[5].CurrentSet = 1;
-	}
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name:  FUN_SELECT_p6
+ * Function Name: FUN_TEXT_username
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_SELECT_p6 (void *pWebData)
+void FUN_TEXT_username (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	if (*((U8_T *)pWebData) == 1)
-	{
-		P3 &= ~0x40;
 
-		BUF_Text[7].CurrValue[0] = '1';
-		BUF_Radio[6].CurrentSet = 0;
-	}
-	else
-	{
-		P3 |= 0x40;
-
-		BUF_Text[7].CurrValue[0] = '0';
-		BUF_Radio[6].CurrentSet = 1;
-	}
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name:  FUN_SELECT_p7
+ * Function Name: FUN_TEXT_password
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_SELECT_p7 (void *pWebData)
+void FUN_TEXT_password (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	if (*((U8_T *)pWebData) == 1)
-	{
-		P3 &= ~0x80;
 
-		BUF_Text[8].CurrValue[0] = '1';
-		BUF_Radio[7].CurrentSet = 0;
-	}
-	else
-	{
-		P3 |= 0x80;
-
-		BUF_Text[8].CurrValue[0] = '0';
-		BUF_Radio[7].CurrentSet = 1;
-	}
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name: FUN_TEXT_temperature
+ * Function Name: FUN_TEXT_new_usn
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_TEXT_temperature (void *pWebData)
+void FUN_TEXT_new_usn (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	BUF_TEXT	XDATA*	pText = (BUF_TEXT *)pWebData;
-	U8_T		XDATA*	pExpanSour;
-	U8_T		XDATA	index;
 
-	pExpanSour = OW_Temprature_GET();
-
-	index = 0;
-	while (*pExpanSour)
-	{
-		pText->CurrValue[index]= *pExpanSour++;
-		index++;
-		if (index > 10)
-			break;
-	}
-	pText->CurrValue[index] = '"';
-	pText->CurrLength = index + 1;
-
-//	printd ("temperature length = %bx\n\r", index);
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name: FUN_TEXT_p0
+ * Function Name: FUN_TEXT_old_psw
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_TEXT_p0 (void *pWebData)
+void FUN_TEXT_old_psw (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	BUF_TEXT XDATA		*pText = (BUF_TEXT *)pWebData;
 
-	if(pText->CurrValue[0] == '0')
-	{
-		P3 |= 0x01;
-
-		BUF_Select[0].CurrentSet = 0;
-		BUF_Radio[0].CurrentSet = 1;		
-	}
-	else
-	{
-		P3 &= ~0x01;
-
-		BUF_Select[0].CurrentSet = 1;
-		BUF_Radio[0].CurrentSet = 0;
-	}
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name: FUN_TEXT_p1
+ * Function Name: FUN_TEXT_new_psw
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_TEXT_p1 (void *pWebData)
+void FUN_TEXT_new_psw (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	BUF_TEXT XDATA		*pText = (BUF_TEXT *)pWebData;
 
-	if(pText->CurrValue[0] == '0')
-	{
-		P3 |= 0x02;
-
-		BUF_Select[1].CurrentSet = 0;
-		BUF_Radio[1].CurrentSet = 1;		
-	}
-	else
-	{
-		P3 &= ~0x02;
-
-		BUF_Select[1].CurrentSet = 1;
-		BUF_Radio[1].CurrentSet = 0;
-	}
 }
 
 /*
  * ----------------------------------------------------------------------------
- * Function Name: FUN_TEXT_p2
+ * Function Name: FUN_TEXT_cfm_psw
  * Purpose:
  * Params:
  * Returns:
  * Note:
  * ----------------------------------------------------------------------------
  */
-void FUN_TEXT_p2 (void *pWebData)
+void FUN_TEXT_cfm_psw (void *pWebData)
 {
 	// TODO: Add your specialized code here
-	BUF_TEXT XDATA		*pText = (BUF_TEXT *)pWebData;
 
-	if(pText->CurrValue[0] == '0')
-	{
-		P3 |= 0x04;
-
-		BUF_Select[2].CurrentSet = 0;
-		BUF_Radio[2].CurrentSet = 1;		
-	}
-	else
-	{
-		P3 &= ~0x04;
-
-		BUF_Select[2].CurrentSet = 1;
-		BUF_Radio[2].CurrentSet = 0;
-	}
-}
-
-/*
- * ----------------------------------------------------------------------------
- * Function Name: FUN_TEXT_p3
- * Purpose:
- * Params:
- * Returns:
- * Note:
- * ----------------------------------------------------------------------------
- */
-void FUN_TEXT_p3 (void *pWebData)
-{
-	// TODO: Add your specialized code here
-	BUF_TEXT XDATA		*pText = (BUF_TEXT *)pWebData;
-
-	if(pText->CurrValue[0] == '0')
-	{
-		P3 |= 0x08;
-
-		BUF_Select[3].CurrentSet = 0;
-		BUF_Radio[3].CurrentSet = 1;		
-	}
-	else
-	{
-		P3 &= ~0x08;
-
-		BUF_Select[3].CurrentSet = 1;
-		BUF_Radio[3].CurrentSet = 0;
-	}
-}
-
-/*
- * ----------------------------------------------------------------------------
- * Function Name: FUN_TEXT_p4
- * Purpose:
- * Params:
- * Returns:
- * Note:
- * ----------------------------------------------------------------------------
- */
-void FUN_TEXT_p4 (void *pWebData)
-{
-	// TODO: Add your specialized code here
-	BUF_TEXT XDATA		*pText = (BUF_TEXT *)pWebData;
-
-	if(pText->CurrValue[0] == '0')
-	{
-		P3 |= 0x10;
-
-		BUF_Select[4].CurrentSet = 0;
-		BUF_Radio[4].CurrentSet = 1;		
-	}
-	else
-	{
-		P3 &= ~0x10;
-
-		BUF_Select[4].CurrentSet = 1;
-		BUF_Radio[4].CurrentSet = 0;
-	}
-}
-
-/*
- * ----------------------------------------------------------------------------
- * Function Name: FUN_TEXT_p5
- * Purpose:
- * Params:
- * Returns:
- * Note:
- * ----------------------------------------------------------------------------
- */
-void FUN_TEXT_p5 (void *pWebData)
-{
-	// TODO: Add your specialized code here
-	BUF_TEXT XDATA		*pText = (BUF_TEXT *)pWebData;
-
-	if(pText->CurrValue[0] == '0')
-	{
-		P3 |= 0x20;
-
-		BUF_Select[5].CurrentSet = 0;
-		BUF_Radio[5].CurrentSet = 1;		
-	}
-	else
-	{
-		P3 &= ~0x20;
-
-		BUF_Select[5].CurrentSet = 1;
-		BUF_Radio[5].CurrentSet = 0;
-	}
-}
-
-/*
- * ----------------------------------------------------------------------------
- * Function Name: FUN_TEXT_p6
- * Purpose:
- * Params:
- * Returns:
- * Note:
- * ----------------------------------------------------------------------------
- */
-void FUN_TEXT_p6 (void *pWebData)
-{
-	// TODO: Add your specialized code here
-	BUF_TEXT XDATA		*pText = (BUF_TEXT *)pWebData;
-
-	if(pText->CurrValue[0] == '0')
-	{
-		P3 |= 0x40;
-
-		BUF_Select[6].CurrentSet = 0;
-		BUF_Radio[6].CurrentSet = 1;		
-	}
-	else
-	{
-		P3 &= ~0x40;
-
-		BUF_Select[6].CurrentSet = 1;
-		BUF_Radio[6].CurrentSet = 0;
-	}
-}
-
-/*
- * ----------------------------------------------------------------------------
- * Function Name: FUN_TEXT_p7
- * Purpose:
- * Params:
- * Returns:
- * Note:
- * ----------------------------------------------------------------------------
- */
-void FUN_TEXT_p7 (void *pWebData)
-{
-	// TODO: Add your specialized code here
-	BUF_TEXT XDATA		*pText = (BUF_TEXT *)pWebData;
-
-	if(pText->CurrValue[0] == '0')
-	{
-		P3 |= 0x80;
-
-		BUF_Select[7].CurrentSet = 0;
-		BUF_Radio[7].CurrentSet = 1;		
-	}
-	else
-	{
-		P3 &= ~0x80;
-
-		BUF_Select[7].CurrentSet = 1;
-		BUF_Radio[7].CurrentSet = 0;
-	}
 }
 
 /* End of web_fun.c */

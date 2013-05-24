@@ -1,14 +1,15 @@
-C51 COMPILER V9.06   GUDPBC                                                                03/13/2013 09:32:24 PAGE 1   
+C51 COMPILER V9.06   GUDPBC                                                                05/22/2013 11:21:02 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE GUDPBC
 OBJECT MODULE PLACED IN .\gudpbc.obj
-COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\management\gudpbc.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6
+COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\management\gudpbc.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6
                     -020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hs
                     -ur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\
                     -SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX1100
-                    -0\;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\gudpbc.lst) OBJECT(.\g
-                    -udpbc.obj)
+                    -0\;..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusT
+                    -CP;..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\gudpbc.lst) OBJECT(.
+                    -\gudpbc.obj)
 
 line level    source
 
@@ -52,7 +53,7 @@ line level    source
   38          #include <string.h>
   39          #include "8563.h"
   40          #include "../USB/ch375_com.h"
-  41          #include        "../LCD/LCD.h"
+  41          #include "../LCD/LCD.h"
   42          
   43          /* NAMING CONSTANT DECLARATIONS */
   44          #define GS2E_ENABLE_STATE_MACHINE       0
@@ -61,652 +62,664 @@ line level    source
   47          
   48          #define GUDPBC_MAX_CONNS                        4
   49          #define GUDPBC_NO_NEW_CONN                      0xFF
-  50          
-C51 COMPILER V9.06   GUDPBC                                                                03/13/2013 09:32:24 PAGE 2   
+C51 COMPILER V9.06   GUDPBC                                                                05/22/2013 11:21:02 PAGE 2   
 
+  50          
   51          #define GUDPBC_STATE_FREE                       0
   52          #define GUDPBC_STATE_WAIT                       1
   53          #define GUDPBC_STATE_CONNECTED          2
   54          
   55          
   56          /* GLOBAL VARIABLES DECLARATIONS */
-  57          extern void test_run(U8_T);
-  58          
-  59          /* LOCAL VARIABLES DECLARATIONS */
-  60          static GUDPBC_CONN gudpbc_Conns[GUDPBC_MAX_CONNS];
-  61           U8_T gudpbc_InterAppId;
-  62          static GCONFIG_CFG_PKT gudpbc_ConfigTxPkt;
-  63          static GCONFIG_CFG_PKT gudpbc_ConfigRxPkt;
-  64          
-  65          /* LOCAL SUBPROGRAM DECLARATIONS */
-  66          void gudpbc_HandleSearchReq(U8_T XDATA* pData, U8_T id);
-  67          void gudpbc_HandleSetReq(U8_T XDATA* pData, U16_T length, U8_T id);
-  68          void gudpbc_HandleUpgradeReq(U8_T XDATA* pData, U16_T length, U8_T id);
-  69          void gudpbc_HandleResetReq(U8_T XDATA* pData, U16_T length, U8_T id);
-  70          void gudpbc_HandleRebootReq(U8_T XDATA* pData, U16_T length, U8_T id);
-  71          #if GUDPBC_EEPROM_CONFIG
+  57          
+  58          /* LOCAL VARIABLES DECLARATIONS */
+  59          static GUDPBC_CONN gudpbc_Conns[GUDPBC_MAX_CONNS];
+  60           U8_T gudpbc_InterAppId;
+  61          static GCONFIG_CFG_PKT gudpbc_ConfigTxPkt;
+  62          static GCONFIG_CFG_PKT gudpbc_ConfigRxPkt;
+  63          
+  64          /* LOCAL SUBPROGRAM DECLARATIONS */
+  65          void gudpbc_HandleSearchReq(U8_T XDATA* pData, U8_T id);
+  66          void gudpbc_HandleSetReq(U8_T XDATA* pData, U16_T length, U8_T id);
+  67          void gudpbc_HandleUpgradeReq(U8_T XDATA* pData, U16_T length, U8_T id);
+  68          void gudpbc_HandleResetReq(U8_T XDATA* pData, U16_T length, U8_T id);
+  69          void gudpbc_HandleRebootReq(U8_T XDATA* pData, U16_T length, U8_T id);
+  70          #if GUDPBC_EEPROM_CONFIG
               void gudpbc_HandleEepromReadReq(U8_T XDATA* pData, U16_T length, U8_T id);
               void gudpbc_HandleEepromWriteReq(U8_T XDATA* pData, U16_T length, U8_T id);
               #endif
-  75          
-  76          U8_T    FlagIsp=0;
-  77          U16_T UdpPort=1234;
-  78          extern   U8_T  far  Para[400]; 
-  79          U8_T ab[40]={0x65,0,0x0e,0};//0x0b
-  80          
-  81           U8_T state=1;
-  82          
-  83           U8_T scanstart=0;
-  84          
-  85          void UdpData(void)
-  86           {
-  87   1      
-  88   1      //serial
-  89   1      ab[4]=Para[1];
-  90   1      ab[5]=0;
-  91   1      ab[6]=Para[3];
-  92   1      ab[7]=0;
-  93   1      ab[8]=Para[5];
-  94   1      ab[9]=0;
-  95   1      ab[10]=Para[7];
-  96   1      ab[11]=0;
-  97   1      //nc 
-  98   1      ab[12]=Para[15];
-  99   1      ab[13]=0;
- 100   1      //modbus address
- 101   1      ab[14]=Para[13];
- 102   1      ab[15]=0;
- 103   1      //Ip
- 104   1      ab[16]=Para[215];
- 105   1      ab[17]=0;
- 106   1      ab[18]=Para[217];
- 107   1      ab[19]=0;
- 108   1      ab[20]=Para[219];
- 109   1      ab[21]=0;
- 110   1      ab[22]=Para[221];
- 111   1      ab[23]=0;
- 112   1      //port
-C51 COMPILER V9.06   GUDPBC                                                                03/13/2013 09:32:24 PAGE 3   
+  74          
+  75          U8_T    FlagIsp=0;
+  76          U16_T UdpPort=1234;
+  77          extern   U8_T  far  Para[400]; 
+  78          U8_T ab[40]={0x65,0,0x0e,0};//0x0b
+  79          
+  80           U8_T state=1;
+  81          
+  82           U8_T scanstart=0;
+  83          
+  84          void UdpData(void)
+  85           {
+  86   1      
+  87   1      //serial
+  88   1      ab[4]=Para[1];
+  89   1      ab[5]=0;
+  90   1      ab[6]=Para[3];
+  91   1      ab[7]=0;
+  92   1      ab[8]=Para[5];
+  93   1      ab[9]=0;
+  94   1      ab[10]=Para[7];
+  95   1      ab[11]=0;
+  96   1      //nc 
+  97   1      ab[12]=Para[15];
+  98   1      ab[13]=0;
+  99   1      //modbus address
+ 100   1      ab[14]=Para[13];
+ 101   1      ab[15]=0;
+ 102   1      //Ip
+ 103   1      ab[16]=Para[215];
+ 104   1      ab[17]=0;
+ 105   1      ab[18]=Para[217];
+ 106   1      ab[19]=0;
+ 107   1      ab[20]=Para[219];
+ 108   1      ab[21]=0;
+ 109   1      ab[22]=Para[221];
+ 110   1      ab[23]=0;
+ 111   1      //port
+C51 COMPILER V9.06   GUDPBC                                                                05/22/2013 11:21:02 PAGE 3   
 
- 113   1      //ab[24]=(U8_T)(UdpPort);
- 114   1      //ab[25]=(U8_T)(UdpPort>>8);
- 115   1      ab[24]=Para[241];
- 116   1      ab[25]=Para[240];
- 117   1      
- 118   1      ab[26]=Para[9];
- 119   1      ab[27]=0;
- 120   1      
- 121   1      ab[28]=Para[11];
- 122   1      ab[29]=0;
- 123   1      
- 124   1      ab[30]=Para[17];
- 125   1      ab[31]=0;
- 126   1      
- 127   1       }
- 128          
- 129          #if 1  //LHN ADD for time server
- 130          
- 131          #define Bace_s           3439756800   //from 2009.1.1 
- 132          #define Bace_Week        3            //2009.1.1 Tuesday
- 133          #define Bace_year        2009  
- 134          #define Bace_Time_Zone   43200        //Zone -12        
- 135          #define Day_s            86400
- 136          #define Hour_s           3600
- 137          #define Min_s            60
- 138          #define year_Day         365
+ 112   1      //ab[24]=(U8_T)(UdpPort);
+ 113   1      //ab[25]=(U8_T)(UdpPort>>8);
+ 114   1      ab[24]=Para[241];
+ 115   1      ab[25]=Para[240];
+ 116   1      
+ 117   1      ab[26]=Para[9];
+ 118   1      ab[27]=0;
+ 119   1      
+ 120   1      ab[28]=Para[11];
+ 121   1      ab[29]=0;
+ 122   1      
+ 123   1      ab[30]=Para[17];
+ 124   1      ab[31]=0;
+ 125   1      
+ 126   1      }
+ 127          
+ 128          #if 1  //LHN ADD for time server
+ 129          
+ 130          #define Bace_s           3439756800   //from 2009.1.1 
+ 131          #define Bace_Week        3            //2009.1.1 Tuesday
+ 132          #define Bace_year        2009  
+ 133          #define Bace_Time_Zone   43200        //Zone -12        
+ 134          #define Day_s            86400
+ 135          #define Hour_s           3600
+ 136          #define Min_s            60
+ 137          #define year_Day         365
+ 138          
  139          
- 140          
- 141          void TimeServer_Deal(U32_T time,U8_T time_zone)
- 142          {
- 143   1              U32_T time_s=0;
- 144   1              U32_T time_year=0;
- 145   1              U32_T time_day=0;
- 146   1              U32_T time_h=0;
- 147   1      
- 148   1              time_s = time - Bace_s + ((U32_T)time_zone) * Hour_s - Bace_Time_Zone;
- 149   1      
- 150   1              if(time_s)
- 151   1              {
- 152   2                      time_day = time_s / Day_s ;
- 153   2                      time_h = time_s % Day_s;
- 154   2      
- 155   2                      Time.UN.Setime[3] = (U8_T)(time_day % 7 + Bace_Week) % 7 + 1;  //Week
- 156   2      
- 157   2                      if( (time_day % year_Day)  >= ((time_day / year_Day ) / 4) )
- 158   2                      {
- 159   3                              time_year = time_day / year_Day + Bace_year;   
- 160   3                              time_day = time_day % year_Day - (time_day / year_Day)/4;
- 161   3                      }
- 162   2                      else
- 163   2                      {
- 164   3                              time_year = time_day / year_Day + Bace_year - 1;
- 165   3                          if((time_day / year_Day ) / 4)
- 166   3                                      time_day = 366 + time_day % year_Day - (time_day / year_Day)/4; 
- 167   3                              else
- 168   3                                      time_day = 365 + time_day % year_Day - (time_day / year_Day)/4; 
- 169   3                      }
- 170   2      
- 171   2                      Time.UN.Setime[0] = (U8_T)(time_year / 100);           //year high
- 172   2                      Time.UN.Setime[1] = (U8_T)(time_year % 100);           //year low
- 173   2      
- 174   2                      if(!(time_year % 4))  //leap year
-C51 COMPILER V9.06   GUDPBC                                                                03/13/2013 09:32:24 PAGE 4   
+ 140          void TimeServer_Deal(U32_T time,U8_T time_zone)
+ 141          {
+ 142   1              U32_T time_s=0;
+ 143   1              U32_T time_year=0;
+ 144   1              U32_T time_day=0;
+ 145   1              U32_T time_h=0;
+ 146   1      
+ 147   1              time_s = time - Bace_s + ((U32_T)time_zone) * Hour_s - Bace_Time_Zone;
+ 148   1      
+ 149   1              if(time_s)
+ 150   1              {
+ 151   2                      time_day = time_s / Day_s ;
+ 152   2                      time_h = time_s % Day_s;
+ 153   2      
+ 154   2                      Time.UN.Setime[3] = (U8_T)(time_day % 7 + Bace_Week) % 7 + 1;  //Week
+ 155   2      
+ 156   2                      if( (time_day % year_Day)  >= ((time_day / year_Day ) / 4) )
+ 157   2                      {
+ 158   3                              time_year = time_day / year_Day + Bace_year;   
+ 159   3                              time_day = time_day % year_Day - (time_day / year_Day)/4;
+ 160   3                      }
+ 161   2                      else
+ 162   2                      {
+ 163   3                              time_year = time_day / year_Day + Bace_year - 1;
+ 164   3                          if((time_day / year_Day ) / 4)
+ 165   3                                      time_day = 366 + time_day % year_Day - (time_day / year_Day)/4; 
+ 166   3                              else
+ 167   3                                      time_day = 365 + time_day % year_Day - (time_day / year_Day)/4; 
+ 168   3                      }
+ 169   2      
+ 170   2                      Time.UN.Setime[0] = (U8_T)(time_year / 100);           //year high
+ 171   2                      Time.UN.Setime[1] = (U8_T)(time_year % 100);           //year low
+ 172   2      
+ 173   2                      if(!(time_year % 4))  //leap year
+C51 COMPILER V9.06   GUDPBC                                                                05/22/2013 11:21:02 PAGE 4   
 
- 175   2                      {
- 176   3                              if( (time_day >= 0) && (time_day <= 30) ) // january
- 177   3                              {
- 178   4                                      Time.UN.Setime[2] = 1;               //month                     
- 179   4                                      Time.UN.Setime[4] = time_day + 1;    //day
- 180   4                              }
- 181   3                              else if( (time_day >= 31) && (time_day <= 59) ) // february
- 182   3                              {
- 183   4                                      Time.UN.Setime[2] = 2;
- 184   4                                      Time.UN.Setime[4] = time_day - 31 + 1;  
- 185   4                              }
- 186   3                              else if( (time_day >= 60) && (time_day <= 90) ) //3
- 187   3                              {
- 188   4                                      Time.UN.Setime[2] = 3;
- 189   4                                      Time.UN.Setime[4] = time_day - 60 + 1;  
- 190   4                              }
- 191   3                              else if( (time_day >= 91) && (time_day <= 120) )//4
- 192   3                              {
- 193   4                                      Time.UN.Setime[2] = 4;
- 194   4                                      Time.UN.Setime[4] = time_day - 91 + 1;  
- 195   4                              }
- 196   3                              else if( (time_day >= 121) && (time_day <= 151) ) //5
- 197   3                              {
- 198   4                                      Time.UN.Setime[2] = 5;
- 199   4                                      Time.UN.Setime[4] = time_day - 121 + 1; 
- 200   4                              }
- 201   3                              else if( (time_day >= 152) && (time_day <= 181) ) //6
- 202   3                              {
- 203   4                                      Time.UN.Setime[2] = 6;
- 204   4                                      Time.UN.Setime[4] = time_day - 152 + 1; 
- 205   4                              }
- 206   3                              else if( (time_day >= 182) && (time_day <= 212) ) //7
- 207   3                              {
- 208   4                                      Time.UN.Setime[2] = 7;
- 209   4                                      Time.UN.Setime[4] = time_day - 182 + 1; 
- 210   4                              }
- 211   3                              else if( (time_day >= 213) && (time_day <= 243) ) //8
- 212   3                              {
- 213   4                                      Time.UN.Setime[2] = 8;
- 214   4                                      Time.UN.Setime[4] = time_day - 213 + 1; 
- 215   4                              }
- 216   3                              else if( (time_day >= 244) && (time_day <= 273) ) //9
- 217   3                              {
- 218   4                                      Time.UN.Setime[2] = 9;
- 219   4                                      Time.UN.Setime[4] = time_day - 243 + 1; 
- 220   4                              }
- 221   3                              else if( (time_day >= 274) && (time_day <= 304) ) //10
- 222   3                              {
- 223   4                                      Time.UN.Setime[2] = 10;
- 224   4                                      Time.UN.Setime[4] = time_day - 274 + 1; 
- 225   4                              }
- 226   3                              else if( (time_day >= 305) && (time_day <= 334) ) //11
- 227   3                              {
- 228   4                                      Time.UN.Setime[2] = 11;
- 229   4                                      Time.UN.Setime[4] = time_day - 304 + 1; 
- 230   4                              }
- 231   3                              else if( (time_day >= 335) && (time_day <= 365) ) //12
- 232   3                              {
- 233   4                                      Time.UN.Setime[2] = 12;
- 234   4                                      Time.UN.Setime[4] = time_day - 335 + 1; 
- 235   4                              }
- 236   3      
-C51 COMPILER V9.06   GUDPBC                                                                03/13/2013 09:32:24 PAGE 5   
+ 174   2                      {
+ 175   3                              if( (time_day >= 0) && (time_day <= 30) ) // january
+ 176   3                              {
+ 177   4                                      Time.UN.Setime[2] = 1;               //month                     
+ 178   4                                      Time.UN.Setime[4] = time_day + 1;    //day
+ 179   4                              }
+ 180   3                              else if( (time_day >= 31) && (time_day <= 59) ) // february
+ 181   3                              {
+ 182   4                                      Time.UN.Setime[2] = 2;
+ 183   4                                      Time.UN.Setime[4] = time_day - 31 + 1;  
+ 184   4                              }
+ 185   3                              else if( (time_day >= 60) && (time_day <= 90) ) //3
+ 186   3                              {
+ 187   4                                      Time.UN.Setime[2] = 3;
+ 188   4                                      Time.UN.Setime[4] = time_day - 60 + 1;  
+ 189   4                              }
+ 190   3                              else if( (time_day >= 91) && (time_day <= 120) )//4
+ 191   3                              {
+ 192   4                                      Time.UN.Setime[2] = 4;
+ 193   4                                      Time.UN.Setime[4] = time_day - 91 + 1;  
+ 194   4                              }
+ 195   3                              else if( (time_day >= 121) && (time_day <= 151) ) //5
+ 196   3                              {
+ 197   4                                      Time.UN.Setime[2] = 5;
+ 198   4                                      Time.UN.Setime[4] = time_day - 121 + 1; 
+ 199   4                              }
+ 200   3                              else if( (time_day >= 152) && (time_day <= 181) ) //6
+ 201   3                              {
+ 202   4                                      Time.UN.Setime[2] = 6;
+ 203   4                                      Time.UN.Setime[4] = time_day - 152 + 1; 
+ 204   4                              }
+ 205   3                              else if( (time_day >= 182) && (time_day <= 212) ) //7
+ 206   3                              {
+ 207   4                                      Time.UN.Setime[2] = 7;
+ 208   4                                      Time.UN.Setime[4] = time_day - 182 + 1; 
+ 209   4                              }
+ 210   3                              else if( (time_day >= 213) && (time_day <= 243) ) //8
+ 211   3                              {
+ 212   4                                      Time.UN.Setime[2] = 8;
+ 213   4                                      Time.UN.Setime[4] = time_day - 213 + 1; 
+ 214   4                              }
+ 215   3                              else if( (time_day >= 244) && (time_day <= 273) ) //9
+ 216   3                              {
+ 217   4                                      Time.UN.Setime[2] = 9;
+ 218   4                                      Time.UN.Setime[4] = time_day - 243 + 1; 
+ 219   4                              }
+ 220   3                              else if( (time_day >= 274) && (time_day <= 304) ) //10
+ 221   3                              {
+ 222   4                                      Time.UN.Setime[2] = 10;
+ 223   4                                      Time.UN.Setime[4] = time_day - 274 + 1; 
+ 224   4                              }
+ 225   3                              else if( (time_day >= 305) && (time_day <= 334) ) //11
+ 226   3                              {
+ 227   4                                      Time.UN.Setime[2] = 11;
+ 228   4                                      Time.UN.Setime[4] = time_day - 304 + 1; 
+ 229   4                              }
+ 230   3                              else if( (time_day >= 335) && (time_day <= 365) ) //12
+ 231   3                              {
+ 232   4                                      Time.UN.Setime[2] = 12;
+ 233   4                                      Time.UN.Setime[4] = time_day - 335 + 1; 
+ 234   4                              }
+ 235   3      
+C51 COMPILER V9.06   GUDPBC                                                                05/22/2013 11:21:02 PAGE 5   
 
- 237   3                      }
- 238   2                      else
- 239   2                      {
- 240   3                              if( (time_day >= 0) && (time_day <= 30) ) // january
- 241   3                              {
- 242   4                                      Time.UN.Setime[2] = 1;
- 243   4                                      Time.UN.Setime[4] = time_day - 0 + 1;
- 244   4                              }
- 245   3                              else if( (time_day >= 31) && (time_day <= 58) ) // february
- 246   3                              {
- 247   4                                      Time.UN.Setime[2] = 2;
- 248   4                                      Time.UN.Setime[4] = time_day - 31 + 1;  
- 249   4                              }
- 250   3                              else if( (time_day >= 59) && (time_day <= 89) ) //3
- 251   3                              {
- 252   4                                      Time.UN.Setime[2] = 3;
- 253   4                                      Time.UN.Setime[4] = time_day - 59 + 1;  
- 254   4                              }
- 255   3                              else if( (time_day >= 90) && (time_day <= 119) )//4
- 256   3                              {
- 257   4                                      Time.UN.Setime[2] = 4;
- 258   4                                      Time.UN.Setime[4] = time_day - 90 + 1;  
- 259   4                              }
- 260   3                              else if( (time_day >= 120) && (time_day <= 150) ) //5
- 261   3                              {
- 262   4                                      Time.UN.Setime[2] = 5;
- 263   4                                      Time.UN.Setime[4] = time_day - 120 + 1; 
- 264   4                              }
- 265   3                              else if( (time_day >= 151) && (time_day <= 180) ) //6
- 266   3                              {
- 267   4                                      Time.UN.Setime[2] = 6;
- 268   4                                      Time.UN.Setime[4] = time_day - 151 + 1; 
- 269   4                              }
- 270   3                              else if( (time_day >= 181) && (time_day <= 211) ) //7
- 271   3                              {
- 272   4                                      Time.UN.Setime[2] = 7;
- 273   4                                      Time.UN.Setime[4] = time_day - 181 + 1; 
- 274   4                              }
- 275   3                              else if( (time_day >= 212) && (time_day <= 242) ) //8
- 276   3                              {
- 277   4                                      Time.UN.Setime[2] = 8;
- 278   4                                      Time.UN.Setime[4] = time_day - 212 + 1; 
- 279   4                              }
- 280   3                              else if( (time_day >= 243) && (time_day <= 272) ) //9
- 281   3                              {
- 282   4                                      Time.UN.Setime[2] = 9;
- 283   4                                      Time.UN.Setime[4] = time_day - 242 + 1; 
- 284   4                              }
- 285   3                              else if( (time_day >= 273) && (time_day <= 303) ) //10
- 286   3                              {
- 287   4                                      Time.UN.Setime[2] = 10;
- 288   4                                      Time.UN.Setime[4] = time_day - 273 + 1; 
- 289   4                              }
- 290   3                              else if( (time_day >= 304) && (time_day <= 333) ) //11
- 291   3                              {
- 292   4                                      Time.UN.Setime[2] = 11;
- 293   4                                      Time.UN.Setime[4] = time_day - 303 + 1; 
- 294   4                              }
- 295   3                              else if( (time_day >= 334) && (time_day <= 364) ) //12
- 296   3                              {
- 297   4                                      Time.UN.Setime[2] = 12;
- 298   4                                      Time.UN.Setime[4] = time_day - 334 + 1; 
-C51 COMPILER V9.06   GUDPBC                                                                03/13/2013 09:32:24 PAGE 6   
+ 236   3                      }
+ 237   2                      else
+ 238   2                      {
+ 239   3                              if( (time_day >= 0) && (time_day <= 30) ) // january
+ 240   3                              {
+ 241   4                                      Time.UN.Setime[2] = 1;
+ 242   4                                      Time.UN.Setime[4] = time_day - 0 + 1;
+ 243   4                              }
+ 244   3                              else if( (time_day >= 31) && (time_day <= 58) ) // february
+ 245   3                              {
+ 246   4                                      Time.UN.Setime[2] = 2;
+ 247   4                                      Time.UN.Setime[4] = time_day - 31 + 1;  
+ 248   4                              }
+ 249   3                              else if( (time_day >= 59) && (time_day <= 89) ) //3
+ 250   3                              {
+ 251   4                                      Time.UN.Setime[2] = 3;
+ 252   4                                      Time.UN.Setime[4] = time_day - 59 + 1;  
+ 253   4                              }
+ 254   3                              else if( (time_day >= 90) && (time_day <= 119) )//4
+ 255   3                              {
+ 256   4                                      Time.UN.Setime[2] = 4;
+ 257   4                                      Time.UN.Setime[4] = time_day - 90 + 1;  
+ 258   4                              }
+ 259   3                              else if( (time_day >= 120) && (time_day <= 150) ) //5
+ 260   3                              {
+ 261   4                                      Time.UN.Setime[2] = 5;
+ 262   4                                      Time.UN.Setime[4] = time_day - 120 + 1; 
+ 263   4                              }
+ 264   3                              else if( (time_day >= 151) && (time_day <= 180) ) //6
+ 265   3                              {
+ 266   4                                      Time.UN.Setime[2] = 6;
+ 267   4                                      Time.UN.Setime[4] = time_day - 151 + 1; 
+ 268   4                              }
+ 269   3                              else if( (time_day >= 181) && (time_day <= 211) ) //7
+ 270   3                              {
+ 271   4                                      Time.UN.Setime[2] = 7;
+ 272   4                                      Time.UN.Setime[4] = time_day - 181 + 1; 
+ 273   4                              }
+ 274   3                              else if( (time_day >= 212) && (time_day <= 242) ) //8
+ 275   3                              {
+ 276   4                                      Time.UN.Setime[2] = 8;
+ 277   4                                      Time.UN.Setime[4] = time_day - 212 + 1; 
+ 278   4                              }
+ 279   3                              else if( (time_day >= 243) && (time_day <= 272) ) //9
+ 280   3                              {
+ 281   4                                      Time.UN.Setime[2] = 9;
+ 282   4                                      Time.UN.Setime[4] = time_day - 242 + 1; 
+ 283   4                              }
+ 284   3                              else if( (time_day >= 273) && (time_day <= 303) ) //10
+ 285   3                              {
+ 286   4                                      Time.UN.Setime[2] = 10;
+ 287   4                                      Time.UN.Setime[4] = time_day - 273 + 1; 
+ 288   4                              }
+ 289   3                              else if( (time_day >= 304) && (time_day <= 333) ) //11
+ 290   3                              {
+ 291   4                                      Time.UN.Setime[2] = 11;
+ 292   4                                      Time.UN.Setime[4] = time_day - 303 + 1; 
+ 293   4                              }
+ 294   3                              else if( (time_day >= 334) && (time_day <= 364) ) //12
+ 295   3                              {
+ 296   4                                      Time.UN.Setime[2] = 12;
+ 297   4                                      Time.UN.Setime[4] = time_day - 334 + 1; 
+C51 COMPILER V9.06   GUDPBC                                                                05/22/2013 11:21:02 PAGE 6   
 
- 299   4                              }
- 300   3              
- 301   3                      }
- 302   2                      Time.UN.Setime[5] = (U8_T)(time_h / Hour_s);  //Hour
- 303   2                      time_h = time_h % Hour_s;
- 304   2                      Time.UN.Setime[6] = (U8_T)(time_h / Min_s);  //minute
- 305   2                      Time.UN.Setime[7] = (U8_T)(time_h % Min_s); //second            
- 306   2                      
- 307   2                      Initial_Clock();
- 308   2              //      Uart0_Tx(Time.UN.Setime,8);
- 309   2              }
- 310   1      }
- 311          
- 312          #endif
+ 298   4                              }
+ 299   3              
+ 300   3                      }
+ 301   2                      Time.UN.Setime[5] = (U8_T)(time_h / Hour_s);  //Hour
+ 302   2                      time_h = time_h % Hour_s;
+ 303   2                      Time.UN.Setime[6] = (U8_T)(time_h / Min_s);  //minute
+ 304   2                      Time.UN.Setime[7] = (U8_T)(time_h % Min_s); //second            
+ 305   2                      
+ 306   2                      Initial_Clock();
+ 307   2              //      Uart0_Tx(Time.UN.Setime,8);
+ 308   2              }
+ 309   1      }
+ 310          
+ 311          #endif
+ 312          
  313          
  314          
- 315          
- 316          #if 1
- 317          /*
- 318           * ----------------------------------------------------------------------------
- 319           * Function Name: I2C_Init
- 320           * Purpose:
- 321           * Params:
- 322           * Returns:
- 323           * Note:
- 324           * ----------------------------------------------------------------------------
- 325           */
- 326          void I2C_Init(void)
- 327          {
- 328   1              
- 329   1              switch (CSREPR & (BIT6|BIT7))
- 330   1              {
- 331   2                      case SYS_CLK_100M :
- 332   2                              /* I2C master mode, interrupt enable, fast mode in slave, 7-bits address, 400KHz at 100M */
- 333   2                              I2C_Setup(I2C_ENB|I2C_FAST|I2C_MST_IE|I2C_7BIT|I2C_MASTER_MODE, 0x0031, 0x005A);
- 334   2                      //      I2C_Setup(I2C_ENB|I2C_STANDARD|I2C_MST_IE|I2C_7BIT|I2C_MASTER_MODE, I2C_STD_100M, 0x005A);
- 335   2                                      
- 336   2                      
- 337   2                              break;
- 338   2                      case SYS_CLK_50M :
- 339   2                              /* I2C master mode, interrupt enable, fast mode in slave, 7-bits address, 400KHz at 50M */
- 340   2                              I2C_Setup(I2C_ENB|I2C_FAST|I2C_MST_IE|I2C_7BIT|I2C_MASTER_MODE, 0x0018, 0x005A);
- 341   2                      
- 342   2                                      
- 343   2                              break;
- 344   2                      case SYS_CLK_25M :
- 345   2                              /* I2C master mode, interrupt enable, fast mode in slave, 7-bits address, 400KHz at 25M */
- 346   2                              I2C_Setup(I2C_ENB|I2C_FAST|I2C_MST_IE|I2C_7BIT|I2C_MASTER_MODE, 0x000c, 0x005A);
- 347   2                      
- 348   2                               
- 349   2                      
- 350   2                              break;
- 351   2              }
- 352   1      
- 353   1      
- 354   1      }
- 355          
- 356          #endif
- 357          
- 358          /*
- 359           * ----------------------------------------------------------------------------
- 360           * Function Name: GUDPBC_Task
-C51 COMPILER V9.06   GUDPBC                                                                03/13/2013 09:32:24 PAGE 7   
+ 315          #if 1
+ 316          /*
+ 317           * ----------------------------------------------------------------------------
+ 318           * Function Name: I2C_Init
+ 319           * Purpose:
+ 320           * Params:
+ 321           * Returns:
+ 322           * Note:
+ 323           * ----------------------------------------------------------------------------
+ 324           */
+ 325          void I2C_Init(void)
+ 326          {
+ 327   1              switch (CSREPR & (BIT6|BIT7))
+ 328   1              {
+ 329   2                      case SYS_CLK_100M :
+ 330   2                              /* I2C master mode, interrupt enable, fast mode in slave, 7-bits address, 400KHz at 100M */
+ 331   2                              I2C_Setup(I2C_ENB|I2C_FAST|I2C_MST_IE|I2C_7BIT|I2C_MASTER_MODE, 0x0031, 0x005A);
+ 332   2                              break;
+ 333   2                      case SYS_CLK_50M :
+ 334   2                              /* I2C master mode, interrupt enable, fast mode in slave, 7-bits address, 400KHz at 50M */
+ 335   2                              I2C_Setup(I2C_ENB|I2C_FAST|I2C_MST_IE|I2C_7BIT|I2C_MASTER_MODE, 0x0018, 0x005A);
+ 336   2                              break;
+ 337   2                      case SYS_CLK_25M :
+ 338   2                              /* I2C master mode, interrupt enable, fast mode in slave, 7-bits address, 400KHz at 25M */
+ 339   2                              I2C_Setup(I2C_ENB|I2C_FAST|I2C_MST_IE|I2C_7BIT|I2C_MASTER_MODE, 0x000c, 0x005A);
+ 340   2                              break;
+ 341   2              }
+ 342   1      }
+ 343          #endif
+ 344          
+ 345          /*
+ 346           * ----------------------------------------------------------------------------
+ 347           * Function Name: GUDPBC_Task
+ 348           * Purpose: 
+ 349           * Params:
+ 350           * Returns:
+ 351           * Note:
+ 352           * ----------------------------------------------------------------------------
+ 353           */
+ 354          void GUDPBC_Task(void)
+ 355          {
+ 356   1      
+ 357   1      } /* End of GUDPBC_Task() */
+ 358          
+ 359          /*
+C51 COMPILER V9.06   GUDPBC                                                                05/22/2013 11:21:02 PAGE 7   
 
- 361           * Purpose: 
- 362           * Params:
- 363           * Returns:
- 364           * Note:
- 365           * ----------------------------------------------------------------------------
- 366           */
- 367          void GUDPBC_Task(void)
- 368          {
- 369   1      
- 370   1      } /* End of GUDPBC_Task() */
- 371          
- 372          /*
- 373           * ----------------------------------------------------------------------------
- 374           * Function Name: GUDPBC_Init()
- 375           * Purpose: Initialization
- 376           * Params:
- 377           * Returns:
- 378           * Note:
- 379           * ----------------------------------------------------------------------------
- 380           */
- 381          void GUDPBC_Init(U16_T localPort)
- 382          {
- 383   1              U8_T    i;
- 384   1      
- 385   1              printd("GUDPBC_Init()...\n\r");
- 386   1      
- 387   1              for (i = 0; i < GUDPBC_MAX_CONNS; i++)
- 388   1                      gudpbc_Conns[i].State = GUDPBC_STATE_FREE;
- 389   1      
- 390   1              gudpbc_InterAppId = TCPIP_Bind(GUDPBC_NewConn, GUDPBC_Event, GUDPBC_Receive);
- 391   1                      
- 392   1              /* unicast packet */
- 393   1      //      TCPIP_UdpListen(123, gudpbc_InterAppId);
- 394   1              TCPIP_UdpListen(localPort, gudpbc_InterAppId);
- 395   1              
- 396   1      } /* End of GUDPBC_Init() */
- 397          
- 398          /*
- 399           * ----------------------------------------------------------------------------
- 400           * Function Name: GUDPBC_NewConn
- 401           * Purpose: 
- 402           * Params:
- 403           * Returns:
- 404           * Note:
- 405           * ----------------------------------------------------------------------------
- 406           */
- 407          U8_T GUDPBC_NewConn(U32_T XDATA* pip, U16_T remotePort, U8_T socket)
- 408          {
- 409   1              U8_T    i;
- 410   1      
- 411   1              pip = pip;
- 412   1              remotePort = remotePort;
- 413   1      
- 414   1      #if GUDPBC_ENABLE_DEBUG_MSG
+ 360           * ----------------------------------------------------------------------------
+ 361           * Function Name: GUDPBC_Init()
+ 362           * Purpose: Initialization
+ 363           * Params:
+ 364           * Returns:
+ 365           * Note:
+ 366           * ----------------------------------------------------------------------------
+ 367           */
+ 368          void GUDPBC_Init(U16_T localPort)
+ 369          {
+ 370   1              U8_T    i;
+ 371   1      
+ 372   1              printd("GUDPBC_Init()...\n\r");
+ 373   1      //      printd("NC fw69.11hw26bl14\n\r");
+ 374   1      //      char abc[] = {"NC fw69.11hw26bl14"};
+ 375   1      
+ 376   1              for (i = 0; i < GUDPBC_MAX_CONNS; i++)
+ 377   1                      gudpbc_Conns[i].State = GUDPBC_STATE_FREE;
+ 378   1      
+ 379   1              gudpbc_InterAppId = TCPIP_Bind(GUDPBC_NewConn, GUDPBC_Event, GUDPBC_Receive);
+ 380   1                      
+ 381   1              /* unicast packet */
+ 382   1      //      TCPIP_UdpListen(123, gudpbc_InterAppId);
+ 383   1              TCPIP_UdpListen(localPort, gudpbc_InterAppId);
+ 384   1              
+ 385   1      } /* End of GUDPBC_Init() */
+ 386          
+ 387          /*
+ 388           * ----------------------------------------------------------------------------
+ 389           * Function Name: GUDPBC_NewConn
+ 390           * Purpose: 
+ 391           * Params:
+ 392           * Returns:
+ 393           * Note:
+ 394           * ----------------------------------------------------------------------------
+ 395           */
+ 396          U8_T GUDPBC_NewConn(U32_T XDATA* pip, U16_T remotePort, U8_T socket)
+ 397          {
+ 398   1              U8_T    i;
+ 399   1      
+ 400   1              pip = pip;
+ 401   1              remotePort = remotePort;
+ 402   1      
+ 403   1      #if GUDPBC_ENABLE_DEBUG_MSG
                       printd("GUDPBC_NewConn(remotePort=%d, socket=%d)\n\r",remotePort,socket);
               #endif  
- 417   1      
- 418   1              for (i = 0; i < GUDPBC_MAX_CONNS; i++)
- 419   1              {
- 420   2                      if (gudpbc_Conns[i].State == GUDPBC_STATE_FREE)
- 421   2                      {
- 422   3                              gudpbc_Conns[i].State = GUDPBC_STATE_CONNECTED;
-C51 COMPILER V9.06   GUDPBC                                                                03/13/2013 09:32:24 PAGE 8   
+ 406   1      
+ 407   1              for (i = 0; i < GUDPBC_MAX_CONNS; i++)
+ 408   1              {
+ 409   2                      if (gudpbc_Conns[i].State == GUDPBC_STATE_FREE)
+ 410   2                      {
+ 411   3                              gudpbc_Conns[i].State = GUDPBC_STATE_CONNECTED;
+ 412   3      //                      gudpbc_Conns[i].Timer = (U16_T)SWTIMER_Tick();
+ 413   3      //                      gudpbc_Conns[i].Ip = *pip;
+ 414   3      //                      gudpbc_Conns[i].Port = remotePort;
+ 415   3                              gudpbc_Conns[i].UdpSocket = socket;
+ 416   3                              return i;
+ 417   3                      }
+ 418   2              }
+ 419   1              
+ 420   1              return GUDPBC_NO_NEW_CONN;
+ 421   1      
+C51 COMPILER V9.06   GUDPBC                                                                05/22/2013 11:21:02 PAGE 8   
 
- 423   3      //                      gudpbc_Conns[i].Timer = (U16_T)SWTIMER_Tick();
- 424   3      //                      gudpbc_Conns[i].Ip = *pip;
- 425   3      //                      gudpbc_Conns[i].Port = remotePort;
- 426   3                              gudpbc_Conns[i].UdpSocket = socket;
- 427   3                              return i;
- 428   3                      }
- 429   2              }
- 430   1              
- 431   1              return GUDPBC_NO_NEW_CONN;
- 432   1      
- 433   1      } /* End of GUDPBC_NewConn() */
- 434          
- 435          /*
- 436           * ----------------------------------------------------------------------------
- 437           * Function Name: GUDPBC_Event
- 438           * Purpose: 
- 439           * Params:
- 440           * Returns:
- 441           * Note:
- 442           * ----------------------------------------------------------------------------
- 443           */
- 444          void GUDPBC_Event(U8_T id, U8_T event)
- 445          {
- 446   1              gudpbc_Conns[id].State = event;
- 447   1      
- 448   1      } /* End of GUDPBC_Event() */
- 449          
- 450          /*
- 451           * ----------------------------------------------------------------------------
- 452           * Function Name: GUDPBC_Receive
- 453           * Purpose: 
- 454           * Params:
- 455           * Returns:
- 456           * Note:
- 457           * ----------------------------------------------------------------------------
- 458           */
- 459          void GUDPBC_Receive(U8_T XDATA* pData, U16_T length, U8_T id)
- 460          {
- 461   1      //      U8_T opcode = 0xFF;
- 462   1      //      BOOL bValidReq = FALSE;
- 463   1      //      GCONFIG_MAC_ADDR macAddr;
- 464   1          U8_T  n=0;
- 465   1              U32_T time_s=0;
- 466   1       
- 467   1          //Uart0_Tx(pData,length);
- 468   1              if( (length == 48) )  //(gudpbc_Conns[id].UdpSocket == Time_Server.UdpSocket) && 
- 469   1              {
- 470   2                      Para[399] = 1;
- 471   2                      time_s = ( ((U32_T)pData[40]) << 24 ) | ( ((U32_T)pData[41]) << 16 ) | ( ((U32_T)pData[42]) << 8 ) |  ((
+ 422   1      } /* End of GUDPBC_NewConn() */
+ 423          
+ 424          /*
+ 425           * ----------------------------------------------------------------------------
+ 426           * Function Name: GUDPBC_Event
+ 427           * Purpose: 
+ 428           * Params:
+ 429           * Returns:
+ 430           * Note:
+ 431           * ----------------------------------------------------------------------------
+ 432           */
+ 433          void GUDPBC_Event(U8_T id, U8_T event)
+ 434          {
+ 435   1              gudpbc_Conns[id].State = event;
+ 436   1      
+ 437   1      } /* End of GUDPBC_Event() */
+ 438          
+ 439          /*
+ 440           * ----------------------------------------------------------------------------
+ 441           * Function Name: GUDPBC_Receive
+ 442           * Purpose: 
+ 443           * Params:
+ 444           * Returns:
+ 445           * Note:
+ 446           * ----------------------------------------------------------------------------
+ 447           */
+ 448          void GUDPBC_Receive(U8_T XDATA* pData, U16_T length, U8_T id)
+ 449          {
+ 450   1      //      U8_T opcode = 0xFF;
+ 451   1      //      BOOL bValidReq = FALSE;
+ 452   1      //      GCONFIG_MAC_ADDR macAddr;
+ 453   1          U8_T  n=0;
+ 454   1              U32_T time_s=0;
+ 455   1       
+ 456   1          //Uart0_Tx(pData,length);
+ 457   1              if( (length == 48) )  //(gudpbc_Conns[id].UdpSocket == Time_Server.UdpSocket) && 
+ 458   1              {
+ 459   2                      Para[399] = 1;
+ 460   2                      time_s = ( ((U32_T)pData[40]) << 24 ) | ( ((U32_T)pData[41]) << 16 ) | ( ((U32_T)pData[42]) << 8 ) |  ((
              -U32_T)pData[43]) ;
- 472   2                      TimeServer_Deal(time_s,Para[23]);
- 473   2                      TCPIP_UdpClose(Time_Server.UdpSocket);
- 474   2              }
- 475   1              else
- 476   1              {
- 477   2                  if((pData[0] == 100)&&(pData[1] == 0))
- 478   2                  { 
- 479   3                              scanstart = 1;
- 480   3                      state = 1;
- 481   3                  }
- 482   2                  if(scanstart)
- 483   2                      {  
-C51 COMPILER V9.06   GUDPBC                                                                03/13/2013 09:32:24 PAGE 9   
-
- 484   3                              for(n = 0; n < (U8_T)length/4; n++)
- 485   3                      { 
- 486   4                              if( (pData[4*n+1] == Para[215])&&(pData[4*n+2] == Para[217])&&(pData[4*n+3] == Para[219])&&(pDat
+ 461   2                      TimeServer_Deal(time_s,Para[23]);
+ 462   2                      TCPIP_UdpClose(Time_Server.UdpSocket);
+ 463   2              }
+ 464   1              else
+ 465   1              {
+ 466   2                  if((pData[0] == 100)&&(pData[1] == 0))
+ 467   2                  { 
+ 468   3                              scanstart = 1;
+ 469   3                      state = 1;
+ 470   3                  }
+ 471   2                  if(scanstart)
+ 472   2                      {  
+ 473   3                              for(n = 0; n < (U8_T)length/4; n++)
+ 474   3                      { 
+ 475   4                              if( (pData[4*n+1] == Para[215])&&(pData[4*n+2] == Para[217])&&(pData[4*n+3] == Para[219])&&(pDat
              -a[4*n+4] == Para[221]))
- 487   4                          { 
- 488   5                                              scanstart=0;
- 489   5                              state=0;
- 490   5                              break;
- 491   5                          }
- 492   4                      }
- 493   3      
- 494   3                      if(state)
- 495   3                              {
- 496   4      //                              gudpbc_HandleSearchReq(pData, id);
- 497   4                                      //use broadcast when scan
- 498   4                                      U8_T socket = TCPIP_UdpNew(2, 3, 0xffffffff, 0, 4321);
- 499   4                                      UdpData();
- 500   4                                      TCPIP_UdpSend(socket, 0, 0, ab, 40);
- 501   4                                      TCPIP_UdpClose(socket);
- 502   4                              }                   
- 503   3                  }
- 504   2                                           
- 505   2                  if((pData[0] == 0xee) && (pData[1] == 0x10))
- 506   2                  {   
- 507   3                              gudpbc_HandleSearchReq(pData, id); 
- 508   3                      IntFlashErase(ERA_RUN, 0x60000);
- 509   3                      FlagIsp = 1;
- 510   3                              USB_disable();
- 511   3                      
- 512   3                              lcdreset();
- 513   3                              AX11000_SoftReboot();   
- 514   3      
- 515   3                  }
- 516   2              }
- 517   1      } /* End of GUDPBC_Receive() */
- 518          
- 519          /*
- 520           * ----------------------------------------------------------------------------
- 521           * Function Name: gudpbc_HandleSearchReq
- 522           * Purpose: 
- 523           * Params:
- 524           * Returns:
- 525           * Note:
- 526           * ----------------------------------------------------------------------------
- 527           */
- 528          void gudpbc_HandleSearchReq(U8_T XDATA* pData, U8_T id)
- 529          {
- 530   1              pData = pData;
- 531   1              UdpData();
- 532   1              TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, ab, 40);
- 533   1      }/* End of gudpbc_HandleSearchReq() */
- 534          
- 535          /*
- 536           * ----------------------------------------------------------------------------
- 537           * Function Name: gudpbc_HandleSetReq
- 538           * Purpose: 
- 539           * Params:
- 540           * Returns:
- 541           * Note:
- 542           * ----------------------------------------------------------------------------
- 543           */
- 544          void gudpbc_HandleSetReq(U8_T XDATA* pData, U16_T length, U8_T id)
-C51 COMPILER V9.06   GUDPBC                                                                03/13/2013 09:32:24 PAGE 10  
+ 476   4                          { 
+ 477   5                                              scanstart=0;
+ 478   5                              state=0;
+ 479   5                              break;
+ 480   5                          }
+ 481   4                      }
+C51 COMPILER V9.06   GUDPBC                                                                05/22/2013 11:21:02 PAGE 9   
 
- 545          {
- 546   1      #if GUDPBC_ENABLE_DEBUG_MSG
+ 482   3      
+ 483   3                      if(state)
+ 484   3                              {
+ 485   4      //                              gudpbc_HandleSearchReq(pData, id);
+ 486   4                                      //use broadcast when scan
+ 487   4                                      U8_T socket = TCPIP_UdpNew(2, 3, 0xffffffff, 0, 4321);
+ 488   4                                      UdpData();
+ 489   4                                      TCPIP_UdpSend(socket, 0, 0, ab, 40);
+ 490   4                                      TCPIP_UdpClose(socket);
+ 491   4                              }                   
+ 492   3                  }
+ 493   2                                           
+ 494   2                  if((pData[0] == 0xee) && (pData[1] == 0x10))
+ 495   2                  {   
+ 496   3                              gudpbc_HandleSearchReq(pData, id); 
+ 497   3                      IntFlashErase(ERA_RUN, 0x60000);
+ 498   3                      FlagIsp = 1;
+ 499   3                              USB_disable();
+ 500   3                              lcdreset();
+ 501   3                              Lcd_Initial();
+ 502   3                              Display_Updating();
+ 503   3                      AX11000_SoftReboot();   
+ 504   3                  }
+ 505   2              }
+ 506   1      } /* End of GUDPBC_Receive() */
+ 507          
+ 508          /*
+ 509           * ----------------------------------------------------------------------------
+ 510           * Function Name: gudpbc_HandleSearchReq
+ 511           * Purpose: 
+ 512           * Params:
+ 513           * Returns:
+ 514           * Note:
+ 515           * ----------------------------------------------------------------------------
+ 516           */
+ 517          void gudpbc_HandleSearchReq(U8_T XDATA* pData, U8_T id)
+ 518          {
+ 519   1              pData = pData;
+ 520   1              UdpData();
+ 521   1              TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, ab, 40);
+ 522   1      }/* End of gudpbc_HandleSearchReq() */
+ 523          
+ 524          /*
+ 525           * ----------------------------------------------------------------------------
+ 526           * Function Name: gudpbc_HandleSetReq
+ 527           * Purpose: 
+ 528           * Params:
+ 529           * Returns:
+ 530           * Note:
+ 531           * ----------------------------------------------------------------------------
+ 532           */
+ 533          void gudpbc_HandleSetReq(U8_T XDATA* pData, U16_T length, U8_T id)
+ 534          {
+ 535   1      #if GUDPBC_ENABLE_DEBUG_MSG
                       printd("gudpbc_HandleSetReq()...\n\r");
               #endif
- 549   1      
- 550   1      #if GS2E_ENABLE_STATE_MACHINE   
+ 538   1      
+ 539   1      #if GS2E_ENABLE_STATE_MACHINE   
                       if (GS2E_GetTaskState() == GS2E_STATE_IDLE)
               #else
- 553   1              if (1)
- 554   1      #endif
- 555   1              {
- 556   2                      GCONFIG_SetConfigPacket(&gudpbc_ConfigRxPkt);
- 557   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_SET_ACK;
- 558   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
- 559   2              }
- 560   1              else
- 561   1              {
- 562   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_SET_DENY;     
- 563   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);         
- 564   2              }
- 565   1      } /* End of gudpbc_HandleSetReq() */
- 566          
- 567          /*
- 568           * ----------------------------------------------------------------------------
- 569           * Function Name: gudpbc_HandleUpgradeReq
- 570           * Purpose: 
- 571           * Params:
- 572           * Returns:
- 573           * Note:
+ 542   1              if (1)
+ 543   1      #endif
+C51 COMPILER V9.06   GUDPBC                                                                05/22/2013 11:21:02 PAGE 10  
+
+ 544   1              {
+ 545   2                      GCONFIG_SetConfigPacket(&gudpbc_ConfigRxPkt);
+ 546   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_SET_ACK;
+ 547   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
+ 548   2              }
+ 549   1              else
+ 550   1              {
+ 551   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_SET_DENY;     
+ 552   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);         
+ 553   2              }
+ 554   1      } /* End of gudpbc_HandleSetReq() */
+ 555          
+ 556          
+ 557          
+ 558          /*
+ 559           * ----------------------------------------------------------------------------
+ 560           * Function Name: GCONFIG_SetFirmwareUpgradeMode
+ 561           * Purpose: 
+ 562           * Params: mode = 1: enable firmware ipgrade after reboot ,  mode = 0: disable
+ 563           * Returns:
+ 564           * Note:
+ 565           * ----------------------------------------------------------------------------
+ 566           */
+ 567          //void GCONFIG_SetFirmwareUpgradeMode(U8_T mode)
+ 568          //{
+ 569          //      gconfig_ConfigData.FirmwareUpgradeMode = mode;
+ 570          //} /* End of GCONFIG_SetFirmwareUpgradeMode() */
+ 571          
+ 572          
+ 573          /*
  574           * ----------------------------------------------------------------------------
- 575           */
- 576          void gudpbc_HandleUpgradeReq(U8_T XDATA* pData, U16_T length, U8_T id)
- 577          {       
- 578   1      #if GUDPBC_ENABLE_DEBUG_MSG
+ 575           * Function Name: gudpbc_HandleUpgradeReq
+ 576           * Purpose: 
+ 577           * Params:
+ 578           * Returns:
+ 579           * Note:
+ 580           * ----------------------------------------------------------------------------
+ 581           */
+ 582          void gudpbc_HandleUpgradeReq(U8_T XDATA* pData, U16_T length, U8_T id)
+ 583          {       
+ 584   1      #if GUDPBC_ENABLE_DEBUG_MSG
                       printd("gudpbc_HandleUpgradeReq()...\n\r");
               #endif
- 581   1      
- 582   1      #if GS2E_ENABLE_STATE_MACHINE   
+ 587   1      
+ 588   1      #if GS2E_ENABLE_STATE_MACHINE   
                       if (GS2E_GetTaskState() == GS2E_STATE_IDLE)
               #else
- 585   1              if (1)
- 586   1      #endif
- 587   1              {
- 588   2                      GCONFIG_SetFirmwareUpgradeMode(GCONFIG_FW_UPGRADE_ENABLE);
- 589   2                      GCONFIG_WriteConfigData();
- 590   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_UPGRADE_ACK;
- 591   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
- 592   2              //      FirmwareUpdate();
- 593   2              }
- 594   1              else
- 595   1              {
- 596   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_UPGRADE_DENY;         
+ 591   1              if (1)
+ 592   1      #endif
+ 593   1              {
+ 594   2      //              GCONFIG_SetFirmwareUpgradeMode(GCONFIG_FW_UPGRADE_ENABLE);
+ 595   2                      GCONFIG_WriteConfigData();
+ 596   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_UPGRADE_ACK;
  597   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
- 598   2              }
- 599   1      } /* End of gudpbc_HandleUpgradeReq() */
- 600          
- 601          /*
- 602           * ----------------------------------------------------------------------------
- 603           * Function Name: gudpbc_HandleResetReq
- 604           * Purpose: 
- 605           * Params:
- 606           * Returns:
-C51 COMPILER V9.06   GUDPBC                                                                03/13/2013 09:32:24 PAGE 11  
+ 598   2              //      FirmwareUpdate();
+ 599   2              }
+ 600   1              else
+ 601   1              {
+ 602   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_UPGRADE_DENY;         
+ 603   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
+ 604   2              }
+ 605   1      } /* End of gudpbc_HandleUpgradeReq() */
+C51 COMPILER V9.06   GUDPBC                                                                05/22/2013 11:21:02 PAGE 11  
 
- 607           * Note:
- 608           * ----------------------------------------------------------------------------
- 609           */
- 610          void gudpbc_HandleResetReq(U8_T XDATA* pData, U16_T length, U8_T id)
- 611          {
- 612   1      #if GUDPBC_ENABLE_DEBUG_MSG
+ 606          
+ 607          
+ 608          
+ 609          
+ 610          
+ 611          
+ 612          
+ 613          /*
+ 614           * ----------------------------------------------------------------------------
+ 615           * Function Name: gudpbc_HandleResetReq
+ 616           * Purpose: 
+ 617           * Params:
+ 618           * Returns:
+ 619           * Note:
+ 620           * ----------------------------------------------------------------------------
+ 621           */
+ 622          void gudpbc_HandleResetReq(U8_T XDATA* pData, U16_T length, U8_T id)
+ 623          {
+ 624   1      #if GUDPBC_ENABLE_DEBUG_MSG
                       printd("gudpbc_HandleResetReq()...\n\r");
               #endif
- 615   1      
- 616   1      #if GS2E_ENABLE_STATE_MACHINE   
+ 627   1      
+ 628   1      #if GS2E_ENABLE_STATE_MACHINE   
                       if (GS2E_GetTaskState() == GS2E_STATE_IDLE)
               #else
- 619   1              if (1)
- 620   1      #endif
- 621   1              {
- 622   2                      GCONFIG_ReadDefaultConfigData();
- 623   2                      GCONFIG_WriteConfigData();
- 624   2                      GCONFIG_GetConfigPacket(&gudpbc_ConfigRxPkt);
- 625   2                      gudpbc_ConfigRxPkt.Opcode = GCONFIG_OPCODE_RESET_ACK;
- 626   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, (U8_T*) &gudpbc_ConfigRxPkt, GCONFIG_CFG_PKT_LEN);
- 627   2              }
- 628   1              else
- 629   1              {
- 630   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_RESET_DENY;   
- 631   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
- 632   2              }
- 633   1      } /* End of gudpbc_HandleResetReq() */
- 634          
- 635          /*
- 636           * ----------------------------------------------------------------------------
- 637           * Function Name: gudpbc_HandleRebootReq
- 638           * Purpose: 
- 639           * Params:
- 640           * Returns:
- 641           * Note:
- 642           * ----------------------------------------------------------------------------
- 643           */
- 644          void gudpbc_HandleRebootReq(U8_T XDATA* pData, U16_T length, U8_T id)
- 645          {
- 646   1      #if GUDPBC_ENABLE_DEBUG_MSG
+ 631   1              if (1)
+ 632   1      #endif
+ 633   1              {
+ 634   2                      GCONFIG_ReadDefaultConfigData();
+ 635   2                      GCONFIG_WriteConfigData();
+ 636   2                      GCONFIG_GetConfigPacket(&gudpbc_ConfigRxPkt);
+ 637   2                      gudpbc_ConfigRxPkt.Opcode = GCONFIG_OPCODE_RESET_ACK;
+ 638   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, (U8_T*) &gudpbc_ConfigRxPkt, GCONFIG_CFG_PKT_LEN);
+ 639   2              }
+ 640   1              else
+ 641   1              {
+ 642   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_RESET_DENY;   
+ 643   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
+ 644   2              }
+ 645   1      } /* End of gudpbc_HandleResetReq() */
+ 646          
+ 647          /*
+ 648           * ----------------------------------------------------------------------------
+ 649           * Function Name: gudpbc_HandleRebootReq
+ 650           * Purpose: 
+ 651           * Params:
+ 652           * Returns:
+ 653           * Note:
+ 654           * ----------------------------------------------------------------------------
+ 655           */
+ 656          void gudpbc_HandleRebootReq(U8_T XDATA* pData, U16_T length, U8_T id)
+ 657          {
+ 658   1      #if GUDPBC_ENABLE_DEBUG_MSG
                       printd("gudpbc_HandleRebootReq()...\n\r");
               #endif
- 649   1      
- 650   1      #if GS2E_ENABLE_STATE_MACHINE
+ 661   1      
+ 662   1      #if GS2E_ENABLE_STATE_MACHINE
                       if (GS2E_GetTaskState() == GS2E_STATE_IDLE)
               #else
- 653   1              if (1)
- 654   1      #endif
- 655   1              {
- 656   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_REBOOT_ACK;   
- 657   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
- 658   2                      // May store current status/setting here before restart
- 659   2                      
- 660   2                      lcdreset();
- 661   2                      AX11000_SoftReboot();
- 662   2      
- 663   2              }
- 664   1              else
- 665   1              {
- 666   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_RESET_DENY;   
- 667   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
- 668   2              }
-C51 COMPILER V9.06   GUDPBC                                                                03/13/2013 09:32:24 PAGE 12  
+ 665   1              if (1)
+ 666   1      #endif
+ 667   1              {
+C51 COMPILER V9.06   GUDPBC                                                                05/22/2013 11:21:02 PAGE 12  
 
- 669   1      } /* End of gudpbc_HandleRebootReq() */
- 670          
- 671          #if GUDPBC_EEPROM_CONFIG
+ 668   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_REBOOT_ACK;   
+ 669   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
+ 670   2                      // May store current status/setting here before restart
+ 671   2                      lcdreset();
+ 672   2                      Lcd_Initial();
+ 673   2                      Display_Updating();
+ 674   2                      AX11000_SoftReboot();
+ 675   2              }
+ 676   1              else
+ 677   1              {
+ 678   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_RESET_DENY;   
+ 679   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
+ 680   2              }
+ 681   1      } /* End of gudpbc_HandleRebootReq() */
+ 682          
+ 683          #if GUDPBC_EEPROM_CONFIG
               /*
                * ----------------------------------------------------------------------------
                * Function Name: gudpbc_HandleEepromReadReq
@@ -748,13 +761,15 @@ line level    source
                       TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
               }
               #endif
- 713          /* End of gudpbc.c */
+ 725          /* End of gudpbc.c */
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   4455    ----
+   CODE SIZE        =   4456    ----
+C51 COMPILER V9.06   GUDPBC                                                                05/22/2013 11:21:02 PAGE 13  
+
    CONSTANT SIZE    =     19    ----
-   XDATA SIZE       =    194      53
+   XDATA SIZE       =    930      53
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----

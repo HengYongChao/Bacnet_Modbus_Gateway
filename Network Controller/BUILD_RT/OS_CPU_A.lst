@@ -1,9 +1,9 @@
-AX51 MACRO ASSEMBLER  OS_CPU_A                                                              03/13/13 09:32:28 PAGE     1
+AX51 MACRO ASSEMBLER  OS_CPU_A                                                              05/20/13 14:16:33 PAGE     1
 
 
 MACRO ASSEMBLER AX51 V3.07c
 OBJECT MODULE PLACED IN .\OS_CPU_A.obj
-ASSEMBLER INVOKED BY: d:\Keil_4_9.06\C51\BIN\AX51.EXE ..\src\FreeRtossource\portable\Keil\AX11000\OS_CPU_A.A51 MOD_CONT 
+ASSEMBLER INVOKED BY: E:\Keil_4_9.06\C51\BIN\AX51.EXE ..\src\FreeRtossource\portable\Keil\AX11000\OS_CPU_A.A51 MOD_CONT 
                       INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\uip\;..\SRC\
                       main\;..\SRC\tcpip\;..\SRC\hsur\;..\SRC\gs2e\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapte
                       r\;..\SRC\pppoe\) SET(LARGE) DEBUG PRINT(.\OS_CPU_A.lst) OBJECT(.\OS_CPU_A.obj) EP
@@ -65,7 +65,7 @@ LOC    OBJ             LINE     SOURCE
   008B              +1   53     sfr TL1                 = 0x8B;// Timer 1 Low Byte Counter
   008C              +1   54     sfr TH0                 = 0x8C;// Timer 0 High Byte Counter
   008D              +1   55     sfr TH1                 = 0x8D;// Timer 1 High Byte Counter
-AX51 MACRO ASSEMBLER  OS_CPU_A                                                              03/13/13 09:32:28 PAGE     2
+AX51 MACRO ASSEMBLER  OS_CPU_A                                                              05/20/13 14:16:33 PAGE     2
 
   008E              +1   56     sfr CKCON               = 0x8E;// Clock Control Register
   008F              +1   57     sfr CSREPR              = 0x8F;// Software Reset and External Program RAM Select Registe
@@ -133,7 +133,7 @@ LOC    OBJ             LINE     SOURCE
   00BD              +1  116     sfr CCAPH4      = 0xBD;// PCA Module 4 Compare/Capture High Byte Register
   00BE              +1  117     sfr EPCR                = 0xBE;// Ethernet PHY Command Index Register
   00BF              +1  118     sfr EPDR                = 0xBF;// Ethernet PHY Data Register
-AX51 MACRO ASSEMBLER  OS_CPU_A                                                              03/13/13 09:32:28 PAGE     3
+AX51 MACRO ASSEMBLER  OS_CPU_A                                                              05/20/13 14:16:33 PAGE     3
 
                     +1  119     
   00C0              +1  120     sfr SCON1               = 0xC0;// UART 1 Configuration Register
@@ -201,7 +201,7 @@ LOC    OBJ             LINE     SOURCE
 0080.0              +1  181     sbit P0_0               = 0x80;
 0080.1              +1  182     sbit P0_1               = 0x81;
 0080.2              +1  183     sbit P0_2               = 0x82;
-AX51 MACRO ASSEMBLER  OS_CPU_A                                                              03/13/13 09:32:28 PAGE     4
+AX51 MACRO ASSEMBLER  OS_CPU_A                                                              05/20/13 14:16:33 PAGE     4
 
 0080.3              +1  184     sbit P0_3               = 0x83;
 0080.4              +1  185     sbit P0_4               = 0x84;
@@ -269,7 +269,7 @@ LOC    OBJ             LINE     SOURCE
                     +1  247     
                     +1  248     
                     +1  249     
-AX51 MACRO ASSEMBLER  OS_CPU_A                                                              03/13/13 09:32:28 PAGE     5
+AX51 MACRO ASSEMBLER  OS_CPU_A                                                              05/20/13 14:16:33 PAGE     5
 
                     +1  250     
                     +1  251     
@@ -337,7 +337,7 @@ LOC    OBJ             LINE     SOURCE
                     +1  313     
                     +1  314     
                     +1  315     
-AX51 MACRO ASSEMBLER  OS_CPU_A                                                              03/13/13 09:32:28 PAGE     6
+AX51 MACRO ASSEMBLER  OS_CPU_A                                                              05/20/13 14:16:33 PAGE     6
 
                     +1  316     
                     +1  317     
@@ -405,7 +405,7 @@ LOC    OBJ             LINE     SOURCE
                     +1  379     
                     +1  380     
 00C0.0              +1  381     sbit RI1                = 0xC0;
-AX51 MACRO ASSEMBLER  OS_CPU_A                                                              03/13/13 09:32:28 PAGE     7
+AX51 MACRO ASSEMBLER  OS_CPU_A                                                              05/20/13 14:16:33 PAGE     7
 
 00C0.1              +1  382     sbit TI1                = 0xC1;
 00C0.2              +1  383     sbit RB18               = 0xC2;
@@ -473,7 +473,7 @@ LOC    OBJ             LINE     SOURCE
                     +1  445     
                     +1  446     
                     +1  447     
-AX51 MACRO ASSEMBLER  OS_CPU_A                                                              03/13/13 09:32:28 PAGE     8
+AX51 MACRO ASSEMBLER  OS_CPU_A                                                              05/20/13 14:16:33 PAGE     8
 
 00D8.0              +1  448     sbit RWT                = 0xD8;
 00D8.1              +1  449     sbit EWT                = 0xD9;
@@ -541,7 +541,7 @@ LOC    OBJ             LINE     SOURCE
                     +1  511     
                     +1  512     
                     +1  513     
-AX51 MACRO ASSEMBLER  OS_CPU_A                                                              03/13/13 09:32:28 PAGE     9
+AX51 MACRO ASSEMBLER  OS_CPU_A                                                              05/20/13 14:16:33 PAGE     9
 
                     +1  514     
                     +1  515     
@@ -609,7 +609,7 @@ LOC    OBJ             LINE     SOURCE
                         577                     MOV     C_XBP+1, DPL
                         578                     POP     IE
                         579             ENDM
-AX51 MACRO ASSEMBLER  OS_CPU_A                                                              03/13/13 09:32:28 PAGE    10
+AX51 MACRO ASSEMBLER  OS_CPU_A                                                              05/20/13 14:16:33 PAGE    10
 
                         580     
                         581     LoadREG MACRO   REG
@@ -677,7 +677,7 @@ LOC    OBJ             LINE     SOURCE
                                s much.
 000012 18               645             DEC     R0                              ;
 000013 B800F9           646             CJNE    R0, #BYTE0 (STACK_START-1), LC_1                ;
-AX51 MACRO ASSEMBLER  OS_CPU_A                                                              03/13/13 09:32:28 PAGE    11
+AX51 MACRO ASSEMBLER  OS_CPU_A                                                              05/20/13 14:16:33 PAGE    11
 
                         647     
                         648+1           SaveXBP                                 ; after the hardware stack has been popp
@@ -745,7 +745,7 @@ LOC    OBJ             LINE     SOURCE
                         743     
 000095                  744     SC_2:
 000095 A3               745             INC     DPTR                            ;
-AX51 MACRO ASSEMBLER  OS_CPU_A                                                              03/13/13 09:32:28 PAGE    12
+AX51 MACRO ASSEMBLER  OS_CPU_A                                                              05/20/13 14:16:33 PAGE    12
 
 000096 D0E0             746             POP     ACC                             ; Pop the data from hareware stack
 000098 F0               747             MOVX    @DPTR, A                        ; and save into external one.
@@ -800,7 +800,7 @@ LOC    OBJ             LINE     SOURCE
 0000CF 02000000   E     793             LJMP    _?vIntPortContextSwitch                 ; 
                         794     
                         795             END
-AX51 MACRO ASSEMBLER  OS_CPU_A                                                              03/13/13 09:32:28 PAGE    13
+AX51 MACRO ASSEMBLER  OS_CPU_A                                                              05/20/13 14:16:33 PAGE    13
 
 SYMBOL TABLE LISTING
 ------ ----- -------
@@ -868,7 +868,7 @@ DT?C_XBP . . . . . . . . .  D  SEG   000004H       REL=UNIT, ALN=BYTE
 EA . . . . . . . . . . . .  B  ADDR  00A8H.7   A   
 EIE. . . . . . . . . . . .  D  ADDR  00E8H     A   
 EIF. . . . . . . . . . . .  D  ADDR  0091H     A   
-AX51 MACRO ASSEMBLER  OS_CPU_A                                                              03/13/13 09:32:28 PAGE    14
+AX51 MACRO ASSEMBLER  OS_CPU_A                                                              05/20/13 14:16:33 PAGE    14
 
 EINT2. . . . . . . . . . .  B  ADDR  00E8H.0   A   
 EINT3. . . . . . . . . . .  B  ADDR  00E8H.1   A   
@@ -936,7 +936,7 @@ P0_3 . . . . . . . . . . .  B  ADDR  0080H.3   A
 P0_4 . . . . . . . . . . .  B  ADDR  0080H.4   A   
 P0_5 . . . . . . . . . . .  B  ADDR  0080H.5   A   
 P0_6 . . . . . . . . . . .  B  ADDR  0080H.6   A   
-AX51 MACRO ASSEMBLER  OS_CPU_A                                                              03/13/13 09:32:28 PAGE    15
+AX51 MACRO ASSEMBLER  OS_CPU_A                                                              05/20/13 14:16:33 PAGE    15
 
 P0_7 . . . . . . . . . . .  B  ADDR  0080H.7   A   
 P1 . . . . . . . . . . . .  D  ADDR  0090H     A   
@@ -1004,7 +1004,7 @@ SBUF1. . . . . . . . . . .  D  ADDR  00C1H     A
 SC_1 . . . . . . . . . . .  C  ADDR  0084H     R   SEG=PR?LOADCTX
 SC_2 . . . . . . . . . . .  C  ADDR  0095H     R   SEG=PR?LOADCTX
 SC_3 . . . . . . . . . . .  C  ADDR  00B8H     R   SEG=PR?LOADCTX
-AX51 MACRO ASSEMBLER  OS_CPU_A                                                              03/13/13 09:32:28 PAGE    16
+AX51 MACRO ASSEMBLER  OS_CPU_A                                                              05/20/13 14:16:33 PAGE    16
 
 SC_4 . . . . . . . . . . .  C  ADDR  00C9H     R   SEG=PR?LOADCTX
 SCON0. . . . . . . . . . .  D  ADDR  0098H     A   
@@ -1072,7 +1072,7 @@ XMWLR. . . . . . . . . . .  D  ADDR  00A4H     A
 
 
 REGISTER BANK(S) USED: 0 
-AX51 MACRO ASSEMBLER  OS_CPU_A                                                              03/13/13 09:32:28 PAGE    17
+AX51 MACRO ASSEMBLER  OS_CPU_A                                                              05/20/13 14:16:33 PAGE    17
 
 
 

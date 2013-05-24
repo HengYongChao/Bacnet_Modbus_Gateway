@@ -344,6 +344,14 @@ void lcdreset(void)	   /* reset lcd before grogramming */
 	RESET = 0;
 }
 
+void Display_reboot(void)
+{
+
+	Lcd_Show_String(2,5,"Reboot...",1,9);
+}
+
+
+
 
 void Lcd_Initial(void)
 {
@@ -523,6 +531,8 @@ void Lcd_All_Off(void)
 }
 
 
+
+
 void Lcd_show_for_32bit(char pos_x,char pos_y,unsigned long number,char mode) //,char div, bool signed)
 {
 	char data loop = 0;
@@ -579,3 +589,5 @@ void Lcd_show_for_32bit(char pos_x,char pos_y,unsigned long number,char mode) //
 		by_y ++;
 	}
 }
+
+

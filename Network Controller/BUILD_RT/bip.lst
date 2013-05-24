@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   BIP                                                                   01/28/2013 13:35:44 PAGE 1   
+C51 COMPILER V9.06   BIP                                                                   03/28/2013 13:47:36 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE BIP
@@ -7,7 +7,8 @@ COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\bip.c LARGE OM
                     -CDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\
                     -SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buf
                     -fer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\S
-                    -rc\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\bip.lst) OBJECT(.\bip.obj)
+                    -rc\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD) DEFINE(KEIL_AX11000) VARBANKING DEB
+                    -UG PRINT(.\bip.lst) OBJECT(.\bip.obj)
 
 line level    source
 
@@ -53,19 +54,19 @@ line level    source
   40          #include "../include/bvlc.h"
   41          #include "../include/net.h"        /* custom per port */
   42          #include <string.h>
-  43          //#include <WinSock.h>
-  44          
+  43          
+  44           
   45          #if PRINT_ENABLED
               #include <stdio.h>      /* for standard i/o, like printing */
               #endif
   48          
   49          /** @file bip.c  Configuration and Operations for BACnet/IP */
   50          
-  51          static int BIP_Socket = -1;
-C51 COMPILER V9.06   BIP                                                                   01/28/2013 13:35:44 PAGE 2   
+C51 COMPILER V9.06   BIP                                                                   03/28/2013 13:47:36 PAGE 2   
 
+  51          static int BIP_Socket = -1;
   52          /* port to use - stored in network byte order */
-  53          static uint16_t BIP_Port = 0;   /* this will force initialization in demos */
+  53          static uint16_t BIP_Port = 0xBAC0;   /* this will force initialization in demos */
   54          /* IP Address - stored in network byte order */
   55          static struct in_addr BIP_Address;
   56          /* Broadcast Address - stored in network byte order */
@@ -125,9 +126,9 @@ line level    source
  110          
  111          
  112          void bip_set_port(
- 113              uint16_t port)
-C51 COMPILER V9.06   BIP                                                                   01/28/2013 13:35:44 PAGE 3   
+C51 COMPILER V9.06   BIP                                                                   03/28/2013 13:47:36 PAGE 3   
 
+ 113              uint16_t port)
  114          {       /* in network byte order */
  115   1          BIP_Port = port;
  116   1      }
@@ -189,9 +190,9 @@ line level    source
  171   1          bip_dest.sin_family = AF_INET;
  172   1          if (dest->net == BACNET_BROADCAST_NETWORK) {
  173   2              /* broadcast */
- 174   2              address.s_addr = BIP_Broadcast_Address.s_addr;
-C51 COMPILER V9.06   BIP                                                                   01/28/2013 13:35:44 PAGE 4   
+C51 COMPILER V9.06   BIP                                                                   03/28/2013 13:47:36 PAGE 4   
 
+ 174   2              address.s_addr = BIP_Broadcast_Address.s_addr;
  175   2              port = BIP_Port;
  176   2              mtu[1] = BVLC_ORIGINAL_BROADCAST_NPDU;
  177   2          } else if (dest->mac_len == 6) {
@@ -238,202 +239,209 @@ line level    source
  216              uint16_t max_pdu,   /* amount of space available in the PDU  */
  217              unsigned timeout)
  218          {
- 219   1          int received_bytes = 0;
- 220   1          uint16_t pdu_len = 0;       /* return value */
- 221   1          fd_set read_fds;
-*** ERROR C202 IN LINE 221 OF ..\src\bacnet\bip.c: 'fd_set': undefined identifier
-*** ERROR C141 IN LINE 221 OF ..\src\bacnet\bip.c: syntax error near 'read_fds'
- 222   1          int max = 0;
-*** ERROR C141 IN LINE 222 OF ..\src\bacnet\bip.c: syntax error near 'int'
-*** ERROR C202 IN LINE 222 OF ..\src\bacnet\bip.c: 'max': undefined identifier
- 223   1          struct timeval select_timeout;
-*** ERROR C141 IN LINE 223 OF ..\src\bacnet\bip.c: syntax error near 'struct'
-*** ERROR C202 IN LINE 223 OF ..\src\bacnet\bip.c: 'timeval': undefined identifier
- 224   1          struct sockaddr_in sin = { 0 };
-*** ERROR C141 IN LINE 224 OF ..\src\bacnet\bip.c: syntax error near 'struct'
-*** ERROR C202 IN LINE 224 OF ..\src\bacnet\bip.c: 'sockaddr_in': undefined identifier
-*** ERROR C141 IN LINE 224 OF ..\src\bacnet\bip.c: syntax error near '{'
-*** ERROR C141 IN LINE 224 OF ..\src\bacnet\bip.c: syntax error near '}'
-C51 COMPILER V9.06   BIP                                                                   01/28/2013 13:35:44 PAGE 5   
+ 219   1              
+ 220   1      t       fd_set read_fds;
+*** ERROR C202 IN LINE 220 OF ..\src\bacnet\bip.c: 't': undefined identifier
+*** ERROR C141 IN LINE 220 OF ..\src\bacnet\bip.c: syntax error near 'fd_set'
+ 221   1          struct timeval select_timeout;
+*** ERROR C141 IN LINE 221 OF ..\src\bacnet\bip.c: syntax error near 'struct'
+*** ERROR C202 IN LINE 221 OF ..\src\bacnet\bip.c: 'timeval': undefined identifier
+ 222   1              
+ 223   1              uint16_t received_bytes = 0;
+*** ERROR C141 IN LINE 223 OF ..\src\bacnet\bip.c: syntax error near 'uint16_t'
+*** ERROR C202 IN LINE 223 OF ..\src\bacnet\bip.c: 'received_bytes': undefined identifier
+ 224   1          uint16_t pdu_len = 0;       /* return value */
+*** ERROR C141 IN LINE 224 OF ..\src\bacnet\bip.c: syntax error near 'uint16_t'
+*** ERROR C202 IN LINE 224 OF ..\src\bacnet\bip.c: 'pdu_len': undefined identifier
+ 225   1          uint16_t i = 0;
+C51 COMPILER V9.06   BIP                                                                   03/28/2013 13:47:36 PAGE 5   
 
- 225   1          socklen_t sin_len = sizeof(sin);
-*** ERROR C141 IN LINE 225 OF ..\src\bacnet\bip.c: syntax error near 'socklen_t'
- 226   1          uint16_t i = 0;
+*** ERROR C141 IN LINE 225 OF ..\src\bacnet\bip.c: syntax error near 'uint16_t'
+*** ERROR C202 IN LINE 225 OF ..\src\bacnet\bip.c: 'i': undefined identifier
+ 226   1          uint16_t function = 0;
 *** ERROR C141 IN LINE 226 OF ..\src\bacnet\bip.c: syntax error near 'uint16_t'
-*** ERROR C202 IN LINE 226 OF ..\src\bacnet\bip.c: 'i': undefined identifier
- 227   1          int function = 0;
-*** ERROR C141 IN LINE 227 OF ..\src\bacnet\bip.c: syntax error near 'int'
-*** ERROR C202 IN LINE 227 OF ..\src\bacnet\bip.c: 'function': undefined identifier
- 228   1      
- 229   1          /* Make sure the socket is open */
- 230   1          if (BIP_Socket < 0)
- 231   1              return 0;
- 232   1      
- 233   1          /* we could just use a non-blocking socket, but that consumes all
- 234   1             the CPU time.  We can use a timeout; it is only supported as
- 235   1             a select. */
- 236   1          if (timeout >= 1000) {
- 237   2              select_timeout.tv_sec = timeout / 1000;
- 238   2              select_timeout.tv_usec =
- 239   2                  1000 * (timeout - select_timeout.tv_sec * 1000);
- 240   2          } else {
- 241   2              select_timeout.tv_sec = 0;
- 242   2              select_timeout.tv_usec = 1000 * timeout;
- 243   2          }
- 244   1          FD_ZERO(&read_fds);
-*** ERROR C202 IN LINE 244 OF ..\src\bacnet\bip.c: 'read_fds': undefined identifier
- 245   1          FD_SET(BIP_Socket, &read_fds);
- 246   1          max = BIP_Socket;
- 247   1          /* see if there is a packet for us */
- 248   1          if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0)
- 249   1              received_bytes =
- 250   1                  recvfrom(BIP_Socket, (char *) &pdu[0], max_pdu, 0,
- 251   1                  (struct sockaddr *) &sin, &sin_len);
- 252   1          else
- 253   1              return 0;
- 254   1      
- 255   1          /* See if there is a problem */
- 256   1          if (received_bytes < 0) {
- 257   2              return 0;
- 258   2          }
- 259   1      
- 260   1          /* no problem, just no bytes */
- 261   1          if (received_bytes == 0)
- 262   1              return 0;
- 263   1      
- 264   1          /* the signature of a BACnet/IP packet */
- 265   1          if (pdu[0] != BVLL_TYPE_BACNET_IP)
- 266   1              return 0;
- 267   1      
- 268   1          if (bvlc_for_non_bbmd(&sin, pdu, received_bytes) > 0) {
- 269   2              /* Handled, usually with a NACK. */
- 270   2      #if PRINT_ENABLED
+*** ERROR C202 IN LINE 226 OF ..\src\bacnet\bip.c: 'function': undefined identifier
+ 227   1          uint16_t max = 0;
+*** ERROR C141 IN LINE 227 OF ..\src\bacnet\bip.c: syntax error near 'uint16_t'
+*** ERROR C202 IN LINE 227 OF ..\src\bacnet\bip.c: 'max': undefined identifier
+ 228   1              
+ 229   1          struct sockaddr_in sin = { 0 };
+*** ERROR C141 IN LINE 229 OF ..\src\bacnet\bip.c: syntax error near 'struct'
+*** ERROR C202 IN LINE 229 OF ..\src\bacnet\bip.c: 'sockaddr_in': undefined identifier
+*** ERROR C141 IN LINE 229 OF ..\src\bacnet\bip.c: syntax error near '{'
+*** ERROR C141 IN LINE 229 OF ..\src\bacnet\bip.c: syntax error near '}'
+ 230   1          uint16_t sin_len = sizeof(sin);
+*** ERROR C141 IN LINE 230 OF ..\src\bacnet\bip.c: syntax error near 'uint16_t'
+ 231   1      
+ 232   1          /* Make sure the socket is open */
+ 233   1          if (BIP_Socket < 0)
+ 234   1              return 0;
+ 235   1      
+ 236   1          /* we could just use a non-blocking socket, but that consumes all
+ 237   1             the CPU time.  We can use a timeout; it is only supported as
+ 238   1             a select. */
+ 239   1          if (timeout >= 1000) {
+ 240   2              select_timeout.tv_sec = timeout / 1000;
+ 241   2              select_timeout.tv_usec =
+ 242   2                  1000 * (timeout - select_timeout.tv_sec * 1000);
+ 243   2          } else {
+ 244   2              select_timeout.tv_sec = 0;
+ 245   2              select_timeout.tv_usec = 1000 * timeout;
+ 246   2          }
+ 247   1          FD_ZERO(&read_fds);
+*** ERROR C202 IN LINE 247 OF ..\src\bacnet\bip.c: 'read_fds': undefined identifier
+ 248   1          FD_SET(BIP_Socket, &read_fds);
+ 249   1          max = BIP_Socket;
+ 250   1          /* see if there is a packet for us */
+ 251   1          if (select(max + 1, &read_fds, NULL, NULL, &select_timeout) > 0)
+ 252   1              received_bytes =
+ 253   1                  recvfrom(BIP_Socket, (char *) &pdu[0], max_pdu, 0,
+ 254   1                  (struct sockaddr *) &sin, &sin_len);
+ 255   1          else
+ 256   1              return 0;
+ 257   1      
+ 258   1          /* See if there is a problem */
+ 259   1          if (received_bytes < 0) {
+ 260   2              return 0;
+ 261   2          }
+ 262   1      
+ 263   1          /* no problem, just no bytes */
+ 264   1          if (received_bytes == 0)
+ 265   1              return 0;
+ 266   1      
+ 267   1          /* the signature of a BACnet/IP packet */
+ 268   1          if (pdu[0] != BVLL_TYPE_BACNET_IP)
+ 269   1              return 0;
+ 270   1      
+ 271   1          if (bvlc_for_non_bbmd(&sin, pdu, received_bytes) > 0) {
+ 272   2              /* Handled, usually with a NACK. */
+ 273   2      #if PRINT_ENABLED
                       fprintf(stderr, "BIP: BVLC discarded!\n");
               #endif
- 273   2              return 0;
- 274   2          }
- 275   1      
- 276   1          function = bvlc_get_function_code();        /* aka, pdu[1] */
- 277   1          if ((function == BVLC_ORIGINAL_UNICAST_NPDU) ||
- 278   1              (function == BVLC_ORIGINAL_BROADCAST_NPDU)) {
- 279   2              /* ignore messages from me */
- 280   2              if ((sin.sin_addr.s_addr == BIP_Address.s_addr) &&
-C51 COMPILER V9.06   BIP                                                                   01/28/2013 13:35:44 PAGE 6   
+C51 COMPILER V9.06   BIP                                                                   03/28/2013 13:47:36 PAGE 6   
 
- 281   2                  (sin.sin_port == BIP_Port)) {
- 282   3                  pdu_len = 0;
- 283   3      #if 0
+ 276   2              return 0;
+ 277   2          }
+ 278   1      
+ 279   1          function = bvlc_get_function_code();        /* aka, pdu[1] */
+ 280   1          if ((function == BVLC_ORIGINAL_UNICAST_NPDU) ||
+ 281   1              (function == BVLC_ORIGINAL_BROADCAST_NPDU)) {
+ 282   2              /* ignore messages from me */
+ 283   2              if ((sin.sin_addr.s_addr == BIP_Address.s_addr) &&
+ 284   2                  (sin.sin_port == BIP_Port)) {
+ 285   3                  pdu_len = 0;
+ 286   3      #if 0
                           fprintf(stderr, "BIP: src is me. Discarded!\n");
               #endif
- 286   3              } else {
- 287   3                  /* data in src->mac[] is in network format */
- 288   3                  src->mac_len = 6;
- 289   3                  memcpy(&src->mac[0], &sin.sin_addr.s_addr, 4);
- 290   3                  memcpy(&src->mac[4], &sin.sin_port, 2);
- 291   3                  /* FIXME: check destination address */
- 292   3                  /* see if it is broadcast or for us */
- 293   3                  /* decode the length of the PDU - length is inclusive of BVLC */
- 294   3                  (void) decode_unsigned16(&pdu[2], &pdu_len);
- 295   3                  /* subtract off the BVLC header */
- 296   3                  pdu_len -= 4;
- 297   3                  if (pdu_len < max_pdu) {
- 298   4      #if 0
+ 289   3              } else {
+ 290   3                  /* data in src->mac[] is in network format */
+ 291   3                  src->mac_len = 6;
+ 292   3                  memcpy(&src->mac[0], &sin.sin_addr.s_addr, 4);
+ 293   3                  memcpy(&src->mac[4], &sin.sin_port, 2);
+ 294   3                  /* FIXME: check destination address */
+ 295   3                  /* see if it is broadcast or for us */
+ 296   3                  /* decode the length of the PDU - length is inclusive of BVLC */
+ 297   3                  (void) decode_unsigned16(&pdu[2], &pdu_len);
+ 298   3                  /* subtract off the BVLC header */
+ 299   3                  pdu_len -= 4;
+ 300   3                  if (pdu_len < max_pdu) {
+ 301   4      #if 0
                               fprintf(stderr, "BIP: NPDU[%hu]:", pdu_len);
               #endif
- 301   4                      /* shift the buffer to return a valid PDU */
- 302   4                      for (i = 0; i < pdu_len; i++) {
- 303   5                          pdu[i] = pdu[4 + i];
- 304   5      #if 0
+ 304   4                      /* shift the buffer to return a valid PDU */
+ 305   4                      for (i = 0; i < pdu_len; i++) {
+ 306   5                          pdu[i] = pdu[4 + i];
+ 307   5      #if 0
                                   fprintf(stderr, "%02X ", pdu[i]);
               #endif
- 307   5                      }
- 308   4      #if 0
+ 310   5                      }
+ 311   4      #if 0
                               fprintf(stderr, "\n");
               #endif
- 311   4                  }
- 312   3                  /* ignore packets that are too large */
- 313   3                  /* clients should check my max-apdu first */
- 314   3                  else {
- 315   4                      pdu_len = 0;
- 316   4      #if PRINT_ENABLED
+ 314   4                  }
+ 315   3                  /* ignore packets that are too large */
+ 316   3                  /* clients should check my max-apdu first */
+ 317   3                  else {
+ 318   4                      pdu_len = 0;
+ 319   4      #if PRINT_ENABLED
                               fprintf(stderr, "BIP: PDU too large. Discarded!.\n");
               #endif
- 319   4                  }
- 320   3              }
- 321   2          } else if (function == BVLC_FORWARDED_NPDU) {
- 322   2              memcpy(&sin.sin_addr.s_addr, &pdu[4], 4);
- 323   2              memcpy(&sin.sin_port, &pdu[8], 2);
- 324   2              if ((sin.sin_addr.s_addr == BIP_Address.s_addr) &&
- 325   2                  (sin.sin_port == BIP_Port)) {
- 326   3                  /* ignore messages from me */
- 327   3                  pdu_len = 0;
- 328   3              } else {
- 329   3                  /* data in src->mac[] is in network format */
- 330   3                  src->mac_len = 6;
- 331   3                  memcpy(&src->mac[0], &sin.sin_addr.s_addr, 4);
- 332   3                  memcpy(&src->mac[4], &sin.sin_port, 2);
- 333   3                  /* FIXME: check destination address */
- 334   3                  /* see if it is broadcast or for us */
- 335   3                  /* decode the length of the PDU - length is inclusive of BVLC */
- 336   3                  (void) decode_unsigned16(&pdu[2], &pdu_len);
- 337   3                  /* subtract off the BVLC header */
- 338   3                  pdu_len -= 10;
- 339   3                  if (pdu_len < max_pdu) {
- 340   4                      /* shift the buffer to return a valid PDU */
- 341   4                      for (i = 0; i < pdu_len; i++) {
- 342   5                          pdu[i] = pdu[4 + 6 + i];
-C51 COMPILER V9.06   BIP                                                                   01/28/2013 13:35:44 PAGE 7   
+ 322   4                  }
+ 323   3              }
+ 324   2          } else if (function == BVLC_FORWARDED_NPDU) {
+ 325   2              memcpy(&sin.sin_addr.s_addr, &pdu[4], 4);
+ 326   2              memcpy(&sin.sin_port, &pdu[8], 2);
+ 327   2              if ((sin.sin_addr.s_addr == BIP_Address.s_addr) &&
+ 328   2                  (sin.sin_port == BIP_Port)) {
+ 329   3                  /* ignore messages from me */
+ 330   3                  pdu_len = 0;
+ 331   3              } else {
+ 332   3                  /* data in src->mac[] is in network format */
+ 333   3                  src->mac_len = 6;
+ 334   3                  memcpy(&src->mac[0], &sin.sin_addr.s_addr, 4);
+ 335   3                  memcpy(&src->mac[4], &sin.sin_port, 2);
+ 336   3                  /* FIXME: check destination address */
+ 337   3                  /* see if it is broadcast or for us */
+C51 COMPILER V9.06   BIP                                                                   03/28/2013 13:47:36 PAGE 7   
 
- 343   5                      }
- 344   4                  } else {
- 345   4                      /* ignore packets that are too large */
- 346   4                      /* clients should check my max-apdu first */
- 347   4                      pdu_len = 0;
- 348   4                  }
- 349   3              }
- 350   2          }
- 351   1      
- 352   1          return pdu_len;
- 353   1      }
- 354          
- 355          void bip_get_my_address(
- 356              BACNET_ADDRESS * my_address)
- 357          {
- 358   1          int i = 0;
- 359   1      
- 360   1          if (my_address) {
- 361   2              my_address->mac_len = 6;
- 362   2              memcpy(&my_address->mac[0], &BIP_Address.s_addr, 4);
- 363   2              memcpy(&my_address->mac[4], &BIP_Port, 2);
- 364   2              my_address->net = 0;    /* local only, no routing */
- 365   2              my_address->len = 0;    /* no SLEN */
- 366   2              for (i = 0; i < MAX_MAC_LEN; i++) {
- 367   3                  /* no SADR */
- 368   3                  my_address->adr[i] = 0;
- 369   3              }
- 370   2          }
- 371   1      
- 372   1          return;
- 373   1      }
- 374          
- 375          void bip_get_broadcast_address(
- 376              BACNET_ADDRESS * dest)
- 377          {       /* destination address */
- 378   1          int i = 0;  /* counter */
- 379   1      
- 380   1          if (dest) {
- 381   2              dest->mac_len = 6;
- 382   2              memcpy(&dest->mac[0], &BIP_Broadcast_Address.s_addr, 4);
- 383   2              memcpy(&dest->mac[4], &BIP_Port, 2);
- 384   2              dest->net = BACNET_BROADCAST_NETWORK;
- 385   2              dest->len = 0;  /* no SLEN */
- 386   2              for (i = 0; i < MAX_MAC_LEN; i++) {
- 387   3                  /* no SADR */
- 388   3                  dest->adr[i] = 0;
- 389   3              }
- 390   2          }
- 391   1      
- 392   1          return;
- 393   1      }
+ 338   3                  /* decode the length of the PDU - length is inclusive of BVLC */
+ 339   3                  (void) decode_unsigned16(&pdu[2], &pdu_len);
+ 340   3                  /* subtract off the BVLC header */
+ 341   3                  pdu_len -= 10;
+ 342   3                  if (pdu_len < max_pdu) {
+ 343   4                      /* shift the buffer to return a valid PDU */
+ 344   4                      for (i = 0; i < pdu_len; i++) {
+ 345   5                          pdu[i] = pdu[4 + 6 + i];
+ 346   5                      }
+ 347   4                  } else {
+ 348   4                      /* ignore packets that are too large */
+ 349   4                      /* clients should check my max-apdu first */
+ 350   4                      pdu_len = 0;
+ 351   4                  }
+ 352   3              }
+ 353   2          }
+ 354   1      
+ 355   1          return pdu_len;
+ 356   1      }
+ 357          
+ 358          void bip_get_my_address(
+ 359              BACNET_ADDRESS * my_address)
+ 360          {
+ 361   1          int i = 0;
+ 362   1      
+ 363   1          if (my_address) {
+ 364   2              my_address->mac_len = 6;
+ 365   2              memcpy(&my_address->mac[0], &BIP_Address.s_addr, 4);
+ 366   2              memcpy(&my_address->mac[4], &BIP_Port, 2);
+ 367   2              my_address->net = 0;    /* local only, no routing */
+ 368   2              my_address->len = 0;    /* no SLEN */
+ 369   2              for (i = 0; i < MAX_MAC_LEN; i++) {
+ 370   3                  /* no SADR */
+ 371   3                  my_address->adr[i] = 0;
+ 372   3              }
+ 373   2          }
+ 374   1      
+ 375   1          return;
+ 376   1      }
+ 377          
+ 378          void bip_get_broadcast_address(
+ 379              BACNET_ADDRESS * dest)
+ 380          {       /* destination address */
+ 381   1          int i = 0;  /* counter */
+ 382   1      
+ 383   1          if (dest) {
+ 384   2              dest->mac_len = 6;
+ 385   2              memcpy(&dest->mac[0], &BIP_Broadcast_Address.s_addr, 4);
+ 386   2              memcpy(&dest->mac[4], &BIP_Port, 2);
+ 387   2              dest->net = BACNET_BROADCAST_NETWORK;
+ 388   2              dest->len = 0;  /* no SLEN */
+ 389   2              for (i = 0; i < MAX_MAC_LEN; i++) {
+ 390   3                  /* no SADR */
+ 391   3                  dest->adr[i] = 0;
+ 392   3              }
+ 393   2          }
+ 394   1      
+ 395   1          return;
+ 396   1      }
 
-C51 COMPILATION COMPLETE.  2 WARNING(S),  17 ERROR(S)
+C51 COMPILATION COMPLETE.  2 WARNING(S),  21 ERROR(S)

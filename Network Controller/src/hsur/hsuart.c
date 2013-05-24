@@ -143,7 +143,7 @@ static void		hsur_Rcvr(void);
 static void		hsur_Xmit(void);
 static void		hsur_ReadMsr(void);
 
-extern void 	test_run(U8_T dat);
+
 extern volatile U32_T xTickCount;
 /* LOCAL SUBPROGRAM BODIES */
 
@@ -613,8 +613,7 @@ void HSUR_Func(void)
  */
 void HSUR_Setup(U16_T divisor, U8_T lCtrl, U8_T intEnb, U8_T fCtrl, U8_T mCtrl)
 {
-	U16_T	 i;		  /*far*/
-
+	U16_T	far i;
 
 	for (i=0 ; i<UR2_MAX_RX_SIZE ; i++)
 	{
@@ -624,7 +623,6 @@ void HSUR_Setup(U16_T divisor, U8_T lCtrl, U8_T intEnb, U8_T fCtrl, U8_T mCtrl)
 	{
 		hsurTxBuffer[i] = 0;
 	}
-
 
 	hsurRxBufNum = 0;
 	hsurTxBufNum = 0;
@@ -648,7 +646,6 @@ void HSUR_Setup(U16_T divisor, U8_T lCtrl, U8_T intEnb, U8_T fCtrl, U8_T mCtrl)
 			hsurRxTrigLvl = 14;
 			break;
 	}
-	
 
 	UR2_LCR = UR2_DLAB_ENB;
 	UR2_DLL = (U8_T)(divisor & 0x00FF);
@@ -656,29 +653,16 @@ void HSUR_Setup(U16_T divisor, U8_T lCtrl, U8_T intEnb, U8_T fCtrl, U8_T mCtrl)
 	UR2_LCR &= ~UR2_DLAB_ENB;
 	UR2_LCR = lCtrl;
 	UR2_FCR = fCtrl;
-
-	 
-
 #if   HSUR_RS485_ENABLE
 	UR2_MCR = (mCtrl | UR2_RS485_RECEIVE);
 #else
 	UR2_MCR = mCtrl;
 #endif
-
-
-	 
-
-	UR2_IER  =  intEnb;			/* ! */
-
-//	test_run(10);
-	
+	UR2_IER = intEnb;
 
 	hsurLineControlValue = lCtrl;
 	hsurFifoControlValue = fCtrl;
 	hsurModemControlValue = mCtrl;
-
-	
-
 }
 /*
  *--------------------------------------------------------------------------------
@@ -833,7 +817,6 @@ void HSUR_InitValue(void)
 	hsurGetPtr = 0;
 	hsurPutPtr = 0;
 
-			 /* what's it? */
 	sysClk = CSREPR & 0xC0;
 	switch (sysClk)
 	{
@@ -850,8 +833,6 @@ void HSUR_InitValue(void)
 //			P3 = 0xAA;
 			break;
 	}
-
-
 
 } /* End of UART_Init */
 
@@ -1603,5 +1584,98 @@ BOOL HSUR_XoffByApp(void)
 	hsurAppFlowOn = FALSE;
 
 	return TRUE;
+}
+
+
+/*
+ *--------------------------------------------------------------------------------
+ * U8_T HSUR_GetByteNb(U8_T* pDat)
+ * Purpose : Getting data from the software receiver buffer, which stores data 
+ *           received from a serial bus. This function is similar to HSUR_GetChar,
+ *           but this function only check buffer one time.
+ * Params  : pDat - pointer to a buffer for storing the byte data.
+ * Returns : TRUE - success
+ *           FALSE - fail	
+ * Note    : None.
+ *--------------------------------------------------------------------------------
+ */
+U8_T HSUR_GetByteNb(U8_T* pDat)
+{ 
+	if (hsurRxCount > 0)
+	{
+		UR2_IER &= ~UR2_RDI_ENB;
+
+		*pDat = hsurRxBuffer[hsurGetPtr];		
+		hsurGetPtr++;
+		hsurRxCount --;
+		if (hsurGetPtr == UR2_MAX_RX_SIZE)
+			hsurGetPtr = 0;
+
+		if (hsurFlowOn)
+		{
+			if (hsurRxCount <= UR2_FLOW_LO_WATERMARK)
+			{
+				hsurFlowOn = FALSE;
+
+				if (hsurFlowCtrl == UR2_FLOW_CTRL_HW)
+				{
+					HSUR_SetRTS();
+				}
+				else if (hsurFlowCtrl == UR2_FLOW_CTRL_X)
+				{
+					UR2_THR = ASCII_XON;
+				}
+			}
+		}
+
+		UR2_IER |= UR2_RDI_ENB;
+
+		return TRUE;
+	}
+	
+	return FALSE;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ * BOOL HSUR_SetupPort(U16_T divBaudRate, U8_T lctrl)
+ * Purpose : Setting the HSUR baudrate.
+ * Params  : divBaudRate - divisor of the baudrate.
+ *           lctrl - line control 
+ * Returns : 
+ * Note    : none
+ * ----------------------------------------------------------------------------
+ */
+void HSUR_SetupPort(U16_T divBaudRate, U8_T lctrl)
+{
+	U8_T	recIntrEnb = UR2_IER;
+
+	UR2_IER = 0;
+	UR2_LCR |= UR2_DLAB_ENB;
+	UR2_DLL = (U8_T)(divBaudRate & 0x00FF);
+	UR2_DLH = (U8_T)((divBaudRate & 0xFF00) >> 8);
+	UR2_LCR &= ~UR2_DLAB_ENB;
+
+	hsurBaudRateDivisor = divBaudRate;
+
+	switch (CSREPR & 0xC0)
+	{
+		case SCS_100M :
+			P3 = 0x10;
+			break;
+		case SCS_50M :
+			P3 = 0x50;
+			break;
+		case SCS_25M :
+			P3 = 0x25;
+			break;
+	}
+
+	UR2_FCR |= UR2_RXFIFO_RST | UR2_TXFIFO_RST;
+
+    UR2_LCR = lctrl;
+	hsurLineControlValue = lctrl;
+
+	UR2_IER = recIntrEnb;
 }
 /* End of hsuart.c */

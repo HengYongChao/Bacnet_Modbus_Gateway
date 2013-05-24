@@ -1,13 +1,14 @@
-C51 COMPILER V9.06   I2C                                                                   03/13/2013 09:32:25 PAGE 1   
+C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE I2C
 OBJECT MODULE PLACED IN .\i2c.obj
-COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\i2c\i2c.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) INCDI
+COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\i2c\i2c.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) INCDI
                     -R(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\SRC
                     -\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buffer
                     -\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\Src\
-                    -FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\i2c.lst) OBJECT(.\i2c.obj)
+                    -FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;..\src\
+                    -gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\i2c.lst) OBJECT(.\i2c.obj)
 
 line level    source
 
@@ -61,9 +62,9 @@ line level    source
   48          static U8_T             i2cSlvTxPkt[SLV_MAX_PKT_NUM];
   49          
   50          
-  51          /* LOCAL SUBPROGRAM DECLARATIONS */
-C51 COMPILER V9.06   I2C                                                                   03/13/2013 09:32:25 PAGE 2   
+C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 2   
 
+  51          /* LOCAL SUBPROGRAM DECLARATIONS */
   52          static void i2c_MstStatus(U8_T i2cStatus);
   53          static void i2c_SlvStatus(U8_T i2cStatus);
   54          static void i2c_MasterXmit(U8_T wrData, U8_T mstCmd);
@@ -76,347 +77,313 @@ line level    source
               #endif
   62          
   63          
-  64          extern void test_run(U8_T dat);
-  65          extern void Uart0_Tx(U8_T *buf,U8_T len); 
-  66          extern U8_T test[10] ;
-  67          extern void test_port(U8_T);
-  68          
-  69          /* LOCAL SUBPROGRAM BODIES */
-  70          
-  71          /*
-  72           *--------------------------------------------------------------------------------
-  73           * static void i2c_MstStatus(U8_T i2cStatus)
-  74           * Purpose : Checks the interrupt status of I2C master mode.
-  75           * Params  : i2cStatus - master status when interrupt occured.
-  76           * Returns : none
-  77           * Note    : none
-  78           *--------------------------------------------------------------------------------
-  79           */
-  80          static void i2c_MstStatus(U8_T i2cStatus)
-  81          {
-  82   1      
-  83   1      
-  84   1      
-  85   1              if (i2cPktDir == I2C_MST_XMIT)
-  86   1              {
-  87   2                      /* Check the current byte ack */
-  88   2                      if ((!(i2cStatus & I2C_NO_ACK)) && (i2cStatus & I2C_INTR_FLAG)
-  89   2                      && (!(i2cStatus & I2C_TIP)) && (i2cStatus & I2C_BUS_BUSY))
-  90   2                      {
-  91   3                              if (!I2C_FlagChk(I2C_BUSY))
-  92   3                              {
-  93   4                                      I2C_FlagEnb(I2C_RESTART);
-  94   4                              }
-  95   3                              else
-  96   3                              {
-  97   4                                      if ((i2cCtrl & I2C_10BIT) && (i2cActF & I2C_START_COND))
-  98   4                                      {
-  99   5                                              
- 100   5                                              
- 101   5                                              
- 102   5                                              i2c_MasterXmit((U8_T)(ptI2cTxBuf->I2cAddr.TenBitAddr & 0x00FF), I2C_MASTER_GO | I2C_CMD_WRITE);
- 103   5                              
- 104   5                                              
- 105   5                              
- 106   5                                      }
- 107   4                                      else
- 108   4                                      {
- 109   5                                              if (i2cDataLenCnt < (i2cDataLen-1))
- 110   5                                              {
- 111   6                                                      /* transmit the first data byte */
- 112   6                                                      i2c_MasterXmit(ptI2cTxBuf->I2cData[i2cDataLenCnt], I2C_MASTER_GO | I2C_CMD_WRITE);
- 113   6                                                      i2cDataLenCnt ++;
-C51 COMPILER V9.06   I2C                                                                   03/13/2013 09:32:25 PAGE 3   
+  64          /* LOCAL SUBPROGRAM BODIES */
+  65          
+  66          /*
+  67           *--------------------------------------------------------------------------------
+  68           * static void i2c_MstStatus(U8_T i2cStatus)
+  69           * Purpose : Checks the interrupt status of I2C master mode.
+  70           * Params  : i2cStatus - master status when interrupt occured.
+  71           * Returns : none
+  72           * Note    : none
+  73           *--------------------------------------------------------------------------------
+  74           */
+  75          static void i2c_MstStatus(U8_T i2cStatus)
+  76          {
+  77   1              if (i2cPktDir == I2C_MST_XMIT)
+  78   1              {
+  79   2                      /* Check the current byte ack */
+  80   2                      if ((!(i2cStatus & I2C_NO_ACK)) && (i2cStatus & I2C_INTR_FLAG)
+  81   2                      && (!(i2cStatus & I2C_TIP)) && (i2cStatus & I2C_BUS_BUSY))
+  82   2                      {
+  83   3                              if (!I2C_FlagChk(I2C_BUSY))
+  84   3                              {
+  85   4                                      I2C_FlagEnb(I2C_RESTART);
+  86   4                              }
+  87   3                              else
+  88   3                              {
+  89   4                                      if ((i2cCtrl & I2C_10BIT) && (i2cActF & I2C_START_COND))
+  90   4                                      {
+  91   5                                              i2c_MasterXmit((U8_T)(ptI2cTxBuf->I2cAddr.TenBitAddr & 0x00FF), I2C_MASTER_GO | I2C_CMD_WRITE);
+  92   5                                      }
+  93   4                                      else
+  94   4                                      {
+  95   5                                              if (i2cDataLenCnt < (i2cDataLen-1))
+  96   5                                              {
+  97   6                                                      /* transmit the first data byte */
+  98   6                                                      i2c_MasterXmit(ptI2cTxBuf->I2cData[i2cDataLenCnt], I2C_MASTER_GO | I2C_CMD_WRITE);
+  99   6                                                      i2cDataLenCnt ++;
+ 100   6                                              }
+ 101   5                                              else if (i2cDataLenCnt == (i2cDataLen-1))
+ 102   5                                              {
+ 103   6                                                      /* transmit the last data byte */
+ 104   6                                                      if (i2cEndCond & I2C_STOP_COND)
+ 105   6                                                      {
+ 106   7                                                              i2c_MasterXmit(ptI2cTxBuf->I2cData[i2cDataLenCnt], I2C_MASTER_GO | I2C_CMD_WRITE | I2C_STOP_COND);
+ 107   7                                                              i2cDataLenCnt = 0;
+ 108   7                                                      }
+ 109   6                                                      else
+ 110   6                                                      {
+ 111   7                                                              i2c_MasterXmit(ptI2cTxBuf->I2cData[i2cDataLenCnt], I2C_MASTER_GO | I2C_CMD_WRITE);
+ 112   7                                                              i2cDataLenCnt = 0;
+C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 3   
 
- 114   6      
- 115   6                                                      
- 116   6      
+ 113   7                                                              EA = 0;
+ 114   7                                                              I2C_FlagClr(I2C_BUSY);
+ 115   7                                                              EA = 1;
+ 116   7                                                      }
  117   6                                              }
- 118   5                                              else if (i2cDataLenCnt == (i2cDataLen-1))
- 119   5                                              {
- 120   6                                                      /* transmit the last data byte */
- 121   6                                                      if (i2cEndCond & I2C_STOP_COND)
- 122   6                                                      {
- 123   7                                                              i2c_MasterXmit(ptI2cTxBuf->I2cData[i2cDataLenCnt], I2C_MASTER_GO | I2C_CMD_WRITE | I2C_STOP_COND);
- 124   7                                                              i2cDataLenCnt = 0;
- 125   7      
- 126   7                                                      
- 127   7                                                      }
- 128   6                                                      else
- 129   6                                                      {
- 130   7                                                              i2c_MasterXmit(ptI2cTxBuf->I2cData[i2cDataLenCnt], I2C_MASTER_GO | I2C_CMD_WRITE);
- 131   7                                                      
- 132   7                                                              
- 133   7                                                              i2cDataLenCnt = 0;
- 134   7                                                              EA = 0;
- 135   7                                                              I2C_FlagClr(I2C_BUSY);
- 136   7                                                              EA = 1;
- 137   7                                                      }
- 138   6                                              }
- 139   5                                      }
+ 118   5                                      }
+ 119   4                              }
+ 120   3                      /*      if (i2cActF & I2C_STOP_COND)
+ 121   3                              {
+ 122   3                                      i2cDataLenCnt = 0;
+ 123   3                                      EA = 0;
+ 124   3                                      I2C_FlagClr(I2C_BUSY);
+ 125   3                                      EA = 1;
+ 126   3                              }*/
+ 127   3                      }
+ 128   2                      else if (i2cStatus & I2C_NO_ACK)
+ 129   2                      {
+ 130   3                              i2cDataLenCnt = 0;
+ 131   3                              if (i2cActF & I2C_START_COND)
+ 132   3                              {
+ 133   4                                      /* transmit the STOP condition */
+ 134   4                                      i2c_MasterXmit(0, I2C_MASTER_GO | I2C_STOP_COND);
+ 135   4                                      i2cDataLenCnt = 0;
+ 136   4                                      EA = 0;
+ 137   4                                      I2C_FlagClr(I2C_BUSY);
+ 138   4                                      I2C_FlagEnb(I2C_NACK);
+ 139   4                                      EA = 1;
  140   4                              }
- 141   3                      /*      if (i2cActF & I2C_STOP_COND)
+ 141   3                              else
  142   3                              {
- 143   3                                      i2cDataLenCnt = 0;
- 144   3                                      EA = 0;
- 145   3                                      I2C_FlagClr(I2C_BUSY);
- 146   3                                      EA = 1;
- 147   3                              }*/
+ 143   4                                      i2cDataLenCnt = 0;
+ 144   4                                      EA = 0;
+ 145   4                                      I2C_FlagClr(I2C_BUSY);
+ 146   4                                      EA = 1;
+ 147   4                              }
  148   3                      }
- 149   2                      else if (i2cStatus & I2C_NO_ACK)
+ 149   2                      else if (i2cStatus & I2C_ARB_LOST)
  150   2                      {
- 151   3                              i2cDataLenCnt = 0;
- 152   3                              if (i2cActF & I2C_START_COND)
- 153   3                              {
- 154   4                                      /* transmit the STOP condition */
- 155   4                                      i2c_MasterXmit(0, I2C_MASTER_GO | I2C_STOP_COND);
- 156   4                              
- 157   4                                      
- 158   4                              
- 159   4                              
- 160   4                                      i2cDataLenCnt = 0;
- 161   4                                      EA = 0;
- 162   4                                      I2C_FlagClr(I2C_BUSY);
- 163   4                                      I2C_FlagEnb(I2C_NACK);
- 164   4                                      EA = 1;
- 165   4                              }
- 166   3                              else
- 167   3                              {
- 168   4                                      i2cDataLenCnt = 0;
- 169   4                                      EA = 0;
- 170   4                                      I2C_FlagClr(I2C_BUSY);
- 171   4                                      EA = 1;
+ 151   3                              i2c_MasterXmit(0, I2C_MASTER_GO | I2C_STOP_COND);
+ 152   3                              i2cDataLenCnt = 0;
+ 153   3                              EA = 0;
+ 154   3                              I2C_FlagClr(I2C_BUSY);
+ 155   3                              I2C_FlagEnb(I2C_NACK);
+ 156   3      //                      printd("I2C arbitration lost\n\r");
+ 157   3                              EA = 1;
+ 158   3                      }
+ 159   2                      else if (i2cStatus & I2C_TIP)
+ 160   2                      {
+ 161   3                              i2cDataLenCnt = 0;
+ 162   3                              if (i2cActF & I2C_START_COND)
+ 163   3                              {
+ 164   4                                      I2C_FlagClr(I2C_BUSY);
+ 165   4                                      /* transmit the STOP condition */
+ 166   4                                      i2c_MasterXmit(0, I2C_MASTER_GO | I2C_STOP_COND);
+ 167   4                              }
+ 168   3                              else
+ 169   3                              {
+ 170   4                                      /* transmit the STOP condition or repeat START condition */
+ 171   4                                      I2C_PktBuf(ptI2cTxBuf);
  172   4                              }
  173   3                      }
- 174   2                      else if (i2cStatus & I2C_ARB_LOST)
- 175   2                      {
-C51 COMPILER V9.06   I2C                                                                   03/13/2013 09:32:25 PAGE 4   
+ 174   2                      else if ((!(i2cStatus & I2C_NO_ACK)) && (!(i2cStatus & I2C_TIP)) && (!(i2cStatus & I2C_BUS_BUSY)))
+C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 4   
 
- 176   3                              i2c_MasterXmit(0, I2C_MASTER_GO | I2C_STOP_COND);
- 177   3                      
- 178   3                               
- 179   3                      
- 180   3                      
- 181   3                              i2cDataLenCnt = 0;
- 182   3                              EA = 0;
- 183   3                              I2C_FlagClr(I2C_BUSY);
- 184   3                              I2C_FlagEnb(I2C_NACK);
- 185   3      //                      printd("I2C arbitration lost\n\r");
- 186   3                              EA = 1;
- 187   3                      }
- 188   2                      else if (i2cStatus & I2C_TIP)
- 189   2                      {
- 190   3                              i2cDataLenCnt = 0;
+ 175   2                      {
+ 176   3                              if (i2cActF & I2C_STOP_COND)
+ 177   3                              {
+ 178   4                                      i2cDataLenCnt = 0;
+ 179   4                                      EA = 0;
+ 180   4                                      I2C_FlagClr(I2C_BUSY);
+ 181   4                                      EA = 1;
+ 182   4                              }
+ 183   3                      }
+ 184   2              }
+ 185   1              else if (i2cPktDir == I2C_MST_RCVR)
+ 186   1              {
+ 187   2                      /* Check the current byte ack */
+ 188   2                      if ((!(i2cStatus & I2C_NO_ACK)) && (i2cStatus & I2C_INTR_FLAG)
+ 189   2                      && (!(i2cStatus & I2C_TIP)) && (i2cStatus & I2C_BUS_BUSY))
+ 190   2                      {
  191   3                              if (i2cActF & I2C_START_COND)
  192   3                              {
- 193   4                                      I2C_FlagClr(I2C_BUSY);
- 194   4                                      /* transmit the STOP condition */
- 195   4                                      i2c_MasterXmit(0, I2C_MASTER_GO | I2C_STOP_COND);
- 196   4      
- 197   4      
- 198   4                              }
- 199   3                              else
- 200   3                              {
- 201   4                                      /* transmit the STOP condition or repeat START condition */
- 202   4                                      I2C_PktBuf(ptI2cTxBuf);
- 203   4                              }
- 204   3                      }
- 205   2                      else if ((!(i2cStatus & I2C_NO_ACK)) && (!(i2cStatus & I2C_TIP)) && (!(i2cStatus & I2C_BUS_BUSY)))
- 206   2                      {
- 207   3                              if (i2cActF & I2C_STOP_COND)
- 208   3                              {
- 209   4                                      i2cDataLenCnt = 0;
- 210   4                                      EA = 0;
- 211   4                                      I2C_FlagClr(I2C_BUSY);
- 212   4                                      EA = 1;
- 213   4                              }
- 214   3                      }
- 215   2              }
- 216   1              else if (i2cPktDir == I2C_MST_RCVR)
- 217   1              {
- 218   2                      /* Check the current byte ack */
- 219   2                      if ((!(i2cStatus & I2C_NO_ACK)) && (i2cStatus & I2C_INTR_FLAG)
- 220   2                      && (!(i2cStatus & I2C_TIP)) && (i2cStatus & I2C_BUS_BUSY))
- 221   2                      {
- 222   3                              if (i2cActF & I2C_START_COND)
- 223   3                              {
- 224   4                                      if (i2cDataLenCnt == (i2cDataLen - 1))
- 225   4                                              i2c_MasterRcvr(&(ptI2cRxBuf->I2cData[0]), I2C_MASTER_GO | I2C_CMD_READ | I2C_STOP_COND);
- 226   4                                      else
- 227   4                                              i2c_MasterRcvr(&(ptI2cRxBuf->I2cData[0]), I2C_MASTER_GO | I2C_CMD_READ);
- 228   4                              }
- 229   3                              else if (i2cActF & I2C_STOP_COND)
- 230   3                              {
- 231   4                                      I2C_FlagClr(I2C_BUSY);
- 232   4                                      i2c_MasterRcvr(&(ptI2cRxBuf->I2cData[i2cDataLenCnt]), 0);
- 233   4                              }
- 234   3                              else
- 235   3                              {
- 236   4                                      if (i2cDataLenCnt < (i2cDataLen - 1))
- 237   4                                      {
-C51 COMPILER V9.06   I2C                                                                   03/13/2013 09:32:25 PAGE 5   
-
- 238   5                                              /* reveive the next byte */
- 239   5                                              i2c_MasterRcvr(&(ptI2cRxBuf->I2cData[i2cDataLenCnt]), I2C_MASTER_GO | I2C_CMD_READ);
- 240   5                                      }
- 241   4                                      else if (i2cDataLenCnt == (i2cDataLen - 1))
- 242   4                                      {
- 243   5                                              /* receive the last byte */
- 244   5                                              i2c_MasterRcvr((U8_T *)(&(ptI2cRxBuf->I2cData[i2cDataLenCnt])), I2C_MASTER_GO | I2C_CMD_READ | I2C_ST
+ 193   4                                      if (i2cDataLenCnt == (i2cDataLen - 1))
+ 194   4                                              i2c_MasterRcvr(&(ptI2cRxBuf->I2cData[0]), I2C_MASTER_GO | I2C_CMD_READ | I2C_STOP_COND);
+ 195   4                                      else
+ 196   4                                              i2c_MasterRcvr(&(ptI2cRxBuf->I2cData[0]), I2C_MASTER_GO | I2C_CMD_READ);
+ 197   4                              }
+ 198   3                              else if (i2cActF & I2C_STOP_COND)
+ 199   3                              {
+ 200   4                                      I2C_FlagClr(I2C_BUSY);
+ 201   4                                      i2c_MasterRcvr(&(ptI2cRxBuf->I2cData[i2cDataLenCnt]), 0);
+ 202   4                              }
+ 203   3                              else
+ 204   3                              {
+ 205   4                                      if (i2cDataLenCnt < (i2cDataLen - 1))
+ 206   4                                      {
+ 207   5                                              /* reveive the next byte */
+ 208   5                                              i2c_MasterRcvr(&(ptI2cRxBuf->I2cData[i2cDataLenCnt]), I2C_MASTER_GO | I2C_CMD_READ);
+ 209   5                                      }
+ 210   4                                      else if (i2cDataLenCnt == (i2cDataLen - 1))
+ 211   4                                      {
+ 212   5                                              /* receive the last byte */
+ 213   5                                              i2c_MasterRcvr((U8_T *)(&(ptI2cRxBuf->I2cData[i2cDataLenCnt])), I2C_MASTER_GO | I2C_CMD_READ | I2C_ST
              -OP_COND);
- 245   5                                      }
- 246   4                              }
- 247   3                      }
- 248   2                      else if (i2cStatus & I2C_NO_ACK)
- 249   2                      {
- 250   3                              i2cDataLenCnt = 0;
- 251   3                              if (i2cActF & I2C_START_COND)
- 252   3                              {
- 253   4                                      i2c_MasterXmit(0, I2C_MASTER_GO | I2C_STOP_COND);
- 254   4                              
- 255   4                                       
- 256   4                              
- 257   4                                      i2cDataLenCnt = 0;
- 258   4                                      EA = 0;
- 259   4                                      I2C_FlagClr(I2C_BUSY);
- 260   4                                      I2C_FlagEnb(I2C_NACK);
- 261   4                                      EA = 1;
- 262   4                              }
- 263   3                              else
- 264   3                              {
- 265   4                                      i2cDataLenCnt = 0;
- 266   4                                      EA = 0;
- 267   4                                      I2C_FlagClr(I2C_BUSY);
- 268   4                                      EA = 1;
- 269   4                              }
- 270   3                      }
- 271   2                      else
- 272   2                      {
- 273   3                              if (i2cActF & I2C_STOP_COND)
- 274   3                              {
- 275   4                                      I2C_FlagClr(I2C_BUSY);
- 276   4                                      i2c_MasterRcvr(&(ptI2cRxBuf->I2cData[i2cDataLenCnt]), 0);
- 277   4                              }
- 278   3                      }
+ 214   5                                      }
+ 215   4                              }
+ 216   3                      }
+ 217   2                      else if (i2cStatus & I2C_NO_ACK)
+ 218   2                      {
+ 219   3                              i2cDataLenCnt = 0;
+ 220   3                              if (i2cActF & I2C_START_COND)
+ 221   3                              {
+ 222   4                                      i2c_MasterXmit(0, I2C_MASTER_GO | I2C_STOP_COND);
+ 223   4                                      i2cDataLenCnt = 0;
+ 224   4                                      EA = 0;
+ 225   4                                      I2C_FlagClr(I2C_BUSY);
+ 226   4                                      I2C_FlagEnb(I2C_NACK);
+ 227   4                                      EA = 1;
+ 228   4                              }
+ 229   3                              else
+ 230   3                              {
+ 231   4                                      i2cDataLenCnt = 0;
+ 232   4                                      EA = 0;
+ 233   4                                      I2C_FlagClr(I2C_BUSY);
+ 234   4                                      EA = 1;
+ 235   4                              }
+C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 5   
+
+ 236   3                      }
+ 237   2                      else
+ 238   2                      {
+ 239   3                              if (i2cActF & I2C_STOP_COND)
+ 240   3                              {
+ 241   4                                      I2C_FlagClr(I2C_BUSY);
+ 242   4                                      i2c_MasterRcvr(&(ptI2cRxBuf->I2cData[i2cDataLenCnt]), 0);
+ 243   4                              }
+ 244   3                      }
+ 245   2              }
+ 246   1      }
+ 247          
+ 248          /*
+ 249           *--------------------------------------------------------------------------------
+ 250           * static void i2c_SlvStatus(U8_T i2cStatus)
+ 251           * Purpose : Handles the interrupt status of I2C slave mode.
+ 252           * Params  : none
+ 253           * Returns : none
+ 254           * Note    : none
+ 255           *--------------------------------------------------------------------------------
+ 256           */
+ 257          static void i2c_SlvStatus(U8_T i2cStatus)
+ 258          {
+ 259   1              U8_T    devAddr;
+ 260   1      
+ 261   1              if (i2cStatus & I2C_SLV_STOP)
+ 262   1              {
+ 263   2                      if (!(i2cStatus & I2C_SLV_START))
+ 264   2                      {
+ 265   3                              if (i2cPktDir == I2C_SLV_RCVR)
+ 266   3                              {
+ 267   4                                      i2cDataLen = i2cDataLenCnt;
+ 268   4                                      #if I2C_SLAVE_ENABLE
+                                              i2c_SlvRxProcess();
+                                              #endif
+ 271   4                              }
+ 272   3                              i2cDataLenCnt = 0;
+ 273   3                              i2c_SlaveRcvr(&i2cSlvRxPkt[i2cDataLenCnt], I2C_SLAVE_GO);
+ 274   3                      }
+ 275   2              }
+ 276   1              if (i2cStatus & I2C_SLV_NACK)
+ 277   1              {
+ 278   2                      i2c_SlaveRcvr(&devAddr, I2C_RLS);
  279   2              }
- 280   1      }
- 281          
- 282          /*
- 283           *--------------------------------------------------------------------------------
- 284           * static void i2c_SlvStatus(U8_T i2cStatus)
- 285           * Purpose : Handles the interrupt status of I2C slave mode.
- 286           * Params  : none
- 287           * Returns : none
- 288           * Note    : none
- 289           *--------------------------------------------------------------------------------
- 290           */
- 291          static void i2c_SlvStatus(U8_T i2cStatus)
- 292          {
- 293   1              U8_T    devAddr;
- 294   1      
- 295   1              if (i2cStatus & I2C_SLV_STOP)
- 296   1              {
- 297   2                      if (!(i2cStatus & I2C_SLV_START))
- 298   2                      {
-C51 COMPILER V9.06   I2C                                                                   03/13/2013 09:32:25 PAGE 6   
+ 280   1              else
+ 281   1              {
+ 282   2                      if (i2cStatus & I2C_SLV_WR)
+ 283   2                      {
+ 284   3                              if (i2cStatus & I2C_SLV_START)
+ 285   3                              {
+ 286   4                                      i2c_SlaveRcvr(&devAddr, I2C_SLAVE_GO);
+ 287   4                                      i2cPktDir = I2C_SLV_RCVR;
+ 288   4                                      i2cDataLenCnt = 0;
+ 289   4                              }
+ 290   3                              else if (i2cStatus & I2C_SLV_STOP)
+ 291   3                              {
+ 292   4                                      i2c_SlaveRcvr(&i2cSlvRxPkt[i2cDataLenCnt], I2C_SLAVE_GO);
+ 293   4                                      i2cDataLen = i2cDataLenCnt;
+ 294   4                                      #if I2C_SLAVE_ENABLE
+                                              i2c_SlvRxProcess();
+                                              #endif
+ 297   4                                      i2cDataLenCnt = 0;
+C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 6   
 
- 299   3                              if (i2cPktDir == I2C_SLV_RCVR)
+ 298   4                              }
+ 299   3                              else if (i2cStatus & I2C_SLV_RESTART)
  300   3                              {
- 301   4                                      i2cDataLen = i2cDataLenCnt;
- 302   4                                      #if I2C_SLAVE_ENABLE
-                                              i2c_SlvRxProcess();
-                                              #endif
- 305   4                              }
- 306   3                              i2cDataLenCnt = 0;
- 307   3                              i2c_SlaveRcvr(&i2cSlvRxPkt[i2cDataLenCnt], I2C_SLAVE_GO);
- 308   3                      }
- 309   2              }
- 310   1              if (i2cStatus & I2C_SLV_NACK)
- 311   1              {
- 312   2                      i2c_SlaveRcvr(&devAddr, I2C_RLS);
- 313   2              }
- 314   1              else
- 315   1              {
- 316   2                      if (i2cStatus & I2C_SLV_WR)
- 317   2                      {
- 318   3                              if (i2cStatus & I2C_SLV_START)
+ 301   4                                      i2c_SlaveRcvr(&devAddr, I2C_SLAVE_GO);
+ 302   4                                      i2cPktDir = I2C_SLV_RCVR;
+ 303   4                                      i2cDataLenCnt = 0;
+ 304   4                              }
+ 305   3                              else
+ 306   3                              {
+ 307   4                                      i2c_SlaveRcvr(&i2cSlvRxPkt[i2cDataLenCnt], I2C_SLAVE_GO);
+ 308   4                                      i2cDataLenCnt ++;
+ 309   4                              }
+ 310   3                      }
+ 311   2                      else if (i2cStatus & I2C_SLV_RD)
+ 312   2                      {
+ 313   3                              if (i2cStatus & I2C_SLV_STOP)
+ 314   3                              {
+ 315   4                                      i2c_SlaveRcvr(&devAddr, I2C_SLAVE_GO);
+ 316   4                                      i2cDataLenCnt = 0;
+ 317   4                              }
+ 318   3                              else if (i2cStatus & I2C_SLV_START)
  319   3                              {
- 320   4                                      i2c_SlaveRcvr(&devAddr, I2C_SLAVE_GO);
- 321   4                                      i2cPktDir = I2C_SLV_RCVR;
- 322   4                                      i2cDataLenCnt = 0;
- 323   4                              }
- 324   3                              else if (i2cStatus & I2C_SLV_STOP)
- 325   3                              {
- 326   4                                      i2c_SlaveRcvr(&i2cSlvRxPkt[i2cDataLenCnt], I2C_SLAVE_GO);
- 327   4                                      i2cDataLen = i2cDataLenCnt;
- 328   4                                      #if I2C_SLAVE_ENABLE
+ 320   4                                      i2cPktDir = I2C_SLV_XMIT;
+ 321   4                                      i2cDataLenCnt = 0;
+ 322   4                                      #if I2C_SLAVE_ENABLE
                                               i2c_SlvRxProcess();
                                               #endif
+ 325   4                                      i2c_SlaveXmit(i2cSlvTxPkt[i2cDataLenCnt], I2C_SLAVE_GO);
+ 326   4                                      i2cDataLenCnt ++;
+ 327   4                              }
+ 328   3                              else if (i2cStatus & I2C_SLV_RESTART)
+ 329   3                              {
+ 330   4                                      i2cPktDir = I2C_SLV_XMIT;
  331   4                                      i2cDataLenCnt = 0;
- 332   4                              }
- 333   3                              else if (i2cStatus & I2C_SLV_RESTART)
- 334   3                              {
- 335   4                                      i2c_SlaveRcvr(&devAddr, I2C_SLAVE_GO);
- 336   4                                      i2cPktDir = I2C_SLV_RCVR;
- 337   4                                      i2cDataLenCnt = 0;
- 338   4                              }
- 339   3                              else
- 340   3                              {
- 341   4                                      i2c_SlaveRcvr(&i2cSlvRxPkt[i2cDataLenCnt], I2C_SLAVE_GO);
- 342   4                                      i2cDataLenCnt ++;
- 343   4                              }
- 344   3                      }
- 345   2                      else if (i2cStatus & I2C_SLV_RD)
- 346   2                      {
- 347   3                              if (i2cStatus & I2C_SLV_STOP)
- 348   3                              {
- 349   4                                      i2c_SlaveRcvr(&devAddr, I2C_SLAVE_GO);
- 350   4                                      i2cDataLenCnt = 0;
- 351   4                              }
- 352   3                              else if (i2cStatus & I2C_SLV_START)
- 353   3                              {
- 354   4                                      i2cPktDir = I2C_SLV_XMIT;
- 355   4                                      i2cDataLenCnt = 0;
- 356   4                                      #if I2C_SLAVE_ENABLE
+ 332   4                                      #if I2C_SLAVE_ENABLE
                                               i2c_SlvRxProcess();
                                               #endif
- 359   4                                      i2c_SlaveXmit(i2cSlvTxPkt[i2cDataLenCnt], I2C_SLAVE_GO);
- 360   4                                      i2cDataLenCnt ++;
-C51 COMPILER V9.06   I2C                                                                   03/13/2013 09:32:25 PAGE 7   
-
- 361   4                              }
- 362   3                              else if (i2cStatus & I2C_SLV_RESTART)
- 363   3                              {
- 364   4                                      i2cPktDir = I2C_SLV_XMIT;
- 365   4                                      i2cDataLenCnt = 0;
- 366   4                                      #if I2C_SLAVE_ENABLE
-                                              i2c_SlvRxProcess();
-                                              #endif
- 369   4                                      i2c_SlaveXmit(i2cSlvTxPkt[i2cDataLenCnt], I2C_SLAVE_GO);
- 370   4                                      i2cDataLenCnt ++;
- 371   4                              }
- 372   3                              else
- 373   3                              {
- 374   4                                      if (i2cSlvRxPkt[0] == I2C_SLV_BRDM)
- 375   4                                      {
- 376   5                                              #if I2C_SLAVE_ENABLE
+ 335   4                                      i2c_SlaveXmit(i2cSlvTxPkt[i2cDataLenCnt], I2C_SLAVE_GO);
+ 336   4                                      i2cDataLenCnt ++;
+ 337   4                              }
+ 338   3                              else
+ 339   3                              {
+ 340   4                                      if (i2cSlvRxPkt[0] == I2C_SLV_BRDM)
+ 341   4                                      {
+ 342   5                                              #if I2C_SLAVE_ENABLE
                                                       i2c_SlvRxProcess();
                                                       #endif
- 379   5                                      }
- 380   4                                      i2c_SlaveXmit(i2cSlvTxPkt[i2cDataLenCnt], I2C_SLAVE_GO);
- 381   4                                      i2cDataLenCnt ++;
- 382   4                              }
- 383   3                      }
- 384   2              }
- 385   1      }
- 386          
- 387          #if I2C_SLAVE_ENABLE
+ 345   5                                      }
+ 346   4                                      i2c_SlaveXmit(i2cSlvTxPkt[i2cDataLenCnt], I2C_SLAVE_GO);
+ 347   4                                      i2cDataLenCnt ++;
+ 348   4                              }
+ 349   3                      }
+ 350   2              }
+ 351   1      }
+ 352          
+ 353          #if I2C_SLAVE_ENABLE
               /*
                *--------------------------------------------------------------------------------
                * static void i2c_SlvRxProcess(void)
                * Purpose : Handling received command functions in I2C slave mode And replying
                *           packets corresponding with the received command.
                * Params  : none
+C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 7   
+
                * Returns : none
                * Note    : none
                *--------------------------------------------------------------------------------
@@ -446,8 +413,6 @@ line level    source
                               for (i = 0 ; i < realLen ; i ++)
                               {
                                       CLI_SfrRd((U32_T)sfrAddr, &memData);
-C51 COMPILER V9.06   I2C                                                                   03/13/2013 09:32:25 PAGE 8   
-
                                       i2cSlvTxPkt[i] = (U8_T)memData;
                               }
                       }
@@ -481,6 +446,8 @@ line level    source
                                       CLI_MacWr((U32_T)realReg, &i2cSlvRxPkt[3], (U8_T)realLen);
                               }
                       }
+C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 8   
+
                       else if ((slvCmd & 0xF0) == I2C_SLV_IRSFR)
                       {
                               cmdIndReg = i2cSlvRxPkt[1];
@@ -510,8 +477,6 @@ line level    source
                               {
                                       CLI_MacRd((U32_T)realReg, &i2cSlvTxPkt[i2cDataLenCnt], (U8_T)realLen);
                               }
-C51 COMPILER V9.06   I2C                                                                   03/13/2013 09:32:25 PAGE 9   
-
                       }
                       else if (slvCmd == I2C_SLV_BWDM)
                       {
@@ -534,449 +499,370 @@ line level    source
                       }
               }
               #endif
- 507          
- 508          /*
- 509           *--------------------------------------------------------------------------------
- 510           * static void i2c_MasterXmit(U8_T wrData, U8_T mstCmd)
- 511           * Purpose : Putting the data into i2c transmitting register and setting the
- 512           *           master's command and condition in I2C master mode.
- 513           * Params  : wrData - one byte data to transmit.
- 514           *           mstCmd - master command of the current byte data.
- 515           * Returns : none
- 516           * Note    : none
- 517           *--------------------------------------------------------------------------------
- 518           */
- 519          static void i2c_MasterXmit(U8_T wrData, U8_T mstCmd)
- 520          {
- 521   1              /* Record the globe flag of command condition */
- 522   1              
- 523   1              
- 524   1              
- 525   1              i2cActF = mstCmd;
- 526   1              /* First the master flipper sends the slave address to access */
- 527   1              
- 528   1      
- 529   1              
- 530   1              I2C_Cmd(SI_WR, I2CTR, &wrData);
- 531   1              /* Order command to I2CCR */
- 532   1              
- 533   1      
- 534   1              
- 535   1      
- 536   1              I2C_Cmd(SI_WR, I2CCR, &mstCmd);
- 537   1      
- 538   1              
- 539   1      
- 540   1      }
- 541          
- 542          /*
- 543           *--------------------------------------------------------------------------------
- 544           * static void i2c_MasterRcvr(U8_T *rdData, U8_T mstCmd)
- 545           * Purpose : Getting the receiving byte data in I2C master mode.
- 546           * Params  : *rdData - a pointer to store receiving data.
-C51 COMPILER V9.06   I2C                                                                   03/13/2013 09:32:25 PAGE 10  
+ 473          
+ 474          /*
+ 475           *--------------------------------------------------------------------------------
+ 476           * static void i2c_MasterXmit(U8_T wrData, U8_T mstCmd)
+ 477           * Purpose : Putting the data into i2c transmitting register and setting the
+ 478           *           master's command and condition in I2C master mode.
+ 479           * Params  : wrData - one byte data to transmit.
+ 480           *           mstCmd - master command of the current byte data.
+ 481           * Returns : none
+ 482           * Note    : none
+ 483           *--------------------------------------------------------------------------------
+C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 9   
 
- 547           *           mstCmd - master command of the current byte data.
- 548           * Returns : none
- 549           * Note    : none
- 550           *--------------------------------------------------------------------------------
- 551           */
- 552          static void i2c_MasterRcvr(U8_T *rdData, U8_T mstCmd)
- 553          {
- 554   1              /* Record the globe flag of command condition */
- 555   1              i2cActF = mstCmd;
- 556   1              /* After ACK, read data from I2CRR */
- 557   1              I2C_Cmd(SI_RD, I2CRR, rdData);
- 558   1              /* Then, reply ACK to slave */
- 559   1              I2C_Cmd(SI_WR, I2CCR, &mstCmd);
- 560   1      
- 561   1              i2cDataLenCnt ++;
- 562   1      }
- 563          
- 564          /*
- 565           *--------------------------------------------------------------------------------
- 566           * static void i2c_SlaveXmit(U8_T wrData, U8_T slvCmd)
- 567           * Purpose : Putting the data into i2c transmitting register and setting the
- 568           *           master's command and condition in I2C slave mode.
- 569           * Params  : wrData - one byte data to transmit.
- 570           *           slvCmd - slave command of the current byte data.
- 571           * Returns : none
- 572           * Note    : none
- 573           *--------------------------------------------------------------------------------
- 574           */
- 575          static void i2c_SlaveXmit(U8_T wrData, U8_T slvCmd)
- 576          {
- 577   1              /* Record the globe flag of command condition */
- 578   1              i2cActF = slvCmd;
- 579   1              /* transmit the data byte */
- 580   1              I2C_Cmd(SI_WR, I2CTR, &wrData);
- 581   1              /* Order command to I2CCR */
- 582   1              I2C_Cmd(SI_WR, I2CCR, &slvCmd);
- 583   1      }
- 584          
- 585          /*
- 586           *--------------------------------------------------------------------------------
- 587           * static void i2c_SlaveRcvr(U8_T *rdData, U8_T slvCmd)
- 588           * Purpose : Getting the receiving byte data in I2C slave mode.
- 589           * Params  : *rdData - a pointer to store receiving data.
- 590           *           slvCmd - slave command of the current byte data.
- 591           * Returns : none
- 592           * Note    : none
- 593           *--------------------------------------------------------------------------------
- 594           */
- 595          static void i2c_SlaveRcvr(U8_T *rdData, U8_T slvCmd)
- 596          {
- 597   1              /* Record the globe flag of command condition */
- 598   1              i2cActF = slvCmd;
- 599   1              /* After ACK, read data from I2CRR */
- 600   1              I2C_Cmd(SI_RD, I2CRR, rdData);
- 601   1              /* Then, reply ACK to slave */
- 602   1              I2C_Cmd(SI_WR, I2CCR, &slvCmd);
- 603   1      }
- 604          
- 605          
- 606          /* EXPORTED SUBPROGRAM BODIES */
- 607          
- 608          /*
-C51 COMPILER V9.06   I2C                                                                   03/13/2013 09:32:25 PAGE 11  
+ 484           */
+ 485          static void i2c_MasterXmit(U8_T wrData, U8_T mstCmd)
+ 486          {
+ 487   1              /* Record the globe flag of command condition */
+ 488   1              i2cActF = mstCmd;
+ 489   1              /* First the master flipper sends the slave address to access */
+ 490   1              I2C_Cmd(SI_WR, I2CTR, &wrData);
+ 491   1              /* Order command to I2CCR */
+ 492   1              I2C_Cmd(SI_WR, I2CCR, &mstCmd);
+ 493   1      }
+ 494          
+ 495          /*
+ 496           *--------------------------------------------------------------------------------
+ 497           * static void i2c_MasterRcvr(U8_T *rdData, U8_T mstCmd)
+ 498           * Purpose : Getting the receiving byte data in I2C master mode.
+ 499           * Params  : *rdData - a pointer to store receiving data.
+ 500           *           mstCmd - master command of the current byte data.
+ 501           * Returns : none
+ 502           * Note    : none
+ 503           *--------------------------------------------------------------------------------
+ 504           */
+ 505          static void i2c_MasterRcvr(U8_T *rdData, U8_T mstCmd)
+ 506          {
+ 507   1              /* Record the globe flag of command condition */
+ 508   1              i2cActF = mstCmd;
+ 509   1              /* After ACK, read data from I2CRR */
+ 510   1              I2C_Cmd(SI_RD, I2CRR, rdData);
+ 511   1              /* Then, reply ACK to slave */
+ 512   1              I2C_Cmd(SI_WR, I2CCR, &mstCmd);
+ 513   1      
+ 514   1              i2cDataLenCnt ++;
+ 515   1      }
+ 516          
+ 517          /*
+ 518           *--------------------------------------------------------------------------------
+ 519           * static void i2c_SlaveXmit(U8_T wrData, U8_T slvCmd)
+ 520           * Purpose : Putting the data into i2c transmitting register and setting the
+ 521           *           master's command and condition in I2C slave mode.
+ 522           * Params  : wrData - one byte data to transmit.
+ 523           *           slvCmd - slave command of the current byte data.
+ 524           * Returns : none
+ 525           * Note    : none
+ 526           *--------------------------------------------------------------------------------
+ 527           */
+ 528          static void i2c_SlaveXmit(U8_T wrData, U8_T slvCmd)
+ 529          {
+ 530   1              /* Record the globe flag of command condition */
+ 531   1              i2cActF = slvCmd;
+ 532   1              /* transmit the data byte */
+ 533   1              I2C_Cmd(SI_WR, I2CTR, &wrData);
+ 534   1              /* Order command to I2CCR */
+ 535   1              I2C_Cmd(SI_WR, I2CCR, &slvCmd);
+ 536   1      }
+ 537          
+ 538          /*
+ 539           *--------------------------------------------------------------------------------
+ 540           * static void i2c_SlaveRcvr(U8_T *rdData, U8_T slvCmd)
+ 541           * Purpose : Getting the receiving byte data in I2C slave mode.
+ 542           * Params  : *rdData - a pointer to store receiving data.
+ 543           *           slvCmd - slave command of the current byte data.
+ 544           * Returns : none
+ 545           * Note    : none
+C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 10  
 
- 609           *--------------------------------------------------------------------------------
- 610           * void I2C_Setup(U8_T ctrlCmd, U16_T preClk, U16_T axIdAddr)
- 611           * Purpose : This function is used to setup the I2C module and
- 612           *           to initial the globe values in this module.
- 613           * Params  : ctrlCmd - control register value.
- 614           *           preClk - a pre-scale parameter calculates the bus speed.
- 615           *           axIdAddr - a device address of local AX11000 I2C module.
- 616           * Returns : none
- 617           * Note    : none
- 618           *--------------------------------------------------------------------------------
- 619           */
- 620          void I2C_Setup(U8_T ctrlCmd, U16_T preClk, U16_T axIdAddr)
- 621          {
- 622   1              U16_T   i;
- 623   1              /* Values initial */
- 624   1              i2cCtrl = 0;
- 625   1              i2cEndCond = 0;
- 626   1              i2cActF = 0;
- 627   1              i2cDataLen = 0;
- 628   1              i2cDataLenCnt = 0;
- 629   1              i2cPktDir = 0;
- 630   1              ptI2cTxBuf = NULL;
- 631   1              ptI2cRxBuf = NULL;
- 632   1              i2cState = 0;
- 633   1              for (i=0 ; i<SLV_MAX_PKT_NUM ; i++)
- 634   1              {
- 635   2                      i2cSlvRxPkt[i] = 0;
- 636   2                      i2cSlvTxPkt[i] = 0;
- 637   2              }
- 638   1      
- 639   1              /* Pre-scale Clock */
- 640   1              I2CDR = (U8_T)(0x00FF & preClk);
- 641   1              I2CDR = (U8_T)((0xFF00 & preClk) >> 8);
- 642   1              I2CCIR = I2CCPR;                //addr is 0x00
- 643   1      
- 644   1      
- 645   1      
- 646   1              /* Flipper device address for slave mode */
- 647   1              I2CDR = (U8_T)(axIdAddr & 0x00FF);
- 648   1              I2CDR = (U8_T)((axIdAddr & 0xFF00) >> 8);
- 649   1              I2CCIR = I2CSDAR;
- 650   1      
- 651   1      
- 652   1      
- 653   1              /* Setup I2C mode */
- 654   1              I2C_Cmd(SI_WR, I2CCTL, &ctrlCmd);
- 655   1      }
- 656          
- 657          /*
- 658           *--------------------------------------------------------------------------------
- 659           * void I2C_Func(void)
- 660           * Purpose : Handling serial interface I2C interrupt function.
- 661           * Params  : none
- 662           * Returns : none
- 663           * Note    : The I2C_RLE_ING (reloading I2C EEPROM) bit and
- 664           *           the I2C_BL_DONE (Bootloader done) bit must always be checked,
- 665           *           whichever in master mode or slave mode.
- 666           *--------------------------------------------------------------------------------
- 667           */
- 668          void I2C_Func(void)
- 669          {
- 670   1              U8_T    i2cStatus;
-C51 COMPILER V9.06   I2C                                                                   03/13/2013 09:32:25 PAGE 12  
+ 546           *--------------------------------------------------------------------------------
+ 547           */
+ 548          static void i2c_SlaveRcvr(U8_T *rdData, U8_T slvCmd)
+ 549          {
+ 550   1              /* Record the globe flag of command condition */
+ 551   1              i2cActF = slvCmd;
+ 552   1              /* After ACK, read data from I2CRR */
+ 553   1              I2C_Cmd(SI_RD, I2CRR, rdData);
+ 554   1              /* Then, reply ACK to slave */
+ 555   1              I2C_Cmd(SI_WR, I2CCR, &slvCmd);
+ 556   1      }
+ 557          
+ 558          
+ 559          /* EXPORTED SUBPROGRAM BODIES */
+ 560          
+ 561          /*
+ 562           *--------------------------------------------------------------------------------
+ 563           * void I2C_Setup(U8_T ctrlCmd, U16_T preClk, U16_T axIdAddr)
+ 564           * Purpose : This function is used to setup the I2C module and
+ 565           *           to initial the globe values in this module.
+ 566           * Params  : ctrlCmd - control register value.
+ 567           *           preClk - a pre-scale parameter calculates the bus speed.
+ 568           *           axIdAddr - a device address of local AX11000 I2C module.
+ 569           * Returns : none
+ 570           * Note    : none
+ 571           *--------------------------------------------------------------------------------
+ 572           */
+ 573          void I2C_Setup(U8_T ctrlCmd, U16_T preClk, U16_T axIdAddr)
+ 574          {
+ 575   1              U16_T   i;
+ 576   1              /* Values initial */
+ 577   1              i2cCtrl = 0;
+ 578   1              i2cEndCond = 0;
+ 579   1              i2cActF = 0;
+ 580   1              i2cDataLen = 0;
+ 581   1              i2cDataLenCnt = 0;
+ 582   1              i2cPktDir = 0;
+ 583   1              ptI2cTxBuf = NULL;
+ 584   1              ptI2cRxBuf = NULL;
+ 585   1              i2cState = 0;
+ 586   1              for (i=0 ; i<SLV_MAX_PKT_NUM ; i++)
+ 587   1              {
+ 588   2                      i2cSlvRxPkt[i] = 0;
+ 589   2                      i2cSlvTxPkt[i] = 0;
+ 590   2              }
+ 591   1      
+ 592   1              /* Pre-scale Clock */
+ 593   1              I2CDR = (U8_T)(0x00FF & preClk);
+ 594   1              I2CDR = (U8_T)((0xFF00 & preClk) >> 8);
+ 595   1              I2CCIR = I2CCPR;
+ 596   1              /* Flipper device address for slave mode */
+ 597   1              I2CDR = (U8_T)(axIdAddr & 0x00FF);
+ 598   1              I2CDR = (U8_T)((axIdAddr & 0xFF00) >> 8);
+ 599   1              I2CCIR = I2CSDAR;
+ 600   1              /* Setup I2C mode */
+ 601   1              I2C_Cmd(SI_WR, I2CCTL, &ctrlCmd);
+ 602   1      }
+ 603          
+ 604          /*
+ 605           *--------------------------------------------------------------------------------
+ 606           * void I2C_Func(void)
+ 607           * Purpose : Handling serial interface I2C interrupt function.
+C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 11  
 
- 671   1      
- 672   1              I2C_Cmd(SI_RD, I2CCTL, &i2cCtrl);
- 673   1      
- 674   1              if (i2cCtrl & I2C_MASTER_MODE)
- 675   1              {
- 676   2                      EA = 0;
- 677   2                      I2C_Cmd(SI_RD, I2CMSR, &i2cStatus);
- 678   2                      EA = 1;
- 679   2                      if (!(i2cStatus & I2C_RLE_ING) && (i2cStatus & I2C_BL_DONE))
- 680   2                      {
- 681   3                              if (i2cCtrl & I2C_MST_IE)
- 682   3                              {
- 683   4                                      if (i2cStatus & I2C_INTR_FLAG)
- 684   4                                      {
- 685   5                                              i2c_MstStatus(i2cStatus);
- 686   5                                      }
- 687   4                              }
- 688   3                              else
- 689   3                              {
- 690   4                                      if (!(i2cStatus & I2C_TIP))
- 691   4                                      {
- 692   5                                              i2c_MstStatus(i2cStatus);
- 693   5                                      }
- 694   4                              }
- 695   3                      }
- 696   2              }
- 697   1              else
- 698   1              {
- 699   2                      EA = 0;
- 700   2                      I2C_Cmd(SI_RD, I2CMSR, &i2cStatus);
- 701   2                      EA = 1;
- 702   2      
- 703   2                      if (!(i2cStatus & I2C_RLE_ING) && (i2cStatus & I2C_BL_DONE))
- 704   2                      {
- 705   3                              i2cStatus = 0;
- 706   3                              EA = 0;
- 707   3                              I2C_Cmd(SI_RD, I2CSSR, &i2cStatus);
- 708   3                              EA = 1;
- 709   3                              if (i2cCtrl & I2C_SLV_IE)
- 710   3                              {
- 711   4                                      if (i2cStatus & I2C_SLV_TXR_OK)
- 712   4                                      {
- 713   5                                              i2c_SlvStatus(i2cStatus);
- 714   5                                      }
- 715   4                              }
- 716   3                              else
- 717   3                              {
- 718   4                                      if (i2cStatus & I2C_SLV_TXR_OK)
- 719   4                                      {
- 720   5                                              i2c_SlvStatus(i2cStatus);
- 721   5                                      }
- 722   4                              }
- 723   3                      }
- 724   2              }
- 725   1      }
- 726          
- 727          /*
- 728           *--------------------------------------------------------------------------------
- 729           * void I2C_PktBuf(I2C_BUF *ptI2cBuf)
- 730           * Purpose : Packeting a packet and transmitting the first byte
- 731           * Params  : ptI2cBuf - a pointer stores the packet.
- 732           * Returns : none
-C51 COMPILER V9.06   I2C                                                                   03/13/2013 09:32:25 PAGE 13  
+ 608           * Params  : none
+ 609           * Returns : none
+ 610           * Note    : The I2C_RLE_ING (reloading I2C EEPROM) bit and
+ 611           *           the I2C_BL_DONE (Bootloader done) bit must always be checked,
+ 612           *           whichever in master mode or slave mode.
+ 613           *--------------------------------------------------------------------------------
+ 614           */
+ 615          void I2C_Func(void)
+ 616          {
+ 617   1              U8_T    i2cStatus;
+ 618   1      
+ 619   1              I2C_Cmd(SI_RD, I2CCTL, &i2cCtrl);
+ 620   1      
+ 621   1              if (i2cCtrl & I2C_MASTER_MODE)
+ 622   1              {
+ 623   2                      EA = 0;
+ 624   2                      I2C_Cmd(SI_RD, I2CMSR, &i2cStatus);
+ 625   2                      EA = 1;
+ 626   2                      if (!(i2cStatus & I2C_RLE_ING) && (i2cStatus & I2C_BL_DONE))
+ 627   2                      {
+ 628   3                              if (i2cCtrl & I2C_MST_IE)
+ 629   3                              {
+ 630   4                                      if (i2cStatus & I2C_INTR_FLAG)
+ 631   4                                      {
+ 632   5                                              i2c_MstStatus(i2cStatus);
+ 633   5                                      }
+ 634   4                              }
+ 635   3                              else
+ 636   3                              {
+ 637   4                                      if (!(i2cStatus & I2C_TIP))
+ 638   4                                      {
+ 639   5                                              i2c_MstStatus(i2cStatus);
+ 640   5                                      }
+ 641   4                              }
+ 642   3                      }
+ 643   2              }
+ 644   1              else
+ 645   1              {
+ 646   2                      EA = 0;
+ 647   2                      I2C_Cmd(SI_RD, I2CMSR, &i2cStatus);
+ 648   2                      EA = 1;
+ 649   2      
+ 650   2                      if (!(i2cStatus & I2C_RLE_ING) && (i2cStatus & I2C_BL_DONE))
+ 651   2                      {
+ 652   3                              i2cStatus = 0;
+ 653   3                              EA = 0;
+ 654   3                              I2C_Cmd(SI_RD, I2CSSR, &i2cStatus);
+ 655   3                              EA = 1;
+ 656   3                              if (i2cCtrl & I2C_SLV_IE)
+ 657   3                              {
+ 658   4                                      if (i2cStatus & I2C_SLV_TXR_OK)
+ 659   4                                      {
+ 660   5                                              i2c_SlvStatus(i2cStatus);
+ 661   5                                      }
+ 662   4                              }
+ 663   3                              else
+ 664   3                              {
+ 665   4                                      if (i2cStatus & I2C_SLV_TXR_OK)
+ 666   4                                      {
+ 667   5                                              i2c_SlvStatus(i2cStatus);
+ 668   5                                      }
+ 669   4                              }
+C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 12  
 
- 733           * Note    : none
- 734           *--------------------------------------------------------------------------------
- 735           */
- 736          void I2C_PktBuf(I2C_BUF *ptI2cBuf)
- 737          {
- 738   1              U8_T    firstAddr;
- 739   1      
- 740   1              I2C_Cmd(SI_RD, I2CCTL, &i2cCtrl); 
- 741   1      
- 742   1              
- 743   1      
- 744   1              if (i2cCtrl & I2C_MASTER_MODE) // I2C Master Mode
- 745   1              {
- 746   2                      i2cDataLenCnt = 0;
- 747   2                      i2cEndCond = ptI2cBuf->I2cEnd;
- 748   2                      i2cPktDir = ptI2cBuf->I2cDir;
- 749   2                      i2cDataLen = ptI2cBuf->DataLen;
- 750   2                      
- 751   2                                      
- 752   2                              if (i2cCtrl & I2C_10BIT)
- 753   2                              {
- 754   3      
- 755   3      
- 756   3                                      firstAddr = ((U8_T)((ptI2cBuf->I2cAddr.TenBitAddr & 0x0300) >> 7) | 0xF0);
- 757   3                                      if (i2cPktDir & I2C_XMIT)
- 758   3                                      {
- 759   4                                              ptI2cTxBuf = ptI2cBuf;
- 760   4                                              i2c_MasterXmit(firstAddr & ~BIT0, I2C_MASTER_GO | I2C_CMD_WRITE | I2C_START_COND);
- 761   4                                      
- 762   4                                        
- 763   4                                      
- 764   4                                      }
- 765   3                                      else
- 766   3                                      {
- 767   4                                              ptI2cRxBuf = ptI2cBuf;
- 768   4                                              i2c_MasterXmit(firstAddr | BIT0, I2C_MASTER_GO | I2C_CMD_WRITE | I2C_START_COND);
- 769   4                                      
- 770   4                                      
- 771   4                                      
- 772   4                                      
- 773   4                                      }
- 774   3                              }
- 775   2                              else
- 776   2                              {
- 777   3                                      
- 778   3      
- 779   3                                      firstAddr = ptI2cBuf->I2cAddr.SevenBitAddr << 1;
- 780   3      
- 781   3                                      if (i2cPktDir & I2C_XMIT)
- 782   3                                      {
- 783   4                                      
- 784   4      
- 785   4                                              ptI2cTxBuf = ptI2cBuf;
- 786   4                                              
- 787   4                                               
- 788   4                                               
- 789   4                              
- 790   4      
- 791   4      
- 792   4                                      i2c_MasterXmit(firstAddr & ~BIT0, I2C_MASTER_GO | I2C_CMD_WRITE | I2C_START_COND);
- 793   4                                              
- 794   4                                              
-C51 COMPILER V9.06   I2C                                                                   03/13/2013 09:32:25 PAGE 14  
+ 670   3                      }
+ 671   2              }
+ 672   1      }
+ 673          
+ 674          /*
+ 675           *--------------------------------------------------------------------------------
+ 676           * void I2C_PktBuf(I2C_BUF *ptI2cBuf)
+ 677           * Purpose : Packeting a packet and transmitting the first byte
+ 678           * Params  : ptI2cBuf - a pointer stores the packet.
+ 679           * Returns : none
+ 680           * Note    : none
+ 681           *--------------------------------------------------------------------------------
+ 682           */
+ 683          void I2C_PktBuf(I2C_BUF *ptI2cBuf)
+ 684          {
+ 685   1              U8_T    firstAddr;
+ 686   1      
+ 687   1              I2C_Cmd(SI_RD, I2CCTL, &i2cCtrl); 
+ 688   1              if (i2cCtrl & I2C_MASTER_MODE) // I2C Master Mode
+ 689   1              {
+ 690   2                      i2cDataLenCnt = 0;
+ 691   2                      i2cEndCond = ptI2cBuf->I2cEnd;
+ 692   2                      i2cPktDir = ptI2cBuf->I2cDir;
+ 693   2                      i2cDataLen = ptI2cBuf->DataLen;
+ 694   2                                      
+ 695   2                              if (i2cCtrl & I2C_10BIT)
+ 696   2                              {
+ 697   3                                      firstAddr = ((U8_T)((ptI2cBuf->I2cAddr.TenBitAddr & 0x0300) >> 7) | 0xF0);
+ 698   3                                      if (i2cPktDir & I2C_XMIT)
+ 699   3                                      {
+ 700   4                                              ptI2cTxBuf = ptI2cBuf;
+ 701   4                                              i2c_MasterXmit(firstAddr & ~BIT0, I2C_MASTER_GO | I2C_CMD_WRITE | I2C_START_COND);
+ 702   4                                      }
+ 703   3                                      else
+ 704   3                                      {
+ 705   4                                              ptI2cRxBuf = ptI2cBuf;
+ 706   4                                              i2c_MasterXmit(firstAddr | BIT0, I2C_MASTER_GO | I2C_CMD_WRITE | I2C_START_COND);
+ 707   4                                      }
+ 708   3                              }
+ 709   2                              else
+ 710   2                              {
+ 711   3                                      firstAddr = ptI2cBuf->I2cAddr.SevenBitAddr << 1;
+ 712   3                                      if (i2cPktDir & I2C_XMIT)
+ 713   3                                      {
+ 714   4                                              ptI2cTxBuf = ptI2cBuf;
+ 715   4                                              i2c_MasterXmit(firstAddr & ~BIT0, I2C_MASTER_GO | I2C_CMD_WRITE | I2C_START_COND);
+ 716   4                                      }
+ 717   3                                      else
+ 718   3                                      {
+ 719   4                                              ptI2cRxBuf = ptI2cBuf;
+ 720   4                                              i2c_MasterXmit(firstAddr | BIT0, I2C_MASTER_GO | I2C_CMD_WRITE | I2C_START_COND);
+ 721   4                                      }
+ 722   3                              }
+ 723   2              }
+ 724   1              else // I2C Slave Mode
+ 725   1              {
+ 726   2                      if (ptI2cBuf->I2cDir & I2C_XMIT)
+ 727   2                      {
+ 728   3                              /* Get the slave data to transmit */
+ 729   3                              //ptI2cTxBuf->ptI2c = ??;
+ 730   3                              ptI2cBuf->DataLen = i2cDataLen;
+ 731   3                      }
+C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 13  
 
- 795   4                                               
- 796   4                                      
- 797   4      
- 798   4      
- 799   4      
- 800   4                                      }
- 801   3                                      else
- 802   3                                      {
- 803   4      
- 804   4                                               
- 805   4      
- 806   4                                              ptI2cRxBuf = ptI2cBuf;
- 807   4                                              i2c_MasterXmit(firstAddr | BIT0, I2C_MASTER_GO | I2C_CMD_WRITE | I2C_START_COND);
- 808   4                                      
- 809   4                                      
- 810   4                                      
- 811   4                                      }
- 812   3      
- 813   3                                 
- 814   3      
- 815   3                              }
- 816   2              }
- 817   1              else // I2C Slave Mode
- 818   1              {
- 819   2              
- 820   2               
- 821   2              
- 822   2                      if (ptI2cBuf->I2cDir & I2C_XMIT)
- 823   2                      {
- 824   3                              /* Get the slave data to transmit */
- 825   3                              //ptI2cTxBuf->ptI2c = ??;
- 826   3                              ptI2cBuf->DataLen = i2cDataLen;
- 827   3                      }
- 828   2                      else
- 829   2                      {
- 830   3                              /* packet the received data to upper layer */
- 831   3                              ptI2cBuf->DataLen = i2cDataLen;
- 832   3                      }
- 833   2              }
- 834   1      }
- 835          
- 836          /*
- 837           *--------------------------------------------------------------------------------
- 838           * BOOL I2C_FlagChk(U8_T chkBit)
- 839           * Purpose : Checking the current state in I2C driver.
- 840           * Params  : chkBit - the state bit to be checked.
- 841           * Returns : TRUE - the state value meets the chkBit.
- 842           * Note    : none
- 843           *--------------------------------------------------------------------------------
- 844           */
- 845          BOOL I2C_FlagChk(U8_T chkBit)
- 846          {
- 847   1              if (i2cState & chkBit)
- 848   1                      return TRUE;
- 849   1              else
- 850   1                      return FALSE;
- 851   1      }
- 852          
- 853          /*
- 854           *--------------------------------------------------------------------------------
- 855           * void I2C_FlagEnb(U8_T enbBit)
- 856           * Purpose : Setting the current state in I2C driver.
-C51 COMPILER V9.06   I2C                                                                   03/13/2013 09:32:25 PAGE 15  
+ 732   2                      else
+ 733   2                      {
+ 734   3                              /* packet the received data to upper layer */
+ 735   3                              ptI2cBuf->DataLen = i2cDataLen;
+ 736   3                      }
+ 737   2              }
+ 738   1      }
+ 739          
+ 740          /*
+ 741           *--------------------------------------------------------------------------------
+ 742           * BOOL I2C_FlagChk(U8_T chkBit)
+ 743           * Purpose : Checking the current state in I2C driver.
+ 744           * Params  : chkBit - the state bit to be checked.
+ 745           * Returns : TRUE - the state value meets the chkBit.
+ 746           * Note    : none
+ 747           *--------------------------------------------------------------------------------
+ 748           */
+ 749          BOOL I2C_FlagChk(U8_T chkBit)
+ 750          {
+ 751   1              if (i2cState & chkBit)
+ 752   1                      return TRUE;
+ 753   1              else
+ 754   1                      return FALSE;
+ 755   1      }
+ 756          
+ 757          /*
+ 758           *--------------------------------------------------------------------------------
+ 759           * void I2C_FlagEnb(U8_T enbBit)
+ 760           * Purpose : Setting the current state in I2C driver.
+ 761           * Params  : enbBit - the state bit to be set.
+ 762           * Returns : none
+ 763           * Note    : none
+ 764           *--------------------------------------------------------------------------------
+ 765           */
+ 766          void I2C_FlagEnb(U8_T enbBit)
+ 767          {
+ 768   1              i2cState = i2cState | enbBit;
+ 769   1      }
+ 770          
+ 771          /*
+ 772           *--------------------------------------------------------------------------------
+ 773           * void I2C_FlagClr(U8_T clrBit)
+ 774           * Purpose : Clearing the current state in I2C driver.
+ 775           * Params  : clrBit - the state bit to be cleared.
+ 776           * Returns : none
+ 777           * Note    : none
+ 778           *--------------------------------------------------------------------------------
+ 779           */
+ 780          void I2C_FlagClr(U8_T clrBit)
+ 781          {
+ 782   1              i2cState = i2cState & ~clrBit;
+ 783   1      }
+ 784          
+ 785          /*
+ 786           *--------------------------------------------------------------------------------
+ 787           * void I2C_Cmd(U8_T cmdType, U8_T i2cCmdIndex, U8_T *i2cData)
+ 788           * Purpose : Accessing the I2C interface indirectly through I2C's SFR.
+ 789           * Params  : cmdType - command type of writing or reading.
+ 790           *           i2cCmdIndex - I2C register address.
+ 791           *           *i2cData - a pointer store the data.
+ 792           * Returns : none
+ 793           * Note    : none
+C51 COMPILER V9.06   I2C                                                                   05/20/2013 14:16:29 PAGE 14  
 
- 857           * Params  : enbBit - the state bit to be set.
- 858           * Returns : none
- 859           * Note    : none
- 860           *--------------------------------------------------------------------------------
- 861           */
- 862          void I2C_FlagEnb(U8_T enbBit)
- 863          {
- 864   1              i2cState = i2cState | enbBit;
- 865   1      }
- 866          
- 867          /*
- 868           *--------------------------------------------------------------------------------
- 869           * void I2C_FlagClr(U8_T clrBit)
- 870           * Purpose : Clearing the current state in I2C driver.
- 871           * Params  : clrBit - the state bit to be cleared.
- 872           * Returns : none
- 873           * Note    : none
- 874           *--------------------------------------------------------------------------------
- 875           */
- 876          void I2C_FlagClr(U8_T clrBit)
- 877          {
- 878   1              i2cState = i2cState & ~clrBit;
- 879   1      }
- 880          
- 881          /*
- 882           *--------------------------------------------------------------------------------
- 883           * void I2C_Cmd(U8_T cmdType, U8_T i2cCmdIndex, U8_T *i2cData)
- 884           * Purpose : Accessing the I2C interface indirectly through I2C's SFR.
- 885           * Params  : cmdType - command type of writing or reading.
- 886           *           i2cCmdIndex - I2C register address.
- 887           *           *i2cData - a pointer store the data.
- 888           * Returns : none
- 889           * Note    : none
- 890           *--------------------------------------------------------------------------------
- 891           */
- 892          void I2C_Cmd(U8_T cmdType, U8_T i2cCmdIndex, U8_T *i2cData)
- 893          {
- 894   1               
- 895   1              
- 896   1      
- 897   1              if (cmdType == SI_WR)
- 898   1              {
- 899   2                      
- 900   2                      
- 901   2                      I2CDR = *i2cData;
- 902   2                       
- 903   2      
- 904   2                      I2CCIR = i2cCmdIndex;
- 905   2                      
- 906   2                       
- 907   2              }
- 908   1              else if (cmdType == SI_RD)
- 909   1              {
- 910   2                      
- 911   2                      
- 912   2                      I2CCIR = i2cCmdIndex;
- 913   2                      
- 914   2      
- 915   2                      *i2cData = I2CDR;
- 916   2                      
- 917   2      
- 918   2              }
-C51 COMPILER V9.06   I2C                                                                   03/13/2013 09:32:25 PAGE 16  
-
- 919   1      }
- 920          
- 921          /*
- 922           *--------------------------------------------------------------------------------
- 923           * void I2C_Post(void)
- 924           * Purpose :
- 925           * Params  :
- 926           * Returns :
- 927           * Note    :
- 928           *--------------------------------------------------------------------------------
- 929           */
- 930          void I2C_Post(void)
- 931          {
- 932   1      }
- 933          
- 934          
- 935          /* End of i2c.c */
+ 794           *--------------------------------------------------------------------------------
+ 795           */
+ 796          void I2C_Cmd(U8_T cmdType, U8_T i2cCmdIndex, U8_T *i2cData)
+ 797          {
+ 798   1              if (cmdType == SI_WR)
+ 799   1              {
+ 800   2                      I2CDR = *i2cData;
+ 801   2                      I2CCIR = i2cCmdIndex;
+ 802   2              }
+ 803   1              else if (cmdType == SI_RD)
+ 804   1              {
+ 805   2                      I2CCIR = i2cCmdIndex;
+ 806   2                      *i2cData = I2CDR;
+ 807   2              }
+ 808   1      }
+ 809          
+ 810          /*
+ 811           *--------------------------------------------------------------------------------
+ 812           * void I2C_Post(void)
+ 813           * Purpose :
+ 814           * Params  :
+ 815           * Returns :
+ 816           * Note    :
+ 817           *--------------------------------------------------------------------------------
+ 818           */
+ 819          void I2C_Post(void)
+ 820          {
+ 821   1      }
+ 822          
+ 823          
+ 824          /* End of i2c.c */
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE

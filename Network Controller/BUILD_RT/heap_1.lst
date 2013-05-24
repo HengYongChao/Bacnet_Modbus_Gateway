@@ -1,14 +1,15 @@
-C51 COMPILER V9.06   HEAP_1                                                                03/13/2013 09:32:28 PAGE 1   
+C51 COMPILER V9.06   HEAP_1                                                                05/22/2013 16:19:28 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE HEAP_1
 NO OBJECT MODULE REQUESTED
-COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\portable\MemMang\heap_1.c LARGE OMF2 ROM(D16M)
+COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\portable\MemMang\heap_1.c LARGE OMF2 ROM(D16M)
                     - BROWSE INTVECTOR(0X6020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..
                     -\SRC\tcpip\;..\SRC\hsur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i
                     -2c\;..\SRC\flash\;..\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource
-                    -\portable\Keil\AX11000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\h
-                    -eap_1.lst) SRC(.\heap_1.SRC)
+                    -\portable\Keil\AX11000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\v
+                    -ersion;..\src\modbusTCP;..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.
+                    -\heap_1.lst) SRC(.\heap_1.SRC)
 
 line level    source
 
@@ -61,9 +62,9 @@ line level    source
   47           * management pages of http://www.FreeRTOS.org for more information.
   48           */
   49          #include <stdlib.h>
-  50          #include "projdefs.h"
-C51 COMPILER V9.06   HEAP_1                                                                03/13/2013 09:32:28 PAGE 2   
+C51 COMPILER V9.06   HEAP_1                                                                05/22/2013 16:19:28 PAGE 2   
 
+  50          #include "projdefs.h"
   51          #include "portable.h"
   52          #include "task.h"
   53          
@@ -125,9 +126,9 @@ line level    source
  109          
  110          void vPortFree( void *pv ) reentrant
  111          {
- 112   1              /* Memory cannot be freed using this scheme.  See heap_2.c and heap_3.c 
-C51 COMPILER V9.06   HEAP_1                                                                03/13/2013 09:32:28 PAGE 3   
+C51 COMPILER V9.06   HEAP_1                                                                05/22/2013 16:19:28 PAGE 3   
 
+ 112   1              /* Memory cannot be freed using this scheme.  See heap_2.c and heap_3.c 
  113   1              for alternative implementations, and the memory management pages of 
  114   1              http://www.FreeRTOS.org for more information. */
  115   1              pv = pv;
@@ -146,7 +147,7 @@ line level    source
 MODULE INFORMATION:   STATIC OVERLAYABLE
    CODE SIZE        =    218    ----
    CONSTANT SIZE    =   ----    ----
-   XDATA SIZE       =  15366    ----
+   XDATA SIZE       =  20486    ----
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----

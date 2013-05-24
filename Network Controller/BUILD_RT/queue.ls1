@@ -1,21 +1,22 @@
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE     1
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE     1
 
 
 MACRO ASSEMBLER AX51 V3.07c
 OBJECT MODULE PLACED IN .\queue.OBJ
-ASSEMBLER INVOKED BY: d:\Keil_4_9.06\C51\BIN\AX51.EXE .\queue.src PR(.\queue.ls1) EP DEBUG MOD_CONT
+ASSEMBLER INVOKED BY: E:\Keil_4_9.06\C51\BIN\AX51.EXE .\queue.src PR(.\queue.ls1) EP DEBUG MOD_CONT
 
 LOC    OBJ             LINE     SOURCE
 
                           1     ; .\queue.SRC generated from: ..\src\FreeRtossource\queue.c
                           2     ; COMPILER INVOKED BY:
-                          3     ;        d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\queue.c LARGE OMF2 ROM(D16
+                          3     ;        E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\queue.c LARGE OMF2 ROM(D16
                                M) BROWSE INTVECTOR(0X6020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\msti
                                mer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\SRC\debug\;..\SRC\dhcp\;..\S
                                RC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\
                                buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOS
-                               Source\portable\Keil\AX11000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEI
-                               L_AX11000) VARBANKING DEBUG PRINT(.\queue.lst) SRC(.\queue.SRC)
+                               Source\portable\Keil\AX11000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacn
+                               et;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;..\src\gs2e;..\src\adpter1;.
+                               .\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\queue.lst) SRC(.\queue.SRC)
                           4     
                           5     $mod_cont 
                           6     $nomod51 
@@ -64,9 +65,9 @@ LOC    OBJ             LINE     SOURCE
  00A7                    49     XMRHR   DATA    0A7H
  00B0.1                  50     P3_1    BIT     0B0H.1
  00A0.2                  51     P2_2    BIT     0A0H.2
- 0090.3                  52     P1_3    BIT     090H.3
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE     2
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE     2
 
+ 0090.3                  52     P1_3    BIT     090H.3
  0080.4                  53     P0_4    BIT     080H.4
  00BC                    54     CCAPH3  DATA    0BCH
  00B0.2                  55     P3_2    BIT     0B0H.2
@@ -132,9 +133,9 @@ LOC    OBJ             LINE     SOURCE
  00E1                   115     UR2_THR DATA    0E1H
  00E8.5                 116     EWDI    BIT     0E8H.5
  00D8.3                 117     WDIF    BIT     0D8H.3
- 00CB                   118     RLDH    DATA    0CBH
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE     3
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE     3
 
+ 00CB                   118     RLDH    DATA    0CBH
  00BE                   119     EPCR    DATA    0BEH
  00AA                   120     LDHR    DATA    0AAH
  00E6                   121     UR2_LSR DATA    0E6H
@@ -200,9 +201,9 @@ LOC    OBJ             LINE     SOURCE
  00E8                   181     EIE     DATA    0E8H
  0092                   182     WTST    DATA    092H
  00B8.6                 183     PS1     BIT     0B8H.6
- 00B8.1                 184     PT0     BIT     0B8H.1
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE     4
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE     4
 
+ 00B8.1                 184     PT0     BIT     0B8H.1
  0091                   185     EIF     DATA    091H
  00D0.3                 186     RS0     BIT     0D0H.3
  00B8.3                 187     PT1     BIT     0B8H.3
@@ -268,9 +269,9 @@ LOC    OBJ             LINE     SOURCE
 ------                  247     ?PR?_?cQueueReceive?QUEUE                SEGMENT ECODE INSEG 
 ------                  248     ?PR?_?cQueueReceiveFromISR?QUEUE         SEGMENT ECODE INSEG 
 ------                  249     ?PR?_?ucQueueMessagesWaiting?QUEUE       SEGMENT ECODE INSEG 
-------                  250     ?PR?_?vQueueDelete?QUEUE                 SEGMENT ECODE INSEG 
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE     5
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE     5
 
+------                  250     ?PR?_?vQueueDelete?QUEUE                 SEGMENT ECODE INSEG 
 ------                  251     ?PR?_?prvLockQueue?QUEUE                 SEGMENT ECODE INSEG 
 ------                  252     ?PR?_?prvUnlockQueue?QUEUE               SEGMENT ECODE INSEG 
 ------                  253     ?PR?_?prvIsQueueEmpty?QUEUE              SEGMENT ECODE INSEG 
@@ -336,9 +337,9 @@ LOC    OBJ             LINE     SOURCE
                         313     ;       ***************************************************************************
                         314     ; */
                         315     ; 
-                        316     ; /*
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE     6
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE     6
 
+                        316     ; /*
                         317     ; Changes from V1.01
                         318     ; 
                         319     ;       + More use of 8bit data types.
@@ -404,9 +405,9 @@ LOC    OBJ             LINE     SOURCE
                                to queueUNLOCKED when the queue is not locked. */
                         368     ;       signed portCHAR cTxLock;                                /*< Stores the number of
                                 items transmitted to the queue (added to the queue) while the queue was locked.  Set to 
-                               queueUNLOCKED when the queue is not locked. */
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE     7
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE     7
 
+                               queueUNLOCKED when the queue is not locked. */
                         369     ; } xQUEUE;
                         370     ; /*-----------------------------------------------------------*/
                         371     ; 
@@ -472,9 +473,9 @@ LOC    OBJ             LINE     SOURCE
                         426     ;  * byte for byte, not by reference.  Updates the queue state to ensure it's
                         427     ;  * integrity after the copy.
                         428     ;  */
-                        429     ; #define prvCopyQueueData( pxQueue, pvItemToQueue )                                    
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE     8
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE     8
 
+                        429     ; #define prvCopyQueueData( pxQueue, pvItemToQueue )                                    
                                                                                        \
                         430     ;       memcpy( ( void * ) pxQueue->pcWriteTo, pvItemToQueue, ( unsigned ) pxQueue->ucIt
                                emSize );       \
@@ -540,9 +541,9 @@ LOC    OBJ             LINE     SOURCE
 000020 12000000   E     483             LCALL   ?C?XBPOFF
 000024 E0               484             MOVX    A,@DPTR
 000025 D3               485             SETB    C
-000026 9400             486             SUBB    A,#00H
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE     9
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE     9
 
+000026 9400             486             SUBB    A,#00H
 000028 5003             487             JNC     $ + 5H
 00002A 010000     F     488             AJMP    ?C0001
                         489     ;       {
@@ -608,9 +609,9 @@ LOC    OBJ             LINE     SOURCE
 000084 A3               547             INC     DPTR
 000085 EF               548             MOV     A,R7
 000086 F0               549             MOVX    @DPTR,A
-                        550     ; 
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    10
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    10
 
+                        550     ; 
                         551     ;                       pxNewQueue->pcHead = ( signed portCHAR * ) pvPortMalloc( usQueue
                                SizeInBytes );
                         552                             ; SOURCE LINE # 191
@@ -676,9 +677,9 @@ LOC    OBJ             LINE     SOURCE
 0000DF E0               610             MOVX    A,@DPTR
 0000E0 F9               611             MOV     R1,A
 0000E1 12000000   E     612             LCALL   ?C?PLDPTR
-0000E5 90000006         613             MOV     DPTR,#06H
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    11
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    11
 
+0000E5 90000006         613             MOV     DPTR,#06H
 0000E9 12000000   E     614             LCALL   ?C?XBPOFF
 0000ED E0               615             MOVX    A,@DPTR
 0000EE FF               616             MOV     R7,A
@@ -744,9 +745,9 @@ LOC    OBJ             LINE     SOURCE
 00014B E0               676             MOVX    A,@DPTR
 00014C F9               677             MOV     R1,A
 00014D 12000000   E     678             LCALL   ?C?PLDPTR
-000151 C003             679             PUSH    AR3
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    12
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    12
 
+000151 C003             679             PUSH    AR3
 000153 C002             680             PUSH    AR2
 000155 C001             681             PUSH    AR1
 000157 850083     E     682             MOV     DPH,?C_XBP
@@ -812,9 +813,9 @@ LOC    OBJ             LINE     SOURCE
 0001BE A3               741             INC     DPTR
 0001BF E0               742             MOVX    A,@DPTR
 0001C0 FA               743             MOV     R2,A
-0001C1 A3               744             INC     DPTR
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    13
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    13
 
+0001C1 A3               744             INC     DPTR
 0001C2 E0               745             MOVX    A,@DPTR
 0001C3 2409             746             ADD     A,#09H
 0001C5 F9               747             MOV     R1,A
@@ -880,9 +881,9 @@ LOC    OBJ             LINE     SOURCE
 000224 FA               807             MOV     R2,A
 000225 A3               808             INC     DPTR
 000226 E0               809             MOVX    A,@DPTR
-000227 243F             810             ADD     A,#03FH
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    14
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    14
 
+000227 243F             810             ADD     A,#03FH
 000229 F9               811             MOV     R1,A
 00022A E4               812             CLR     A
 00022B 3A               813             ADDC    A,R2
@@ -948,9 +949,9 @@ LOC    OBJ             LINE     SOURCE
 00027D 3A               871             ADDC    A,R2
 00027E FA               872             MOV     R2,A
 00027F 12000000   E     873             LCALL   _?vListInitialise
-                        874     ; 
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    15
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    15
 
+                        874     ; 
                         875     ;                               return  pxNewQueue;
                         876                             ; SOURCE LINE # 209
 000283 850083     E     877             MOV     DPH,?C_XBP
@@ -1016,9 +1017,9 @@ LOC    OBJ             LINE     SOURCE
 000000                  936     _?cQueueSend:
                         937             USING   0
                         938                             ; SOURCE LINE # 224
-000000 9000FFFD         939             MOV     DPTR,#0FFFDH
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    16
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    16
 
+000000 9000FFFD         939             MOV     DPTR,#0FFFDH
 000004 12000000   E     940             LCALL   ?C?ADDXBP
 000008 EB               941             MOV     A,R3
 000009 F0               942             MOVX    @DPTR,A
@@ -1084,9 +1085,9 @@ LOC    OBJ             LINE     SOURCE
 000023 850082     E    1002             MOV     DPL,?C_XBP+01H
 000026 A3              1003             INC     DPTR
 000027 759300     E    1004             MOV     DPX,#?C?XDATASEG
-00002A E0              1005             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    17
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    17
 
+00002A E0              1005             MOVX    A,@DPTR
 00002B FB              1006             MOV     R3,A
 00002C A3              1007             INC     DPTR
 00002D E0              1008             MOVX    A,@DPTR
@@ -1152,9 +1153,9 @@ LOC    OBJ             LINE     SOURCE
 000060 E0              1062             MOVX    A,@DPTR
 000061 FC              1063             MOV     R4,A
 000062 A3              1064             INC     DPTR
-000063 E0              1065             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    18
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    18
 
+000063 E0              1065             MOVX    A,@DPTR
 000064 FD              1066             MOV     R5,A
 000065 A3              1067             INC     DPTR
 000066 E0              1068             MOVX    A,@DPTR
@@ -1220,9 +1221,9 @@ LOC    OBJ             LINE     SOURCE
                        1119                             ; SOURCE LINE # 313
 000090 12000000   E    1120             LCALL   _?cTaskResumeAll
 000094 EF              1121             MOV     A,R7
-000095 7004            1122             JNZ     ?C0008
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    19
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    19
 
+000095 7004            1122             JNZ     ?C0008
                        1123     ;                               {
                        1124                             ; SOURCE LINE # 314
                        1125     ;                                       taskYIELD();
@@ -1288,9 +1289,9 @@ LOC    OBJ             LINE     SOURCE
 0000D4 FB              1184             MOV     R3,A
 0000D5 A3              1185             INC     DPTR
 0000D6 E0              1186             MOVX    A,@DPTR
-0000D7 FA              1187             MOV     R2,A
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    20
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    20
 
+0000D7 FA              1187             MOV     R2,A
 0000D8 A3              1188             INC     DPTR
 0000D9 E0              1189             MOVX    A,@DPTR
 0000DA 243C            1190             ADD     A,#03CH
@@ -1356,9 +1357,9 @@ LOC    OBJ             LINE     SOURCE
 000132 F9              1249             MOV     R1,A
 000133 E4              1250             CLR     A
 000134 3A              1251             ADDC    A,R2
-000135 FA              1252             MOV     R2,A
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    21
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    21
 
+000135 FA              1252             MOV     R2,A
 000136 12000000   E    1253             LCALL   ?C?PLDPTR
 00013A A801            1254             MOV     R0,AR1
 00013C AC02            1255             MOV     R4,AR2
@@ -1424,9 +1425,9 @@ LOC    OBJ             LINE     SOURCE
 00019C 7001            1315             JNZ     ?C0069
 00019E 0A              1316             INC     R2
 00019F                 1317     ?C0069:
-00019F E4              1318             CLR     A
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    22
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    22
 
+00019F E4              1318             CLR     A
 0001A0 8FF0            1319             MOV     B,R7
 0001A2 12000000   E    1320             LCALL   ?C?IILDPTR
 0001A6 850083     E    1321             MOV     DPH,?C_XBP
@@ -1492,9 +1493,9 @@ LOC    OBJ             LINE     SOURCE
 000207 C003            1381             PUSH    AR3
 000209 C002            1382             PUSH    AR2
 00020B C001            1383             PUSH    AR1
-00020D 850083     E    1384             MOV     DPH,?C_XBP
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    23
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    23
 
+00020D 850083     E    1384             MOV     DPH,?C_XBP
 000210 850082     E    1385             MOV     DPL,?C_XBP+01H
 000213 A3              1386             INC     DPTR
 000214 759300     E    1387             MOV     DPX,#?C?XDATASEG
@@ -1560,9 +1561,9 @@ LOC    OBJ             LINE     SOURCE
                        1447     ;       }
                        1448                             ; SOURCE LINE # 348
                        1449     ;       taskEXIT_CRITICAL();
-000259 D0D092AF        1450              DB 0D0H, 0D0H, 092H, 0AFH;
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    24
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    24
 
+000259 D0D092AF        1450              DB 0D0H, 0D0H, 092H, 0AFH;
                        1451     ; 
                        1452     ;       /* We no longer require exclusive access to the queue.  prvUnlockQueue
                        1453     ;       will remove any tasks suspended on a receive if either this function 
@@ -1628,9 +1629,9 @@ LOC    OBJ             LINE     SOURCE
                                gned portCHAR cTaskPreviouslyWoken ) reentrant
                        1512     
 ------                 1513             RSEG  ?PR?_?cQueueSendFromISR?QUEUE
-000000                 1514     _?cQueueSendFromISR:
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    25
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    25
 
+000000                 1514     _?cQueueSendFromISR:
                        1515             USING   0
                        1516                             ; SOURCE LINE # 377
 000000 9000FFFD        1517             MOV     DPTR,#0FFFDH
@@ -1696,9 +1697,9 @@ LOC    OBJ             LINE     SOURCE
 00004F 850082     E    1577             MOV     DPL,?C_XBP+01H
 000052 759300     E    1578             MOV     DPX,#?C?XDATASEG
 000055 E0              1579             MOVX    A,@DPTR
-000056 FB              1580             MOV     R3,A
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    26
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    26
 
+000056 FB              1580             MOV     R3,A
 000057 A3              1581             INC     DPTR
 000058 E0              1582             MOVX    A,@DPTR
 000059 FA              1583             MOV     R2,A
@@ -1764,9 +1765,9 @@ LOC    OBJ             LINE     SOURCE
 0000BD 3A              1643             ADDC    A,R2
 0000BE FA              1644             MOV     R2,A
 0000BF 7401            1645             MOV     A,#01H
-0000C1 12000000   E    1646             LCALL   ?C?CILDPTR
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    27
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    27
 
+0000C1 12000000   E    1646             LCALL   ?C?CILDPTR
 0000C5 850083     E    1647             MOV     DPH,?C_XBP
 0000C8 850082     E    1648             MOV     DPL,?C_XBP+01H
 0000CB 759300     E    1649             MOV     DPX,#?C?XDATASEG
@@ -1832,9 +1833,9 @@ LOC    OBJ             LINE     SOURCE
 00012B E0              1709             MOVX    A,@DPTR
 00012C FB              1710             MOV     R3,A
 00012D A3              1711             INC     DPTR
-00012E E0              1712             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    28
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    28
 
+00012E E0              1712             MOVX    A,@DPTR
 00012F FA              1713             MOV     R2,A
 000130 A3              1714             INC     DPTR
 000131 E0              1715             MOVX    A,@DPTR
@@ -1900,9 +1901,9 @@ LOC    OBJ             LINE     SOURCE
 00018C E0              1775             MOVX    A,@DPTR
 00018D FA              1776             MOV     R2,A
 00018E A3              1777             INC     DPTR
-00018F E0              1778             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    29
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    29
 
+00018F E0              1778             MOVX    A,@DPTR
 000190 2440            1779             ADD     A,#040H
 000192 F9              1780             MOV     R1,A
 000193 E4              1781             CLR     A
@@ -1968,9 +1969,9 @@ LOC    OBJ             LINE     SOURCE
 0001DA 2424            1838             ADD     A,#024H
 0001DC F9              1839             MOV     R1,A
 0001DD E4              1840             CLR     A
-0001DE 3A              1841             ADDC    A,R2
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    30
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    30
 
+0001DE 3A              1841             ADDC    A,R2
 0001DF FA              1842             MOV     R2,A
 0001E0 12000000   E    1843             LCALL   _?cTaskRemoveFromEventList
 0001E4 EF              1844             MOV     A,R7
@@ -2036,9 +2037,9 @@ LOC    OBJ             LINE     SOURCE
 000215 02000000   E    1903             LJMP    ?C?ADDXBP
                        1904     ; END OF _?cQueueSendFromISR
                        1905     
-                       1906     ; /*-----------------------------------------------------------*/
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    31
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    31
 
+                       1906     ; /*-----------------------------------------------------------*/
                        1907     ; 
                        1908     ; signed portCHAR cQueueReceive( xQueueHandle pxQueue, void *pcBuffer, portTickType xTic
                                ksToWait ) reentrant
@@ -2104,9 +2105,9 @@ LOC    OBJ             LINE     SOURCE
 00003B FE              1968             MOV     R6,A
 00003C FD              1969             MOV     R5,A
 00003D FC              1970             MOV     R4,A
-00003E 90000007        1971             MOV     DPTR,#07H
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    32
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    32
 
+00003E 90000007        1971             MOV     DPTR,#07H
 000042 12000000   E    1972             LCALL   ?C?XBPOFF
 000046 E0              1973             MOVX    A,@DPTR
 000047 F8              1974             MOV     R0,A
@@ -2172,9 +2173,9 @@ LOC    OBJ             LINE     SOURCE
 000095 7004            2032             JNZ     ?C0028
                        2033     ;                               {
                        2034                             ; SOURCE LINE # 444
-                       2035     ;                                       taskYIELD();
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    33
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    33
 
+                       2035     ;                                       taskYIELD();
                        2036                             ; SOURCE LINE # 445
 000097 12000000   E    2037             LCALL   _?vPortYield
                        2038     ;                               }
@@ -2240,9 +2241,9 @@ LOC    OBJ             LINE     SOURCE
 0000DE FA              2097             MOV     R2,A
 0000DF A3              2098             INC     DPTR
 0000E0 E0              2099             MOVX    A,@DPTR
-0000E1 243E            2100             ADD     A,#03EH
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    34
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    34
 
+0000E1 243E            2100             ADD     A,#03EH
 0000E3 F9              2101             MOV     R1,A
 0000E4 E4              2102             CLR     A
 0000E5 3A              2103             ADDC    A,R2
@@ -2308,9 +2309,9 @@ LOC    OBJ             LINE     SOURCE
 000140 E0              2163             MOVX    A,@DPTR
 000141 2409            2164             ADD     A,#09H
 000143 F9              2165             MOV     R1,A
-000144 E4              2166             CLR     A
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    35
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    35
 
+000144 E4              2166             CLR     A
 000145 3A              2167             ADDC    A,R2
 000146 FA              2168             MOV     R2,A
 000147 12000000   E    2169             LCALL   ?C?PLDPTR
@@ -2376,9 +2377,9 @@ LOC    OBJ             LINE     SOURCE
 00019E E0              2229             MOVX    A,@DPTR
 00019F FA              2230             MOV     R2,A
 0001A0 A3              2231             INC     DPTR
-0001A1 E0              2232             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    36
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    36
 
+0001A1 E0              2232             MOVX    A,@DPTR
 0001A2 243C            2233             ADD     A,#03CH
 0001A4 F9              2234             MOV     R1,A
 0001A5 E4              2235             CLR     A
@@ -2444,9 +2445,9 @@ LOC    OBJ             LINE     SOURCE
 000203 D002            2294             POP     AR2
 000205 D003            2295             POP     AR3
 000207 12000000   E    2296             LCALL   ?C?COPY
-                       2297     ; 
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    37
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    37
 
+                       2297     ; 
                        2298     ;                       /* Increment the lock count so prvUnlockQueue knows to check for
                        2299     ;                       tasks waiting for space to become available on the queue. */
                        2300     ;                       ++( pxQueue->cRxLock );
@@ -2512,9 +2513,9 @@ LOC    OBJ             LINE     SOURCE
 000250 EF              2360             MOV     A,R7
 000251 700A            2361             JNZ     ?C0034
                        2362     ;               {
-                       2363                             ; SOURCE LINE # 483
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    38
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    38
 
+                       2363                             ; SOURCE LINE # 483
                        2364     ;                       taskYIELD();
                        2365                             ; SOURCE LINE # 484
 000253 12000000   E    2366             LCALL   _?vPortYield
@@ -2580,9 +2581,9 @@ LOC    OBJ             LINE     SOURCE
 00001E A3              2425             INC     DPTR
 00001F 759300     E    2426             MOV     DPX,#?C?XDATASEG
 000022 E0              2427             MOVX    A,@DPTR
-000023 FB              2428             MOV     R3,A
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    39
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    39
 
+000023 FB              2428             MOV     R3,A
 000024 A3              2429             INC     DPTR
 000025 E0              2430             MOVX    A,@DPTR
 000026 FA              2431             MOV     R2,A
@@ -2648,9 +2649,9 @@ LOC    OBJ             LINE     SOURCE
                        2491     ;               if( pxQueue->pcReadFrom >= pxQueue->pcTail )
                        2492                             ; SOURCE LINE # 505
 00007A 850083     E    2493             MOV     DPH,?C_XBP
-00007D 850082     E    2494             MOV     DPL,?C_XBP+01H
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    40
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    40
 
+00007D 850082     E    2494             MOV     DPL,?C_XBP+01H
 000080 A3              2495             INC     DPTR
 000081 759300     E    2496             MOV     DPX,#?C?XDATASEG
 000084 E0              2497             MOVX    A,@DPTR
@@ -2716,9 +2717,9 @@ LOC    OBJ             LINE     SOURCE
 0000DB C003            2557             PUSH    AR3
 0000DD C002            2558             PUSH    AR2
 0000DF C001            2559             PUSH    AR1
-0000E1 850083     E    2560             MOV     DPH,?C_XBP
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    41
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    41
 
+0000E1 850083     E    2560             MOV     DPH,?C_XBP
 0000E4 850082     E    2561             MOV     DPL,?C_XBP+01H
 0000E7 A3              2562             INC     DPTR
 0000E8 759300     E    2563             MOV     DPX,#?C?XDATASEG
@@ -2784,9 +2785,9 @@ LOC    OBJ             LINE     SOURCE
 00013A 850082     E    2622             MOV     DPL,?C_XBP+01H
 00013D A3              2623             INC     DPTR
 00013E 759300     E    2624             MOV     DPX,#?C?XDATASEG
-000141 E0              2625             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    42
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    42
 
+000141 E0              2625             MOVX    A,@DPTR
 000142 FB              2626             MOV     R3,A
 000143 A3              2627             INC     DPTR
 000144 E0              2628             MOVX    A,@DPTR
@@ -2852,9 +2853,9 @@ LOC    OBJ             LINE     SOURCE
                        2687                             ; SOURCE LINE # 519
 000194 90000007        2688             MOV     DPTR,#07H
 000198 12000000   E    2689             LCALL   ?C?XBPOFF
-00019C E0              2690             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    43
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    43
 
+00019C E0              2690             MOVX    A,@DPTR
 00019D FB              2691             MOV     R3,A
 00019E A3              2692             INC     DPTR
 00019F E0              2693             MOVX    A,@DPTR
@@ -2920,9 +2921,9 @@ LOC    OBJ             LINE     SOURCE
                        2751     ;                                       {
                        2752                             ; SOURCE LINE # 524
                        2753     ;                                               /* The task waiting has a higher priorit
-                               y than us so
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    44
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    44
 
+                               y than us so
                        2754     ;                                               force a context switch. */
                        2755     ;                                               *pcTaskWoken = ( signed portCHAR ) pdTRU
                                E;
@@ -2988,9 +2989,9 @@ LOC    OBJ             LINE     SOURCE
                        2815     ;       }
                        2816                             ; SOURCE LINE # 540
 00022C 800B            2817             SJMP    ?C0045
-00022E                 2818     ?C0036:
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    45
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    45
 
+00022E                 2818     ?C0036:
                        2819     ;       else
                        2820     ;       {
                        2821                             ; SOURCE LINE # 542
@@ -3056,9 +3057,9 @@ LOC    OBJ             LINE     SOURCE
 00002A A3              2880             INC     DPTR
 00002B E0              2881             MOVX    A,@DPTR
 00002C FA              2882             MOV     R2,A
-00002D A3              2883             INC     DPTR
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    46
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    46
 
+00002D A3              2883             INC     DPTR
 00002E E0              2884             MOVX    A,@DPTR
 00002F 243C            2885             ADD     A,#03CH
 000031 F9              2886             MOV     R1,A
@@ -3124,9 +3125,9 @@ LOC    OBJ             LINE     SOURCE
                        2946     ;       vPortFree( pxQueue );
                        2947                             ; SOURCE LINE # 565
 000029 850083     E    2948             MOV     DPH,?C_XBP
-00002C 850082     E    2949             MOV     DPL,?C_XBP+01H
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    47
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    47
 
+00002C 850082     E    2949             MOV     DPL,?C_XBP+01H
 00002F 759300     E    2950             MOV     DPX,#?C?XDATASEG
 000032 E0              2951             MOVX    A,@DPTR
 000033 FB              2952             MOV     R3,A
@@ -3192,9 +3193,9 @@ LOC    OBJ             LINE     SOURCE
 00002E 759300     E    3011             MOV     DPX,#?C?XDATASEG
 000031 E0              3012             MOVX    A,@DPTR
 000032 FB              3013             MOV     R3,A
-000033 A3              3014             INC     DPTR
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    48
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    48
 
+000033 A3              3014             INC     DPTR
 000034 E0              3015             MOVX    A,@DPTR
 000035 FA              3016             MOV     R2,A
 000036 A3              3017             INC     DPTR
@@ -3260,9 +3261,9 @@ LOC    OBJ             LINE     SOURCE
 000012 9000FFFD        3077             MOV     DPTR,#0FFFDH
 000016 12000000   E    3078             LCALL   ?C?ADDXBP
 00001A EB              3079             MOV     A,R3
-00001B F0              3080             MOVX    @DPTR,A
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    49
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    49
 
+00001B F0              3080             MOVX    @DPTR,A
 00001C A3              3081             INC     DPTR
 00001D EA              3082             MOV     A,R2
 00001E F0              3083             MOVX    @DPTR,A
@@ -3328,9 +3329,9 @@ LOC    OBJ             LINE     SOURCE
 000066 850082     E    3142             MOV     DPL,?C_XBP+01H
 000069 A3              3143             INC     DPTR
 00006A 759300     E    3144             MOV     DPX,#?C?XDATASEG
-00006D E0              3145             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    50
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    50
 
+00006D E0              3145             MOVX    A,@DPTR
 00006E FB              3146             MOV     R3,A
 00006F A3              3147             INC     DPTR
 000070 E0              3148             MOVX    A,@DPTR
@@ -3396,9 +3397,9 @@ LOC    OBJ             LINE     SOURCE
 0000B4 2424            3205             ADD     A,#024H
 0000B6 F9              3206             MOV     R1,A
 0000B7 E4              3207             CLR     A
-0000B8 3A              3208             ADDC    A,R2
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    51
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    51
 
+0000B8 3A              3208             ADDC    A,R2
 0000B9 FA              3209             MOV     R2,A
 0000BA 12000000   E    3210             LCALL   _?cTaskRemoveFromEventList
 0000BE EF              3211             MOV     A,R7
@@ -3464,9 +3465,9 @@ LOC    OBJ             LINE     SOURCE
                        3269     ;               {
                        3270                             ; SOURCE LINE # 626
                        3271     ;                       pxQueue->cRxLock = queueUNLOCKED;
-                       3272                             ; SOURCE LINE # 627
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    52
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    52
 
+                       3272                             ; SOURCE LINE # 627
 0000FF 850083     E    3273             MOV     DPH,?C_XBP
 000102 850082     E    3274             MOV     DPL,?C_XBP+01H
 000105 A3              3275             INC     DPTR
@@ -3532,9 +3533,9 @@ LOC    OBJ             LINE     SOURCE
 000152 F9              3334             MOV     R1,A
 000153 E4              3335             CLR     A
 000154 3A              3336             ADDC    A,R2
-000155 FA              3337             MOV     R2,A
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    53
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    53
 
+000155 FA              3337             MOV     R2,A
 000156 12000000   E    3338             LCALL   _?cTaskRemoveFromEventList
 00015A EF              3339             MOV     A,R7
 00015B 600C            3340             JZ      ?C0055
@@ -3600,9 +3601,9 @@ LOC    OBJ             LINE     SOURCE
                        3399     ; 
                        3400     ;       taskENTER_CRITICAL();
                        3401     ;               cReturn = ( pxQueue->ucMessagesWaiting == ( unsigned portCHAR ) 0 );
-                       3402                             ; SOURCE LINE # 649
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    54
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    54
 
+                       3402                             ; SOURCE LINE # 649
 00001E 850083     E    3403             MOV     DPH,?C_XBP
 000021 850082     E    3404             MOV     DPL,?C_XBP+01H
 000024 A3              3405             INC     DPTR
@@ -3668,9 +3669,9 @@ LOC    OBJ             LINE     SOURCE
 000010 9000FFFF        3465             MOV     DPTR,#0FFFFH
 000014 12000000   E    3466             LCALL   ?C?ADDXBP
                        3467     ; {
-                       3468     ; signed portCHAR cReturn;
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    55
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    55
 
+                       3468     ; signed portCHAR cReturn;
 000018 A2AFC2AF        3469              DB 0A2H, 0AFH, 0C2H, 0AFH, 0C0H, 0D0H;
 00001C C0D0                     
                        3470     ; 
@@ -3736,14 +3737,14 @@ LOC    OBJ             LINE     SOURCE
                        3530     ; }
                        3531                             ; SOURCE LINE # 665
 000078                 3532     ?C0066:
-000078 90000004        3533             MOV     DPTR,#04H
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    56
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    56
 
+000078 90000004        3533             MOV     DPTR,#04H
 00007C 02000000   E    3534             LJMP    ?C?ADDXBP
                        3535     ; END OF _?prvIsQueueFull
                        3536     
                        3537             END
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    57
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    57
 
 SYMBOL TABLE LISTING
 ------ ----- -------
@@ -3811,7 +3812,7 @@ N A M E                                    T Y P E  V A L U E     ATTRIBUTES
 ?C?CLDPTR . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
 ?C?COPY . . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
 ?C?CSTPTR . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    58
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    58
 
 ?C?IILDPTR. . . . . . . . . . . . . . .    C  ADDR  -------       EXT
 ?C?ILDPTR . . . . . . . . . . . . . . .    C  ADDR  -------       EXT
@@ -3879,7 +3880,7 @@ CCAPM2. . . . . . . . . . . . . . . . .    D  ADDR  00D3H     A
 CCAPM3. . . . . . . . . . . . . . . . .    D  ADDR  00D4H     A   
 CCAPM4. . . . . . . . . . . . . . . . .    D  ADDR  00D5H     A   
 CCON. . . . . . . . . . . . . . . . . .    D  ADDR  00C3H     A   
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    59
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    59
 
 CH. . . . . . . . . . . . . . . . . . .    D  ADDR  00C5H     A   
 CKCON . . . . . . . . . . . . . . . . .    D  ADDR  008EH     A   
@@ -3947,7 +3948,7 @@ LCR . . . . . . . . . . . . . . . . . .    D  ADDR  00A2H     A
 LDAHR . . . . . . . . . . . . . . . . .    D  ADDR  00A5H     A   
 LDALR . . . . . . . . . . . . . . . . .    D  ADDR  00A4H     A   
 LDCSR . . . . . . . . . . . . . . . . .    D  ADDR  00A6H     A   
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    60
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    60
 
 LDHR. . . . . . . . . . . . . . . . . .    D  ADDR  00AAH     A   
 LDLR. . . . . . . . . . . . . . . . . .    D  ADDR  00A9H     A   
@@ -4015,7 +4016,7 @@ PISSR1. . . . . . . . . . . . . . . . .    D  ADDR  009EH     A
 PISSR2. . . . . . . . . . . . . . . . .    D  ADDR  009FH     A   
 PS0 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.4   A   
 PS1 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.6   A   
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    61
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    61
 
 PSW . . . . . . . . . . . . . . . . . .    D  ADDR  00D0H     A   
 PT0 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.1   A   
@@ -4083,7 +4084,7 @@ TR2 . . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.2   A
 TXD . . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.1   A   
 UR2_DLH . . . . . . . . . . . . . . . .    D  ADDR  00E2H     A   
 UR2_DLL . . . . . . . . . . . . . . . .    D  ADDR  00E1H     A   
-AX51 MACRO ASSEMBLER  QUEUE                                                                 03/13/13 09:32:27 PAGE    62
+AX51 MACRO ASSEMBLER  QUEUE                                                                 05/22/13 16:19:27 PAGE    62
 
 UR2_FCR . . . . . . . . . . . . . . . .    D  ADDR  00E3H     A   
 UR2_IER . . . . . . . . . . . . . . . .    D  ADDR  00E2H     A   

@@ -28,9 +28,6 @@
 #define TYPES_H
 
 typedef unsigned short int	 	BOOL;			/* Boolean */
-//typedef unsigned short int	 	bool;			/* Boolean */
-
-
 typedef long		        	S32_T;			/* 32-bit signed */
 typedef unsigned long       	U32_T;			/* 32-bit unsigned */
 typedef short int	        	S16_T;     		/* 16-bit  signed */
@@ -107,7 +104,12 @@ typedef unsigned char       	U8_T;			/* 8-bit unsigned */
 #define	FLASH_WR_DISB		(PCON &= ~PWE_)
 
 
-enum ledState { None, Ethnet_OK,S485_OK,S485_ERR};
+enum ledState { None, Ethnet_OK,S485_OK,S485_ERR,
+				Zigbee_OK, Gsm_OK, Usb_OK, RS232_OK };	 //heng addd enum line
+										
+										
+										
+										
 
 
 

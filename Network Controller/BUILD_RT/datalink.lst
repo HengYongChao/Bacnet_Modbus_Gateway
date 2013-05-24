@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   DATALINK                                                              03/13/2013 09:32:38 PAGE 1   
+C51 COMPILER V9.06   DATALINK                                                              03/29/2013 16:57:09 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE DATALINK
@@ -7,8 +7,8 @@ COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\datalink.c LAR
                     -0) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur
                     -\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SR
                     -C\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\
-                    -;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\datalink.lst) OBJECT(.\d
-                    -atalink.obj)
+                    -;..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version) DEFINE(KEIL_AX1
+                    -1000) VARBANKING DEBUG PRINT(.\datalink.lst) OBJECT(.\datalink.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
                * @param ifname [in] The named interface to use for the network layer.
                * @return True if the interface is successfully initialized,
                *         else False if the initialization fails.
-C51 COMPILER V9.06   DATALINK                                                              03/13/2013 09:32:38 PAGE 2   
+C51 COMPILER V9.06   DATALINK                                                              03/29/2013 16:57:09 PAGE 2   
 
                */
               bool(*datalink_init) (char *ifname);
@@ -126,7 +126,7 @@ line level    source
                       datalink_get_broadcast_address = arcnet_get_broadcast_address;
                       datalink_get_my_address = arcnet_get_my_address;
                   } else if (strcasecmp("mstp", datalink_string) == 0) {
-C51 COMPILER V9.06   DATALINK                                                              03/13/2013 09:32:38 PAGE 3   
+C51 COMPILER V9.06   DATALINK                                                              03/29/2013 16:57:09 PAGE 3   
 
                       datalink_init = dlmstp_init;
                       datalink_send_pdu = dlmstp_send_pdu;

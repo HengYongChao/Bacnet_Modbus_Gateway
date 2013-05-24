@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   DCC                                                                   03/13/2013 09:32:38 PAGE 1   
+C51 COMPILER V9.06   DCC                                                                   03/29/2013 16:57:09 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE DCC
@@ -7,7 +7,8 @@ COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\dcc.c LARGE OM
                     -CDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\
                     -SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buf
                     -fer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\S
-                    -rc\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\dcc.lst) OBJECT(.\dcc.obj)
+                    -rc\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version) DEFINE(KEIL_AX11000)
+                    - VARBANKING DEBUG PRINT(.\dcc.lst) OBJECT(.\dcc.obj)
 
 line level    source
 
@@ -61,9 +62,9 @@ line level    source
   48          static BACNET_COMMUNICATION_ENABLE_DISABLE DCC_Enable_Disable =
   49              COMMUNICATION_ENABLE;
   50          /* password is optionally supported */
-  51          
-C51 COMPILER V9.06   DCC                                                                   03/13/2013 09:32:38 PAGE 2   
+C51 COMPILER V9.06   DCC                                                                   03/29/2013 16:57:09 PAGE 2   
 
+  51          
   52          BACNET_COMMUNICATION_ENABLE_DISABLE dcc_enable_status(
   53              void)
   54          {
@@ -125,9 +126,9 @@ line level    source
  110          
  111          bool dcc_set_status_duration(
  112              BACNET_COMMUNICATION_ENABLE_DISABLE status,
- 113              uint16_t minutes)
-C51 COMPILER V9.06   DCC                                                                   03/13/2013 09:32:38 PAGE 3   
+C51 COMPILER V9.06   DCC                                                                   03/29/2013 16:57:09 PAGE 3   
 
+ 113              uint16_t minutes)
  114          {
  115   1          bool valid = false;
  116   1      
@@ -189,9 +190,9 @@ line level    source
  172              uint8_t * apdu,
  173              unsigned apdu_len,
  174              uint16_t * timeDuration,
- 175              BACNET_COMMUNICATION_ENABLE_DISABLE * enable_disable,
-C51 COMPILER V9.06   DCC                                                                   03/13/2013 09:32:38 PAGE 4   
+C51 COMPILER V9.06   DCC                                                                   03/29/2013 16:57:09 PAGE 4   
 
+ 175              BACNET_COMMUNICATION_ENABLE_DISABLE * enable_disable,
  176              BACNET_CHARACTER_STRING * password)
  177          {
  178   1          unsigned len = 0;
@@ -253,9 +254,9 @@ line level    source
               
               int dcc_decode_apdu(
                   uint8_t * apdu,
-                  unsigned apdu_len,
-C51 COMPILER V9.06   DCC                                                                   03/13/2013 09:32:38 PAGE 5   
+C51 COMPILER V9.06   DCC                                                                   03/29/2013 16:57:09 PAGE 5   
 
+                  unsigned apdu_len,
                   uint8_t * invoke_id,
                   uint16_t * timeDuration,
                   BACNET_COMMUNICATION_ENABLE_DISABLE * enable_disable,
@@ -317,9 +318,9 @@ line level    source
               
               void test_DeviceCommunicationControl(
                   Test * pTest)
-              {
-C51 COMPILER V9.06   DCC                                                                   03/13/2013 09:32:38 PAGE 6   
+C51 COMPILER V9.06   DCC                                                                   03/29/2013 16:57:09 PAGE 6   
 
+              {
                   uint8_t invoke_id = 128;
                   uint16_t timeDuration = 0;
                   BACNET_COMMUNICATION_ENABLE_DISABLE enable_disable;

@@ -1,14 +1,15 @@
-C51 COMPILER V9.06   BUFFER                                                                03/13/2013 09:32:25 PAGE 1   
+C51 COMPILER V9.06   BUFFER                                                                05/20/2013 14:16:30 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE BUFFER
 OBJECT MODULE PLACED IN .\buffer.obj
-COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\buffer\buffer.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020)
+COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\buffer\buffer.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020)
                     - INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;
                     -..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\
                     -buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;.
-                    -.\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\buffer.lst) OBJECT(.\buffe
-                    -r.obj)
+                    -.\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;.
+                    -.\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\buffer.lst) OBJECT(.\buf
+                    -fer.obj)
 
 line level    source
 
@@ -61,9 +62,9 @@ line level    source
   47          
   48          
   49          /* EXPORTED SUBPROGRAM BODIES */
-  50          
-C51 COMPILER V9.06   BUFFER                                                                03/13/2013 09:32:25 PAGE 2   
+C51 COMPILER V9.06   BUFFER                                                                05/20/2013 14:16:30 PAGE 2   
 
+  50          
   51          /*
   52           *--------------------------------------------------------------------------------
   53           * SI_BUF_PAGE *GetPktBuf(void)

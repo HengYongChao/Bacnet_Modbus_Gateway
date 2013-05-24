@@ -41,7 +41,6 @@
 
 
 /* EXPORTED SUBPROGRAM BODIES */
-extern void test_run(U8_T dat);
 
 /*
  *--------------------------------------------------------------------------------
@@ -190,15 +189,7 @@ BOOL I2C_RdmRead(U16_T addrOfDev, U16_T addrOfMem ,I2C_BUF *ptPktTemp, U16_T rea
 	/* Data length exclude device address */
 	ptRxPkt->DataLen = readLen;
 	/* Device Address with 10-bit or 7-bit */
-
-
-	
-
 	I2C_Cmd(SI_RD, I2CCTL, &addrMode);
-
-
-
-
 	if (addrMode & I2C_10BIT)
 	{
 		ptRxPkt->I2cAddr.TenBitAddr = (U16_T)(addrOfDev | ((addrOfMem & 0x0700) >> 8));
@@ -207,21 +198,11 @@ BOOL I2C_RdmRead(U16_T addrOfDev, U16_T addrOfMem ,I2C_BUF *ptPktTemp, U16_T rea
 	{
 		ptRxPkt->I2cAddr.SevenBitAddr = (U8_T)(addrOfDev | ((addrOfMem & 0x0700) >> 8));
 	}
-	
-	
-	
-	
 	/* Send a dummy packet to indicate the internal address of devices */
 	if (endCond & I2C_STOP_COND)
 	{
-
-	    
-
 		if (I2C_DummyWrite(addrOfDev, addrOfMem, I2C_STOP_COND))
 		{
-		
-		   	 
-		
 			/* To send packet and i2c bus will be busy for this transfer */
 			I2C_FlagEnb(I2C_BUSY);
 			I2C_PktBuf(ptRxPkt);
@@ -241,18 +222,10 @@ BOOL I2C_RdmRead(U16_T addrOfDev, U16_T addrOfMem ,I2C_BUF *ptPktTemp, U16_T rea
 			return TRUE;
 		}
 		else
-			
-		
-			
-			
-			
 			return FALSE;
 	}
 	else
 	{
-		 
-	  
-	
 		if (I2C_DummyWrite(addrOfDev, addrOfMem, endCond))
 		{
 			/* To check the packet has a restart condition for next access */
@@ -308,13 +281,7 @@ BOOL I2C_DummyWrite(U16_T addrOfDev, U16_T addrOfMem, U8_T endCond)
 	/* Data length exclude device address */
 	ptTxPkt->DataLen = 0x01;
 	/* Device Address with 10-bit or 7-bit */
-
-
-
 	I2C_Cmd(SI_RD, I2CCTL, &addrMode);
-
-	 
-
 	if (addrMode & I2C_10BIT)
 	{
 		ptTxPkt->I2cAddr.TenBitAddr = (U16_T)(addrOfDev | ((addrOfMem & 0x0700) >> 8));
@@ -323,34 +290,16 @@ BOOL I2C_DummyWrite(U16_T addrOfDev, U16_T addrOfMem, U8_T endCond)
 	{
 		ptTxPkt->I2cAddr.SevenBitAddr = (U8_T)(addrOfDev | ((addrOfMem & 0x0700) >> 8));
 	}
-
-   
-
 	/* Register word Address */
 	ptTxPkt->I2cData[0] = (U8_T)(addrOfMem & 0x00FF);
 	/* No Access Data */
 	/* To send packet and i2c bus will be busy for this transfer */
 	I2C_FlagEnb(I2C_BUSY);
-	
-	
 	I2C_FlagClr(I2C_RESTART);
-
-	
-
 	I2C_PktBuf(ptTxPkt);
-	
-	 
- //  test_run(5);
-   
-
 	/* Waiting for transfer completely */
 	while (I2C_FlagChk(I2C_BUSY)) {}
-
-	
-
-
 	/* If the packet does not have any ACK echoed, this transfer fail */
-
 	if (I2C_FlagChk(I2C_NACK))
 	{
 		I2C_FlagClr(I2C_NACK);

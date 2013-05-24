@@ -1,6 +1,6 @@
 
 
-Rev69.12:
+Rev69.11:
 1.add mstp feature
 2.token passing and create node. 
 3.support 25M,100M system frequency, higher program speed.
@@ -21,8 +21,11 @@ Rev69.12:
 17.ADD free RTOS cpu frequency supprot 100Mhz,50Mhz.
 18. modify the tunnel scan function T3000, NC ,ZigbeTsata.
 19.modify uart1 zigbee lost byte issue.
-
-
+20.fixed when modbuspoll read with rs232 cause nc system halt issue.
+21.add version.c file.
+22.fixed scan fuction good, (ID + SN) = 5.
+23.enable gsm feature, add gsm task.
+24.add webpage features. (2013/05/22)
 
 
   

@@ -1,14 +1,15 @@
-C51 COMPILER V9.06   LIST                                                                  03/13/2013 09:32:27 PAGE 1   
+C51 COMPILER V9.06   LIST                                                                  05/22/2013 16:19:27 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE LIST
 NO OBJECT MODULE REQUESTED
-COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\list.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0
+COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\list.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0
                     -X6020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\
                     -hsur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;.
                     -.\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11
-                    -000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\list.lst) SRC(.\list
-                    -.SRC)
+                    -000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbu
+                    -sTCP;..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\list.lst) SRC(.\li
+                    -st.SRC)
 
 line level    source
 
@@ -61,9 +62,9 @@ line level    source
   47                  + Removed the NULL check in vListRemove().  This makes the call faster but
   48                    necessitates any application code utilising the list implementation to
   49                    ensure NULL pointers are not passed.
-  50          
-C51 COMPILER V9.06   LIST                                                                  03/13/2013 09:32:27 PAGE 2   
+C51 COMPILER V9.06   LIST                                                                  05/22/2013 16:19:27 PAGE 2   
 
+  50          
   51          Changes from V2.0.0
   52          
   53                  + Double linked the lists to allow faster removal item removal.
@@ -125,9 +126,9 @@ line level    source
  109   1              pxNewListItem->pxNext = pxIndex->pxNext;
  110   1              pxNewListItem->pxPrevious = pxList->pxIndex;
  111   1              pxIndex->pxNext->pxPrevious = ( volatile xListItem * ) pxNewListItem;
- 112   1              pxIndex->pxNext = ( volatile xListItem * ) pxNewListItem;
-C51 COMPILER V9.06   LIST                                                                  03/13/2013 09:32:27 PAGE 3   
+C51 COMPILER V9.06   LIST                                                                  05/22/2013 16:19:27 PAGE 3   
 
+ 112   1              pxIndex->pxNext = ( volatile xListItem * ) pxNewListItem;
  113   1              pxList->pxIndex = ( volatile xListItem * ) pxNewListItem;
  114   1      
  115   1              /* Remember which list the item is in. */
@@ -189,9 +190,9 @@ line level    source
  169   1      xList * pxList;
  170   1      
  171   1              pxItemToRemove->pxNext->pxPrevious = pxItemToRemove->pxPrevious;
- 172   1              pxItemToRemove->pxPrevious->pxNext = pxItemToRemove->pxNext;
-C51 COMPILER V9.06   LIST                                                                  03/13/2013 09:32:27 PAGE 4   
+C51 COMPILER V9.06   LIST                                                                  05/22/2013 16:19:27 PAGE 4   
 
+ 172   1              pxItemToRemove->pxPrevious->pxNext = pxItemToRemove->pxNext;
  173   1              
  174   1              /* The list item knows which list it is in.  Obtain the list from the list
  175   1              item. */

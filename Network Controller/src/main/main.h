@@ -33,6 +33,7 @@
 /* Protocol modules - 1:include 0:not include */
 #define INCLUDE_DNS_CLIENT  0
 #define INCLUDE_DHCP_CLIENT 1
+#define INCLUDE_EVENT_DETECT 1
 
 /* GLOBAL VARIABLES */
 
@@ -51,7 +52,8 @@ sbit Rs485_EN = P3^6;
 sbit DisPlay1 = P2^0;
 sbit DisPlay2 = P2^1;
 sbit LE = P3^7;
-//sbit LE=P1^7;
+
+sbit backlight = P1^7;
 
 typedef struct buf_str {
 	U16_T Leng;
@@ -66,7 +68,6 @@ typedef struct buf_str {
 #define	SERVER_SCHEDULE	4
 #define	SERVER_SCAN		5
 
-
 extern Time_str Time_Server;
 extern U8_T	TcpSocket_ME;
 extern U8_T	Sever_Order;
@@ -74,12 +75,17 @@ extern U8_T	ChangeIP;
 extern U8_T	TcpIp_Scan;
 extern U8_T far mac_change_enable;
 
+
 extern BOOL send_out;
 extern U8_T rev_cnt;
+
 
 extern void Uart0_Tx(U8_T *buf,U8_T len);
 extern void Uart0_Receive(void);
 extern void Uart1_Tx(U8_T *buf,U8_T len);
+//extern void Uart1_Receive(U8_T length);
+//extern void Uart1_Receive(void);
+extern void Uart2_Receive(void);
 extern void Tx_To_Tstat(U8_T *buf,U8_T len);
 
 void OSDelay(U8_T x);

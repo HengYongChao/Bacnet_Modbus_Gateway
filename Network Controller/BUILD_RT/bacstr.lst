@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 1   
+C51 COMPILER V9.06   BACSTR                                                                03/29/2013 16:57:09 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE BACSTR
@@ -7,8 +7,8 @@ COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\bacstr.c LARGE
                     - INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;
                     -..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\
                     -buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;.
-                    -.\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\bacstr.lst) OBJECT(.\bacst
-                    -r.obj)
+                    -.\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version) DEFINE(KEIL_AX110
+                    -00) VARBANKING DEBUG PRINT(.\bacstr.lst) OBJECT(.\bacstr.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   48          void bitstring_init(
   49              BACNET_BIT_STRING * bit_string)
   50          {
-C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 2   
+C51 COMPILER V9.06   BACSTR                                                                03/29/2013 16:57:09 PAGE 2   
 
   51   1          int i;
   52   1      
@@ -126,7 +126,7 @@ line level    source
  110   1          uint8_t used_bytes = 0;
  111   1          uint8_t last_bit = 0;
  112   1      
-C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 3   
+C51 COMPILER V9.06   BACSTR                                                                03/29/2013 16:57:09 PAGE 3   
 
  113   1          if (bit_string->bits_used) {
  114   2              last_bit = bit_string->bits_used - 1;
@@ -190,7 +190,7 @@ line level    source
  172          
  173          uint8_t bitstring_bits_capacity(
  174              BACNET_BIT_STRING * bit_string)
-C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 4   
+C51 COMPILER V9.06   BACSTR                                                                03/29/2013 16:57:09 PAGE 4   
 
  175          {
  176   1          if (bit_string) {
@@ -254,7 +254,7 @@ line level    source
  234          /* returns false if the string exceeds capacity
  235             initialize by using value=NULL */
  236          bool characterstring_init(
-C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 5   
+C51 COMPILER V9.06   BACSTR                                                                03/29/2013 16:57:09 PAGE 5   
 
  237              BACNET_CHARACTER_STRING * char_string,
  238              uint8_t encoding,
@@ -318,7 +318,7 @@ line level    source
  296   1              (src->length < dest_max_len)) {
  297   2              for (i = 0; i < src->length; i++) {
  298   3                  dest[i] = src->value[i];
-C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 6   
+C51 COMPILER V9.06   BACSTR                                                                03/29/2013 16:57:09 PAGE 6   
 
  299   3              }
  300   2              return true;
@@ -382,7 +382,7 @@ line level    source
  358   3              }
  359   2          } else if (dest) {
  360   2              if (dest->length == 0) {
-C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 7   
+C51 COMPILER V9.06   BACSTR                                                                03/29/2013 16:57:09 PAGE 7   
 
  361   3                  same_status = true;
  362   3              }
@@ -446,7 +446,7 @@ line level    source
  420   1      }
  421          
  422          /* returns the length. */
-C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 8   
+C51 COMPILER V9.06   BACSTR                                                                03/29/2013 16:57:09 PAGE 8   
 
  423          size_t characterstring_length(
  424              BACNET_CHARACTER_STRING * char_string)
@@ -510,7 +510,7 @@ line level    source
  482   4                      if (i < char_string->length) {
  483   5                          if ((char_string->value[i] < 0x20) ||
  484   5                              (char_string->value[i] > 0x7E)) {
-C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 9   
+C51 COMPILER V9.06   BACSTR                                                                03/29/2013 16:57:09 PAGE 9   
 
  485   6                              status = false;
  486   6                          }
@@ -574,7 +574,7 @@ line level    source
  544   3                  continue;
  545   3              }
  546   2              if ((c & 0xc0) != 0xc0) {
-C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 10  
+C51 COMPILER V9.06   BACSTR                                                                03/29/2013 16:57:09 PAGE 10  
 
  547   3                  return false;
  548   3              }
@@ -638,7 +638,7 @@ line level    source
  606          {
  607   1          bool valid = false; /* return value */
  608   1      
-C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 11  
+C51 COMPILER V9.06   BACSTR                                                                03/29/2013 16:57:09 PAGE 11  
 
  609   1          if (char_string->encoding < MAX_CHARACTER_STRING_ENCODING) {
  610   2              if (char_string->encoding == CHARACTER_UTF8) {
@@ -702,7 +702,7 @@ line level    source
               
                   if (octet_string) {
                       octet_string->length = 0;
-C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 12  
+C51 COMPILER V9.06   BACSTR                                                                03/29/2013 16:57:09 PAGE 12  
 
                       if (ascii_hex[0] == 0) {
                           /* nothing to decode, so success! */
@@ -766,7 +766,7 @@ line level    source
  730   3              }
  731   2          }
  732   1      
-C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 13  
+C51 COMPILER V9.06   BACSTR                                                                03/29/2013 16:57:09 PAGE 13  
 
  733   1          return status;
  734   1      }
@@ -830,7 +830,7 @@ line level    source
  792   1      
  793   1          return length;
  794   1      }
-C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 14  
+C51 COMPILER V9.06   BACSTR                                                                03/29/2013 16:57:09 PAGE 14  
 
  795          
  796          /* returns true if the same length and contents */
@@ -894,7 +894,7 @@ line level    source
                   }
               
                   /* test for compare equals */
-C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 15  
+C51 COMPILER V9.06   BACSTR                                                                03/29/2013 16:57:09 PAGE 15  
 
                   srand(time(NULL));
                   for (max_bit = 0; max_bit < (MAX_BITSTRING_BYTES * 8); max_bit++) {
@@ -958,7 +958,7 @@ line level    source
                   status =
                       characterstring_truncate(&bacnet_string,
                       characterstring_capacity(&bacnet_string));
-C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 16  
+C51 COMPILER V9.06   BACSTR                                                                03/29/2013 16:57:09 PAGE 16  
 
                   ct_test(pTest, status == true);
               
@@ -1022,7 +1022,7 @@ line level    source
                   status =
                       octetstring_truncate(&bacnet_string,
                       octetstring_capacity(&bacnet_string) + 1);
-C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 17  
+C51 COMPILER V9.06   BACSTR                                                                03/29/2013 16:57:09 PAGE 17  
 
                   ct_test(pTest, status == false);
                   status =
@@ -1086,7 +1086,7 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
    CODE SIZE        =   4634    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =    256     182
-C51 COMPILER V9.06   BACSTR                                                                03/13/2013 09:32:34 PAGE 18  
+C51 COMPILER V9.06   BACSTR                                                                03/29/2013 16:57:09 PAGE 18  
 
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----

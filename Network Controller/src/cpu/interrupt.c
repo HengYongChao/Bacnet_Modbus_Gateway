@@ -70,7 +70,7 @@
 
 
 /* STATIC VARIABLE DECLARATIONS */
-extern void test_port(U8_T num);
+
 
 /* LOCAL SUBPROGRAM DECLARATIONS */
 static void	ax11000_PeripherialISR(void);
@@ -100,17 +100,9 @@ static void ax11000_PeripherialISR(void) interrupt 9 //use external interrupt 4 
 	U8_T	intrStt1 = 0;
 	U8_T	intrStt2 = 0;
 
-//	test_port(0x20);
-
-		
-
-
 	/* Interrupt type check */
 	while (1)
 	{
-	
-//	P3_7 = ~ P3_7;	
-	
 		EA = 0;
 		intrStt1 = PISSR1;
 		intrStt2 = PISSR2;
@@ -142,8 +134,6 @@ static void ax11000_PeripherialISR(void) interrupt 9 //use external interrupt 4 
 #endif
 #endif
 
-
-
 #if AX_ETH_INT_ENABLE
 #if (STOE_GET_INTSTATUS_MODE == STOE_INTERRUPT_MODE)
 		if (intrStt1 & TOE_INT_STU)
@@ -151,8 +141,6 @@ static void ax11000_PeripherialISR(void) interrupt 9 //use external interrupt 4 
 			STOE_SetInterruptFlag();
 		}
 #endif
-
-
 #endif
 
 #if AX_CAN_INT_ENABLE
@@ -162,16 +150,12 @@ static void ax11000_PeripherialISR(void) interrupt 9 //use external interrupt 4 
 		}
 #endif
 
-
-
 #if AX_I2C_INT_ENABLE
 		if (intrStt1 & I2C_INT_STU)
 		{
 			I2C_Func();
 		}
 #endif
-
-
 
 #if AX_SPI_INT_ENABLE
 		if (intrStt1 & SPI_INT_STU)

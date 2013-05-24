@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   RPM                                                                   01/07/2013 11:01:39 PAGE 1   
+C51 COMPILER V9.06   RPM                                                                   01/29/2013 10:19:51 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE RPM
@@ -62,7 +62,7 @@ line level    source
   49              uint8_t invoke_id)
   50          {
   51   1          int apdu_len = 0;   /* total length of the apdu, return value */
-C51 COMPILER V9.06   RPM                                                                   01/07/2013 11:01:39 PAGE 2   
+C51 COMPILER V9.06   RPM                                                                   01/29/2013 10:19:51 PAGE 2   
 
   52   1      
   53   1          if (apdu) {
@@ -126,7 +126,7 @@ line level    source
  111          
  112          /** Encode an RPM request, to be sent.
  113           *
-C51 COMPILER V9.06   RPM                                                                   01/07/2013 11:01:39 PAGE 3   
+C51 COMPILER V9.06   RPM                                                                   01/29/2013 10:19:51 PAGE 3   
 
  114           * @param apdu [in,out] Buffer to hold encoded bytes.
  115           * @param max_apdu [in] Length of apdu buffer.
@@ -190,7 +190,7 @@ line level    source
  173   3                  apdu_len += len;
  174   3                  /* optional array index */
  175   3                  if (rpm_property->propertyArrayIndex != BACNET_ARRAY_ALL) {
-C51 COMPILER V9.06   RPM                                                                   01/07/2013 11:01:39 PAGE 4   
+C51 COMPILER V9.06   RPM                                                                   01/29/2013 10:19:51 PAGE 4   
 
  176   4                      len =
  177   4                          encode_context_unsigned(&apdu_temp[0], 1,
@@ -254,7 +254,7 @@ line level    source
  235   2          }
  236   1      
  237   1          return (int) len;
-C51 COMPILER V9.06   RPM                                                                   01/07/2013 11:01:39 PAGE 5   
+C51 COMPILER V9.06   RPM                                                                   01/29/2013 10:19:51 PAGE 5   
 
  238   1      }
  239          
@@ -318,7 +318,7 @@ line level    source
  297   3              }
  298   2              len += decode_enumerated(&apdu[len], len_value_type, &property);
  299   2              rpmdata->object_property = (BACNET_PROPERTY_ID) property;
-C51 COMPILER V9.06   RPM                                                                   01/07/2013 11:01:39 PAGE 6   
+C51 COMPILER V9.06   RPM                                                                   01/29/2013 10:19:51 PAGE 6   
 
  300   2              /* Assume most probable outcome */
  301   2              rpmdata->array_index = BACNET_ARRAY_ALL;
@@ -382,7 +382,7 @@ line level    source
  359          int rpm_ack_encode_apdu_object_property(
  360              uint8_t * apdu,
  361              BACNET_PROPERTY_ID object_property,
-C51 COMPILER V9.06   RPM                                                                   01/07/2013 11:01:39 PAGE 7   
+C51 COMPILER V9.06   RPM                                                                   01/29/2013 10:19:51 PAGE 7   
 
  362              uint32_t array_index)
  363          {
@@ -446,7 +446,7 @@ line level    source
  421          int rpm_ack_encode_apdu_object_end(
  422              uint8_t * apdu)
  423          {
-C51 COMPILER V9.06   RPM                                                                   01/07/2013 11:01:39 PAGE 8   
+C51 COMPILER V9.06   RPM                                                                   01/29/2013 10:19:51 PAGE 8   
 
  424   1          int apdu_len = 0;   /* total length of the apdu, return value */
  425   1      
@@ -510,7 +510,7 @@ line level    source
  483   1          unsigned len = 0;
  484   1          unsigned tag_len = 0;
  485   1          uint8_t tag_number = 0;
-C51 COMPILER V9.06   RPM                                                                   01/07/2013 11:01:39 PAGE 9   
+C51 COMPILER V9.06   RPM                                                                   01/29/2013 10:19:51 PAGE 9   
 
  486   1          uint32_t len_value_type = 0;
  487   1          uint32_t property = 0;      /* for decoding */
@@ -574,7 +574,7 @@ line level    source
                       return -1;
                   *invoke_id = apdu[1];
                   if (apdu[2] != SERVICE_CONFIRMED_READ_PROP_MULTIPLE)
-C51 COMPILER V9.06   RPM                                                                   01/07/2013 11:01:39 PAGE 10  
+C51 COMPILER V9.06   RPM                                                                   01/29/2013 10:19:51 PAGE 10  
 
                       return -1;
                   offset = 3;
@@ -638,7 +638,7 @@ line level    source
               
                   /* build the RPM - try to make it easy for the Application Layer development */
                   /* IDEA: similar construction, but pass apdu, apdu_len pointer, size of apdu to
-C51 COMPILER V9.06   RPM                                                                   01/07/2013 11:01:39 PAGE 11  
+C51 COMPILER V9.06   RPM                                                                   01/29/2013 10:19:51 PAGE 11  
 
                      let the called function handle the out of space problem that these get into
                      by returning a boolean of success/failure.
@@ -702,7 +702,7 @@ line level    source
                   test_len =
                       rpm_decode_object_property(&service_request[len],
                       service_request_len - len, &rpmdata);
-C51 COMPILER V9.06   RPM                                                                   01/07/2013 11:01:39 PAGE 12  
+C51 COMPILER V9.06   RPM                                                                   01/29/2013 10:19:51 PAGE 12  
 
                   ct_test(pTest, test_len < 0);
                   /* is it the end of this object? */
@@ -766,7 +766,7 @@ line level    source
                   BACNET_APPLICATION_DATA_VALUE test_application_data = { 0 };
                   uint8_t application_data_buffer[MAX_APDU] = { 0 };
                   int application_data_buffer_len = 0;
-C51 COMPILER V9.06   RPM                                                                   01/07/2013 11:01:39 PAGE 13  
+C51 COMPILER V9.06   RPM                                                                   01/29/2013 10:19:51 PAGE 13  
 
                   BACNET_ERROR_CLASS error_class;
                   BACNET_ERROR_CODE error_code;
@@ -830,7 +830,7 @@ line level    source
                   application_data_buffer_len =
                       bacapp_encode_application_data(&application_data_buffer[0],
                       &application_data[2]);
-C51 COMPILER V9.06   RPM                                                                   01/07/2013 11:01:39 PAGE 14  
+C51 COMPILER V9.06   RPM                                                                   01/29/2013 10:19:51 PAGE 14  
 
                   apdu_len +=
                       rpm_ack_encode_apdu_object_property_value(&apdu[apdu_len],
@@ -894,7 +894,7 @@ line level    source
                   ct_test(pTest, array_index == BACNET_ARRAY_ALL);
                   len += test_len;
                   /* what is the result value? */
-C51 COMPILER V9.06   RPM                                                                   01/07/2013 11:01:39 PAGE 15  
+C51 COMPILER V9.06   RPM                                                                   01/29/2013 10:19:51 PAGE 15  
 
                   ct_test(pTest, decode_is_opening_tag_number(&service_request[len], 4));
                   len++;
@@ -958,7 +958,7 @@ line level    source
                   ct_test(pTest, array_index == BACNET_ARRAY_ALL);
                   len += test_len;
                   /* what is the result value? */
-C51 COMPILER V9.06   RPM                                                                   01/07/2013 11:01:39 PAGE 16  
+C51 COMPILER V9.06   RPM                                                                   01/29/2013 10:19:51 PAGE 16  
 
                   ct_test(pTest, decode_is_opening_tag_number(&service_request[len], 5));
                   len++;
@@ -1022,7 +1022,7 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----     186
    PDATA SIZE       =   ----    ----
-C51 COMPILER V9.06   RPM                                                                   01/07/2013 11:01:39 PAGE 17  
+C51 COMPILER V9.06   RPM                                                                   01/29/2013 10:19:51 PAGE 17  
 
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----

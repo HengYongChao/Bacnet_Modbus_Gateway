@@ -20,8 +20,6 @@ SCAN_DB far scan_db[MAX_ID];
 SCAN_DB far current_db;
 U8_T db_ctr;
 
-
-
 U8_T far scan_state;
 U8_T far scan_response_state;
 
@@ -142,36 +140,17 @@ void check_id_in_database(U8_T id, U32_T sn)
 	}
 }
 
-////for debug
-//U8_T ascii[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-//void debug_print_hex(U8_T *dat, U8_T length)
-//{
-//	U8_T p[20];
-//	U8_T i;
-//	U8_T ctr = 0;
-//
-//	for(i = 0; i < length; i++)
-//	{
-//		p[ctr++] = ascii[dat[i] >> 4];
-//		p[ctr++] = ascii[dat[i] & 0x0f];
-//		p[ctr++] = ' ';
-//	}
-//
-//	p[ctr++] = '\n';
-//	p[ctr++] = '\r';
-//
-//	Uart0_Tx(p, ctr);
-//}
+
 
 void bin_search(U8_T min_id, U8_T max_id) reentrant
 {
+	
+
 	if(min_id > max_id)	return;
 
 	scan_state = SCAN_BINSEARCH;
 	send_scan_cmd(max_id, min_id);
 
-//	debug_print_hex(&min_id, 1);
-//	debug_print_hex(&max_id, 1);
 
 	switch(wait_response())	// wait for response from tstats scan command
 	{
@@ -237,7 +216,6 @@ void dealwith_conflict_id(void)
 
 			if(status == UNIQUE_ID) // if unique, there is not occupied at this id.
 			{
-				// tbd.
 				occupy[(occupy_id - 1) / 8] &= ~(1 << ((occupy_id - 1) % 8));
 			}
 			else if(status == UNIQUE_ID_FROM_MULTIPLE)
@@ -278,8 +256,15 @@ void dealwith_conflict_id(void)
 
 void scan_tstat(void)
 {
+	U8_T cnt[5];
+	
 	bin_search(1, 254);
 	dealwith_conflict_id();
+
+	cnt[0] =  db_ctr;
+//	Uart0_Tx(cnt, 1);
+
+
 	if(scan_db_changed == TRUE)
 	{
 		scan_db_changed = FALSE;

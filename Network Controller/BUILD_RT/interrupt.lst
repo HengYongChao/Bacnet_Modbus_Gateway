@@ -1,14 +1,15 @@
-C51 COMPILER V9.06   INTERRUPT                                                             03/13/2013 09:32:19 PAGE 1   
+C51 COMPILER V9.06   INTERRUPT                                                             05/20/2013 14:16:25 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE INTERRUPT
 OBJECT MODULE PLACED IN .\interrupt.obj
-COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\cpu\interrupt.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020)
+COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\cpu\interrupt.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020)
                     - INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;
                     -..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\
                     -buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;.
-                    -.\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\interrupt.lst) OBJECT(.\in
-                    -terrupt.obj)
+                    -.\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;.
+                    -.\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\interrupt.lst) OBJECT(.\
+                    -interrupt.obj)
 
 line level    source
 
@@ -61,9 +62,9 @@ line level    source
   47          
   48          #if AX_I2C_INT_ENABLE
   49          #include        "i2c.h"
-  50          #endif
-C51 COMPILER V9.06   INTERRUPT                                                             03/13/2013 09:32:19 PAGE 2   
+C51 COMPILER V9.06   INTERRUPT                                                             05/20/2013 14:16:25 PAGE 2   
 
+  50          #endif
   51          
   52          #if AX_SPI_INT_ENABLE
               #include        "spi.h"
@@ -86,7 +87,7 @@ line level    source
   70          
   71          
   72          /* STATIC VARIABLE DECLARATIONS */
-  73          extern void test_port(U8_T num);
+  73          
   74          
   75          /* LOCAL SUBPROGRAM DECLARATIONS */
   76          static void     ax11000_PeripherialISR(void);
@@ -116,107 +117,91 @@ line level    source
  100   1              U8_T    intrStt1 = 0;
  101   1              U8_T    intrStt2 = 0;
  102   1      
- 103   1      //      test_port(0x20);
- 104   1      
- 105   1                      
- 106   1      
- 107   1      
- 108   1              /* Interrupt type check */
- 109   1              while (1)
- 110   1              {
- 111   2              
- 112   2      //      P3_7 = ~ P3_7;  
-C51 COMPILER V9.06   INTERRUPT                                                             03/13/2013 09:32:19 PAGE 3   
+ 103   1              /* Interrupt type check */
+ 104   1              while (1)
+ 105   1              {
+ 106   2                      EA = 0;
+ 107   2                      intrStt1 = PISSR1;
+ 108   2                      intrStt2 = PISSR2;
+ 109   2                      EA = 1;
+ 110   2      
+ 111   2                      if ((intrStt1 == 0) && (intrStt2 == 0))
+C51 COMPILER V9.06   INTERRUPT                                                             05/20/2013 14:16:25 PAGE 3   
 
- 113   2              
- 114   2                      EA = 0;
- 115   2                      intrStt1 = PISSR1;
- 116   2                      intrStt2 = PISSR2;
- 117   2                      EA = 1;
- 118   2      
- 119   2                      if ((intrStt1 == 0) && (intrStt2 == 0))
- 120   2                              break;
- 121   2      
- 122   2      #if AX_LBI_INT_ENABLE
+ 112   2                              break;
+ 113   2      
+ 114   2      #if AX_LBI_INT_ENABLE
                               if (intrStt1 & LB_INT_STU)
                               {
                                       LocalBusFunc();
                               }
               #endif
- 128   2      
- 129   2      #if AX_LBI_INT_ENABLE
+ 120   2      
+ 121   2      #if AX_LBI_INT_ENABLE
                               if (intrStt1 & LB_EXT_INT_STU)
                               {
                                       LocalBusAccessCompleteFunc();
                               }
               #endif
- 135   2      
- 136   2      #if AX_ETH_INT_ENABLE
- 137   2      #if (MAC_GET_INTSTATUS_MODE == MAC_INTERRUPT_MODE)
- 138   2                      if (intrStt1 & ETH_INT_STU)
- 139   2                      {
- 140   3                              MAC_SetInterruptFlag();
- 141   3                      }
- 142   2      #endif
- 143   2      #endif
- 144   2      
- 145   2      
- 146   2      
- 147   2      #if AX_ETH_INT_ENABLE
- 148   2      #if (STOE_GET_INTSTATUS_MODE == STOE_INTERRUPT_MODE)
+ 127   2      
+ 128   2      #if AX_ETH_INT_ENABLE
+ 129   2      #if (MAC_GET_INTSTATUS_MODE == MAC_INTERRUPT_MODE)
+ 130   2                      if (intrStt1 & ETH_INT_STU)
+ 131   2                      {
+ 132   3                              MAC_SetInterruptFlag();
+ 133   3                      }
+ 134   2      #endif
+ 135   2      #endif
+ 136   2      
+ 137   2      #if AX_ETH_INT_ENABLE
+ 138   2      #if (STOE_GET_INTSTATUS_MODE == STOE_INTERRUPT_MODE)
                               if (intrStt1 & TOE_INT_STU)
                               {
                                       STOE_SetInterruptFlag();
                               }
               #endif
- 154   2      
- 155   2      
- 156   2      #endif
- 157   2      
- 158   2      #if AX_CAN_INT_ENABLE
+ 144   2      #endif
+ 145   2      
+ 146   2      #if AX_CAN_INT_ENABLE
                               if (intrStt1 & CAN_INT_STU)
                               {
                                       CAN_Func();
                               }
               #endif
- 164   2      
- 165   2      
- 166   2      
- 167   2      #if AX_I2C_INT_ENABLE
- 168   2                      if (intrStt1 & I2C_INT_STU)
- 169   2                      {
- 170   3                              I2C_Func();
- 171   3                      }
- 172   2      #endif
- 173   2      
- 174   2      
-C51 COMPILER V9.06   INTERRUPT                                                             03/13/2013 09:32:19 PAGE 4   
-
- 175   2      
- 176   2      #if AX_SPI_INT_ENABLE
+ 152   2      
+ 153   2      #if AX_I2C_INT_ENABLE
+ 154   2                      if (intrStt1 & I2C_INT_STU)
+ 155   2                      {
+ 156   3                              I2C_Func();
+ 157   3                      }
+ 158   2      #endif
+ 159   2      
+ 160   2      #if AX_SPI_INT_ENABLE
                               if (intrStt1 & SPI_INT_STU)
                               {
                                       SPI_Func();
                               }
               #endif
- 182   2      
- 183   2      #if AX_ONEWIRE_INT_ENABLE
- 184   2                      if (intrStt1 & OW_INT_STU)
- 185   2                      {
- 186   3                              ONEWIRE_Func();
- 187   3                      }
- 188   2      #endif
- 189   2      
- 190   2      #if AX_HSUART_INT_ENABLE
- 191   2                      if (intrStt2 & UART2_INT_STU)
- 192   2                      {
- 193   3                              HSUR_Func();
- 194   3                      }
- 195   2      #endif
- 196   2              }
- 197   1      }
- 198          
- 199          #if AX_POWER_MANAGEMENT_INT_ENABLE
+ 166   2      
+ 167   2      #if AX_ONEWIRE_INT_ENABLE
+ 168   2                      if (intrStt1 & OW_INT_STU)
+ 169   2                      {
+ 170   3                              ONEWIRE_Func();
+ 171   3                      }
+ 172   2      #endif
+ 173   2      
+C51 COMPILER V9.06   INTERRUPT                                                             05/20/2013 14:16:25 PAGE 4   
+
+ 174   2      #if AX_HSUART_INT_ENABLE
+ 175   2                      if (intrStt2 & UART2_INT_STU)
+ 176   2                      {
+ 177   3                              HSUR_Func();
+ 178   3                      }
+ 179   2      #endif
+ 180   2              }
+ 181   1      }
+ 182          
+ 183          #if AX_POWER_MANAGEMENT_INT_ENABLE
               /*
                *--------------------------------------------------------------------------------
                * static void ax11000_PmmISR(void)
@@ -254,8 +239,6 @@ line level    source
                       MCIR = MAC_STOP_PMM_INT_ENABLE_REG;
                       /* clear MAC status register */
                       CLI_MacRd((ULONG)MAC_STOP_PMM_INT_STATUS_REG, &WakeStatus, 1);
-C51 COMPILER V9.06   INTERRUPT                                                             03/13/2013 09:32:19 PAGE 5   
-
                       STOE_Standby = 0;
               #endif
               
@@ -265,12 +248,14 @@ line level    source
               #endif
               }
               #endif
- 246          
- 247          #if AX_WATCHDOG_INT_ENB
+ 230          
+ 231          #if AX_WATCHDOG_INT_ENB
               /*
                *--------------------------------------------------------------------------------
                * void ax11000_WatchDogISR(void)
                * Purpose : The interrupt service routine of the AX11000 Watchdog timeout.
+C51 COMPILER V9.06   INTERRUPT                                                             05/20/2013 14:16:25 PAGE 5   
+
                * Params  : None
                * Returns : None
                * Note    : None
@@ -298,12 +283,12 @@ line level    source
                       }
               }
               #endif
- 279          
- 280          
- 281          /* EXPORTED SUBPROGRAM BODIES */
- 282          
- 283          
- 284          /* End of interrupt.c */
+ 263          
+ 264          
+ 265          /* EXPORTED SUBPROGRAM BODIES */
+ 266          
+ 267          
+ 268          /* End of interrupt.c */
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
@@ -318,8 +303,6 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
    HDATA SIZE       =   ----    ----
    XDATA CONST SIZE =   ----    ----
    FAR CONST SIZE   =   ----    ----
-C51 COMPILER V9.06   INTERRUPT                                                             03/13/2013 09:32:19 PAGE 6   
-
 END OF MODULE INFORMATION.
 
 

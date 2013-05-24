@@ -1,6 +1,6 @@
 ; .\port.SRC generated from: ..\src\FreeRtossource\portable\Keil\AX11000\port.c
 ; COMPILER INVOKED BY:
-;        d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\portable\Keil\AX11000\port.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\port.lst) SRC(.\port.SRC)
+;        E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\portable\Keil\AX11000\port.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\port.lst) SRC(.\port.SRC)
 
 $MOD_CONT
 $NOMOD51
@@ -98,7 +98,6 @@ CY	BIT	0D0H.7
 INT0	BIT	0B0H.2
 UR2_LCR	DATA	0E4H
 XMWLR	DATA	0A4H
-GSM_SWITCH	BIT	0B0H.1
 INT1	BIT	0B0H.3
 UR2_MCR	DATA	0E5H
 DPX0	DATA	093H
@@ -219,6 +218,7 @@ CANDR	DATA	0DFH
 TDR	DATA	0AFH
 LDAHR	DATA	0A5H
 DPX	DATA	093H
+Rs485_2_EN	BIT	0B0H.4
 DMAHR	DATA	0ADH
 PINT2	BIT	0F8H.0
 RXD	BIT	0B0H.0
@@ -231,10 +231,8 @@ LDALR	DATA	0A4H
 PINT5	BIT	0F8H.3
 DMALR	DATA	0ABH
 LSR	DATA	0A3H
-GSM_RX	BIT	0B0H.0
 PINT6	BIT	0F8H.4
 DMAMR	DATA	0ACH
-GSM_TX	BIT	090H.1
 ARCON	DATA	0FFH
 F0	BIT	0D0H.5
 F1	BIT	0D0H.1
@@ -254,17 +252,12 @@ RB18	BIT	0C0H.2
 ?XD?vTimer2ISR?PORT  SEGMENT XDATA OVERLAYABLE
 ?PR?prvSetupTimerInterrupt?PORT          SEGMENT ECODE INSEG 
 ?XD?prvSetupTimerInterrupt?PORT          SEGMENT XDATA OVERLAYABLE
-?C_INITSEG           SEGMENT CODE 
-?XD?PORT             SEGMENT XDATA 
 ?DT?PORT             SEGMENT DATA 
 	EXTRN	CODE (_?prvGetCurrentTCB_XBP)
 	EXTRN	CODE (_?prvSetCurrentTCB_XBP)
 	EXTRN	CODE (_?LoadCtx)
-	EXTRN	XDATA (gsm_timeout)
 	EXTRN	CODE (_?vTaskIncrementTick)
 	EXTRN	HDATA (USB_timeout)
-	EXTRN	XDATA (SilenceTime)
-	EXTRN	HDATA (uart0_timeout)
 	EXTRN	HDATA (uart1_timeout)
 	EXTRN	HDATA (uart2_timeout)
 	EXTRN	CODE (_DMA_WriteReg)
@@ -280,9 +273,7 @@ RB18	BIT	0C0H.2
 	EXTRN	CODE (?C?ISTPTR)
 	EXTRN	CODE (?C?ULSHR)
 	EXTRN	CODE (?C?CSTPTR)
-	PUBLIC	siltime
 	PUBLIC	SaveSP
-	PUBLIC	timegasflag
 	PUBLIC	vTimer2ISR
 	PUBLIC	_?vIntPortContextSwitch
 	PUBLIC	_?OSIntCtxSw
@@ -299,22 +290,8 @@ RB18	BIT	0C0H.2
 ?prvSetupTimerInterrupt?BYTE:
        temp?741:   DS   2
 
-	RSEG  ?XD?PORT
-    timegasflag:   DS   2
-        siltime:   DS   1
-
 	RSEG  ?DT?PORT
          SaveSP:   DS   1
-
-	RSEG  ?C_INITSEG
-	DB	041H
-	DW	siltime
-	DB	000H
-
-	DB	042H
-	DW	timegasflag
-	DW	00000H
-
 ; /*
 ; 	FreeRTOS V2.6.0 - Copyright (C) 2003 - 2005 Richard Barry.
 ; 
@@ -366,12 +343,7 @@ RB18	BIT	0C0H.2
 ; #include "hsuart.h"
 ; #include "uart.h"
 ; #include "../../../../USB/ch375_com.h"
-; #include "../../../../gsm/gsm.h"
-; #include "../include/mstp.h"
 ; 
-; U8_T siltime = 0;
-; //U8_T frame_gap = 0;
-; BOOL timegasflag = 0;
 ; /* Constants required to setup timer 2 to produce the RTOS tick. */
 ; //#define portCLOCK_DIVISOR				( ( unsigned portLONG ) 12 )
 ; //#define portMAX_TIMER_VALUE				( ( unsigned portLONG ) 0xffff )
@@ -430,7 +402,7 @@ RB18	BIT	0C0H.2
 	RSEG  ?PR?_?pxPortInitialiseStack?PORT
 _?pxPortInitialiseStack:
 	USING	0
-			; SOURCE LINE # 111
+			; SOURCE LINE # 106
 	MOV  	DPTR,#0FFFDH
 	LCALL	?C?ADDXBP
 	MOV  	A,R3
@@ -447,7 +419,7 @@ _?pxPortInitialiseStack:
 ;     portSTACK_TYPE * stk;
 ; 
 ;     stk    = (portSTACK_TYPE *) pxTopOfStack;        /* Load stack pointer                                      */
-			; SOURCE LINE # 115
+			; SOURCE LINE # 110
 	MOV  	DPTR,#03H
 	LCALL	?C?XBPOFF
 	MOVX 	A,@DPTR
@@ -470,7 +442,7 @@ _?pxPortInitialiseStack:
 	MOVX 	@DPTR,A
 ; 
 ; 	stk				-= sizeof(void *);		/* Save the pvParameters to external stack */
-			; SOURCE LINE # 117
+			; SOURCE LINE # 112
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -479,7 +451,7 @@ _?pxPortInitialiseStack:
 	MOV  	B,#0FDH
 	LCALL	?C?IILDX
 ; 	*(void**)stk	 = pvParameters;        /*                               */
-			; SOURCE LINE # 118
+			; SOURCE LINE # 113
 	MOV  	DPTR,#09H
 	LCALL	?C?XBPOFF
 	MOVX 	A,@DPTR
@@ -507,7 +479,7 @@ _?pxPortInitialiseStack:
 	LCALL	?C?PSTPTR
 ; 
 ; 	stk				-= sizeof(INT16U);      					/* The value should be loaded to PC    */
-			; SOURCE LINE # 120
+			; SOURCE LINE # 115
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -516,7 +488,7 @@ _?pxPortInitialiseStack:
 	MOV  	B,#0FEH
 	LCALL	?C?IILDX
 ; 	*(INT16U*)stk	 = (INT16U) pxCode;       					/* next time when this task is running */
-			; SOURCE LINE # 121
+			; SOURCE LINE # 116
 	MOV  	DPTR,#06H
 	LCALL	?C?XBPOFF
 	INC  	DPTR
@@ -542,7 +514,7 @@ _?pxPortInitialiseStack:
 	LCALL	?C?ISTPTR
 ; 
 ; 	*--stk	 		 = (portSTACK_TYPE )(((INT32U) pxCode>>16)+0x7F);      /* Third byte of PC for dallas 390 */
-			; SOURCE LINE # 123
+			; SOURCE LINE # 118
 	MOV  	DPTR,#06H
 	LCALL	?C?XBPOFF
 	MOVX 	A,@DPTR
@@ -578,7 +550,7 @@ _?pxPortInitialiseStack:
 ; 
 ; /* Following is the registers pushed into hardware stack */
 ; 	*--stk			 = 'A';                 /* ACC */
-			; SOURCE LINE # 126
+			; SOURCE LINE # 121
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -593,7 +565,7 @@ _?pxPortInitialiseStack:
 	MOV  	A,#041H
 	LCALL	?C?CSTPTR
 ; 	*--stk			 = 'B';                 /* B   */
-			; SOURCE LINE # 127
+			; SOURCE LINE # 122
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -608,7 +580,7 @@ _?pxPortInitialiseStack:
 	MOV  	A,#042H
 	LCALL	?C?CSTPTR
 ; 	*--stk			 = 'X';                 /* DPX */
-			; SOURCE LINE # 128
+			; SOURCE LINE # 123
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -623,7 +595,7 @@ _?pxPortInitialiseStack:
 	MOV  	A,#058H
 	LCALL	?C?CSTPTR
 ; 	*--stk			 = 'H';                 /* DPH */
-			; SOURCE LINE # 129
+			; SOURCE LINE # 124
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -638,7 +610,7 @@ _?pxPortInitialiseStack:
 	MOV  	A,#048H
 	LCALL	?C?CSTPTR
 ; 	*--stk			 = 'L';                 /* DPL */
-			; SOURCE LINE # 130
+			; SOURCE LINE # 125
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -657,7 +629,7 @@ _?pxPortInitialiseStack:
 ; //	*--stk			 = 'L';                 /* DPL1 for second DPTR */
 ; //	*--stk			 = DPS;                 /* DPS for second DPTR */
 ; 	*--stk			 = PSW;					/* PSW */
-			; SOURCE LINE # 135
+			; SOURCE LINE # 130
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -672,7 +644,7 @@ _?pxPortInitialiseStack:
 	MOV  	A,PSW
 	LCALL	?C?CSTPTR
 ; 	*--stk			 = 0;                   /* R0  */
-			; SOURCE LINE # 136
+			; SOURCE LINE # 131
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -692,7 +664,7 @@ _?pxPortInitialiseStack:
 ; 	*--stk			 = 3;                   // should be R3
 ; */
 ; 	stk				-= sizeof(void *);      /* Keil C uses R1,R2,R3 to pass the */
-			; SOURCE LINE # 142
+			; SOURCE LINE # 137
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -701,7 +673,7 @@ _?pxPortInitialiseStack:
 	MOV  	B,#0FDH
 	LCALL	?C?IILDX
 ; 	*(void**)stk	 = pvParameters;                  /* arguments of functions.          */
-			; SOURCE LINE # 143
+			; SOURCE LINE # 138
 	MOV  	DPTR,#09H
 	LCALL	?C?XBPOFF
 	MOVX 	A,@DPTR
@@ -729,7 +701,7 @@ _?pxPortInitialiseStack:
 	LCALL	?C?PSTPTR
 ; 
 ; 	*--stk			 = 4;                   /* R4  */
-			; SOURCE LINE # 145
+			; SOURCE LINE # 140
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -744,7 +716,7 @@ _?pxPortInitialiseStack:
 	MOV  	A,#04H
 	LCALL	?C?CSTPTR
 ; 	*--stk			 = 5;                   /* R5  */
-			; SOURCE LINE # 146
+			; SOURCE LINE # 141
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -759,7 +731,7 @@ _?pxPortInitialiseStack:
 	MOV  	A,#05H
 	LCALL	?C?CSTPTR
 ; 	*--stk			 = 6;                   /* R6  */
-			; SOURCE LINE # 147
+			; SOURCE LINE # 142
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -774,7 +746,7 @@ _?pxPortInitialiseStack:
 	MOV  	A,#06H
 	LCALL	?C?CSTPTR
 ; 	*--stk			 = 7;                   /* R7  */
-			; SOURCE LINE # 148
+			; SOURCE LINE # 143
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -790,7 +762,7 @@ _?pxPortInitialiseStack:
 	LCALL	?C?CSTPTR
 ; /* Following is the registers pushed into hardware stack manually to support the dallas 390 */
 ;     *--stk           = 0x80;                /* IE, EA is enabled  */
-			; SOURCE LINE # 150
+			; SOURCE LINE # 145
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -809,7 +781,7 @@ _?pxPortInitialiseStack:
 ;     Next is calculating the hardware stack pointer.
 ; */
 ;     *--stk			 = (INT8U) portSTACK_START-1      /* Initial value when main was called    */
-			; SOURCE LINE # 155
+			; SOURCE LINE # 150
 	MOV  	A,#LOW (STACK_START)
 	ADD  	A,#08H
 	ADD  	A,#05H
@@ -839,7 +811,7 @@ _?pxPortInitialiseStack:
 ;                        +sizeof(INT8U)       /* The third byte of PC value to be loaded for dallas 390  */
 ; 					   ;
 ;     return ((void *)stk);
-			; SOURCE LINE # 164
+			; SOURCE LINE # 159
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -853,7 +825,7 @@ _?pxPortInitialiseStack:
 	MOV  	R1,A
 ; 
 ; }
-			; SOURCE LINE # 166
+			; SOURCE LINE # 161
 ?C0001:
 	MOV  	DPTR,#0CH
 	LJMP 	?C?ADDXBP
@@ -868,7 +840,7 @@ _?pxPortInitialiseStack:
 	RSEG  ?PR?_?sPortStartScheduler?PORT
 _?sPortStartScheduler:
 	USING	0
-			; SOURCE LINE # 171
+			; SOURCE LINE # 166
 	MOV  	DPTR,#0FFFEH
 	LCALL	?C?ADDXBP
 	MOV  	A,R6
@@ -880,7 +852,7 @@ _?sPortStartScheduler:
 ; 	/* Stop compiler warnings.  This port uses a constant defined in
 ; 	portmacro.h to specify whether or not preemption is used. */
 ; 	sUsePreemption = sUsePreemption;
-			; SOURCE LINE # 175
+			; SOURCE LINE # 170
 	MOV  	DPH,?C_XBP
 	MOV  	DPL,?C_XBP+01H
 	MOV  	DPX,#?C?XDATASEG
@@ -899,22 +871,22 @@ _?sPortStartScheduler:
 ; 
 ; 	/* Setup timer 2 to generate the RTOS tick. */
 ; 	prvSetupTimerInterrupt();	
-			; SOURCE LINE # 178
+			; SOURCE LINE # 173
 	LCALL	prvSetupTimerInterrupt
 ; 
 ;     prvSetCurrentTCB_XBP();
-			; SOURCE LINE # 180
+			; SOURCE LINE # 175
 	LCALL	_?prvSetCurrentTCB_XBP
 ; 	LoadCtx();
-			; SOURCE LINE # 181
+			; SOURCE LINE # 176
 	LCALL	_?LoadCtx
 ; 										/* Should never get here! */
 ; 	return pdTRUE;
-			; SOURCE LINE # 183
+			; SOURCE LINE # 178
 	MOV  	R6,#00H
 	MOV  	R7,#01H
 ; }
-			; SOURCE LINE # 184
+			; SOURCE LINE # 179
 ?C0002:
 	MOV  	DPTR,#02H
 	LJMP 	?C?ADDXBP
@@ -928,12 +900,12 @@ _?sPortStartScheduler:
 	RSEG  ?PR?_?vPortEndScheduler?PORT
 _?vPortEndScheduler:
 	USING	0
-			; SOURCE LINE # 188
+			; SOURCE LINE # 183
 ; {
 ; 
 ; 	/* Not implemented for this port. */
 ; }
-			; SOURCE LINE # 192
+			; SOURCE LINE # 187
 	RET  	
 ; END OF _?vPortEndScheduler
 
@@ -949,7 +921,7 @@ _?vPortEndScheduler:
 	RSEG  ?PR?_?vPortContextSwitch?PORT
 _?vPortContextSwitch:
 	USING	0
-			; SOURCE LINE # 200
+			; SOURCE LINE # 195
 ; {
 ; 
 ; /*	Save processor registers; DONE in the OSCtxSw part in OS_CPU_ASM.ASM                                  */
@@ -962,18 +934,18 @@ _?vPortContextSwitch:
 ; 	Restore all processor registers from the new task's stack;             
 ; 	Execute a return from interrupt instruction;                           */
 ;     prvGetCurrentTCB_XBP();
-			; SOURCE LINE # 212
+			; SOURCE LINE # 207
 	LCALL	_?prvGetCurrentTCB_XBP
 ;     
 ; 	vTaskSwitchContext();
-			; SOURCE LINE # 214
+			; SOURCE LINE # 209
 	LCALL	_?vTaskSwitchContext
 ; 
 ;     prvSetCurrentTCB_XBP();
-			; SOURCE LINE # 216
+			; SOURCE LINE # 211
 	LCALL	_?prvSetCurrentTCB_XBP
 ;     LoadCtx();
-			; SOURCE LINE # 217
+			; SOURCE LINE # 212
 	LJMP 	_?LoadCtx
 ; END OF _?vPortContextSwitch
 
@@ -988,18 +960,18 @@ _?vPortContextSwitch:
 	RSEG  ?PR?_?OSIntCtxSw?PORT
 _?OSIntCtxSw:
 	USING	0
-			; SOURCE LINE # 224
+			; SOURCE LINE # 219
 ; {
 ; 
 ; 	EA=0;
-			; SOURCE LINE # 227
+			; SOURCE LINE # 222
 	CLR  	EA
 ;     SP=SaveSP;
-			; SOURCE LINE # 228
+			; SOURCE LINE # 223
 	MOV  	SP,SaveSP
 ; 
 ;     prvSetCurrentTCB_XBP();
-			; SOURCE LINE # 230
+			; SOURCE LINE # 225
 	LCALL	_?prvSetCurrentTCB_XBP
 ; 
 ; #pragma ASM
@@ -1022,7 +994,7 @@ _?OSIntCtxSw:
 ; #pragma ENDASM
 ; 
 ; }
-			; SOURCE LINE # 243
+			; SOURCE LINE # 238
 	RET  	
 ; END OF _?OSIntCtxSw
 
@@ -1033,7 +1005,7 @@ _?OSIntCtxSw:
 	RSEG  ?PR?_?vIntPortContextSwitch?PORT
 _?vIntPortContextSwitch:
 	USING	0
-			; SOURCE LINE # 246
+			; SOURCE LINE # 241
 ; {
 ; 
 ; /*	Save processor registers; DONE in the OSCtxSw part in OS_CPU_ASM.ASM                                  */
@@ -1046,45 +1018,45 @@ _?vIntPortContextSwitch:
 ; 	Restore all processor registers from the new task's stack;             
 ; 	Execute a return from interrupt instruction;                           */
 ;     prvGetCurrentTCB_XBP();
-			; SOURCE LINE # 258
+			; SOURCE LINE # 253
 	LCALL	_?prvGetCurrentTCB_XBP
 ; 
 ; 	if ( TICK_INT == 1 )
-			; SOURCE LINE # 260
+			; SOURCE LINE # 255
 	MOV  	A,TICK_INT
 	CJNE 	A,#01H,?C0006
 ; 	{
-			; SOURCE LINE # 261
+			; SOURCE LINE # 256
 ; 		vTaskIncrementTick();
-			; SOURCE LINE # 262
+			; SOURCE LINE # 257
 	LCALL	_?vTaskIncrementTick
 ; 		TICK_INT = 0;
-			; SOURCE LINE # 263
+			; SOURCE LINE # 258
 	CLR  	A
 	MOV  	TICK_INT,A
 ; 	}
-			; SOURCE LINE # 264
+			; SOURCE LINE # 259
 ?C0006:
 ; 	vTaskSwitchContext();
-			; SOURCE LINE # 265
+			; SOURCE LINE # 260
 	LCALL	_?vTaskSwitchContext
 ; 		
 ; 	portCLEAR_INTERRUPT_FLAG();
-			; SOURCE LINE # 267
+			; SOURCE LINE # 262
 	CLR  	EINT5
 	ANL  	EIF,#0F7H
 	SETB 	EINT5
 ; 
 ;     prvSetCurrentTCB_XBP();
-			; SOURCE LINE # 269
+			; SOURCE LINE # 264
 	LCALL	_?prvSetCurrentTCB_XBP
 ;     LoadCtx();
-			; SOURCE LINE # 270
+			; SOURCE LINE # 265
 	LCALL	_?LoadCtx
 ; 	return;
 ; 
 ; }
-			; SOURCE LINE # 273
+			; SOURCE LINE # 268
 ?C0007:
 	RET  	
 ; END OF _?vIntPortContextSwitch
@@ -1120,132 +1092,74 @@ vTimer2ISR:
 	PUSH 	AR6
 	PUSH 	AR7
 	USING	0
-			; SOURCE LINE # 281
+			; SOURCE LINE # 276
 ; {
-; 	unsigned portCHAR isr;
+; 	unsigned portCHAR	isr;
 ; #pragma ASM
 ; 		PUSH IE
 	  PUSH IE
-; #pragma ENDASM						   
+; #pragma ENDASM
 ; 		isr = EA;
-			; SOURCE LINE # 287
+			; SOURCE LINE # 282
 	MOV  	C,EA
 	CLR  	A
 	RLC  	A
 	MOV  	DPTR,#isr?640
 	MOVX 	@DPTR,A
 ; 		EA = 0;
-			; SOURCE LINE # 288
+			; SOURCE LINE # 283
 	CLR  	EA
 ; 		if(uart2_timeout)
-			; SOURCE LINE # 289
+			; SOURCE LINE # 284
 	MOV  	DPTR,#uart2_timeout
 	MOVX 	A,@DPTR
 	JZ   	?C0008
 ; 			uart2_timeout--;
-			; SOURCE LINE # 290
+			; SOURCE LINE # 285
 	DEC  	A
 	MOVX 	@DPTR,A
 ?C0008:
 ; 		if(uart1_timeout)
-			; SOURCE LINE # 291
+			; SOURCE LINE # 286
 	MOV  	DPTR,#uart1_timeout
 	MOVX 	A,@DPTR
 	JZ   	?C0009
-; 			uart1_timeout--;
-			; SOURCE LINE # 292
+; 		{ uart1_timeout--;  }
+			; SOURCE LINE # 287
 	DEC  	A
 	MOVX 	@DPTR,A
 ?C0009:
-; 		if(uart0_timeout)
-			; SOURCE LINE # 293
-	MOV  	DPTR,#uart0_timeout
+; 		if(USB_timeout)
+			; SOURCE LINE # 288
+	MOV  	DPTR,#USB_timeout
 	MOVX 	A,@DPTR
 	JZ   	?C0010
-; 			uart0_timeout--;
-			; SOURCE LINE # 294
+; 			USB_timeout--;
+			; SOURCE LINE # 289
 	DEC  	A
 	MOVX 	@DPTR,A
 ?C0010:
-; 		if(USB_timeout)
-			; SOURCE LINE # 295
-	MOV  	DPTR,#USB_timeout
-	MOVX 	A,@DPTR
-	JZ   	?C0011
-; 			USB_timeout--;
-			; SOURCE LINE # 296
-	DEC  	A
-	MOVX 	@DPTR,A
-?C0011:
-; 		if(gsm_timeout)
-			; SOURCE LINE # 297
-	MOV  	DPTR,#gsm_timeout
-	MOVX 	A,@DPTR
-	JZ   	?C0012
-; 			gsm_timeout--;
-			; SOURCE LINE # 298
-	DEC  	A
-	MOVX 	@DPTR,A
-?C0012:
-; 	
-; 
-; 
-; 		siltime++;
-			; SOURCE LINE # 302
-	MOV  	DPTR,#siltime
-	MOVX 	A,@DPTR
-	INC  	A
-	MOVX 	@DPTR,A
-; 		if(siltime >= 1){
-			; SOURCE LINE # 303
-	MOVX 	A,@DPTR
-	CLR  	C
-	SUBB 	A,#01H
-	JC   	?C0013
-; 		 	siltime = 0;
-			; SOURCE LINE # 304
-	CLR  	A
-	MOVX 	@DPTR,A
-; 			SilenceTime += 10;
-			; SOURCE LINE # 305
-	MOV  	DPTR,#SilenceTime+01H
-	MOVX 	A,@DPTR
-	ADD  	A,#0AH
-	MOVX 	@DPTR,A
-	MOV  	DPTR,#SilenceTime
-	MOVX 	A,@DPTR
-	ADDC 	A,#00H
-	MOVX 	@DPTR,A
-; 			}
-			; SOURCE LINE # 306
-?C0013:
-; 		
-; 
-; //		SilenceTime++;
-; 
-; //		P1 = ~P1;
-; 
 ; 		TICK_INT = 1;
-			; SOURCE LINE # 313
+			; SOURCE LINE # 290
 	MOV  	TICK_INT,#01H
 ; 		SaveSP=SP;
-			; SOURCE LINE # 314
+			; SOURCE LINE # 291
 	MOV  	SaveSP,SP
 ;         prvGetCurrentTCB_XBP();
-			; SOURCE LINE # 315
+			; SOURCE LINE # 292
 	LCALL	_?prvGetCurrentTCB_XBP
-; 		EA = isr;
-			; SOURCE LINE # 316
+; 		EA=isr;
+			; SOURCE LINE # 293
 	MOV  	DPTR,#isr?640
 	MOVX 	A,@DPTR
 	ADD  	A,#0FFH
 	MOV  	EA,C
 ; 
 ; 		OSIntCtxSw();
-			; SOURCE LINE # 318
+			; SOURCE LINE # 295
 	LCALL	_?OSIntCtxSw
 ; }
-			; SOURCE LINE # 319
+			; SOURCE LINE # 296
 	POP  	AR7
 	POP  	AR6
 	POP  	AR5
@@ -1272,25 +1186,25 @@ vTimer2ISR:
 	RSEG  ?PR?prvSetupTimerInterrupt?PORT
 prvSetupTimerInterrupt:
 	USING	0
-			; SOURCE LINE # 324
+			; SOURCE LINE # 301
 ; {
-			; SOURCE LINE # 325
+			; SOURCE LINE # 302
 ; 	/* using MS_TIMER */
 ; 	U8_T XDATA	temp[2];
 ; 
 ; 	/* set software timer */
 ; 	temp[1] = (U8_T)SWTIMER_INTERVAL;
-			; SOURCE LINE # 330
+			; SOURCE LINE # 307
 	MOV  	DPTR,#temp?741+01H
 	MOV  	A,#0AH
 	MOVX 	@DPTR,A
 ; 	temp[0] = (U8_T)(SWTIMER_INTERVAL >> 8) + SWTIMER_START + SWTIMER_INT_ENABLE;
-			; SOURCE LINE # 331
+			; SOURCE LINE # 308
 	MOV  	DPTR,#temp?741
 	MOV  	A,#090H
 	MOVX 	@DPTR,A
 ; 	DMA_WriteReg(SWTIMER_REG, temp, 2);
-			; SOURCE LINE # 332
+			; SOURCE LINE # 309
 	MOV  	R4,#HIGH (temp?741)
 	MOV  	R5,#LOW (temp?741)
 	MOV  	R3,#02H
@@ -1298,11 +1212,11 @@ prvSetupTimerInterrupt:
 	LCALL	_DMA_WriteReg
 ; 
 ; 	EXTINT5(ON);	/* Enable INT5 interrupt for software timer. */
-			; SOURCE LINE # 334
+			; SOURCE LINE # 311
 	SETB 	EINT5
 ; 
 ; }
-			; SOURCE LINE # 336
+			; SOURCE LINE # 313
 	RET  	
 ; END OF prvSetupTimerInterrupt
 

@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 1   
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE MSTP
@@ -7,7 +7,8 @@ COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\mstp.c LARGE O
                     -NCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..
                     -\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\bu
                     -ffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\
-                    -Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\mstp.lst) OBJECT(.\mstp.obj)
+                    -Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version) DEFINE(KEIL_AX11000
+                    -) VARBANKING DEBUG PRINT(.\mstp.lst) OBJECT(.\mstp.obj)
 
 line level    source
 
@@ -61,9 +62,9 @@ line level    source
   48          
   49          #include <stddef.h>
   50          #include <stdint.h>
-  51          #include "../include/mstp.h"
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 2   
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 2   
 
+  51          #include "../include/mstp.h"
   52          #include "../include/crc.h"
   53          #include "../include/rs485.h"
   54          #include "../include/mstptext.h"
@@ -71,7 +72,7 @@ line level    source
   56          
   57          
   58          /* extern uart tx function */
-  59          extern U8_T data FlagSend0;
+  59          extern U8_T xdata FlagSend0;
   60          extern enum ledState LED;
   61          extern void Uart0_Tx(U8_T *buf,U8_T len);
   62          extern U8_T frame_gap ;
@@ -125,9 +126,9 @@ line level    source
  110          
  111          void Timer_Silence_Reset(void)  
  112          {
- 113   1          SilenceTime = 0;
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 3   
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 3   
 
+ 113   1          SilenceTime = 0;
  114   1      }
  115          
  116          
@@ -189,9 +190,9 @@ line level    source
 *** WARNING C280 IN LINE 163 OF ..\src\bacnet\mstp.c: 'mstp_port': unreferenced local variable
 *** WARNING C280 IN LINE 164 OF ..\src\bacnet\mstp.c: 'timeout': unreferenced local variable
  169          
- 170          
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 4   
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 4   
 
+ 170          
  171          
  172          uint16_t MSTP_Create_Frame(
  173              uint8_t * buffer,   /* where frame is loaded */
@@ -253,9 +254,9 @@ line level    source
  229              uint8_t destination,        /* destination address */
  230              uint8_t source,     /* source address */
  231              uint8_t * anydata,     /* any data to be sent - may be null */
- 232              uint16_t data_len)
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 5   
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 5   
 
+ 232              uint16_t data_len)
  233          {       /* number of bytes of data (up to 501) */
  234   1          uint16_t len = 0;   /* number of bytes to send */
  235   1      
@@ -317,9 +318,9 @@ line level    source
  291   2                  /* LostToken */
  292   2                  if ( SilenceTime >= Tno_token) {
  293   3                      /* assume that the token has been lost */
- 294   3                      mstp_port->EventCount = 0;      /* Addendum 135-2004d-8 */
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 6   
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 6   
 
+ 294   3                      mstp_port->EventCount = 0;      /* Addendum 135-2004d-8 */
  295   3                      mstp_port->master_state = MSTP_MASTER_STATE_NO_TOKEN;
  296   3                      /* set the receive frame flags to false in case we received
  297   3                         some bytes and had a timeout for some reason */
@@ -381,9 +382,9 @@ line level    source
  353   5                                  break;
  354   5                              case FRAME_TYPE_BACNET_DATA_NOT_EXPECTING_REPLY:
  355   5                                  /* indicate successful reception to the higher layers */
- 356   5                                  (void) MSTP_Put_Receive(mstp_port);
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 7   
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 7   
 
+ 356   5                                  (void) MSTP_Put_Receive(mstp_port);
  357   5                                  
  358   5                                                              
  359   5                                                              
@@ -445,9 +446,9 @@ line level    source
  415   2                  if (length < 1) {
  416   3                      /* NothingToSend */
  417   3                      mstp_port->FrameCount = mstp_port->Nmax_info_frames;
- 418   3                      mstp_port->master_state = MSTP_MASTER_STATE_DONE_WITH_TOKEN;
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 8   
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 8   
 
+ 418   3                      mstp_port->master_state = MSTP_MASTER_STATE_DONE_WITH_TOKEN;
  419   3                      transition_now = true;
  420   3      #if 1
  421   3                              testarry[0] = 0x97;
@@ -509,9 +510,9 @@ line level    source
  477   3                      /* assume that the request has failed */
  478   3                      mstp_port->FrameCount = mstp_port->Nmax_info_frames;
  479   3                      mstp_port->master_state = MSTP_MASTER_STATE_DONE_WITH_TOKEN;
- 480   3                      /* Any retry of the data frame shall await the next entry */
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 9   
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 9   
 
+ 480   3                      /* Any retry of the data frame shall await the next entry */
  481   3                      /* to the USE_TOKEN state. (Because of the length of the timeout,  */
  482   3                      /* this transition will cause the token to be passed regardless */
  483   3                      /* of the initial value of FrameCount.) */
@@ -573,9 +574,9 @@ line level    source
  539   3                  }
  540   2                  break;
  541   2              case MSTP_MASTER_STATE_DONE_WITH_TOKEN:
- 542   2                  /* The DONE_WITH_TOKEN state either sends another data frame,  */
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 10  
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 10  
 
+ 542   2                  /* The DONE_WITH_TOKEN state either sends another data frame,  */
  543   2                  /* passes the token, or initiates a Poll For Master cycle. */
  544   2                  /* SendAnotherFrame */
  545   2                  if (mstp_port->FrameCount < mstp_port->Nmax_info_frames) {
@@ -637,9 +638,9 @@ line level    source
  601   4                          /* if there are no addresses between TS and NS, since there is no  */
  602   4                          /* address at which a new master node may be found in that case. */
  603   4                          mstp_port->TokenCount++;
- 604   4                          /* transmit a Token frame to NS */
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 11  
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 11  
 
+ 604   4                          /* transmit a Token frame to NS */
  605   4                          MSTP_Create_And_Send_Frame(mstp_port, FRAME_TYPE_TOKEN,
  606   4                              mstp_port->Next_Station, mstp_port->This_Station, NULL,
  607   4                              0);
@@ -701,9 +702,9 @@ line level    source
  663   4                          mstp_port->EventCount = 0;
  664   4                          mstp_port->master_state = MSTP_MASTER_STATE_PASS_TOKEN;
  665   4                      }
- 666   3                  } else {
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 12  
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 12  
 
+ 666   3                  } else {
  667   3                      /* SendMaintenancePFM */
  668   3                                      
  669   3                                      mstp_port->Poll_Station = next_poll_station;
@@ -765,9 +766,9 @@ line level    source
  725   4      #endif
  726   4      
  727   4                          /* no known successor node */
- 728   4                          mstp_port->Next_Station = mstp_port->This_Station;
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 13  
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 13  
 
+ 728   4                          mstp_port->Next_Station = mstp_port->This_Station;
  729   4                          mstp_port->RetryCount = 0;
  730   4                          mstp_port->TokenCount = 0;
  731   4                          /* mstp_port->EventCount = 0; removed in Addendum 135-2004d-8 */
@@ -829,9 +830,9 @@ line level    source
  787   4      
  788   4                          /* indicate that the next station is unknown */
  789   4                          mstp_port->Next_Station = mstp_port->This_Station;
- 790   4                          mstp_port->RetryCount = 0;
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 14  
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 14  
 
+ 790   4                          mstp_port->RetryCount = 0;
  791   4                          mstp_port->TokenCount = 0;
  792   4                          /* mstp_port->EventCount = 0;
  793   4                             removed Addendum 135-2004d-8 */
@@ -893,9 +894,9 @@ line level    source
  849   3                      if ((mstp_port->DestinationAddress == mstp_port->This_Station)
  850   3                          && (mstp_port->FrameType ==
  851   3                              FRAME_TYPE_REPLY_TO_POLL_FOR_MASTER)) {
- 852   4      
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 15  
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 15  
 
+ 852   4      
  853   4      
  854   4                          /* ReceivedReplyToPFM */
  855   4                          mstp_port->SoleMaster = false;
@@ -957,9 +958,9 @@ line level    source
  911   4      #if 1
  912   4                              testarry[0] = 0x7c;
  913   4                              Uart0_Tx(testarry,1);
- 914   4      #endif
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 16  
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 16  
 
+ 914   4      #endif
  915   4      
  916   4      
  917   4                      } else {
@@ -1021,9 +1022,9 @@ line level    source
  973   4                      }
  974   3                      mstp_port->ReceivedInvalidFrame = false;
  975   3                  }
- 976   2      
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 17  
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 17  
 
+ 976   2      
  977   2      
  978   2      
  979   2      #if 0
@@ -1085,9 +1086,9 @@ line level    source
 1035   3                      /* clear our flag we were holding for comparison */
 1036   3                      mstp_port->ReceivedValidFrame = false;
 1037   3                  }
-1038   2      
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 18  
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 18  
 
+1038   2      
 1039   2      #if  0
                                       testarry[0] = 0x97;
                                       Uart0_Tx(testarry,1);
@@ -1149,9 +1150,9 @@ line level    source
 1097   5                              mstp_port->ReceivedValidFrame = false;
 1098   5                          }
 1099   4                      } else {
-1100   4                          mstp_port->ReceivedValidFrame = false;
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 19  
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 19  
 
+1100   4                          mstp_port->ReceivedValidFrame = false;
 1101   4                      }
 1102   3                      break;
 1103   3                  case FRAME_TYPE_TEST_REQUEST:
@@ -1213,9 +1214,9 @@ line level    source
 1158   2                  mstp_port->SilenceTimerReset = Timer_Silence_Reset;
 1159   2      
 1160   2      
-1161   2      
-C51 COMPILER V9.06   MSTP                                                                  03/13/2013 09:32:29 PAGE 20  
+C51 COMPILER V9.06   MSTP                                                                  03/29/2013 16:57:07 PAGE 20  
 
+1161   2      
 1162   2              mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
 1163   2              mstp_port->master_state = MSTP_MASTER_STATE_INITIALIZE;
 1164   2              mstp_port->ReceiveError = false;
@@ -1248,7 +1249,7 @@ line level    source
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   7626    ----
+   CODE SIZE        =   7632    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =     34    1062
    PDATA SIZE       =   ----    ----

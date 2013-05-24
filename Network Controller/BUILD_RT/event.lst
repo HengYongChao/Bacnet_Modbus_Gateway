@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 1   
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE EVENT
@@ -47,11 +47,6 @@ line level    source
   33          ####COPYRIGHTEND####*/
   34          #include <assert.h>
   35          #include "../include/event.h"
-*** ERROR C141 IN LINE 157 OF ..\src\bacnet\../include/event.h: syntax error near ')'
-*** ERROR C141 IN LINE 166 OF ..\src\bacnet\../include/event.h: syntax error near ')'
-*** ERROR C141 IN LINE 175 OF ..\src\bacnet\../include/event.h: syntax error near ')'
-*** ERROR C141 IN LINE 185 OF ..\src\bacnet\../include/event.h: syntax error near ')'
-*** ERROR C141 IN LINE 194 OF ..\src\bacnet\../include/event.h: syntax error near ','
   36          #include "../include/bacdcode.h"
   37          #include "../include/npdu.h"
   38          #include "../include/device.h"
@@ -62,12 +57,13 @@ line level    source
   43          int uevent_notify_encode_apdu(
   44              uint8_t * apdu,
   45              BACNET_EVENT_NOTIFICATION_DATA * data)
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 2   
-
 *** ERROR C141 IN LINE 45 OF ..\src\bacnet\event.c: syntax error near ')'
   46          {
+*** ERROR C236 IN LINE 46 OF ..\src\bacnet\event.c: '_uevent_notify_encode_apdu': different length of parameter lists
   47   1          int len = 0;        /* length of each encoding */
   48   1          int apdu_len = 0;   /* total length of the apdu, return value */
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 2   
+
   49   1      
   50   1      
   51   1          if (apdu) {
@@ -92,6 +88,7 @@ line level    source
   70              uint8_t invoke_id,
   71              BACNET_EVENT_NOTIFICATION_DATA * data)
   72          {
+*** ERROR C236 IN LINE 72 OF ..\src\bacnet\event.c: '_cevent_notify_encode_apdu': different length of parameter lists
   73   1          int len = 0;        /* length of each encoding */
   74   1          int apdu_len = 0;   /* total length of the apdu, return value */
   75   1      
@@ -118,6 +115,8 @@ line level    source
   96              uint8_t * apdu,
   97              BACNET_EVENT_NOTIFICATION_DATA * data)
   98          {
+*** ERROR C236 IN LINE 98 OF ..\src\bacnet\event.c: '_event_notify_encode_service_request': different length of paramete
+             -r lists
   99   1          int len = 0;        /* length of each encoding */
  100   1          int apdu_len = 0;   /* total length of the apdu, return value */
  101   1      
@@ -126,9 +125,9 @@ line level    source
  104   2              len =
  105   2                  encode_context_unsigned(&apdu[apdu_len], 0,
  106   2                  data->processIdentifier);
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 3   
-
  107   2              apdu_len += len;
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 3   
+
  108   2              /* tag 1 - initiatingObjectIdentifier */
  109   2              len =
  110   2                  encode_context_object_id(&apdu[apdu_len], 1,
@@ -190,9 +189,9 @@ line level    source
  166   3                      /* tag 10 - fromState */
  167   3                      len =
  168   3                          encode_context_enumerated(&apdu[apdu_len], 10,
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 4   
-
  169   3                          data->fromState);
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 4   
+
  170   3                      apdu_len += len;
  171   3                      break;
  172   3      
@@ -254,9 +253,9 @@ line level    source
  228   4                              apdu_len += len;
  229   4      
  230   4                              len = encode_closing_tag(&apdu[apdu_len], 1);
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 5   
-
  231   4                              apdu_len += len;
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 5   
+
  232   4                              break;
  233   4      
  234   4                          case EVENT_CHANGE_OF_VALUE:
@@ -318,9 +317,9 @@ line level    source
  290   4                                  statusFlags);
  291   4                              apdu_len += len;
  292   4      
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 6   
-
  293   4                              len =
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 6   
+
  294   4                                  encode_context_real(&apdu[apdu_len], 2,
  295   4                                  data->notificationParams.floatingLimit.
  296   4                                  setPointValue);
@@ -382,9 +381,9 @@ line level    source
  352   4                              apdu_len += len;
  353   4      
  354   4                              len =
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 7   
-
  355   4                                  encode_context_bitstring(&apdu[apdu_len], 2,
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 7   
+
  356   4                                  &data->notificationParams.changeOfLifeSafety.
  357   4                                  statusFlags);
  358   4                              apdu_len += len;
@@ -446,9 +445,9 @@ line level    source
  414   4                                  data->notificationParams.unsignedRange.
  415   4                                  exceededLimit);
  416   4                              apdu_len += len;
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 8   
-
  417   4      
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 8   
+
  418   4                              len = encode_closing_tag(&apdu[apdu_len], 11);
  419   4                              apdu_len += len;
  420   4                              break;
@@ -475,11 +474,14 @@ line level    source
  441              unsigned apdu_len,
  442              BACNET_EVENT_NOTIFICATION_DATA * data)
  443          {
+*** ERROR C236 IN LINE 443 OF ..\src\bacnet\event.c: '_event_notify_decode_service_request': different length of paramet
+             -er lists
  444   1          int len = 0;        /* return value */
  445   1          int section_length = 0;
  446   1          uint32_t value = 0;
  447   1      
  448   1          if (apdu_len && data) {
+*** ERROR C141 IN LINE 448 OF ..\src\bacnet\event.c: syntax error near 'data'
  449   2              /* tag 0 - processIdentifier */
  450   2              if ((section_length =
  451   2                      decode_context_unsigned(&apdu[len], 0,
@@ -508,10 +510,10 @@ line level    source
  474   3                  len += section_length;
  475   3              }
  476   2              /* tag 3 - timeStamp */
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 9   
+
  477   2              if ((section_length =
  478   2                      bacapp_decode_context_timestamp(&apdu[len], 3,
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 9   
-
  479   2                          &data->timeStamp)) == -1) {
  480   3                  return -1;
  481   3              } else {
@@ -572,10 +574,10 @@ line level    source
  536   3                  return -1;
  537   3              } else {
  538   3                  data->notifyType = (BACNET_NOTIFY_TYPE) value;
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 10  
+
  539   3                  len += section_length;
  540   3              }
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 10  
-
  541   2              switch (data->notifyType) {
  542   3                  case NOTIFY_ALARM:
  543   3                  case NOTIFY_EVENT:
@@ -636,10 +638,10 @@ line level    source
  598   4                                          &data->notificationParams.
  599   4                                          changeOfBitstring.referencedBitString))) {
  600   5                                  return -1;
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 11  
+
  601   5                              }
  602   4                              len += section_length;
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 11  
-
  603   4      
  604   4                              if (-1 == (section_length =
  605   4                                      decode_context_bitstring(&apdu[len], 1,
@@ -700,10 +702,10 @@ line level    source
  660   6                                  }
  661   5      
  662   5                                  len += section_length;
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 12  
+
  663   5                                  data->notificationParams.changeOfValue.tag =
  664   5                                      CHANGE_OF_VALUE_REAL;
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 12  
-
  665   5                              } else {
  666   5                                  return -1;
  667   5                              }
@@ -764,10 +766,10 @@ line level    source
  722   5                              }
  723   4                              len += section_length;
  724   4      
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 13  
+
  725   4                              if (-1 == (section_length =
  726   4                                      decode_context_bitstring(&apdu[len], 1,
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 13  
-
  727   4                                          &data->notificationParams.outOfRange.
  728   4                                          statusFlags))) {
  729   5                                  return -1;
@@ -828,10 +830,10 @@ line level    source
  784   4                                  (BACNET_LIFE_SAFETY_OPERATION) value;
  785   4                              len += section_length;
  786   4                              break;
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 14  
+
  787   4      
  788   4                          case EVENT_BUFFER_READY:
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 14  
-
  789   4                              if (-1 == (section_length =
  790   4                                      bacapp_decode_context_device_obj_property_ref
  791   4                                      (&apdu[len], 0,
@@ -892,10 +894,10 @@ line level    source
  846   4                          len++;
  847   4                      } else {
  848   4                          return -1;
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 15  
+
  849   4                      }
  850   3                      if (decode_is_closing_tag_number(&apdu[len], 12)) {
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 15  
-
  851   4                          len++;
  852   4                      } else {
  853   4                          return -1;
@@ -956,10 +958,10 @@ line level    source
                   ct_test(pTest, data.timeStamp.tag == data2.timeStamp.tag);
               
                   switch (data.timeStamp.tag) {
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 16  
+
                       case TIME_STAMP_SEQUENCE:
                           ct_test(pTest,
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 16  
-
                               data.timeStamp.value.sequenceNum ==
                               data2.timeStamp.value.sequenceNum);
                           break;
@@ -1020,10 +1022,10 @@ line level    source
                   int inLen;
                   int outLen;
                   BACNET_CHARACTER_STRING messageText;
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 17  
+
                   BACNET_CHARACTER_STRING messageText2;
                   characterstring_init_ansi(&messageText,
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 17  
-
                       "This is a test of the message text\n");
               
                   data.messageText = &messageText;
@@ -1084,10 +1086,10 @@ line level    source
                       /**********************************************************************************/
                       /**********************************************************************************/
               
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 18  
+
                   /*
                    ** Same, but timestamp of
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 18  
-
                    */
                   data.timeStamp.tag = TIME_STAMP_DATETIME;
                   data.timeStamp.value.dateTime.time.hour = 1;
@@ -1148,10 +1150,10 @@ line level    source
                   bitstring_set_bit(&data.notificationParams.changeOfBitstring.statusFlags,
                       STATUS_FLAG_IN_ALARM, true);
                   bitstring_set_bit(&data.notificationParams.changeOfBitstring.statusFlags,
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 19  
+
                       STATUS_FLAG_FAULT, false);
                   bitstring_set_bit(&data.notificationParams.changeOfBitstring.statusFlags,
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 19  
-
                       STATUS_FLAG_OVERRIDDEN, false);
                   bitstring_set_bit(&data.notificationParams.changeOfBitstring.statusFlags,
                       STATUS_FLAG_OUT_OF_SERVICE, false);
@@ -1212,10 +1214,10 @@ line level    source
                   testBaseEventState(pTest);
               
                   ct_test(pTest,
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 20  
+
                       bitstring_same(&data.notificationParams.changeOfValue.statusFlags,
                           &data2.notificationParams.changeOfValue.statusFlags));
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 20  
-
               
                   ct_test(pTest,
                       data.notificationParams.changeOfValue.tag ==
@@ -1276,10 +1278,10 @@ line level    source
                       /**********************************************************************************/
                   /*
                    ** Event Type = EVENT_FLOATING_LIMIT
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 21  
+
                    */
                   data.eventType = EVENT_FLOATING_LIMIT;
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 21  
-
                   data.notificationParams.floatingLimit.referenceValue = 1.23f;
                   data.notificationParams.floatingLimit.setPointValue = 2.34f;
                   data.notificationParams.floatingLimit.errorLimit = 3.45f;
@@ -1340,10 +1342,10 @@ line level    source
               
                   bitstring_set_bit(&data.notificationParams.outOfRange.statusFlags,
                       STATUS_FLAG_IN_ALARM, true);
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 22  
+
                   bitstring_set_bit(&data.notificationParams.outOfRange.statusFlags,
                       STATUS_FLAG_FAULT, false);
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 22  
-
                   bitstring_set_bit(&data.notificationParams.outOfRange.statusFlags,
                       STATUS_FLAG_OVERRIDDEN, false);
                   bitstring_set_bit(&data.notificationParams.outOfRange.statusFlags,
@@ -1404,10 +1406,10 @@ line level    source
                       STATUS_FLAG_OUT_OF_SERVICE, false);
               
                   memset(buffer, 0, MAX_APDU);
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 23  
+
                   inLen = event_notify_encode_service_request(&buffer[0], &data);
               
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 23  
-
                   memset(&data2, 0, sizeof(data2));
                   data2.messageText = &messageText2;
                   outLen = event_notify_decode_service_request(&buffer[0], inLen, &data2);
@@ -1468,10 +1470,10 @@ line level    source
               
                   ct_test(pTest,
                       data.notificationParams.unsignedRange.exceedingValue ==
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 24  
+
                       data2.notificationParams.unsignedRange.exceedingValue);
               
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 24  
-
                   ct_test(pTest,
                       data.notificationParams.unsignedRange.exceededLimit ==
                       data2.notificationParams.unsignedRange.exceededLimit);
@@ -1532,10 +1534,10 @@ line level    source
               
                   ct_test(pTest,
                       data.notificationParams.bufferReady.bufferProperty.deviceIndentifier.
+C51 COMPILER V9.06   EVENT                                                                 01/29/2013 10:15:24 PAGE 25  
+
                       instance ==
                       data2.notificationParams.bufferReady.bufferProperty.deviceIndentifier.
-C51 COMPILER V9.06   EVENT                                                                 11/22/2012 11:06:36 PAGE 25  
-
                       instance);
               
                   ct_test(pTest,

@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   CRC                                                                   03/13/2013 09:32:31 PAGE 1   
+C51 COMPILER V9.06   CRC                                                                   03/29/2013 16:57:09 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE CRC
@@ -7,7 +7,8 @@ COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\crc.c LARGE OM
                     -CDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..\
                     -SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buf
                     -fer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\S
-                    -rc\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\crc.lst) OBJECT(.\crc.obj)
+                    -rc\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version) DEFINE(KEIL_AX11000)
+                    - VARBANKING DEBUG PRINT(.\crc.lst) OBJECT(.\crc.obj)
 
 line level    source
 
@@ -61,9 +62,9 @@ line level    source
                   0x08, 0xf6, 0xf7, 0x09, 0xf5, 0x0b, 0x0a, 0xf4,
                   0xe1, 0x1f, 0x1e, 0xe0, 0x1c, 0xe2, 0xe3, 0x1d,
                   0x18, 0xe6, 0xe7, 0x19, 0xe5, 0x1b, 0x1a, 0xe4,
-                  0x10, 0xee, 0xef, 0x11, 0xed, 0x13, 0x12, 0xec,
-C51 COMPILER V9.06   CRC                                                                   03/13/2013 09:32:31 PAGE 2   
+C51 COMPILER V9.06   CRC                                                                   03/29/2013 16:57:09 PAGE 2   
 
+                  0x10, 0xee, 0xef, 0x11, 0xed, 0x13, 0x12, 0xec,
                   0xe9, 0x17, 0x16, 0xe8, 0x14, 0xea, 0xeb, 0x15,
                   0xc1, 0x3f, 0x3e, 0xc0, 0x3c, 0xc2, 0xc3, 0x3d,
                   0x38, 0xc6, 0xc7, 0x39, 0xc5, 0x3b, 0x3a, 0xc4,
@@ -125,9 +126,9 @@ line level    source
                   0xb58b, 0xa402, 0x9699, 0x8710, 0xf3af, 0xe226, 0xd0bd, 0xc134,
                   0x39c3, 0x284a, 0x1ad1, 0x0b58, 0x7fe7, 0x6e6e, 0x5cf5, 0x4d7c,
                   0xc60c, 0xd785, 0xe51e, 0xf497, 0x8028, 0x91a1, 0xa33a, 0xb2b3,
-                  0x4a44, 0x5bcd, 0x6956, 0x78df, 0x0c60, 0x1de9, 0x2f72, 0x3efb,
-C51 COMPILER V9.06   CRC                                                                   03/13/2013 09:32:31 PAGE 3   
+C51 COMPILER V9.06   CRC                                                                   03/29/2013 16:57:09 PAGE 3   
 
+                  0x4a44, 0x5bcd, 0x6956, 0x78df, 0x0c60, 0x1de9, 0x2f72, 0x3efb,
                   0xd68d, 0xc704, 0xf59f, 0xe416, 0x90a9, 0x8120, 0xb3bb, 0xa232,
                   0x5ac5, 0x4b4c, 0x79d7, 0x685e, 0x1ce1, 0x0d68, 0x3ff3, 0x2e7a,
                   0xe70e, 0xf687, 0xc41c, 0xd595, 0xa12a, 0xb0a3, 0x8238, 0x93b1,
@@ -189,9 +190,9 @@ line level    source
  172          #ifdef TEST
               #include <assert.h>
               #include <string.h>
-              #include "ctest.h"
-C51 COMPILER V9.06   CRC                                                                   03/13/2013 09:32:31 PAGE 4   
+C51 COMPILER V9.06   CRC                                                                   03/29/2013 16:57:09 PAGE 4   
 
+              #include "ctest.h"
               #include "bytes.h"
               
               /* test from Annex G 1.0 of BACnet Standard */
@@ -253,9 +254,9 @@ line level    source
                   printf("static const uint8_t HeaderCRC[256] =\n");
                   printf("{\n");
                   printf("    ");
-                  for (i = 0; i < 256; i++) {
-C51 COMPILER V9.06   CRC                                                                   03/13/2013 09:32:31 PAGE 5   
+C51 COMPILER V9.06   CRC                                                                   03/29/2013 16:57:09 PAGE 5   
 
+                  for (i = 0; i < 256; i++) {
                       crc = CRC_Calc_Header(i, 0);
                       printf("0x%02x, ", crc);
                       if (!((i + 1) % 8)) {
@@ -317,9 +318,9 @@ line level    source
                   (void) ct_report(pTest);
               
                   ct_destroy(pTest);
-              
-C51 COMPILER V9.06   CRC                                                                   03/13/2013 09:32:31 PAGE 6   
+C51 COMPILER V9.06   CRC                                                                   03/29/2013 16:57:09 PAGE 6   
 
+              
                   return 0;
               }
               #endif

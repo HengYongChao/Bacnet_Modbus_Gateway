@@ -1,14 +1,15 @@
-C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 1   
+C51 COMPILER V9.06   CH375_COM                                                             05/20/2013 14:16:33 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE CH375_COM
 OBJECT MODULE PLACED IN .\ch375_COM.obj
-COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\USB\ch375_COM.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020)
+COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\USB\ch375_COM.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020)
                     - INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;
                     -..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\
                     -buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;.
-                    -.\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\ch375_COM.lst) OBJECT(.\ch
-                    -375_COM.obj)
+                    -.\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;.
+                    -.\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\ch375_COM.lst) OBJECT(.\
+                    -ch375_COM.obj)
 
 line level    source
 
@@ -61,9 +62,9 @@ line level    source
               //for debug
               U8_T ascii[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
               void usb_debug_print_hex(U8_T *dat, U8_T length)
-              {
-C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 2   
+C51 COMPILER V9.06   CH375_COM                                                             05/20/2013 14:16:33 PAGE 2   
 
+              {
                       U8_T p[100];
                       U8_T i;
                       U8_T ctr = 0;
@@ -125,9 +126,9 @@ line level    source
  109   2              }       
  110   1      }
  111          
- 112          /* 延时50ms， 不精确 */
-C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 3   
+C51 COMPILER V9.06   CH375_COM                                                             05/20/2013 14:16:33 PAGE 3   
 
+ 112          /* 延时50ms， 不精确 */
  113          static void Delay50ms(void)
  114          {
  115   1              U8_T i, j;
@@ -189,9 +190,9 @@ line level    source
  171          void USB_disable(void)
  172          {
  173   1              CH375_WR_CMD_PORT(CMD_SET_USB_MODE);                            // 设置USB工作模式, 必要操作
- 174   1              CH375_WR_DAT_PORT(0);                                                           // 设置为未启用的USB设备方式
-C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 4   
+C51 COMPILER V9.06   CH375_COM                                                             05/20/2013 14:16:33 PAGE 4   
 
+ 174   1              CH375_WR_DAT_PORT(0);                                                           // 设置为未启用的USB设备方式
  175   1              #ifdef  USB_DEBUG
                       Uart0_Tx("Disable USB\n\r", 13);
                       #endif
@@ -253,9 +254,9 @@ line level    source
  233   1              return ret;
  234   1      }
  235          
- 236          
-C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 5   
+C51 COMPILER V9.06   CH375_COM                                                             05/20/2013 14:16:33 PAGE 5   
 
+ 236          
  237          /*端点0数据上传*/
  238          void mCh375Ep0Up(void)
  239          {
@@ -317,9 +318,9 @@ line level    source
  295   1              InterruptStatus = CH375_RD_DAT_PORT();                                                  // 获取中断状态
  296   1               
  297   1              switch(InterruptStatus)                                                                                 // 解析中断源
- 298   1          {
-C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 6   
+C51 COMPILER V9.06   CH375_COM                                                             05/20/2013 14:16:33 PAGE 6   
 
+ 298   1          {
  299   2                      case USB_INT_EP2_OUT:                                                                           // 批量端点下传成功
  300   2                              #ifdef  USB_DEBUG
                                       Uart0_Tx("EP2_OUT:", 9);
@@ -381,9 +382,9 @@ line level    source
  357   3                                      if((c1 = request.r.bmReuestType) & 0x40)                                // 厂商请求,未进行处理
  358   3                      {
  359   4                              // NO DEAL..............
- 360   4                                              #ifdef  USB_DEBUG
-C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 7   
+C51 COMPILER V9.06   CH375_COM                                                             05/20/2013 14:16:33 PAGE 7   
 
+ 360   4                                              #ifdef  USB_DEBUG
                                                       Uart0_Tx("->Vendor request\n\r", 18);
                                                       #endif
  363   4                                      }
@@ -445,9 +446,9 @@ line level    source
  419   7                                                                                      CH375_WR_CMD_PORT(CMD_SET_ENDP7);               // 清除端点2上传
  420   7                                                                                      CH375_WR_DAT_PORT(0x8E);                // 发命令清除端点
  421   7                                                                                      break;
- 422   7                                                                              case 0x02:
-C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 8   
+C51 COMPILER V9.06   CH375_COM                                                             05/20/2013 14:16:33 PAGE 8   
 
+ 422   7                                                                              case 0x02:
  423   7                                                                                      CH375_WR_CMD_PORT(CMD_SET_ENDP6);
  424   7                                                                                      CH375_WR_DAT_PORT(0x80);                                // 清除端点2下传
  425   7                                                                                      break;
@@ -509,9 +510,9 @@ line level    source
  481   6                                                                      #ifdef  USB_DEBUG
                                                                               Uart0_Tx("->string", 8);
                                                                               #endif
- 484   6                                                                      switch(request.buffer[2])
-C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 9   
+C51 COMPILER V9.06   CH375_COM                                                             05/20/2013 14:16:33 PAGE 9   
 
+ 484   6                                                                      switch(request.buffer[2])
  485   6                                                                      {
  486   7                                                                              case 0:                                                                         // 获取语言ID
  487   7                                                                                      #ifdef  USB_DEBUG
@@ -573,9 +574,9 @@ line level    source
  543   5                                                              mVarSetupLength = 1;
  544   5                                                              break;
  545   5                                                      default:
- 546   5                                                              #ifdef  USB_DEBUG
-C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 10  
+C51 COMPILER V9.06   CH375_COM                                                             05/20/2013 14:16:33 PAGE 10  
 
+ 546   5                                                              #ifdef  USB_DEBUG
                                                                       Uart0_Tx("->Other standard requests\n\r", 27);
                                                                       #endif
  549   5                                                              CH375FLAGERR = 1;                                                                       // 不支持的标准请求
@@ -637,9 +638,9 @@ line level    source
  604   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
  605   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
  606   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
- 607   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
-C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 11  
+C51 COMPILER V9.06   CH375_COM                                                             05/20/2013 14:16:33 PAGE 11  
 
+ 607   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
  608   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
  609   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
  610   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);
@@ -701,9 +702,9 @@ line level    source
  666   2                              CH375_WR_CMD_PORT(CMD_UNLOCK_USB);                                                                              // 释放缓冲区
  667   2                              CH375_RD_DAT_PORT();
  668   2                              break;
- 669   2              }
-C51 COMPILER V9.06   CH375_COM                                                             03/13/2013 09:32:29 PAGE 12  
+C51 COMPILER V9.06   CH375_COM                                                             05/20/2013 14:16:33 PAGE 12  
 
+ 669   2              }
  670   1      }
 
 

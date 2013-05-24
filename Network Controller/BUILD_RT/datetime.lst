@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 1   
+C51 COMPILER V9.06   DATETIME                                                              03/29/2013 16:57:10 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE DATETIME
@@ -7,8 +7,8 @@ COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\datetime.c LAR
                     -0) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur
                     -\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SR
                     -C\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\
-                    -;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\datetime.lst) OBJECT(.\d
-                    -atetime.obj)
+                    -;..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version) DEFINE(KEIL_AX1
+                    -1000) VARBANKING DEBUG PRINT(.\datetime.lst) OBJECT(.\datetime.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   48          /* day = day of month 1..31 */
   49          /* wday 1=Monday...7=Sunday */
   50          
-C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 2   
+C51 COMPILER V9.06   DATETIME                                                              03/29/2013 16:57:10 PAGE 2   
 
   51          /* Wildcards:
   52            A value of X'FF' in any of the four octets 
@@ -126,7 +126,7 @@ line level    source
  110          
  111          static void days_since_epoch_into_ymd(
  112              uint32_t days,
-C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 3   
+C51 COMPILER V9.06   DATETIME                                                              03/29/2013 16:57:10 PAGE 3   
 
  113              uint16_t * pYear,
  114              uint8_t * pMonth,
@@ -190,7 +190,7 @@ line level    source
  172   4                      diff = (int) date1->day - (int) date2->day;
  173   4                  }
  174   3              }
-C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 4   
+C51 COMPILER V9.06   DATETIME                                                              03/29/2013 16:57:10 PAGE 4   
 
  175   2          }
  176   1      
@@ -254,7 +254,7 @@ line level    source
  234          void datetime_copy_time(
  235              BACNET_TIME * dest_time,
  236              BACNET_TIME * src_time)
-C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 5   
+C51 COMPILER V9.06   DATETIME                                                              03/29/2013 16:57:10 PAGE 5   
 
  237          {
  238   1          if (dest_time && src_time) {
@@ -318,7 +318,7 @@ line level    source
  296   2              bdatetime->date.wday = bdate->wday;
  297   2          }
  298   1      }
-C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 6   
+C51 COMPILER V9.06   DATETIME                                                              03/29/2013 16:57:10 PAGE 6   
 
  299          
  300          void datetime_set_values(
@@ -382,7 +382,7 @@ line level    source
  358   1          uint32_t days = 0;
  359   1      
  360   1          /* convert bdatetime to seconds and days */
-C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 7   
+C51 COMPILER V9.06   DATETIME                                                              03/29/2013 16:57:10 PAGE 7   
 
  361   1          bdatetime_minutes =
  362   1              seconds_since_midnight(bdatetime->time.hour, bdatetime->time.min,
@@ -446,7 +446,7 @@ line level    source
  420   2          }
  421   1      
  422   1          return wildcard_present;
-C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 8   
+C51 COMPILER V9.06   DATETIME                                                              03/29/2013 16:57:10 PAGE 8   
 
  423   1      }
  424          
@@ -510,7 +510,7 @@ line level    source
  482   1      
  483   1      
  484   1          if (apdu && value) {
-C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 9   
+C51 COMPILER V9.06   DATETIME                                                              03/29/2013 16:57:10 PAGE 9   
 
  485   2              len = encode_opening_tag(&apdu[apdu_len], tag_number);
  486   2              apdu_len += len;
@@ -574,7 +574,7 @@ line level    source
  544   2          }
  545   1          return apdu_len;
  546   1      }
-C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 10  
+C51 COMPILER V9.06   DATETIME                                                              03/29/2013 16:57:10 PAGE 10  
 
  547          
  548          
@@ -638,7 +638,7 @@ line level    source
                   Test * pTest)
               {
                   uint8_t hour = 0, minute = 0, second = 0;
-C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 11  
+C51 COMPILER V9.06   DATETIME                                                              03/29/2013 16:57:10 PAGE 11  
 
                   uint8_t test_hour = 0, test_minute = 0, test_second = 0;
                   uint32_t seconds = 0, test_seconds;
@@ -702,7 +702,7 @@ line level    source
                   diff = datetime_compare_date(&bdate1, &bdate2);
                   ct_test(pTest, diff > 0);
                   datetime_set_date(&bdate2, 2007, 1, 15);
-C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 12  
+C51 COMPILER V9.06   DATETIME                                                              03/29/2013 16:57:10 PAGE 12  
 
                   diff = datetime_compare_date(&bdate1, &bdate2);
                   ct_test(pTest, diff > 0);
@@ -766,7 +766,7 @@ line level    source
                   diff = datetime_compare_time(&btime1, &btime2);
                   ct_test(pTest, diff > 0);
                   datetime_set_time(&btime2, 11, 30, 30, 50);
-C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 13  
+C51 COMPILER V9.06   DATETIME                                                              03/29/2013 16:57:10 PAGE 13  
 
                   diff = datetime_compare_time(&btime1, &btime2);
                   ct_test(pTest, diff > 0);
@@ -830,7 +830,7 @@ line level    source
                   ct_test(pTest, diff > 0);
                   datetime_set_values(&bdatetime2, 2000, 7, 14, 12, 30, 30, 50);
                   diff = datetime_compare(&bdatetime1, &bdatetime2);
-C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 14  
+C51 COMPILER V9.06   DATETIME                                                              03/29/2013 16:57:10 PAGE 14  
 
                   ct_test(pTest, diff > 0);
                   datetime_set_values(&bdatetime2, 2000, 6, 15, 12, 30, 30, 50);
@@ -894,7 +894,7 @@ line level    source
                   ct_test(pTest, dow == 4);
                   dow = day_of_week(2007, 1, 5);
                   ct_test(pTest, dow == 5);
-C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 15  
+C51 COMPILER V9.06   DATETIME                                                              03/29/2013 16:57:10 PAGE 15  
 
                   dow = day_of_week(2007, 1, 6);
                   ct_test(pTest, dow == 6);
@@ -958,7 +958,7 @@ line level    source
                   rc = ct_addTestFunction(pTest, testBACnetDateTime);
                   assert(rc);
                   rc = ct_addTestFunction(pTest, testBACnetDayOfWeek);
-C51 COMPILER V9.06   DATETIME                                                              03/13/2013 09:32:36 PAGE 16  
+C51 COMPILER V9.06   DATETIME                                                              03/29/2013 16:57:10 PAGE 16  
 
                   assert(rc);
                   rc = ct_addTestFunction(pTest, testDateEpoch);

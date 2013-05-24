@@ -5,6 +5,7 @@
 #include "../gsm/gsm.h"
 #include "../main/main.h"
 
+
 //#define TIME_TO_WAIT		4		  // baudrate 115200
 #define TIME_TO_WAIT		4		  // baudrate 115200
 #define TIME_TO_WAIT_RSV	4
@@ -21,7 +22,7 @@ U8_T init_state = 0;
 //U8_T gsm_flag;
 char phone_num[20] = {0};
 
-U8_T phoneNumber[PHONE_NUM_SIZE + 1] = "+8613127506299";
+U8_T phoneNumber[PHONE_NUM_SIZE + 1] = "+8613917905693";
 
 U8_T gsm_timeout = GSM_TIMEOUT_VALUE;
 
@@ -32,6 +33,7 @@ extern void CRC16_Tstat(unsigned char ch);
 extern  unsigned char far  CRClo;
 extern unsigned  char far  CRChi;
 
+U8_T buf_for_crc[6];
 
 void MicroWait( U16_T timeout)
 {
@@ -230,7 +232,6 @@ U8_T gsm_msg_process( char *msg)
 		g_state = SMS_READY;
 		memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
 		gsm_RxBuf.size = 0;
-//		gsm_debug( "SMS IS READY!");
 	}
 	else if ( strstr( msg, "+CMTI"))				   // 收到短信
 	{
@@ -238,101 +239,106 @@ U8_T gsm_msg_process( char *msg)
 		memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
 		gsm_RxBuf.size = 0;
 		gsm_debug( "RECEIVE A MESSAGE!");
-//		send_at_cmd( "AT+CMGR=1");				   // 发送接收一条短信指令
-//		rev_cnt = 3;
 		g_state = GET_MSG;
 	}
 	else if( strstr( msg, "+CMGR"))
 	{
+		gsm_debug( msg);
 		gsm_debug( "DISPLAY THE MESSAGE AND DELETE IT:");
-//		memcpy( temp, msg, strlen(msg));
-//		gsm_debug( temp);
     	if( sms = strstr( msg, "\r"))
 		{
-//			g_state = SET_POINT;
-//			gsm_debug( "the message is setpoint");
-//			gsm_debug("SMS is");
-//			gsm_debug( sms);
-
+			gsm_debug( sms);
 			if ( rest = strtok(sms, ";"))
 			{
 				gsm_debug("+++++++++MOD_ID:");
 				gsm_debug( rest);
-//				rest = strtok( NULL, ";");
-//				if( rest)
-				{
-					gsm_debug("+++++++++REG_ID:");
-//					gsm_debug( rest);
-//					memcpy( temp1, rest, strlen(rest));
-					if (reg_id = strtok( NULL, ";")){
-						gsm_debug( reg_id);
-						setpoint = strtok( NULL, ";");
-						if( setpoint){
-							gsm_debug("+++++++++SETPOINT:");
-							gsm_debug( setpoint);
-							point = atoi(reg_id);
+				gsm_debug("+++++++++REG_ID:");
 
-							if( strtok( rest, "\n"))
+				if (reg_id = strtok( NULL, ";")){
+					gsm_debug( reg_id);
+					setpoint = strtok( NULL, ";");
+					if( setpoint){
+						gsm_debug("+++++++++SETPOINT:");
+						gsm_debug( setpoint);
+						point = atoi(reg_id);
+
+						if( strtok( rest, "\n"))
+						{
+							if(strtok( NULL, "\n"))
 							{
-								if(strtok( NULL, "\n"))
-								{
-									temp = strtok( NULL, "\n");
+								temp = strtok( NULL, "\n");
 
-									if( mod_id = strtok( temp, "\r"))
-									{
-										gsm_debug("--------MOD_id");
-										gsm_debug( mod_id);
-									}
-									else
-									{
-										gsm_debug("no cr");
-									}
+								if( mod_id = strtok( temp, "\r"))
+								{
+									gsm_debug("--------MOD_id");
+									gsm_debug( mod_id);
+								}
+								else
+								{
+									gsm_debug("no cr");
 								}
 							}
-							else
-							{
-								gsm_debug( "can't get mod_id");	
-							}
-
-//							sprintf( temp1, "%d, %d, %d\r\n", atoi(mod_id), point, atoi(setpoint));
-//							gsm_debug( temp1);
-
-							buf[0] = atoi(mod_id);
-							buf[1] = 0x06;
-//							buf[2] = HIGN_BYTE(point);
-//							buf[3] = LOW_BYTE(point);
-							buf[2] = HI_U16(point);
-							buf[3] = LO_U16(point);
-							buf[4] = 0x00;
-							buf[5] = atoi(setpoint);
-			
-							for( i = 0; i < 6; i++)
-							{
-								CRC16_Tstat(buf[i]);
-							}
-			
-							buf[6] = CRChi;
-							buf[7] = CRClo;
-								
-							gsm_debug(buf);
-							Tx_To_Tstat(buf, 8);
-
-							g_state = GSM_INIT_DONE;
-							rev_cnt = 0;
-
-							
-							send_at_cmd( "AT+CMGD=1");                // 删除该条短信
-
 						}
 						else
 						{
-							gsm_debug("can not get endpoint");
+							gsm_debug( "can't get mod_id");	
 						}
+
+						buf[0] = atoi(mod_id);
+						buf[1] = 0x06;
+						buf[2] = HI_U16(point);
+						buf[3] = LO_U16(point);
+						buf[4] = 0x00;
+						buf[5] = atoi(setpoint);
+		
+						InitCRC16();
+						for( i = 0; i < 6; i++)
+						{
+							buf_for_crc[i] = buf[i];
+							CRC16_Tstat(buf_for_crc[i]);
+						}
+		
+						buf[6] = CRChi;
+						buf[7] = CRClo;
+
+//							if( buf[0] == 0xfd)
+//								gsm_debug( "!!!!!MOD ID OK");
+//							else
+//								gsm_debug( "!!!!!MOD ID ERROR");
+//							if( ( buf[2] == 0x01) && ( buf[3] == 0x5b))
+//								gsm_debug( "@@@@@REG ID OK");
+//							else
+//								gsm_debug( "@@@@@REG ID ERROR");
+//							if( buf[5] == 0x19)
+//								gsm_debug( "#####SET ID OK");
+//							else
+//								gsm_debug( "#####SET ID ERROR");
+//							if( (buf[6] == 0x2c) && ( buf[7] == 0x13))
+//								gsm_debug( "$$$$$CRC OK");
+//							else
+//							{
+//								gsm_debug( "$$$$$CRC ERROR, BUF6:");
+//								gsm_debug( &buf[6]);
+//								gsm_debug( "BUF7:");
+//								gsm_debug( &buf[7]);
+//							}	
+						Tx_To_Tstat(buf, 8);
+
+						g_state = GSM_INIT_DONE;
+						rev_cnt = 0;
+
+						
+						send_at_cmd( "AT+CMGD=1");                // 删除该条短信
+
 					}
 					else
 					{
-						gsm_debug("can not get reg_id");
+						gsm_debug("can not get endpoint");
 					}
+				}
+				else
+				{
+					gsm_debug("can not get reg_id");
 				}
 			}
 		}
@@ -344,14 +350,6 @@ U8_T gsm_msg_process( char *msg)
 		memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
 		gsm_RxBuf.size = 0;
 	}
-//	else if( (GET_MSG == g_state) && strstr( msg, "setpoint"))  // 短信设置setpoint
-//	{
-//		gsm_debug( gsm_RxBuf.buf);
-//		memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
-//		gsm_RxBuf.size = 0;
-//		gsm_debug( "RESEIVE SETPOINT!");
-//		g_state = SET_POINT;
-//	}
 	else if ( strstr( msg, "+CMGS:"))
 	{
 		gsm_debug( gsm_RxBuf.buf);
@@ -362,7 +360,7 @@ U8_T gsm_msg_process( char *msg)
 	}
 	else if ( (GSM_INIT_FINISH == init_state) && strstr(msg, "OK"))
 	{
-//		gsm_debug( gsm_RxBuf.buf);
+		gsm_debug( gsm_RxBuf.buf);
 //		gsm_debug( "GSM WAITING FOR SOMETHING");
 		memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
 		gsm_RxBuf.size = 0;
@@ -411,7 +409,7 @@ U8_T gsm_msg_process( char *msg)
 	}
 	else
 	{
-//		gsm_debug( gsm_RxBuf.buf);
+		gsm_debug( gsm_RxBuf.buf);
 		memset( gsm_RxBuf.buf, 0, GSM_MAX_RX_LEN);
 		gsm_RxBuf.size = 0;
 //		gsm_debug( "UNKNOWN MESSAGE");
@@ -430,14 +428,14 @@ U8_T gsm_msg_process( char *msg)
 
 void gsm_module_init(void)
 {
-//	gsm_debug( "Start gsm module init");
+	gsm_debug( "Start gsm module init");
 	
 	switch ( init_state)
 	{
 		case 0:
 //			simulate_write_byte(0x55);
 			send_at_cmd( "AT");					   // 验证模块正常
-//			gsm_debug( "Send 'AT' cmd");
+			gsm_debug( "Send 'AT' cmd");
 //			g_state = GSM_INITING;
 			break;
 
@@ -493,6 +491,11 @@ void gsm_module_init(void)
 void gsm_init(void)
 {
 //	gsm_debug( "Start gsm init");
+
+
+//	Uart0_Tx("gsm init",8);
+
+
 	
 #ifndef GSM_USE_DELAY							  
 //	TMOD |= 0x02;				// 模式1

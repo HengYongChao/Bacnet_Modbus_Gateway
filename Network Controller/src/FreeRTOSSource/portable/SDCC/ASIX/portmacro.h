@@ -37,6 +37,7 @@
 supplied with the distribution. */
 #include "8052.h"
 
+extern U32_T	CPU_FREQUENCY;	 //hyc
 /*-----------------------------------------------------------
  * Port specific definitions for the Cygnal 8051 port.
  *----------------------------------------------------------*/
@@ -46,8 +47,8 @@ supplied with the distribution. */
 #define portSTACK_START			( 0x22 )
 
 #define portUSE_PREEMPTION		1
-#define portCPU_CLOCK_HZ		( ( unsigned portLONG ) 25000000 )
-#define portTICK_RATE_HZ		( ( portTickType ) 50 )
+#define portCPU_CLOCK_HZ		( ( unsigned portLONG ) CPU_FREQUENCY )		//cpu frequency	 25000000
+#define portTICK_RATE_HZ		( ( portTickType ) 50 )			   //50HZ->20MS
 #define portMAX_PRIORITIES		( ( unsigned portSHORT ) 4 )
 #define portMINIMAL_STACK_SIZE	( ( unsigned portSHORT ) 200 - ( unsigned portSHORT ) portSTACK_START )
 #define portTOTAL_HEAP_SIZE		( ( unsigned portSHORT ) ( 6 * 1024 ) )

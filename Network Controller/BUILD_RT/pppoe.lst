@@ -1,14 +1,15 @@
-C51 COMPILER V9.06   PPPOE                                                                 03/13/2013 09:32:24 PAGE 1   
+C51 COMPILER V9.06   PPPOE                                                                 05/20/2013 14:16:29 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE PPPOE
 OBJECT MODULE PLACED IN .\pppoe.obj
-COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\pppoe\pppoe.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) I
+COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\pppoe\pppoe.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(0X6020) I
                     -NCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;..
                     -\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\bu
                     -ffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\
-                    -Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\pppoe.lst) OBJECT(.\pppoe.ob
-                    -j)
+                    -Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;..\
+                    -src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\pppoe.lst) OBJECT(.\pppoe.
+                    -obj)
 
 line level    source
 
@@ -61,9 +62,9 @@ line level    source
   47          static U8_T             pppoe_identification_2[13] = "MSRAV-0-ASIX";
   48          static U8_T             pppoe_username[33] = "username"; //User name
   49          static U8_T             pppoe_password[33] = "password"; //Password
-  50          static U8_T             pppoe_server_ip[4];
-C51 COMPILER V9.06   PPPOE                                                                 03/13/2013 09:32:24 PAGE 2   
+C51 COMPILER V9.06   PPPOE                                                                 05/20/2013 14:16:29 PAGE 2   
 
+  50          static U8_T             pppoe_server_ip[4];
   51          static U8_T             pppoe_ip[4];
   52          static U8_T             pppoe_pri_dns[4];
   53          static U8_T             pppoe_sec_dns[4];
@@ -125,9 +126,9 @@ line level    source
  109           * Purpose: Called by system while packet to send in PPPoE mode
  110           * Params:
  111           * Returns:
- 112           * Note:
-C51 COMPILER V9.06   PPPOE                                                                 03/13/2013 09:32:24 PAGE 3   
+C51 COMPILER V9.06   PPPOE                                                                 05/20/2013 14:16:29 PAGE 3   
 
+ 112           * Note:
  113           * ----------------------------------------------------------------------------
  114           */
  115          void PPPOE_Send(U8_T* buf, U16_T length)
@@ -189,9 +190,9 @@ line level    source
  171   2                              break;
  172   2                      case PPPOE_CODE_PADI:
  173   2                              /* Send PADI every 5 seconds while no PADO received */
- 174   2                              pppoe_info.wait_count_slave++;
-C51 COMPILER V9.06   PPPOE                                                                 03/13/2013 09:32:24 PAGE 4   
+C51 COMPILER V9.06   PPPOE                                                                 05/20/2013 14:16:29 PAGE 4   
 
+ 174   2                              pppoe_info.wait_count_slave++;
  175   2                              if(pppoe_info.wait_count_slave > 45644)
  176   2                              {
  177   3                                      pppoe_info.wait_count_slave = 0;
@@ -253,9 +254,9 @@ line level    source
  233   2              }
  234   1      
  235   1              switch(pppoe_info.state)
- 236   1              {
-C51 COMPILER V9.06   PPPOE                                                                 03/13/2013 09:32:24 PAGE 5   
+C51 COMPILER V9.06   PPPOE                                                                 05/20/2013 14:16:29 PAGE 5   
 
+ 236   1              {
  237   2                      case PPPOE_CODE_PADI:
  238   2                              /* Maintain ether type for PPPoE discovery */
  239   2                              if(PPPOEBUF->ether_type == UIP_ETHTYPE_PPPOE_DISCOVERY && PPPOEBUF->pppoe_code == PPPOE_CODE_PADO)
@@ -317,9 +318,9 @@ line level    source
  295   2              }
  296   1      }
  297          
- 298          /*
-C51 COMPILER V9.06   PPPOE                                                                 03/13/2013 09:32:24 PAGE 6   
+C51 COMPILER V9.06   PPPOE                                                                 05/20/2013 14:16:29 PAGE 6   
 
+ 298          /*
  299           * ----------------------------------------------------------------------------
  300           * Function Name: PPPOE_Discovery_Handle
  301           * Purpose: Handle discovery stage of PPPoE
@@ -381,9 +382,9 @@ line level    source
  357   2                              ((pppoe_hdr*)PPPOEBUF)->payload_length = (U16_T)as_length[0] + (U16_T)as_length[1] + 20;
  358   2                              tags->name = PPPOE_TAG_SERVICE_NAME;
  359   2                              tags->length = as_length[1];
- 360   2                              memcpy(tags->value, service_name, tags->length);
-C51 COMPILER V9.06   PPPOE                                                                 03/13/2013 09:32:24 PAGE 7   
+C51 COMPILER V9.06   PPPOE                                                                 05/20/2013 14:16:29 PAGE 7   
 
+ 360   2                              memcpy(tags->value, service_name, tags->length);
  361   2                              *(U16_T*) (tags->value + tags->length) = PPPOE_TAG_HOST_UNIQ;
  362   2                              *(U16_T*) (tags->value + tags->length + 2) = 0x0008;
  363   2                              *(U32_T*) (tags->value + tags->length + 4) = 0x06000000;
@@ -445,9 +446,9 @@ line level    source
  419   3                                      return 0;
  420   3                              }
  421   2      
- 422   2                              /* Create LCP ACK */
-C51 COMPILER V9.06   PPPOE                                                                 03/13/2013 09:32:24 PAGE 8   
+C51 COMPILER V9.06   PPPOE                                                                 05/20/2013 14:16:29 PAGE 8   
 
+ 422   2                              /* Create LCP ACK */
  423   2                              memcpy(((pppoe_hdr*)PPPOEBUF)->dest_addr, ((pppoe_hdr*)PPPOEBUF)->src_addr, 6);
  424   2                              memcpy(((pppoe_hdr*)PPPOEBUF)->src_addr, pppoe_MacAddr, 6);
  425   2                              ((pppoe_hdr*)PPPOEBUF)->ether_type = htons(UIP_ETHTYPE_PPPOE_SESSION);
@@ -509,9 +510,9 @@ line level    source
  480   2                              memcpy(((pppoe_hdr*)PPPOEBUF)->dest_addr, pppoe_server_mac, 6);
  481   2                              memcpy(((pppoe_hdr*)PPPOEBUF)->src_addr, pppoe_MacAddr, 6);
  482   2                              ((pppoe_hdr*)PPPOEBUF)->ether_type = htons(UIP_ETHTYPE_PPPOE_SESSION);
- 483   2                              ((pppoe_hdr*)PPPOEBUF)->pppoe_code = PPPOE_CODE_SESS;
-C51 COMPILER V9.06   PPPOE                                                                 03/13/2013 09:32:24 PAGE 9   
+C51 COMPILER V9.06   PPPOE                                                                 05/20/2013 14:16:29 PAGE 9   
 
+ 483   2                              ((pppoe_hdr*)PPPOEBUF)->pppoe_code = PPPOE_CODE_SESS;
  484   2                              ((pppoe_hdr*)PPPOEBUF)->vhl = 0x11;
  485   2                              ((pppoe_hdr*)PPPOEBUF)->session_id = session_id;
  486   2                              ((pppoe_hdr*)PPPOEBUF)->payload_length = 18 + 2;
@@ -573,9 +574,9 @@ line level    source
  542   2                              /* Check if the packet is IPCP/Request */
  543   2                              if(phs->protocol != IPCP && phs->ppp_code != 0x01)
  544   2                              {
- 545   3                                      return 0;
-C51 COMPILER V9.06   PPPOE                                                                 03/13/2013 09:32:24 PAGE 10  
+C51 COMPILER V9.06   PPPOE                                                                 05/20/2013 14:16:29 PAGE 10  
 
+ 545   3                                      return 0;
  546   3                              }
  547   2                              /* Create IPCP/ACK packet */
  548   2                              memcpy(((pppoe_hdr*)PPPOEBUF)->dest_addr, ((pppoe_hdr*)PPPOEBUF)->src_addr, 6);
@@ -637,9 +638,9 @@ line level    source
  604   3                                      TCPIP_SetIPAddr(*(U32_T*)pppoe_ip);
  605   3      
  606   3                                      /* Set PPPoE connection successful */
- 607   3                                      pppoe_successful = 1;
-C51 COMPILER V9.06   PPPOE                                                                 03/13/2013 09:32:24 PAGE 11  
+C51 COMPILER V9.06   PPPOE                                                                 05/20/2013 14:16:29 PAGE 11  
 
+ 607   3                                      pppoe_successful = 1;
  608   3                                      PPPOE_GetDnsFlag = 1;
  609   3      
  610   3                                      pppoe_info.state = PPPOE_CODE_PADS_8;
@@ -701,9 +702,9 @@ line level    source
  666   2                      if((*(tags + i) == 0x01) && (*(tags + i + 1) == 0x03))
  667   2                      {
  668   3                              memcpy(host_uniq_from_PADO, (tags + i + 4), *(U16_T*)(tags+i+2));
- 669   3                      }
-C51 COMPILER V9.06   PPPOE                                                                 03/13/2013 09:32:24 PAGE 12  
+C51 COMPILER V9.06   PPPOE                                                                 05/20/2013 14:16:29 PAGE 12  
 
+ 669   3                      }
  670   2      
  671   2                      /* AC-Cookie */
  672   2                      if((*(tags + i) == 0x01) && (*(tags + i + 1) == 0x04))
@@ -765,9 +766,9 @@ line level    source
  728   2                      /* Create echo reply */
  729   2                      memcpy(((pppoe_hdr*)PPPOEBUF)->dest_addr, ((pppoe_hdr*)PPPOEBUF)->src_addr, 6);
  730   2                      memcpy(((pppoe_hdr*)PPPOEBUF)->src_addr, pppoe_MacAddr, 6);
- 731   2                      ((pppoe_hdr*)PPPOEBUF)->ether_type = htons(UIP_ETHTYPE_PPPOE_SESSION);
-C51 COMPILER V9.06   PPPOE                                                                 03/13/2013 09:32:24 PAGE 13  
+C51 COMPILER V9.06   PPPOE                                                                 05/20/2013 14:16:29 PAGE 13  
 
+ 731   2                      ((pppoe_hdr*)PPPOEBUF)->ether_type = htons(UIP_ETHTYPE_PPPOE_SESSION);
  732   2                      ((pppoe_hdr*)PPPOEBUF)->vhl = 0x11;
  733   2                      ((pppoe_hdr*)PPPOEBUF)->pppoe_code = PPPOE_CODE_SESS;
  734   2                      ((pppoe_hdr*)PPPOEBUF)->session_id = session_id;
@@ -829,9 +830,9 @@ line level    source
  790   1              {
  791   2                      /* Create Terminate ack */
  792   2                      memcpy(((pppoe_hdr*)PPPOEBUF)->dest_addr, ((pppoe_hdr*)PPPOEBUF)->src_addr, 6);
- 793   2                      memcpy(((pppoe_hdr*)PPPOEBUF)->src_addr, pppoe_MacAddr, 6);
-C51 COMPILER V9.06   PPPOE                                                                 03/13/2013 09:32:24 PAGE 14  
+C51 COMPILER V9.06   PPPOE                                                                 05/20/2013 14:16:29 PAGE 14  
 
+ 793   2                      memcpy(((pppoe_hdr*)PPPOEBUF)->src_addr, pppoe_MacAddr, 6);
  794   2                      ((pppoe_hdr*)PPPOEBUF)->ether_type = htons(UIP_ETHTYPE_PPPOE_SESSION);
  795   2                      ((pppoe_hdr*)PPPOEBUF)->vhl = 0x11;
  796   2                      ((pppoe_hdr*)PPPOEBUF)->pppoe_code = PPPOE_CODE_SESS;
@@ -893,9 +894,9 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
    BIT SIZE         =   ----    ----
    EDATA SIZE       =   ----    ----
    HDATA SIZE       =   ----    ----
-   XDATA CONST SIZE =   ----    ----
-C51 COMPILER V9.06   PPPOE                                                                 03/13/2013 09:32:24 PAGE 15  
+C51 COMPILER V9.06   PPPOE                                                                 05/20/2013 14:16:29 PAGE 15  
 
+   XDATA CONST SIZE =   ----    ----
    FAR CONST SIZE   =   ----    ----
 END OF MODULE INFORMATION.
 

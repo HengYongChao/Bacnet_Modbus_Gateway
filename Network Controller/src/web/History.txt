@@ -1,0 +1,21 @@
+//======================================================================
+// AX110xx Web File Convert tool Revision History
+// Module Name: mfilesys.exe 
+//
+// This document describes the major changes, additions and bug fixes made 
+// to the mfilesys.exe. 
+//======================================================================
+
+===========================
+Version 1.0.2  (2006-07-18)
+===========================
+1. modify by tony 2009/7/21 Fix the bug of process css,js,image file
+===========================
+Version 1.0.1  (2006-07-18)
+===========================
+1. modify by tony 2009/2/12 for tag/cgi/css/js & file sum > 64k support
+===========================
+Version 1.0.0  (2006-01-20)
+===========================
+1. Initial release by Borbin.
+

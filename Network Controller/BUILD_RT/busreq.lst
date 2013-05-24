@@ -1,9 +1,9 @@
-AX51 MACRO ASSEMBLER  BUSREQ                                                                03/13/13 09:32:20 PAGE     1
+AX51 MACRO ASSEMBLER  BUSREQ                                                                05/20/13 14:16:26 PAGE     1
 
 
 MACRO ASSEMBLER AX51 V3.07c
 OBJECT MODULE PLACED IN .\busreq.obj
-ASSEMBLER INVOKED BY: d:\Keil_4_9.06\C51\BIN\AX51.EXE ..\src\swdma\busreq.asm MOD_CONT INCDIR(..\SRC\cpu\;..\SRC\etherne
+ASSEMBLER INVOKED BY: E:\Keil_4_9.06\C51\BIN\AX51.EXE ..\src\swdma\busreq.asm MOD_CONT INCDIR(..\SRC\cpu\;..\SRC\etherne
                       t\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\uip\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;
                       ..\SRC\gs2e\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\) SET(LARGE) DEBU
                       G PRINT(.\busreq.lst) OBJECT(.\busreq.obj) EP
@@ -65,7 +65,7 @@ LOC    OBJ             LINE     SOURCE
   0086              +1   53     sfr     DPS                     = 0x86;// Data Pointers Select Register
   0087              +1   54     sfr     PCON            = 0x87;// Power Configuration Register
   0088              +1   55     sfr TCON                = 0x88;// Timer 0,1 Configuration Register
-AX51 MACRO ASSEMBLER  BUSREQ                                                                03/13/13 09:32:20 PAGE     2
+AX51 MACRO ASSEMBLER  BUSREQ                                                                05/20/13 14:16:26 PAGE     2
 
   0089              +1   56     sfr TMOD                = 0x89;// Timer 0,1 Control Mode Register
   008A              +1   57     sfr TL0                 = 0x8A;// Timer 0 Low Byte Counter
@@ -133,7 +133,7 @@ LOC    OBJ             LINE     SOURCE
   00B8              +1  116     sfr IP                  = 0xB8;// Interrupt Priority Register
   00B9              +1  117     sfr CCAPH0      = 0xB9;// PCA Module 0 Compare/Capture High Byte Register
   00BA              +1  118     sfr CCAPH1      = 0xBA;// PCA Module 1 Compare/Capture High Byte Register
-AX51 MACRO ASSEMBLER  BUSREQ                                                                03/13/13 09:32:20 PAGE     3
+AX51 MACRO ASSEMBLER  BUSREQ                                                                05/20/13 14:16:26 PAGE     3
 
   00BB              +1  119     sfr CCAPH2      = 0xBB;// PCA Module 2 Compare/Capture High Byte Register
   00BC              +1  120     sfr CCAPH3      = 0xBC;// PCA Module 3 Compare/Capture High Byte Register
@@ -201,7 +201,7 @@ LOC    OBJ             LINE     SOURCE
                     +1  181     
                     +1  182     
                     +1  183     
-AX51 MACRO ASSEMBLER  BUSREQ                                                                03/13/13 09:32:20 PAGE     4
+AX51 MACRO ASSEMBLER  BUSREQ                                                                05/20/13 14:16:26 PAGE     4
 
                     +1  184     
                     +1  185     
@@ -269,7 +269,7 @@ LOC    OBJ             LINE     SOURCE
                     +1  247     
                     +1  248     
                     +1  249     
-AX51 MACRO ASSEMBLER  BUSREQ                                                                03/13/13 09:32:20 PAGE     5
+AX51 MACRO ASSEMBLER  BUSREQ                                                                05/20/13 14:16:26 PAGE     5
 
                     +1  250     
                     +1  251     
@@ -337,7 +337,7 @@ LOC    OBJ             LINE     SOURCE
                     +1  313     
                     +1  314     
                     +1  315     
-AX51 MACRO ASSEMBLER  BUSREQ                                                                03/13/13 09:32:20 PAGE     6
+AX51 MACRO ASSEMBLER  BUSREQ                                                                05/20/13 14:16:26 PAGE     6
 
                     +1  316     
                     +1  317     
@@ -405,7 +405,7 @@ LOC    OBJ             LINE     SOURCE
 00B8.4              +1  379     sbit PS0                = 0xBC;
 00B8.5              +1  380     sbit PT2                = 0xBD;
 00B8.6              +1  381     sbit PS1                = 0xBE;
-AX51 MACRO ASSEMBLER  BUSREQ                                                                03/13/13 09:32:20 PAGE     7
+AX51 MACRO ASSEMBLER  BUSREQ                                                                05/20/13 14:16:26 PAGE     7
 
                     +1  382     
                     +1  383     
@@ -473,7 +473,7 @@ LOC    OBJ             LINE     SOURCE
                     +1  445     
                     +1  446     
                     +1  447     
-AX51 MACRO ASSEMBLER  BUSREQ                                                                03/13/13 09:32:20 PAGE     8
+AX51 MACRO ASSEMBLER  BUSREQ                                                                05/20/13 14:16:26 PAGE     8
 
                     +1  448     
                     +1  449     
@@ -541,7 +541,7 @@ LOC    OBJ             LINE     SOURCE
                     +1  511     
                     +1  512     
                     +1  513     
-AX51 MACRO ASSEMBLER  BUSREQ                                                                03/13/13 09:32:20 PAGE     9
+AX51 MACRO ASSEMBLER  BUSREQ                                                                05/20/13 14:16:26 PAGE     9
 
                     +1  514     
                     +1  515     
@@ -609,7 +609,7 @@ LOC    OBJ             LINE     SOURCE
                         577     ; /***
                         578     ; BusReqISR : Handle bus request interrupt at INT2
                         579     ; ***/
-AX51 MACRO ASSEMBLER  BUSREQ                                                                03/13/13 09:32:20 PAGE    10
+AX51 MACRO ASSEMBLER  BUSREQ                                                                05/20/13 14:16:26 PAGE    10
 
 00003B                  580     CSEG    AT      0003BH
 00003B 02000000   F     581             LJMP    BusReqISR
@@ -628,7 +628,7 @@ LOC    OBJ             LINE     SOURCE
                         594     
                         595             END
                         596     
-AX51 MACRO ASSEMBLER  BUSREQ                                                                03/13/13 09:32:20 PAGE    11
+AX51 MACRO ASSEMBLER  BUSREQ                                                                05/20/13 14:16:26 PAGE    11
 
 SYMBOL TABLE LISTING
 ------ ----- -------
@@ -696,7 +696,7 @@ EINT4. . . . . . . . . . . . . . . .  B  ADDR  00E8H.2   A
 EINT5. . . . . . . . . . . . . . . .  B  ADDR  00E8H.3   A   
 EINT6. . . . . . . . . . . . . . . .  B  ADDR  00E8H.4   A   
 EIP. . . . . . . . . . . . . . . . .  D  ADDR  00F8H     A   
-AX51 MACRO ASSEMBLER  BUSREQ                                                                03/13/13 09:32:20 PAGE    12
+AX51 MACRO ASSEMBLER  BUSREQ                                                                05/20/13 14:16:26 PAGE    12
 
 EPCR . . . . . . . . . . . . . . . .  D  ADDR  00BEH     A   
 EPDR . . . . . . . . . . . . . . . .  D  ADDR  00BFH     A   
@@ -764,7 +764,7 @@ P1_3 . . . . . . . . . . . . . . . .  B  ADDR  0090H.3   A
 P1_4 . . . . . . . . . . . . . . . .  B  ADDR  0090H.4   A   
 P1_5 . . . . . . . . . . . . . . . .  B  ADDR  0090H.5   A   
 P1_6 . . . . . . . . . . . . . . . .  B  ADDR  0090H.6   A   
-AX51 MACRO ASSEMBLER  BUSREQ                                                                03/13/13 09:32:20 PAGE    13
+AX51 MACRO ASSEMBLER  BUSREQ                                                                05/20/13 14:16:26 PAGE    13
 
 P1_7 . . . . . . . . . . . . . . . .  B  ADDR  0090H.7   A   
 P2 . . . . . . . . . . . . . . . . .  D  ADDR  00A0H     A   
@@ -832,7 +832,7 @@ SPICIR . . . . . . . . . . . . . . .  D  ADDR  00CEH     A
 SPIDR. . . . . . . . . . . . . . . .  D  ADDR  00CFH     A   
 STATUS . . . . . . . . . . . . . . .  D  ADDR  00E9H     A   
 T0 . . . . . . . . . . . . . . . . .  B  ADDR  00B0H.4   A   
-AX51 MACRO ASSEMBLER  BUSREQ                                                                03/13/13 09:32:20 PAGE    14
+AX51 MACRO ASSEMBLER  BUSREQ                                                                05/20/13 14:16:26 PAGE    14
 
 T1 . . . . . . . . . . . . . . . . .  B  ADDR  00B0H.5   A   
 T2CON. . . . . . . . . . . . . . . .  D  ADDR  00C8H     A   

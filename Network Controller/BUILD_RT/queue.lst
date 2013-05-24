@@ -1,14 +1,15 @@
-C51 COMPILER V9.06   QUEUE                                                                 03/13/2013 09:32:27 PAGE 1   
+C51 COMPILER V9.06   QUEUE                                                                 05/22/2013 16:19:27 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE QUEUE
 NO OBJECT MODULE REQUESTED
-COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\queue.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(
+COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\queue.c LARGE OMF2 ROM(D16M) BROWSE INTVECTOR(
                     -0X6020) INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC
                     -\hsur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;
                     -..\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX1
-                    -1000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\queue.lst) SRC(.\qu
-                    -eue.SRC)
+                    -1000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modb
+                    -usTCP;..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\queue.lst) SRC(.\
+                    -queue.SRC)
 
 line level    source
 
@@ -61,9 +62,9 @@ line level    source
   47                  + Explicit use of 'signed' qualifier on portCHAR types added.
   48          */
   49          
-  50          #include <stdlib.h>
-C51 COMPILER V9.06   QUEUE                                                                 03/13/2013 09:32:27 PAGE 2   
+C51 COMPILER V9.06   QUEUE                                                                 05/22/2013 16:19:27 PAGE 2   
 
+  50          #include <stdlib.h>
   51          #include <string.h>
   52          #include "projdefs.h"
   53          #include "portable.h"
@@ -125,9 +126,9 @@ line level    source
              -eentrant;
  103          unsigned portCHAR ucQueueMessagesWaiting( xQueueHandle pxQueue ) reentrant;
  104          void vQueueDelete( xQueueHandle xQueue ) reentrant;
- 105          signed portCHAR cQueueSendFromISR( xQueueHandle pxQueue, const void *pvItemToQueue, signed portCHAR cTaskP
-C51 COMPILER V9.06   QUEUE                                                                 03/13/2013 09:32:27 PAGE 3   
+C51 COMPILER V9.06   QUEUE                                                                 05/22/2013 16:19:27 PAGE 3   
 
+ 105          signed portCHAR cQueueSendFromISR( xQueueHandle pxQueue, const void *pvItemToQueue, signed portCHAR cTaskP
              -reviouslyWoken ) reentrant;
  106          signed portCHAR cQueueReceive( xQueueHandle pxQueue, void *pcBuffer, portTickType xTicksToWait ) reentrant
              -;
@@ -189,9 +190,9 @@ line level    source
                * accessing the queue event lists. 
                */
               #define prvLockQueue( pxQueue )                 \
-                      taskENTER_CRITICAL();                           \
-C51 COMPILER V9.06   QUEUE                                                                 03/13/2013 09:32:27 PAGE 4   
+C51 COMPILER V9.06   QUEUE                                                                 05/22/2013 16:19:27 PAGE 4   
 
+                      taskENTER_CRITICAL();                           \
                               ++( pxQueue->cRxLock );                 \
                               ++( pxQueue->cTxLock );                 \
                       taskEXIT_CRITICAL();                            \
@@ -253,9 +254,9 @@ line level    source
  222          /*-----------------------------------------------------------*/
  223          
  224          signed portCHAR cQueueSend( xQueueHandle pxQueue, const void *pvItemToQueue, portTickType xTicksToWait ) r
-             -eentrant
-C51 COMPILER V9.06   QUEUE                                                                 03/13/2013 09:32:27 PAGE 5   
+C51 COMPILER V9.06   QUEUE                                                                 05/22/2013 16:19:27 PAGE 5   
 
+             -eentrant
  225          {
  226   1      signed portCHAR cReturn;
  227   1      
@@ -317,9 +318,9 @@ line level    source
  283   3                              It is possible that an ISR has removed data from the queue since we
  284   3                              checked if any was available.  If this is the case then the data
  285   3                              will have been copied from the queue, and the queue variables 
- 286   3                              updated, but the event list will not yet have been checked to see if
-C51 COMPILER V9.06   QUEUE                                                                 03/13/2013 09:32:27 PAGE 6   
+C51 COMPILER V9.06   QUEUE                                                                 05/22/2013 16:19:27 PAGE 6   
 
+ 286   3                              updated, but the event list will not yet have been checked to see if
  287   3                              anything is waiting as the queue is locked. */
  288   3                              vTaskPlaceOnEventList( &( pxQueue->xTasksWaitingToSend ), xTicksToWait );
  289   3      
@@ -381,9 +382,9 @@ line level    source
  345   2                      {
  346   3                              cReturn = errQUEUE_FULL;
  347   3                      }
- 348   2              }
-C51 COMPILER V9.06   QUEUE                                                                 03/13/2013 09:32:27 PAGE 7   
+C51 COMPILER V9.06   QUEUE                                                                 05/22/2013 16:19:27 PAGE 7   
 
+ 348   2              }
  349   1              taskEXIT_CRITICAL();
  350   1      
  351   1              /* We no longer require exclusive access to the queue.  prvUnlockQueue
@@ -445,9 +446,9 @@ line level    source
  405   4                              }
  406   3                      }
  407   2                      else
- 408   2                      {
-C51 COMPILER V9.06   QUEUE                                                                 03/13/2013 09:32:27 PAGE 8   
+C51 COMPILER V9.06   QUEUE                                                                 05/22/2013 16:19:27 PAGE 8   
 
+ 408   2                      {
  409   3                              /* Increment the lock count so the task that unlocks the queue 
  410   3                              knows that data was posted while it was locked. */
  411   3                              ++( pxQueue->cTxLock );
@@ -509,9 +510,9 @@ line level    source
  467   3                              /* Increment the lock count so prvUnlockQueue knows to check for
  468   3                              tasks waiting for space to become available on the queue. */
  469   3                              ++( pxQueue->cRxLock );
- 470   3                              cReturn = ( signed portCHAR ) pdPASS;
-C51 COMPILER V9.06   QUEUE                                                                 03/13/2013 09:32:27 PAGE 9   
+C51 COMPILER V9.06   QUEUE                                                                 05/22/2013 16:19:27 PAGE 9   
 
+ 470   3                              cReturn = ( signed portCHAR ) pdPASS;
  471   3                      }
  472   2                      else
  473   2                      {
@@ -573,9 +574,9 @@ line level    source
  528   6                                              }
  529   5                                      }
  530   4                              }
- 531   3                      }
-C51 COMPILER V9.06   QUEUE                                                                 03/13/2013 09:32:27 PAGE 10  
+C51 COMPILER V9.06   QUEUE                                                                 05/22/2013 16:19:27 PAGE 10  
 
+ 531   3                      }
  532   2                      else
  533   2                      {
  534   3                              /* Increment the lock count so the task that unlocks the queue 
@@ -637,9 +638,9 @@ line level    source
  590   1              /* The lock counts contains the number of extra data items placed or 
  591   1              removed from the queue while the queue was locked.  When a queue is
  592   1              locked items can be added or removed, but the event lists cannot be
- 593   1              updated. */
-C51 COMPILER V9.06   QUEUE                                                                 03/13/2013 09:32:27 PAGE 11  
+C51 COMPILER V9.06   QUEUE                                                                 05/22/2013 16:19:27 PAGE 11  
 
+ 593   1              updated. */
  594   1              taskENTER_CRITICAL();
  595   1              {
  596   2                      --( pxQueue->cTxLock );
@@ -701,9 +702,9 @@ line level    source
  652   1              return cReturn;
  653   1      }
  654          /*-----------------------------------------------------------*/
- 655          
-C51 COMPILER V9.06   QUEUE                                                                 03/13/2013 09:32:27 PAGE 12  
+C51 COMPILER V9.06   QUEUE                                                                 05/22/2013 16:19:27 PAGE 12  
 
+ 655          
  656          static signed portCHAR prvIsQueueFull( const xQueueHandle pxQueue ) reentrant
  657          {
  658   1      signed portCHAR cReturn;

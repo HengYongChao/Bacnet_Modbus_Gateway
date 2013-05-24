@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 1   
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE BACAPP
@@ -7,8 +7,8 @@ COMPILER INVOKED BY: d:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\bacnet\bacapp.c LARGE
                     - INCDIR(..\SRC\cpu\;..\SRC\ethernet\;..\SRC\swdma\;..\SRC\mstimer\;..\SRC\uart\;..\SRC\main\;..\SRC\tcpip\;..\SRC\hsur\;
                     -..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\
                     -buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;.
-                    -.\Src\FreeRTOSSource\include\;..\Src\schedule\) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\bacapp.lst) OBJECT(.\bacap
-                    -p.obj)
+                    -.\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version) DEFINE(KEIL_AX110
+                    -00) VARBANKING DEBUG PRINT(.\bacapp.lst) OBJECT(.\bacapp.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   48          #include "../include/bacstr.h"
   49          
   50          /** @file bacapp.c  Utilities for the BACnet_Application_Data_Value */
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 2   
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 2   
 
   51          
   52          #if defined(_MSC_VER)
@@ -126,7 +126,7 @@ line level    source
  110   3                      apdu_len =
  111   3                          encode_application_character_string(&apdu[0],
  112   3                          &value->type.Character_String);
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 3   
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 3   
 
  113   3                      break;
  114   3      #endif
@@ -190,7 +190,7 @@ line level    source
  172   3                      break;
  173   3      #endif
  174   3      #if defined (BACAPP_BOOLEAN)
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 4   
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 4   
 
  175   3                  case BACNET_APPLICATION_TAG_BOOLEAN:
  176   3                      value->type.Boolean = decode_boolean(len_value_type);
@@ -254,7 +254,7 @@ line level    source
  234   3      #endif
  235   3      #if defined (BACAPP_DATE)
  236   3                  case BACNET_APPLICATION_TAG_DATE:
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 5   
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 5   
 
  237   3                      len =
  238   3                          decode_date_safe(&apdu[0], len_value_type,
@@ -318,7 +318,7 @@ line level    source
  296   3                  value->tag = tag_number;
  297   3                  decode_len =
  298   3                      bacapp_decode_data(&apdu[len], tag_number, len_value_type,
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 6   
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 6   
 
  299   3                      value);
  300   3                  if (value->tag != MAX_BACNET_APPLICATION_TAG) {
@@ -382,7 +382,7 @@ line level    source
  357   3                  /* The tag is boolean then len_value_type is interpreted as value, not length, so dont bother
  358   3                   ** checking with apdu_len_remaining */
  359   3                  if (tag_number == BACNET_APPLICATION_TAG_BOOLEAN ||
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 7   
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 7   
 
  360   3                      len_value_type <= apdu_len_remaining) {
  361   4                      value->tag = tag_number;
@@ -446,7 +446,7 @@ line level    source
  419   1          int tag_len = 0;
  420   1          int decode_len = 0;
  421   1          uint8_t tag_number = 0;
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 8   
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 8   
 
  422   1          uint32_t len_value_type = 0;
  423   1      
@@ -510,7 +510,7 @@ line level    source
  481   3                      break;
  482   3      #endif
  483   3      #if defined (BACAPP_DOUBLE)
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 9   
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 9   
 
  484   3                  case BACNET_APPLICATION_TAG_DOUBLE:
  485   3                      apdu_len =
@@ -574,7 +574,7 @@ line level    source
  543   2          }
  544   1      
  545   1          return apdu_len;
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 10  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 10  
 
  546   1      }
  547          
@@ -638,7 +638,7 @@ line level    source
  605   2                  switch (tag_number) {
  606   3                      case 1:
  607   3                          tag = BACNET_APPLICATION_TAG_OBJECT_ID;
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 11  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 11  
 
  608   3                          break;
  609   3                      case 3:
@@ -702,7 +702,7 @@ line level    source
  667   3                          break;
  668   3                      case 4:        /* covIncrement */
  669   3                          tag = BACNET_APPLICATION_TAG_REAL;
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 12  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 12  
 
  670   3                          break;
  671   3                      default:
@@ -766,7 +766,7 @@ line level    source
  729   3                  if (value->tag < MAX_BACNET_APPLICATION_TAG) {
  730   4                      len =
  731   4                          bacapp_decode_data(&apdu[apdu_len], value->tag,
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 13  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 13  
 
  732   4                          len_value_type, value);
  733   4                      apdu_len += len;
@@ -830,7 +830,7 @@ line level    source
  791   3                      bacapp_encode_context_data_value(&apdu[0], value->context_tag,
  792   3                      value);
  793   3              } else {
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 14  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 14  
 
  794   3                  apdu_len = bacapp_encode_application_data(&apdu[0], value);
  795   3              }
@@ -894,7 +894,7 @@ line level    source
  853   3                  case BACNET_APPLICATION_TAG_BIT_STRING:
  854   3                      bitstring_copy(&dest_value->type.Bit_String,
  855   3                          &src_value->type.Bit_String);
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 15  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 15  
 
  856   3                      break;
  857   3      #endif
@@ -958,7 +958,7 @@ line level    source
  915   2              opening_tag_number_counter = 1;
  916   2              while (opening_tag_number_counter) {
  917   3                  if (IS_OPENING_TAG(apdu[apdu_len])) {
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 16  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 16  
 
  918   4                      len =
  919   4                          decode_tag_number_and_value(&apdu[apdu_len], &tag_number,
@@ -1022,7 +1022,7 @@ line level    source
                       *str += bytes_written;
                       *rem_str_len -= bytes_written;
                       retval = true;
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 17  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 17  
 
                   }
               
@@ -1086,7 +1086,7 @@ line level    source
                               break;
               #endif
                           case BACNET_APPLICATION_TAG_OCTET_STRING:
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 18  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 18  
 
                               len = octetstring_length(&value->type.Octet_String);
                               octet_str = octetstring_value(&value->type.Octet_String);
@@ -1150,7 +1150,7 @@ line level    source
                               switch (property) {
                                   case PROP_OBJECT_TYPE:
                                       if (value->type.Enumerated < MAX_ASHRAE_OBJECT_TYPE) {
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 19  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 19  
 
                                           ret_val =
                                               snprintf(str, str_len, "%s",
@@ -1214,7 +1214,7 @@ line level    source
                                               Enumerated));
                                       break;
                                   case PROP_SEGMENTATION_SUPPORTED:
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 20  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 20  
 
                                       ret_val =
                                           snprintf(str, str_len, "%s",
@@ -1278,7 +1278,7 @@ line level    source
                                   if (!append_str(&p_str, &rem_str_len, temp_str))
                                       break;
                               }
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 21  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 21  
 
                               if (value->type.Time.min == 255) {
                                   if (!append_str(&p_str, &rem_str_len, "**:"))
@@ -1342,7 +1342,7 @@ line level    source
                                   snprintf(temp_str, sizeof(temp_str), "%u, ",
                                       (unsigned) value->type.Object_Id.type);
                                   if (!append_str(&p_str, &rem_str_len, temp_str))
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 22  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 22  
 
                                       break;
                                   snprintf(temp_str, sizeof(temp_str), "%lu",
@@ -1406,7 +1406,7 @@ line level    source
                   return retval;
               }
               #endif
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 23  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 23  
 
 1352          
 1353          #ifdef BACAPP_PRINT_ENABLED
@@ -1470,7 +1470,7 @@ line level    source
                               break;
                           case BACNET_APPLICATION_TAG_BIT_STRING:
                               /* FIXME: how to parse a bit string? */
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 24  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 24  
 
                               status = false;
                               bitstring_init(&value->type.Bit_String);
@@ -1534,7 +1534,7 @@ line level    source
                   }
               
                   return status;
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 25  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 25  
 
               }
               #endif
@@ -1598,7 +1598,7 @@ line level    source
                                   status = true;
                               break;
               #endif
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 26  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 26  
 
               #if defined (BACAPP_ENUMERATED)
                           case BACNET_APPLICATION_TAG_ENUMERATED:
@@ -1662,7 +1662,7 @@ line level    source
               
               void testBACnetApplicationData_Safe(
                   Test * pTest)
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 27  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 27  
 
               {
                   int i;
@@ -1726,7 +1726,7 @@ line level    source
                               bitstring_set_bit(&input_value[i].type.Bit_String, 5, true);
                               bitstring_set_bit(&input_value[i].type.Bit_String, 6, true);
                               break;
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 28  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 28  
 
               
                           case BACNET_APPLICATION_TAG_ENUMERATED:
@@ -1790,7 +1790,7 @@ line level    source
               
                           ct_test(pTest, status == expected_status);
                           if (status) {
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 29  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 29  
 
                               ct_test(pTest, value.tag == i);
                               ct_test(pTest, bacapp_same_value(&input_value[i], &value));
@@ -1854,7 +1854,7 @@ line level    source
                   test_len += len;
                   apdu_len += len;
                   len = encode_application_unsigned(&apdu[apdu_len], 1);
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 30  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 30  
 
                   test_len += len;
                   apdu_len += len;
@@ -1918,7 +1918,7 @@ line level    source
                   len = encode_application_date(&apdu[apdu_len], &local_date);
                   test_len += len;
                   apdu_len += len;
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 31  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 31  
 
                   local_time.hour = 7;
                   local_time.min = 0;
@@ -1982,7 +1982,7 @@ line level    source
                   ct_test(pTest, status == true);
                   status = testBACnetApplicationDataValue(&value);
                   ct_test(pTest, status == true);
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 32  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 32  
 
               
                   status =
@@ -2046,7 +2046,7 @@ line level    source
                   status =
                       bacapp_parse_application_data(BACNET_APPLICATION_TAG_REAL, "0.0",
                       &value);
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 33  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 33  
 
                   ct_test(pTest, status == true);
                   ct_test(pTest, testBACnetApplicationDataValue(&value));
@@ -2110,7 +2110,7 @@ line level    source
                   ct_test(pTest, value.type.Date.day == 14);
                   ct_test(pTest, value.type.Date.wday == BACNET_WEEKDAY_WEDNESDAY);
                   ct_test(pTest, testBACnetApplicationDataValue(&value));
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 34  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 34  
 
               
                   /* Wildcard Values */
@@ -2174,7 +2174,7 @@ line level    source
                   ct_test(pTest, testBACnetApplicationDataValue(&value));
               
                   status =
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 35  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 35  
 
                       bacapp_parse_application_data(BACNET_APPLICATION_TAG_CHARACTER_STRING,
                       "Karg!", &value);
@@ -2238,7 +2238,7 @@ line level    source
               }
               #endif /* TEST_BACNET_APPLICATION_DATA */
               #endif /* TEST */
-C51 COMPILER V9.06   BACAPP                                                                03/13/2013 09:32:37 PAGE 36  
+C51 COMPILER V9.06   BACAPP                                                                03/29/2013 16:57:08 PAGE 36  
 
 
 

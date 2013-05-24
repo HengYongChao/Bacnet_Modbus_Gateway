@@ -43,37 +43,30 @@
 #include	"types.h"
 #include	"uart.h"
 #include	"ax11000_cfg.h"
-
-
 #if HSUR_ENABLE
 #include	"hsuart.h"
 #endif
 #include	"adapter_cfg.h"
-#include "../include/mstp.h"
-#include "../include/mstptext.h"
-#include "../include/crc.h"
-
-#include "delay.h"
 
 // #include "Main.h"
 // #include <string.h>
 
 
 uart_frame rsv_msg; 			// LJ 6/11/2012
-extern void test_run(U8_T);
+
 
 /* STATIC VARIABLE DECLARATIONS */
 #if UART0_ENABLE
-U8_T uart0_TxBuf[MAX_TX_UART0_BUF_SIZE] = {0}; //  lihengning static
-static U16_T uart0_TxHead = 0;
-static U16_T uart0_TxTail = 0;
-U16_T uart0_TxCount = 0;
-static U8_T	uart0_TxFlag = 0;
-U8_T uart0_RxBuf[MAX_RX_UART0_BUF_SIZE] = {0};  
-static U16_T uart0_RxHead = 0;
-static U16_T uart0_RxTail = 0;
-static U8_T	uart0_Mode = 0;
-U16_T uart0_RxCount = 0;
+ U8_T		uart0_TxBuf[MAX_TX_UART0_BUF_SIZE]; //  lihengning static
+static U16_T	uart0_TxHead = 0;
+static U16_T	uart0_TxTail = 0;
+ U16_T	uart0_TxCount = 0;
+static U8_T		uart0_TxFlag = 0;
+ U8_T		uart0_RxBuf[MAX_RX_UART0_BUF_SIZE];  
+static U16_T	uart0_RxHead = 0;
+static U16_T	uart0_RxTail = 0;
+static U8_T		uart0_Mode = 0;
+U16_T			uart0_RxCount = 0;
 #endif
 
 #if UART1_ENABLE
@@ -93,7 +86,7 @@ U8_T uart1_dealwithTag = 0;
 static U8_T		uartPort = 0;
 
 U8_T far uart1_timeout = UART1_TIMEOUT;
-U8_T far uart0_timeout = UART0_TIMEOUT;
+U8_T xdata FlagSend0;
 
 /* LOCAL SUBPROGRAM DECLARATIONS */
 #if UART0_ENABLE
@@ -112,16 +105,17 @@ static S8_T		uart1_NoBlockGetkey(void);
 #endif
 
 
-//void test_uart0_tx(U8_T buf, U8_T len);
 
 U8_T far UartRev[8] ;
+extern 	U8_T SYS_FREQUENCY_PERIOD;
+extern 	U8_T SYS_FREQUENCY_PERIOD1;
+
 
 U8_T far UartSend[255];
 U8_T far UartRevNum=0;
 U8_T far UartSendNum=0;
 //U8_T far FlagRev=0;// receive finished flag 0=unfinished 1=read 2= reset
-U8_T data FlagSend0 = 0;
-U8_T far FlagSend1 = 0;
+U8_T far FlagSend=0;
 
 U8_T GetNum=0;
 U8_T TypeData=0;
@@ -134,23 +128,12 @@ extern void InitCRC16(void);
 extern void CRC16_Tstat(unsigned char ch);
 extern  unsigned char far  CRClo;
 extern unsigned  char far  CRChi;
-extern BOOL MODBUS_OR_BACNET_FUNCTION_SELECT_ON_UART0;
+
 extern void Led_485RxD();
-//extern volatile struct mstp_port_struct_t UMSTP_Port;
+
 U8_T far begin=0;
 U8_T far  buf[255]={0};
 //U8_T far  buf1[255]={0};
-
-extern enum ledState LED;
-
-
-extern	U16_T SilenceTime;
-
-extern volatile struct mstp_port_struct_t *mstp_port ;
-
-U8_T receivenodataframe  ;
-U8_T tempdata;
-U8_T undefinedata;
 
 
 
@@ -168,355 +151,36 @@ U8_T undefinedata;
  * Note    : none
  * ----------------------------------------------------------------------------
  */
+
+#if 1
 static void UART0_ISR(void) interrupt 4
 {
+	U8_T i= 0;
+	EA = 0;
+
 	if (RI0)
 	{
-		EA = 0;
-
-	 	RI0 = 0;
 
 		uart0_RxBuf[uart0_RxCount++] = SBUF0;
-
-		mstp_port->DataRegister = SBUF0;
-
-		if(uart0_RxCount >= MAX_RX_UART0_BUF_SIZE)
-			uart0_RxCount = 0;
-			
-		uart0_timeout = UART0_TIMEOUT;
-
-		mstp_port->DataAvailable = true;
-			   
-		EA = 1;
-
-// 	 if((LED != S485_OK)&&(LED != Ethnet_OK)&&(LED != S485_ERR))
-//	 {
-//	   LED = S485_OK;
-//	 }
-	   		
-	/* end of RI0*/
+		if(uart0_RxCount > MAX_RX_UART0_BUF_SIZE)
+			uart0_RxCount = 0;	   
+		
+	 	RI0 = 0;
 	} 
+
 	if (TI0)
 	{
+		
+		FlagSend = 1;// finishing sending flag
 		TI0 = 0;
-		FlagSend0 = 1;// finishing sending flag
+
 
 	} /* End of if(TI0) */
-
-	 
-								  
-#if 1
-if(MODBUS_OR_BACNET_FUNCTION_SELECT_ON_UART0){
-	/* STASTE MACHINE code by "heng@temcocontrols.com" */
-switch (mstp_port->receive_state) {
-        /* In the IDLE state, the node waits for the beginning of a frame. */
-
-    case MSTP_RECEIVE_STATE_IDLE:
-		/* EatAnError */
-
-        if (mstp_port->ReceiveError == true){ 
-            mstp_port->ReceiveError = false;
-            mstp_port->SilenceTimerReset();
-            INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
-            /* wait for the start of a frame. */
-        	} 
-		else if (mstp_port->DataAvailable == true){ 
-            /* Preamble1 */
-            if (mstp_port->DataRegister == 0x55){ 
-                /* receive the remainder of the frame. */
-                mstp_port->receive_state = MSTP_RECEIVE_STATE_PREAMBLE;
-
-            	}
-            /* EatAnOctet */
-            else {
-//                  printf_receive_data("\n");
-                /* wait for the start of a frame. */
-            	}
-            mstp_port->DataAvailable = false;
-            mstp_port->SilenceTimerReset();
-            INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
-
-        	}
-        break;
-        /* In the PREAMBLE state, the node waits for the second octet of the preamble. */
-    case MSTP_RECEIVE_STATE_PREAMBLE:
-        /* Timeout */   
-		  
-		  
-		     		   
-	    if (SilenceTime > Tframe_abort) {		  
-            /* a correct preamble has not been received */
-            /* wait for the start of a frame. */
-            mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-        }
-        /* Error */
-        else if (mstp_port->ReceiveError == true) {
-            mstp_port->ReceiveError = false;
-            mstp_port->SilenceTimerReset();
-            INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
-            /* wait for the start of a frame. */
-            mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-
-        } else if (mstp_port->DataAvailable == true) {
-            /* Preamble2 */
-            if (mstp_port->DataRegister == 0xFF) {
-                mstp_port->Index = 0;
-                mstp_port->HeaderCRC = 0xFF;
-                /* receive the remainder of the frame. */
-                mstp_port->receive_state = MSTP_RECEIVE_STATE_HEADER;
-
-            }
-            /* ignore RepeatedPreamble1 */
-            else if (mstp_port->DataRegister == 0x55) {
-                /* wait for the second preamble octet. */
-            }
-            /* NotPreamble */
-            else {
-                /* wait for the start of a frame. */
-                mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-            }
-            mstp_port->DataAvailable = false;
-            mstp_port->SilenceTimerReset();
-            INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
-
-        }
-        break;
-        /* In the HEADER state, the node waits for the fixed message header. */
-    case MSTP_RECEIVE_STATE_HEADER:
-
-
-        /* Timeout */
-        if (SilenceTime > Tframe_abort) {			 //	 mstp_port->SilenceTimer()
-            /* indicate that an error has occurred during the reception of a frame */
-            mstp_port->ReceivedInvalidFrame = true;
-            /* wait for the start of a frame. */
-            mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-
-        }
-        /* Error */
-        else if (mstp_port->ReceiveError == true) {
-            mstp_port->ReceiveError = false;
-            mstp_port->SilenceTimerReset();
-            INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
-            /* indicate that an error has occurred during the reception of a frame */
-            mstp_port->ReceivedInvalidFrame = true;
-            /* wait for the start of a frame. */
-            mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-
-        } else if (mstp_port->DataAvailable == true) {
-
-            /* FrameType */
-            if (mstp_port->Index == 0) {
-                mstp_port->HeaderCRC =
-                    CRC_Calc_Header(mstp_port->DataRegister,
-                    mstp_port->HeaderCRC);
-                mstp_port->FrameType = mstp_port->DataRegister;
-                mstp_port->Index = 1;
-
-            }
-            /* Destination */
-            else if (mstp_port->Index == 1) {
-                mstp_port->HeaderCRC =
-                    CRC_Calc_Header(mstp_port->DataRegister,	
-                    mstp_port->HeaderCRC);
-                mstp_port->DestinationAddress = mstp_port->DataRegister;
-                mstp_port->Index = 2;
-
-            }
-            /* Source */
-            else if (mstp_port->Index == 2) {
-                mstp_port->HeaderCRC =
-                    CRC_Calc_Header(mstp_port->DataRegister,
-                    mstp_port->HeaderCRC);
-                mstp_port->SourceAddress = mstp_port->DataRegister;
-                mstp_port->Index = 3;
-
-            }
-            /* Length1 */
-            else if (mstp_port->Index == 3) {
-                mstp_port->HeaderCRC =
-                    CRC_Calc_Header(mstp_port->DataRegister,
-                    mstp_port->HeaderCRC);
-                mstp_port->DataLength = mstp_port->DataRegister * 256;
-                mstp_port->Index = 4;
-
-            }
-            /* Length2 */
-            else if (mstp_port->Index == 4) {
-
-                mstp_port->HeaderCRC =
-                    CRC_Calc_Header(mstp_port->DataRegister,
-                    mstp_port->HeaderCRC);
-                mstp_port->DataLength += mstp_port->DataRegister;
-                mstp_port->Index = 5;
-
-            }
-            /* HeaderCRC */
-            else if (mstp_port->Index == 5) {
-		     
-			    mstp_port->HeaderCRC =
-                    CRC_Calc_Header(mstp_port->DataRegister,
-                    mstp_port->HeaderCRC);
-                mstp_port->HeaderCRCActual = mstp_port->DataRegister;
-                /* don't wait for next state - do it here */
-                if (mstp_port->HeaderCRC != 0x55) {
-                    /* BadCRC */
-                    /* indicate that an error has occurred during
-                       the reception of a frame */
-                    mstp_port->ReceivedInvalidFrame = true;
-                    /* wait for the start of the next frame. */
-                    mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-
-			    } else {
-                    if (mstp_port->DataLength == 0) {
-                        /* NoData */
-                        if ((mstp_port->DestinationAddress ==
-                                mstp_port->This_Station)
-                            || (mstp_port->DestinationAddress ==
-                                MSTP_BROADCAST_ADDRESS)) {
-                            /* ForUs */
-                            /* indicate that a frame with no data has been received */
-                            mstp_port->ReceivedValidFrame = true;
-							 
-
-						} else {
-                            /* NotForUs */
-                            mstp_port->ReceivedValidFrameNotForUs = true;
-
-                        }
-                        /* wait for the start of the next frame. */
-                        mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-
-                    } else {
-
-                        /* receive the data portion of the frame. */
-                        if ((mstp_port->DestinationAddress ==
-                                mstp_port->This_Station)
-                            || (mstp_port->DestinationAddress ==
-                                MSTP_BROADCAST_ADDRESS)) {
-                            if (mstp_port->DataLength <=
-                                mstp_port->InputBufferSize) {
-                                /* Data */
-                                mstp_port->receive_state =
-                                    MSTP_RECEIVE_STATE_DATA;
-                            } else {
-                                /* FrameTooLong */
-                                mstp_port->receive_state =
-                                    MSTP_RECEIVE_STATE_SKIP_DATA;
-                            }
-                        } else {
-                            /* NotForUs */
-                            mstp_port->receive_state =
-                                MSTP_RECEIVE_STATE_SKIP_DATA;
-                        }
-                        mstp_port->Index = 0;
-                        mstp_port->DataCRC = 0xFFFF;
-                    }
-                }
-            }
-            /* not per MS/TP standard, but it is a case not covered */
-            else {
-
-                mstp_port->ReceiveError = false;
-                /* indicate that an error has occurred during  */
-                /* the reception of a frame */
-                mstp_port->ReceivedInvalidFrame = true;
-                /* wait for the start of a frame. */
-                mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-            }
-            mstp_port->SilenceTimerReset();
-            INCREMENT_AND_LIMIT_UINT8(mstp_port->EventCount);
-            mstp_port->DataAvailable = false;
-        }
-
-        break;
-        /* In the DATA state, the node waits for the data portion of a frame. */
-    case MSTP_RECEIVE_STATE_DATA:		
-	case MSTP_RECEIVE_STATE_SKIP_DATA:
-        /* Timeout */
-       
-	   	  
-	   
-	    if (SilenceTime > Tframe_abort) {		   //
-            /* indicate that an error has occurred during the reception of a frame */
-            mstp_port->ReceivedInvalidFrame = true;
-            /* wait for the start of the next frame. */
-            mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-		}
-        /* Error */
-        else if (mstp_port->ReceiveError == true) {
-            mstp_port->ReceiveError = false;
-            mstp_port->SilenceTimerReset();
-            /* indicate that an error has occurred during the reception of a frame */
-            mstp_port->ReceivedInvalidFrame = true;
-            /* wait for the start of the next frame. */
-            mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-		
-		} else if (mstp_port->DataAvailable == true) {
-            if (mstp_port->Index < mstp_port->DataLength) {
-                /* DataOctet */
-                mstp_port->DataCRC =
-                    CRC_Calc_Data(mstp_port->DataRegister,
-                    mstp_port->DataCRC);
-                if (mstp_port->Index < mstp_port->InputBufferSize) {
-                    mstp_port->InputBuffer[mstp_port->Index] =
-                        mstp_port->DataRegister;
-                }
-                mstp_port->Index++;
-                mstp_port->receive_state = MSTP_RECEIVE_STATE_DATA;
-
-            } else if (mstp_port->Index == mstp_port->DataLength) {
-                /* CRC1 */
-                mstp_port->DataCRC =
-                    CRC_Calc_Data(mstp_port->DataRegister,
-                    mstp_port->DataCRC);
-                mstp_port->DataCRCActualMSB = mstp_port->DataRegister;
-                mstp_port->Index++;
-                mstp_port->receive_state = MSTP_RECEIVE_STATE_DATA;
-
-            } else if (mstp_port->Index == (mstp_port->DataLength + 1)) {
-                /* CRC2 */
-                mstp_port->DataCRC =
-                    CRC_Calc_Data(mstp_port->DataRegister,
-                    mstp_port->DataCRC);
-                mstp_port->DataCRCActualLSB = mstp_port->DataRegister;
-                /* STATE DATA CRC - no need for new state */
-                /* indicate the complete reception of a valid frame */
-                if (mstp_port->DataCRC == 0xF0B8) {
-                    if (mstp_port->receive_state ==
-                        MSTP_RECEIVE_STATE_DATA) {
-                        /* ForUs */
-                        mstp_port->ReceivedValidFrame = true;
-
-                    } else {
-                        /* NotForUs */
-                        mstp_port->ReceivedValidFrameNotForUs = true;
-                    }
-                } else {
-                    mstp_port->ReceivedInvalidFrame = true;
-                }
-                mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-            } else {
-                mstp_port->ReceivedInvalidFrame = true;
-                mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-            }
-            mstp_port->DataAvailable = false;
-            mstp_port->SilenceTimerReset();
-        }
-        break;
-
-    default:
-        /* shouldn't get here - but if we do... */
-        mstp_port->receive_state = MSTP_RECEIVE_STATE_IDLE;
-
-	//	P3_2 = ~ P3_2;  	 
-
-		break;
-  	 }
-  }
-#endif
+	
+	EA = 1;
 }
 
+#endif 
 
 
 /*
@@ -528,6 +192,8 @@ switch (mstp_port->receive_state) {
  * Note    : none
  * ----------------------------------------------------------------------------
  */
+
+
 static void uart0_Init(void)
 {
 	U8_T	sysClk = 0;
@@ -540,7 +206,6 @@ static void uart0_Init(void)
 	uart0_RxHead = 0;
 	uart0_RxTail = 0;
 	uart0_RxCount = 0;
-
 	for (i=0 ; i<MAX_TX_UART0_BUF_SIZE ; i++)
 		uart0_TxBuf[i] = 0;
 	for (i=0 ; i<MAX_RX_UART0_BUF_SIZE ; i++)
@@ -557,20 +222,24 @@ static void uart0_Init(void)
 	switch (sysClk)
 	{
 		case SCS_100M :
-		
+		//	AX_DBG_LED(0x10);
 			TH1 = 0xE5;		// Baud rate = 9600 @ 100MHz.
+			SYS_FREQUENCY_PERIOD1 = 30;
+			SYS_FREQUENCY_PERIOD = 100;
 			break;
 		case SCS_50M :
-			
+		//	AX_DBG_LED(0x50);
 			TH1 = 0xF2;		// Baud rate = 9600 @ 50MHz.
 			break;
 		case SCS_25M :
-			
+		//	AX_DBG_LED(0x25);
+			SYS_FREQUENCY_PERIOD1 =100;
+			SYS_FREQUENCY_PERIOD = 200;
 			TH1 = 0xF9;		// Baud rate = 9600 @ 25MHz.
 			break;
 		default :
-			
-			TH1 = 0xE5;		// Baud rate = 9600 @ 25MHz.
+		//	AX_DBG_LED(0xAA);
+			TH1 = 0xF9;		// Baud rate = 9600 @ 25MHz.
 			break;
 	}
 
@@ -578,24 +247,9 @@ static void uart0_Init(void)
 	TR1 = 1;				// Run Timer 1
 	TI0 = 0;
 
+	
 
 } /* End of UART_Init */
-
-void test_uart0_tx(U8_T *buf, U8_T len)
-{
-	U8_T i;
-	for(i = 0; i < len; i++)
-	{ 
-		SBUF0 = buf[i];
-	   
-	    DELAY_Us(70);
-
-		while(!TI0);
-
-		
-	}
-
-}
 
 
 
@@ -613,7 +267,7 @@ S8_T uart0_PutChar (S8_T c)
 {
 	U16_T	count = 0;
 
-	if (c == 0x0a)
+	if (c == 0xa)
 	{
 		do
 		{
@@ -621,7 +275,7 @@ S8_T uart0_PutChar (S8_T c)
 			count = uart0_TxCount; 
 			EA = 1;
 		} while (count == MAX_TX_UART0_BUF_SIZE);
-		uart0_TxBuf[uart0_TxHead] = 0x0d;
+		uart0_TxBuf[uart0_TxHead] = 0xd;
 		EA = 0;
 		uart0_TxCount++;
 		EA = 1;
@@ -647,7 +301,6 @@ S8_T uart0_PutChar (S8_T c)
 		SBUF0 = uart0_TxBuf[uart0_TxTail];
 	}
 
-	
 	return c;
 
 }
@@ -729,122 +382,32 @@ static S8_T UART0_NoBlockGetkey (void)
 #if 1
 static void uart1_ISR(void) interrupt 6
 {
-//	U8_T i;
-	
+	EA = 0;
+
+
 	if(RI1)
 	{
-  		EA = 0;
-			
+		uart1_RxBuf[uart1_RxCount++] = SBUF1;
+
 		if(uart1_RxCount >= MAX_RX_UART1_BUF_SIZE)
 			uart1_RxCount = 0;
-				   
-	//	ch = SBUF1;				  //LJ		   6/6/2012
-
-		uart1_RxBuf[uart1_RxCount++] = SBUF1;
-		 
-		if(uart1_RxCount < 3)
-		{
-			uart1_rec_size = 8;
-		}
-		else if((uart1_RxCount == 3) && (uart1_RxBuf[1] == 0x03))	//read
-		{
-			uart1_rec_size = uart1_RxBuf[2] + 5;
-		}
-/*		else if ( uart1_RxCount > 5 )
-		{
-			for ( i = 3; i < (uart1_RxCount - 2); i++ )
-			{
-				if ( ( uart1_RxBuf[i] == rsv_msg.register_id) 
-					&& ( uart1_RxBuf[i+1] == rsv_msg.cmd )
-					&& ( uart1_RxBuf[i+2] == rsv_msg.len*2 ))
-				{
-					uart1_RxBuf[0] = rsv_msg.register_id;
-					uart1_RxBuf[1] = rsv_msg.cmd;
-					uart1_RxBuf[2] = rsv_msg.len*2;
-					uart1_RxCount = 3;
-				}
-			}
-		}			*/						// LJ 6/11/2012
-		if(uart1_RxCount >= uart1_rec_size)
-		{
-			uart1_dealwithTag = 1;
-/*			Uart1_Receive( uart1_RxCount);
-			uart1_RxCount = 0;
-			uart1_rec_size = 0;                
-			memset ( uart1_RxBuf, 0 , MAX_RX_UART1_BUF_SIZE); 			*/ // LJ test
-		}
-		uart1_timeout = UART1_TIMEOUT;   
 		
-		RI1 = 0;
-		EA = 1;
-	} 
 
+		RI1 = 0;
+
+		uart1_timeout = 5;	 // reveice data  timer = 20		  (3)
+
+	} 
 	if (TI1)
 	{
+		EA = 0;
+		FlagSend = 1;// finishing sending flag
 		TI1 = 0;
-		FlagSend1 = 1;// finishing sending flag
 	} /* End of if(TI0) */
-}
+   EA = 1;
+}  
 
 #endif 
-
-#if 0
-static void uart1_ISR(void) interrupt 6
-{
-	U8_T	parity = 0;
-
-	if (RI1)
-	{
-		EA = 0;
-		if (uart1_RxCount != MAX_RX_UART1_BUF_SIZE) 
-		{
-			uart1_RxBuf[uart1_RxHead] = SBUF1;
-
-			if (uart1_Mode & BIT1)
-			{
-				parity = UART_ParityChk((U8_T)uart1_RxBuf[uart1_RxHead]);
-				if (RB18 != parity)
-					P3 = 0xE7;
-			}
-
-			uart1_RxCount++;
-			uart1_RxHead++;
-			uart1_RxHead &= MAX_RX_UART1_MASK;
-	    }
-		RI1 = 0;
-		EA = 1;
-	} /* End of if(RI0) */
-
-	if (TI1)
-	{
-		EA = 0;
-
-		uart1_TxTail++;
-		uart1_TxTail &= MAX_TX_UART1_MASK;
-		uart1_TxCount--;
-		if (uart1_TxCount > 0)
-		{
-			SBUF1 = uart1_TxBuf[uart1_TxTail];
-			
-			if (uart1_Mode & BIT1)
-			{
-				parity = UART_ParityChk((U8_T)uart1_TxBuf[uart1_TxTail]);
-				if (parity)
-					TB18 = 1;
-				else
-					TB18 = 0;
-			}
-		}
-		else
-			uart1_TxFlag = 0;
-
-		TI1 = 0;
-		EA = 1;
-
-	} /* End of if(TI0) */
-
-}
-#endif
 
 /*
  * ----------------------------------------------------------------------------
@@ -873,31 +436,27 @@ static void uart1_Init(void)
 		uart1_RxBuf[i] = 0;
 
 	// Initialize TIMER1 for standard 8051 UART clock
-	PCON  &= ~(1 << 6);	// Disable BaudRate doubler. 	     // LJ 6/8/2012
+	PCON  |= 0x00;			// Disable BaudRate doubler. 	 9600    
 	SM10  = 0;
 	SM11  = 1;			// Use serial port 1 in mode 1 with 8-bits data.
 	REN1  = 1;			// Enable UART1 receiver.
-	TMOD  |= 0x20;		// Use timer 1 in mode 2, 8-bit counter with auto-reload.
+	TMOD  = 0x20;		// Use timer 1 in mode 2, 8-bit counter with auto-reload.
 	uart1_Mode = 1;
 
 	sysClk = CSREPR & 0xC0;
 	switch (sysClk)
-	{
+	{							 /* UART1 rate = 57600,only work on 100Mhz*/
 		case SCS_100M :
-			
-			TH1 = 0xE5;		// Baud rate = 9600 @ 100MHz.
+			TH1 = 0xe5;		// Baud rate = 57600 @ 100MHz.	   	 19200=0xE5,57600=0xF7
 			break;
 		case SCS_50M :
-			
 			TH1 = 0xF2;		// Baud rate = 9600 @ 50MHz.
 			break;
 		case SCS_25M :
-		
 			TH1 = 0xF9;		// Baud rate = 9600 @ 25MHz.
 			break;
 		default :
-		
-			TH1 = 0xE5;		// Baud rate = 9600 @ 25MHz.
+			TH1 = 0xF9;		// Baud rate = 9600 @ 25MHz.
 			break;
 	}
 
@@ -958,26 +517,6 @@ static S8_T uart1_PutChar(S8_T c)
 	return c;
 
 }
-
-
-void test_uart1_tx(U8_T *buf, U8_T len)
-{
-	U8_T i;
-	for(i = 0; i < len; i++)
-	{ 
-		SBUF1 = buf[i];
-	   
-	    DELAY_Us(70);
-
-		while(!TI1);
-
-		
-	}
-
-}
-
-
-
 
 /*
  * ----------------------------------------------------------------------------
@@ -1250,7 +789,7 @@ void PMM_Uart0Init(void)
 		uart0_RxBuf[i] = 0;
 
 	// Initialize TIMER1 for standard 8051 UART clock
-	PCON  |= BIT7;		// Enable BaudRate doubler.
+	PCON  = BIT7;		// Enable BaudRate doubler.
 	SM01  = 1;			// Use serial port 0 in mode 1 with 8-bits data.
 	REN0  = 1;			// Enable UART0 receiver.
 	TMOD  = 0x20;		// Use timer 1 in mode 2, 8-bit counter with auto-reload.
