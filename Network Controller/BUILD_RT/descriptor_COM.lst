@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   DESCRIPTOR_COM                                                        05/20/2013 14:16:33 PAGE 1   
+C51 COMPILER V9.06   DESCRIPTOR_COM                                                        05/28/2013 10:15:34 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE DESCRIPTOR_COM
@@ -8,8 +8,8 @@ COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\USB\descriptor_COM.c 
                     -sur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..
                     -\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX110
                     -00\;..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbus
-                    -TCP;..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\descriptor_COM.lst)
-                    - OBJECT(.\descriptor_COM.obj)
+                    -TCP;..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm;..\src\dyndns) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\descr
+                    -iptor_COM.lst) OBJECT(.\descriptor_COM.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   46                        
   47                  0X02,                                   // bNumInterfaces     1    此配置所支持的接口个数
   48                  0X01,                                   // bCongfigurationValue 1  在SetConfiguration()请求中用作参数来选定此配置
-C51 COMPILER V9.06   DESCRIPTOR_COM                                                        05/20/2013 14:16:33 PAGE 2   
+C51 COMPILER V9.06   DESCRIPTOR_COM                                                        05/28/2013 10:15:34 PAGE 2   
 
   49                  0X00,                                   // iConfiguration     1    索引：描述此配置的字串描述表索引
   50                  0Xc0,                                   // bmAttributes       1    配置特性
@@ -126,7 +126,7 @@ line level    source
  105                  0X81,                                   // bEndpointAddress   1    此描述表所描述的端点的地址  
  106                  0X03,                                   // bmAttributes       1    此端点为中断传送 
  107                  0X08,                                   // wMaxPacketSize     2    当前配置下此端点能够接收或发送的最大数据包的大小
-C51 COMPILER V9.06   DESCRIPTOR_COM                                                        05/20/2013 14:16:33 PAGE 3   
+C51 COMPILER V9.06   DESCRIPTOR_COM                                                        05/28/2013 10:15:34 PAGE 3   
 
  108                  0X00,
  109                  0X14,                                   // bInterval          1    轮寻数据传送端点的时间间隙 20ms
@@ -190,7 +190,7 @@ line level    source
  166                  0X00,
  167                  'c',
  168                  0X00,
-C51 COMPILER V9.06   DESCRIPTOR_COM                                                        05/20/2013 14:16:33 PAGE 4   
+C51 COMPILER V9.06   DESCRIPTOR_COM                                                        05/28/2013 10:15:34 PAGE 4   
 
  169                  'o',
  170                  0X00,
@@ -254,7 +254,7 @@ line level    source
  228                  0X00,
  229                  'l',
  230                  0X00,
-C51 COMPILER V9.06   DESCRIPTOR_COM                                                        05/20/2013 14:16:33 PAGE 5   
+C51 COMPILER V9.06   DESCRIPTOR_COM                                                        05/28/2013 10:15:34 PAGE 5   
 
  231                  'l',
  232                  0X00,

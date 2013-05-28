@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   STOE                                                                  05/24/2013 13:13:40 PAGE 1   
+C51 COMPILER V9.06   STOE                                                                  05/28/2013 10:15:27 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE STOE
@@ -8,8 +8,8 @@ COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\ethernet\stoe.c LARGE
                     -..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\
                     -buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;.
                     -.\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;.
-                    -.\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\stoe.lst) OBJECT(.\stoe.
-                    -obj)
+                    -.\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm;..\src\dyndns) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\stoe.lst) 
+                    -OBJECT(.\stoe.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   47          static void stoe_StartOperate(void);
   48          static void stoe_RcvHandle(void);
   49          
-C51 COMPILER V9.06   STOE                                                                  05/24/2013 13:13:40 PAGE 2   
+C51 COMPILER V9.06   STOE                                                                  05/28/2013 10:15:27 PAGE 2   
 
   50          /*
   51           * ----------------------------------------------------------------------------
@@ -126,7 +126,7 @@ line level    source
  109          {
  110   1              U8_T XDATA      temp[2];
  111   1              U8_T XDATA      value[6] = {0,0,0,0,0,0};
-C51 COMPILER V9.06   STOE                                                                  05/24/2013 13:13:40 PAGE 3   
+C51 COMPILER V9.06   STOE                                                                  05/28/2013 10:15:27 PAGE 3   
 
  112   1      #if (STOE_TRANSPARENT != STOE_TRANSPARENT_MODE)
  113   1              U8_T XDATA      result[6];
@@ -190,7 +190,7 @@ line level    source
  171   1              for (index = 0; index < 128 ; index++)
  172   1              {
  173   2                      count = (index * 2);
-C51 COMPILER V9.06   STOE                                                                  05/24/2013 13:13:40 PAGE 4   
+C51 COMPILER V9.06   STOE                                                                  05/28/2013 10:15:27 PAGE 4   
 
  174   2                      stoe_WriteReg(STOE_ARP_ADDR_REG, &count, 1);
  175   2                      count = (ARP_CACHE_CMD_READ | ARP_CACHE_CMD_GO);
@@ -254,7 +254,7 @@ line level    source
  233   1              PBDP->RcvEndAddr = PBDP->XmtStartAddr - 1;
  234   1              PBDP->XmtEndAddr = PBDP->XmtStartAddr + STOE_XMIT_BUF_SIZE - 1;
  235   1      
-C51 COMPILER V9.06   STOE                                                                  05/24/2013 13:13:40 PAGE 5   
+C51 COMPILER V9.06   STOE                                                                  05/28/2013 10:15:27 PAGE 5   
 
  236   1      } /* End of stoe_BdpInit */
  237          
@@ -318,7 +318,7 @@ line level    source
  295          //#endif
  296          
  297          /*
-C51 COMPILER V9.06   STOE                                                                  05/24/2013 13:13:40 PAGE 6   
+C51 COMPILER V9.06   STOE                                                                  05/28/2013 10:15:27 PAGE 6   
 
  298           * ----------------------------------------------------------------------------
  299           * Function Name: STOE_Start
@@ -382,7 +382,7 @@ line level    source
                * Note:
                * ----------------------------------------------------------------------------
                */
-C51 COMPILER V9.06   STOE                                                                  05/24/2013 13:13:40 PAGE 7   
+C51 COMPILER V9.06   STOE                                                                  05/28/2013 10:15:27 PAGE 7   
 
               void stoe_InterruptDisable(void)
               {
@@ -446,7 +446,7 @@ line level    source
                       U8_T XDATA      temp;
                       U8_T            isr = EA;
               
-C51 COMPILER V9.06   STOE                                                                  05/24/2013 13:13:40 PAGE 8   
+C51 COMPILER V9.06   STOE                                                                  05/28/2013 10:15:27 PAGE 8   
 
                       while (stoe_InterruptStatus)
                       {
@@ -510,7 +510,7 @@ line level    source
  481   2                      if (int_status & RCV_BUF_RING_FULL)
  482   2                      {
  483   3      //                      printf ("\rRX Packet Buffer Ring is Full.\n\r");
-C51 COMPILER V9.06   STOE                                                                  05/24/2013 13:13:40 PAGE 9   
+C51 COMPILER V9.06   STOE                                                                  05/28/2013 10:15:27 PAGE 9   
 
  484   3                              temp = RESUME_PKT_RCV;
  485   3                              stoe_WriteReg(STOE_L4_CMD_REG, &temp, 1);
@@ -574,7 +574,7 @@ line level    source
  543           * Note:
  544           * ----------------------------------------------------------------------------
  545           */
-C51 COMPILER V9.06   STOE                                                                  05/24/2013 13:13:40 PAGE 10  
+C51 COMPILER V9.06   STOE                                                                  05/28/2013 10:15:27 PAGE 10  
 
  546          void stoe_StartOperate(void)
  547          {
@@ -638,7 +638,7 @@ line level    source
  605   1                      pages = (PBDP->TSPP - PBDP->RHPR) + (pframe->NPR - PBDP->RSPP);
  606   1              else
  607   1                      pages = pframe->NPR - PBDP->RHPR;
-C51 COMPILER V9.06   STOE                                                                  05/24/2013 13:13:40 PAGE 11  
+C51 COMPILER V9.06   STOE                                                                  05/28/2013 10:15:27 PAGE 11  
 
  608   1      
  609   1              isr = EA;
@@ -702,7 +702,7 @@ line level    source
  667   1              if (PBDP->TTPR > PBDP->TEPP)
  668   1                      PBDP->TTPR = PBDP->TSPP + PBDP->TTPR - PBDP->TEPP - 1;
  669   1      
-C51 COMPILER V9.06   STOE                                                                  05/24/2013 13:13:40 PAGE 12  
+C51 COMPILER V9.06   STOE                                                                  05/28/2013 10:15:27 PAGE 12  
 
  670   1              pframe->NPR = PBDP->TTPR;
  671   1      
@@ -766,7 +766,7 @@ line level    source
  729   1              {
  730   2                      leftlen = length - space;
  731   2      
-C51 COMPILER V9.06   STOE                                                                  05/24/2013 13:13:40 PAGE 13  
+C51 COMPILER V9.06   STOE                                                                  05/28/2013 10:15:27 PAGE 13  
 
  732   2                      while (space--)
  733   2                              *pdest++ = *psour++;
@@ -830,7 +830,7 @@ line level    source
  791   1              stoe_WriteReg(STOE_L2_CTL_REG, &temp, 1);
  792   1      
  793   1      } /* End of STOE_EnableIpFilter() */
-C51 COMPILER V9.06   STOE                                                                  05/24/2013 13:13:40 PAGE 14  
+C51 COMPILER V9.06   STOE                                                                  05/28/2013 10:15:27 PAGE 14  
 
  794          
  795          /*
@@ -894,7 +894,7 @@ line level    source
  848   2                      hash[5] = (U8_T)(((IpAddr >> 6) & 1) ^ ((IpAddr >> 14) & 1) ^ ((IpAddr >> 22) & 1) ^ ((IpAddr >> 30) & 1
              -));
  849   2                      hash[6] = (U8_T)(((IpAddr >> 7) & 1) ^ ((IpAddr >> 15) & 1) ^ ((IpAddr >> 23) & 1) ^ ((IpAddr >> 31) & 1
-C51 COMPILER V9.06   STOE                                                                  05/24/2013 13:13:40 PAGE 15  
+C51 COMPILER V9.06   STOE                                                                  05/28/2013 10:15:27 PAGE 15  
 
              -));
  850   2      
@@ -958,7 +958,7 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
    EDATA SIZE       =   ----    ----
    HDATA SIZE       =   ----    ----
    XDATA CONST SIZE =   ----    ----
-C51 COMPILER V9.06   STOE                                                                  05/24/2013 13:13:40 PAGE 16  
+C51 COMPILER V9.06   STOE                                                                  05/28/2013 10:15:27 PAGE 16  
 
    FAR CONST SIZE   =   ----    ----
 END OF MODULE INFORMATION.

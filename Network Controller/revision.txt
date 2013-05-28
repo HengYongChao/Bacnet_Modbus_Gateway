@@ -1,6 +1,5 @@
 
-
-Rev69.11:
+Rev69.14:
 1.add mstp feature
 2.token passing and create node. 
 3.support 25M,100M system frequency, higher program speed.
@@ -26,6 +25,9 @@ Rev69.11:
 22.fixed scan fuction good, (ID + SN) = 5.
 23.enable gsm feature, add gsm task.
 24.add webpage features. (2013/05/22)
+25.make the main code which reboot fuction same interface as enan modified.
+26.add dyndns features for support remote ip updata,remote ip access, remote commod 
+control in the future.
 
 
   

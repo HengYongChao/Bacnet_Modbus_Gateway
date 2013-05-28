@@ -458,7 +458,9 @@ U8_T udp_receive_reboot(void)
 		}
 
    return 	socket;
+
 }
+
 
 
 /*
@@ -472,13 +474,9 @@ U8_T udp_receive_reboot(void)
  */
 void GUDPBC_Receive(U8_T XDATA* pData, U16_T length, U8_T id)
 {
-//	U8_T opcode = 0xFF;
-//	BOOL bValidReq = FALSE;
-//	GCONFIG_MAC_ADDR macAddr;
     U8_T  n=0;
 	U32_T time_s=0;
  
-    //Uart0_Tx(pData,length);
 	if( (length == 48) )  //(gudpbc_Conns[id].UdpSocket == Time_Server.UdpSocket) && 
 	{
 		Para[399] = 1;
@@ -507,8 +505,6 @@ void GUDPBC_Receive(U8_T XDATA* pData, U16_T length, U8_T id)
 
 	        if(state)
 			{
-//				gudpbc_HandleSearchReq(pData, id);
-				//use broadcast when scan
 				U8_T socket = TCPIP_UdpNew(2, 3, 0xffffffff, 0, 4321);
 				UdpData();
 				TCPIP_UdpSend(socket, 0, 0, ab, 40);
@@ -595,9 +591,6 @@ void gudpbc_HandleSetReq(U8_T XDATA* pData, U16_T length, U8_T id)
 //} /* End of GCONFIG_SetFirmwareUpgradeMode() */
 
 
-
-
-
 /*
  * ----------------------------------------------------------------------------
  * Function Name: gudpbc_HandleUpgradeReq
@@ -631,10 +624,6 @@ void gudpbc_HandleUpgradeReq(U8_T XDATA* pData, U16_T length, U8_T id)
 		TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
 	}
 } /* End of gudpbc_HandleUpgradeReq() */
-
-
-
-
 
 
 

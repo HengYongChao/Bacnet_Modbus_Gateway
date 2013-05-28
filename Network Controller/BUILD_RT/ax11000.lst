@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   AX11000                                                               05/24/2013 13:13:40 PAGE 1   
+C51 COMPILER V9.06   AX11000                                                               05/28/2013 10:15:27 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE AX11000
@@ -8,8 +8,8 @@ COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\cpu\ax11000.c LARGE O
                     -\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\bu
                     -ffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\
                     -Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;..\
-                    -src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\ax11000.lst) OBJECT(.\ax11
-                    -000.obj)
+                    -src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm;..\src\dyndns) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\ax11000.lst)
+                    - OBJECT(.\ax11000.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   47          
   48          U32_T   CPU_FREQUENCY;
   49          
-C51 COMPILER V9.06   AX11000                                                               05/24/2013 13:13:40 PAGE 2   
+C51 COMPILER V9.06   AX11000                                                               05/28/2013 10:15:27 PAGE 2   
 
   50          /* LOCAL SUBPROGRAM DECLARATIONS */
   51          
@@ -126,7 +126,7 @@ line level    source
  109   3                                      cpuSysClk = SCS_50M;
  110   3                                      WTST = 0x03;
  111   3                                      CKCON = 0x01;
-C51 COMPILER V9.06   AX11000                                                               05/24/2013 13:13:40 PAGE 3   
+C51 COMPILER V9.06   AX11000                                                               05/28/2013 10:15:27 PAGE 3   
 
  112   3                                      break;
  113   3                              case SCS_25M :
@@ -190,7 +190,7 @@ line level    source
  171   1      }
  172          
  173          /*
-C51 COMPILER V9.06   AX11000                                                               05/24/2013 13:13:40 PAGE 4   
+C51 COMPILER V9.06   AX11000                                                               05/28/2013 10:15:27 PAGE 4   
 
  174           *--------------------------------------------------------------------------------
  175           * U8_T AX11000_GetSysClk(void)
@@ -254,7 +254,7 @@ line level    source
  233   1              return dataStretch;
  234   1      }
  235          #endif
-C51 COMPILER V9.06   AX11000                                                               05/24/2013 13:13:40 PAGE 5   
+C51 COMPILER V9.06   AX11000                                                               05/28/2013 10:15:27 PAGE 5   
 
  236          
  237          #if AX_SWRST_ENB
@@ -318,7 +318,7 @@ line level    source
  295   1              else
  296   1              {
  297   2                      EWDI = 0;
-C51 COMPILER V9.06   AX11000                                                               05/24/2013 13:13:40 PAGE 6   
+C51 COMPILER V9.06   AX11000                                                               05/28/2013 10:15:27 PAGE 6   
 
  298   2              }
  299   1      

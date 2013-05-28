@@ -262,7 +262,7 @@
 
   <Group>
     <GroupName>ethernet</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <File>
@@ -500,7 +500,7 @@
 
   <Group>
     <GroupName>hsur</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <File>
@@ -649,10 +649,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>47</ColumnNumber>
+      <ColumnNumber>36</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>0</TopLine>
-      <CurrentLine>0</CurrentLine>
+      <TopLine>472</TopLine>
+      <CurrentLine>472</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\management\gudpbc.c</PathWithFileName>
       <FilenameWithoutPath>gudpbc.c</FilenameWithoutPath>
@@ -829,7 +829,7 @@
 
   <Group>
     <GroupName>web</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <File>
@@ -915,10 +915,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>14</ColumnNumber>
+      <ColumnNumber>59</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>90</TopLine>
-      <CurrentLine>90</CurrentLine>
+      <TopLine>126</TopLine>
+      <CurrentLine>156</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\http\httpd.c</PathWithFileName>
       <FilenameWithoutPath>httpd.c</FilenameWithoutPath>
@@ -1102,7 +1102,7 @@
 
   <Group>
     <GroupName>LCD</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <File>
@@ -1111,10 +1111,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>0</ColumnNumber>
+      <ColumnNumber>77</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>1</TopLine>
-      <CurrentLine>1</CurrentLine>
+      <TopLine>260</TopLine>
+      <CurrentLine>260</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\LCD\LCD.c</PathWithFileName>
       <FilenameWithoutPath>LCD.c</FilenameWithoutPath>
@@ -2336,10 +2336,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
-      <ColumnNumber>61</ColumnNumber>
+      <ColumnNumber>56</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
-      <TopLine>233</TopLine>
-      <CurrentLine>261</CurrentLine>
+      <TopLine>550</TopLine>
+      <CurrentLine>577</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\modbusTCP\modbusTCP.c</PathWithFileName>
       <FilenameWithoutPath>modbusTCP.c</FilenameWithoutPath>
@@ -2378,6 +2378,41 @@
       <bDave2>0</bDave2>
       <PathWithFileName>..\src\gsm\gsm.c</PathWithFileName>
       <FilenameWithoutPath>gsm.c</FilenameWithoutPath>
+    </File>
+  </Group>
+
+  <Group>
+    <GroupName>dyndns</GroupName>
+    <tvExp>1</tvExp>
+    <tvExpOptDlg>0</tvExpOptDlg>
+    <cbSel>0</cbSel>
+    <File>
+      <GroupNumber>35</GroupNumber>
+      <FileNumber>139</FileNumber>
+      <FileType>1</FileType>
+      <tvExp>0</tvExp>
+      <Focus>0</Focus>
+      <ColumnNumber>53</ColumnNumber>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>383</TopLine>
+      <CurrentLine>415</CurrentLine>
+      <bDave2>0</bDave2>
+      <PathWithFileName>..\src\dyndns\dyndns.c</PathWithFileName>
+      <FilenameWithoutPath>dyndns.c</FilenameWithoutPath>
+    </File>
+    <File>
+      <GroupNumber>35</GroupNumber>
+      <FileNumber>140</FileNumber>
+      <FileType>1</FileType>
+      <tvExp>0</tvExp>
+      <Focus>0</Focus>
+      <ColumnNumber>0</ColumnNumber>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>0</TopLine>
+      <CurrentLine>0</CurrentLine>
+      <bDave2>0</bDave2>
+      <PathWithFileName>..\src\dyndns\dyndns_app.c</PathWithFileName>
+      <FilenameWithoutPath>dyndns_app.c</FilenameWithoutPath>
     </File>
   </Group>
 

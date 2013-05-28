@@ -382,10 +382,6 @@ SENDHTML:
 } /* End of HTTP_Event() */
 
 
-
-
-
-
 /*
  * ----------------------------------------------------------------------------
  * Function Name: StringCompare()
@@ -476,9 +472,6 @@ U8_T GHTTP_GetFile(U8_T XDATA** pData, U8_T XDATA** pFName, U8_T XDATA** pFNameE
  * Note:
  * ----------------------------------------------------------------------------
  */
-
-
-
 void HTTP_LoadSetting(void)
 {
 //	U32_T				temp32;

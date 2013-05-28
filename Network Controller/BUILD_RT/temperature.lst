@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   TEMPERATURE                                                           05/24/2013 13:13:45 PAGE 1   
+C51 COMPILER V9.06   TEMPERATURE                                                           05/28/2013 10:15:31 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE TEMPERATURE
@@ -8,8 +8,8 @@ COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\onewire\temperature.c
                     -hsur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;.
                     -.\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11
                     -000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbu
-                    -sTCP;..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\temperature.lst) O
-                    -BJECT(.\temperature.obj)
+                    -sTCP;..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm;..\src\dyndns) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\temp
+                    -erature.lst) OBJECT(.\temperature.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   47          *--------------------------------------------------------------------------------
   48          */
   49          
-C51 COMPILER V9.06   TEMPERATURE                                                           05/24/2013 13:13:45 PAGE 2   
+C51 COMPILER V9.06   TEMPERATURE                                                           05/28/2013 10:15:31 PAGE 2   
 
   50          char * OW_Temprature_GET(void)
   51          {
@@ -126,7 +126,7 @@ line level    source
  109   2                              /* enable presence detect, clock enable, 25MHz */
  110   2                              ONEWIRE_Setup(0, 0, OW_PDI_ENB, OW_CLK_ENB|OW_DIV1|OW_DIV0|OW_PRE0);
  111   2                              break;
-C51 COMPILER V9.06   TEMPERATURE                                                           05/24/2013 13:13:45 PAGE 3   
+C51 COMPILER V9.06   TEMPERATURE                                                           05/28/2013 10:15:31 PAGE 3   
 
  112   2              }
  113   1      }

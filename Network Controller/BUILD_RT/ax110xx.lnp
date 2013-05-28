@@ -52,7 +52,9 @@
 ".\version.obj",
 ".\scan.obj",
 ".\modbusTCP.obj",
-".\gsm.obj" 
+".\gsm.obj",
+".\dyndns.obj",
+".\dyndns_app.obj" 
 TO "ax110xx.omf" 
 
 NOOVERLAY 

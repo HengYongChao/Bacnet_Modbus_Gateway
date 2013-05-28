@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   UIP_ARCH                                                              05/24/2013 13:13:42 PAGE 1   
+C51 COMPILER V9.06   UIP_ARCH                                                              05/28/2013 10:15:29 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE UIP_ARCH
@@ -8,8 +8,8 @@ COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\tcpip\uip_arch.c LARG
                     -;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC
                     -\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;
                     -..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;
-                    -..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\uip_arch.lst) OBJECT(.\
-                    -uip_arch.obj)
+                    -..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm;..\src\dyndns) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\uip_arch.
+                    -lst) OBJECT(.\uip_arch.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   47          #define BUF ((uip_tcpip_hdr *)&uip_buf[0])
   48          #define IP_PROTO_TCP    6
   49          
-C51 COMPILER V9.06   UIP_ARCH                                                              05/24/2013 13:13:42 PAGE 2   
+C51 COMPILER V9.06   UIP_ARCH                                                              05/28/2013 10:15:29 PAGE 2   
 
   50          /*-----------------------------------------------------------------------------------*/
   51          void
@@ -126,7 +126,7 @@ line level    source
               uip_ipchksum(void)
               {
                 return uip_chksum((U16_T *)&uip_buf[TCPIP_EthHeadLen], 20);
-C51 COMPILER V9.06   UIP_ARCH                                                              05/24/2013 13:13:42 PAGE 3   
+C51 COMPILER V9.06   UIP_ARCH                                                              05/28/2013 10:15:29 PAGE 3   
 
               }
               #endif
@@ -190,7 +190,7 @@ line level    source
                 }
                 if((sum += (U16_T)htons((U16_T)IP_PROTO_TCP)) < (U16_T)htons((U16_T)IP_PROTO_TCP)) {
                   ++sum;
-C51 COMPILER V9.06   UIP_ARCH                                                              05/24/2013 13:13:42 PAGE 4   
+C51 COMPILER V9.06   UIP_ARCH                                                              05/28/2013 10:15:29 PAGE 4   
 
                 }
               

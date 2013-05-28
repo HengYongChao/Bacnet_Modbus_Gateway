@@ -103,6 +103,7 @@
 #include "../scan/scan.h"
 #include "modbusTCP.h"
 #include "../gsm/gsm.h"
+#include "dyndns_app.h"
 
 /* NAMING CONSTANT DECLARATIONS */
 #ifdef DEBUG
@@ -384,6 +385,8 @@ void TCPIP_Task(void)reentrant
 
 //	Uart0_Tx("step4",5);
 
+	init_dyndns();
+
 
 	while (1)
 	{
@@ -472,6 +475,7 @@ void TCPIP_Task(void)reentrant
 		}
 #endif
 
+	   do_dyndns();
 //	  Uart0_Tx("step5",5);
 
 	}

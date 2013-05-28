@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 1   
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE TASKS
@@ -8,8 +8,8 @@ COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\FreeRtossource\tasks.
                     -\hsur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;
                     -..\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX1
                     -1000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modb
-                    -usTCP;..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\tasks.lst) SRC(.\
-                    -tasks.SRC)
+                    -usTCP;..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm;..\src\dyndns) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\tas
+                    -ks.lst) SRC(.\tasks.SRC)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   47                  + Introduced ucTopReadyPriority.  This tracks the highest priority ready
   48                    queue that contains a valid TCB and thus makes the context switch 
   49                    slightly faster.
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 2   
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 2   
 
   50          
   51                  + prvAddTaskToReadyQueue() has been made a macro.
@@ -126,7 +126,7 @@ line level    source
  109          extern INT8U xdata * data C_XBP;
  110          /*
  111           * Macro to define the amount of stack available to the idle task.
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 3   
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 3   
 
  112           */
  113          #define tskIDLE_STACK_SIZE      portMINIMAL_STACK_SIZE
@@ -190,7 +190,7 @@ line level    source
  163          static volatile unsigned portCHAR ucTopReadyPriority = tskIDLE_PRIORITY;
  164          static signed portCHAR cSchedulerRunning = pdFALSE;
  165          static volatile unsigned portCHAR ucSchedulerSuspended = pdFALSE;
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 4   
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 4   
 
  166          static volatile unsigned portCHAR ucMissedTicks = ( unsigned portCHAR ) 0;
  167          
@@ -254,7 +254,7 @@ line level    source
                                       }                                                                                                                                                       \
                               }                                                                                                                                                               \
                       }
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 5   
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 5   
 
               
               #else
@@ -318,7 +318,7 @@ line level    source
  286           * see if the parameter is NULL and returns a pointer to the appropriate TCB.
  287           */
  288          #define prvGetTCBFromHandle( pxHandle ) ( ( pxHandle == NULL ) ? ( tskTCB * ) pxCurrentTCB : ( tskTCB * ) 
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 6   
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 6   
 
              -pxHandle )
  289          
@@ -382,7 +382,7 @@ line level    source
               
                       static void prvListTaskWithinSingleList( signed portCHAR *pcWriteBuffer, xList *pxList, signed portCHAR c
              -Status )reentrant;
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 7   
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 7   
 
               #endif
  349          
@@ -446,7 +446,7 @@ line level    source
  405   3                              if( usCurrentNumberOfTasks == ( unsigned portSHORT ) 1 )
  406   3                              {
  407   4                                      /* As this is the first task it must also be the current task. */
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 8   
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 8   
 
  408   4                                      pxCurrentTCB = ( volatile tskTCB * volatile ) pxNewTCB;
  409   4      
@@ -510,7 +510,7 @@ line level    source
  467   4                                      taskYIELD();
  468   4                              }
  469   3                      }
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 9   
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 9   
 
  470   2              }
  471   1      
@@ -574,7 +574,7 @@ line level    source
  529   2                              /* Generate the tick time at which the task wants to wake. */
  530   2                              xTimeToWake = *pxPreviousWakeTime + xTimeIncrement;
  531   2      
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 10  
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 10  
 
  532   2                              if( xTickCount < *pxPreviousWakeTime )
  533   2                              {
@@ -638,7 +638,7 @@ line level    source
  590   1              }
  591          #endif
  592          /*-----------------------------------------------------------*/
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 11  
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 11  
 
  593          
  594          #if( INCLUDE_vTaskDelay == 1 )
@@ -702,7 +702,7 @@ line level    source
  651          #if( INCLUDE_ucTaskPriorityGet == 1 )
               
                       unsigned portCHAR ucTaskPriorityGet( xTaskHandle pxTask ) reentrant
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 12  
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 12  
 
                       {
                       tskTCB *pxTCB;
@@ -766,7 +766,7 @@ line level    source
                               /* The priority change may have readied a task of higher
                               priority than the calling task. */
                               taskYIELD();
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 13  
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 13  
 
                       }
               
@@ -830,7 +830,7 @@ line level    source
  774   3                              }
  775   2                              taskEXIT_CRITICAL();
  776   2      
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 14  
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 14  
 
  777   2                              /* We may have just resumed a higher priority task. */
  778   2                              if( sYieldRequired )
@@ -894,7 +894,7 @@ line level    source
  836   1              routine so the original ISRs can be restored if necessary.  The port
  837   1              layer must ensure interrupts enable     bit is left in the correct state. */
  838   1              portDISABLE_INTERRUPTS();
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 15  
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 15  
 
  839   1              cSchedulerRunning = pdFALSE;
  840   1              vPortEndScheduler();
@@ -958,7 +958,7 @@ line level    source
  897   3                      }
  898   2              }
  899   1              portEXIT_CRITICAL();
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 16  
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 16  
 
  900   1      
  901   1              return cAlreadyYielded;
@@ -1022,7 +1022,7 @@ line level    source
                                       usQueue = ( unsigned portSHORT ) ucTopUsedPriority + ( unsigned portSHORT ) 1;
               
                                       do
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 17  
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 17  
 
                                       {
                                               usQueue--;
@@ -1086,7 +1086,7 @@ line level    source
                               portENTER_CRITICAL();
                                       cTracing = ( signed portCHAR ) pdFALSE;
                               portEXIT_CRITICAL();
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 18  
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 18  
 
               
                               usBufferLength = ( unsigned portSHORT ) ( pcTraceBuffer - pcTraceBufferStart );
@@ -1150,7 +1150,7 @@ line level    source
                       {
                       unsigned portSHORT usQueue;
                       volatile tskTCB *pxTCB;
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 19  
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 19  
 
               
                               usQueue = ( unsigned portSHORT ) ucTopUsedPriority + ( unsigned portSHORT ) 1;
@@ -1214,7 +1214,7 @@ line level    source
 1144   2                      /* The scheduler is currently suspended - do not allow a context
 1145   2                      switch. */
 1146   2                      return;
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 20  
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 20  
 
 1147   2              }
 1148   1      
@@ -1278,7 +1278,7 @@ line level    source
 1205   1              /* The event list is sorted in priority order, so we can remove the 
 1206   1              first in the list, remove the TCB from the delayed list, and add
 1207   1              it to the ready list. 
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 21  
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 21  
 
 1208   1              
 1209   1              If an event is for a queue that is locked then this function will never
@@ -1342,7 +1342,7 @@ line level    source
 1267   2              }
 1268   1      } /*lint !e715 pvParameters is not accessed but all task functions require the same prototype. */
 1269          
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 22  
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 22  
 
 1270          
 1271          
@@ -1406,7 +1406,7 @@ line level    source
 1327   1              {
 1328   2                      vListInitialise( ( xList * ) &( pxReadyTasksLists[ ucPriority ] ) );
 1329   2              }
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 23  
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 23  
 
 1330   1      
 1331   1              vListInitialise( ( xList * ) &xDelayedTaskList1 );
@@ -1470,7 +1470,7 @@ line level    source
 1388          static tskTCB *prvAllocateTCBAndStack( unsigned portSHORT usStackDepth ) reentrant
 1389          {
 1390   1      tskTCB *pxNewTCB;
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 24  
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 24  
 
 1391   1      
 1392   1              /* Allocate space for the TCB.  Where the memory comes from depends on
@@ -1534,7 +1534,7 @@ line level    source
                               /* Free up the memory allocated by the scheduler for the task.  It is up to
                               the task to free any memory allocated at the application level. */
                               vPortFree( pxTCB->pxStack );
-C51 COMPILER V9.06   TASKS                                                                 05/24/2013 13:18:44 PAGE 25  
+C51 COMPILER V9.06   TASKS                                                                 05/28/2013 16:07:30 PAGE 25  
 
                               vPortFree( pxTCB );
                       }

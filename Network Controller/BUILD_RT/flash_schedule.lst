@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   FLASH_SCHEDULE                                                        05/24/2013 13:13:45 PAGE 1   
+C51 COMPILER V9.06   FLASH_SCHEDULE                                                        05/28/2013 16:06:34 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE FLASH_SCHEDULE
@@ -8,8 +8,8 @@ COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\flash\flash_schedule.
                     -\hsur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;
                     -..\SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX1
                     -1000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modb
-                    -usTCP;..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\flash_schedule.ls
-                    -t) OBJECT(.\flash_schedule.obj)
+                    -usTCP;..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm;..\src\dyndns) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\fla
+                    -sh_schedule.lst) OBJECT(.\flash_schedule.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   47   3                                      len = ID_SIZE * MAX_ID;                         // 3*254
   48   3                                      break;
   49   3                              case T_SCAN:
-C51 COMPILER V9.06   FLASH_SCHEDULE                                                        05/24/2013 13:13:45 PAGE 2   
+C51 COMPILER V9.06   FLASH_SCHEDULE                                                        05/28/2013 16:06:34 PAGE 2   
 
   50   3                                      baseAddr += len;
   51   3                                      len = SCAN_DB_SIZE * MAX_ID;            // 5*254
@@ -126,7 +126,7 @@ line level    source
  109   3                                      break;
  110   3                              case T_WEEK_OFFTIME:
  111   3                                      for(loop1 = 0;loop1 < MAX_WR;loop1++)
-C51 COMPILER V9.06   FLASH_SCHEDULE                                                        05/24/2013 13:13:45 PAGE 3   
+C51 COMPILER V9.06   FLASH_SCHEDULE                                                        05/28/2013 16:06:34 PAGE 3   
 
  112   3                                      {
  113   4                                              memcpy(&tempbuf[WR_TIME_SIZE * loop1], WR_Roution[loop1].OffTime, WR_TIME_SIZE);                                        
@@ -190,7 +190,7 @@ line level    source
  171   3                                      break;
  172   3                      
  173   3                      }
-C51 COMPILER V9.06   FLASH_SCHEDULE                                                        05/24/2013 13:13:45 PAGE 4   
+C51 COMPILER V9.06   FLASH_SCHEDULE                                                        05/28/2013 16:06:34 PAGE 4   
 
  174   2              }
  175   1      
@@ -254,7 +254,7 @@ line level    source
  233   4                                      }
  234   3                                      break;
  235   3                              case T_ID:
-C51 COMPILER V9.06   FLASH_SCHEDULE                                                        05/24/2013 13:13:45 PAGE 5   
+C51 COMPILER V9.06   FLASH_SCHEDULE                                                        05/28/2013 16:06:34 PAGE 5   
 
  236   3                                      for(loop2 = 0; loop2 < ptr_flash.len; loop2++)
  237   3                                              IntFlashReadByte(0x70000 + base_addr + loop2, &tempbuf[loop2]);

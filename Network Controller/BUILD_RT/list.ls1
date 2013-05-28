@@ -1,4 +1,4 @@
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE     1
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE     1
 
 
 MACRO ASSEMBLER AX51 V3.07c
@@ -16,7 +16,7 @@ LOC    OBJ             LINE     SOURCE
                                uffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSS
                                ource\portable\Keil\AX11000\;..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacne
                                t;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;..\src\gs2e;..\src\adpter1;..
-                               \src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\list.lst) SRC(.\list.SRC)
+                               \src\scan;..\src\gsm;..\src\dyndns) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\list.lst) SRC(.\list.SRC)
                           4     
                           5     $mod_cont 
                           6     $nomod51 
@@ -65,7 +65,7 @@ LOC    OBJ             LINE     SOURCE
  00A7                    49     XMRHR   DATA    0A7H
  00B0.1                  50     P3_1    BIT     0B0H.1
  00A0.2                  51     P2_2    BIT     0A0H.2
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE     2
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE     2
 
  0090.3                  52     P1_3    BIT     090H.3
  0080.4                  53     P0_4    BIT     080H.4
@@ -133,7 +133,7 @@ LOC    OBJ             LINE     SOURCE
  00E1                   115     UR2_THR DATA    0E1H
  00E8.5                 116     EWDI    BIT     0E8H.5
  00D8.3                 117     WDIF    BIT     0D8H.3
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE     3
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE     3
 
  00CB                   118     RLDH    DATA    0CBH
  00BE                   119     EPCR    DATA    0BEH
@@ -201,7 +201,7 @@ LOC    OBJ             LINE     SOURCE
  00E8                   181     EIE     DATA    0E8H
  0092                   182     WTST    DATA    092H
  00B8.6                 183     PS1     BIT     0B8H.6
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE     4
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE     4
 
  00B8.1                 184     PT0     BIT     0B8H.1
  0091                   185     EIF     DATA    091H
@@ -269,7 +269,7 @@ LOC    OBJ             LINE     SOURCE
 ------                  247     ?PR?_?vListInsert?LIST                   SEGMENT ECODE INSEG 
 ------                  248     ?PR?_?vListRemove?LIST                   SEGMENT ECODE INSEG 
                         249             EXTRN   CODE (?C?ADDXBP)
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE     5
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE     5
 
                         250             EXTRN   DATA (?C_XBP)
                         251             EXTRN   NUMBER (?C?XDATASEG)
@@ -337,7 +337,7 @@ LOC    OBJ             LINE     SOURCE
                         313     ;         necessitates any application code utilising the list implementation to
                         314     ;         ensure NULL pointers are not passed.
                         315     ; 
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE     6
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE     6
 
                         316     ; Changes from V2.0.0
                         317     ; 
@@ -405,7 +405,7 @@ LOC    OBJ             LINE     SOURCE
 00003B E0               379             MOVX    A,@DPTR
 00003C 2402             380             ADD     A,#02H
 00003E F9               381             MOV     R1,A
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE     7
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE     7
 
 00003F E4               382             CLR     A
 000040 3A               383             ADDC    A,R2
@@ -473,7 +473,7 @@ LOC    OBJ             LINE     SOURCE
 000099 E4               445             CLR     A
 00009A 3A               446             ADDC    A,R2
 00009B FA               447             MOV     R2,A
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE     8
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE     8
 
 00009C 12000000   E     448             LCALL   ?C?LSTPTR
                         449     ; 
@@ -541,7 +541,7 @@ LOC    OBJ             LINE     SOURCE
 0000FB E0               511             MOVX    A,@DPTR
 0000FC FB               512             MOV     R3,A
 0000FD A3               513             INC     DPTR
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE     9
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE     9
 
 0000FE E0               514             MOVX    A,@DPTR
 0000FF FA               515             MOV     R2,A
@@ -609,7 +609,7 @@ LOC    OBJ             LINE     SOURCE
 000156 FB               577             MOV     R3,A
 000157 A3               578             INC     DPTR
 000158 E0               579             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    10
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    10
 
 000159 FA               580             MOV     R2,A
 00015A A3               581             INC     DPTR
@@ -677,7 +677,7 @@ LOC    OBJ             LINE     SOURCE
                         643     ; /*-----------------------------------------------------------*/
                         644     ; 
                         645     ; void vListInsertEnd( xList *pxList, xListItem *pxNewListItem ) reentrant
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    11
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    11
 
                         646     
 ------                  647             RSEG  ?PR?_?vListInsertEnd?LIST
@@ -745,7 +745,7 @@ LOC    OBJ             LINE     SOURCE
 000050 A3               709             INC     DPTR
 000051 E0               710             MOVX    A,@DPTR
 000052 2404             711             ADD     A,#04H
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    12
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    12
 
 000054 F9               712             MOV     R1,A
 000055 E4               713             CLR     A
@@ -813,7 +813,7 @@ LOC    OBJ             LINE     SOURCE
 0000BC FB               775             MOV     R3,A
 0000BD A3               776             INC     DPTR
 0000BE E0               777             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    13
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    13
 
 0000BF FA               778             MOV     R2,A
 0000C0 A3               779             INC     DPTR
@@ -881,7 +881,7 @@ LOC    OBJ             LINE     SOURCE
 00011E 90000006         841             MOV     DPTR,#06H
 000122 12000000   E     842             LCALL   ?C?XBPOFF
 000126 E0               843             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    14
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    14
 
 000127 FB               844             MOV     R3,A
 000128 A3               845             INC     DPTR
@@ -949,7 +949,7 @@ LOC    OBJ             LINE     SOURCE
 000185 FB               907             MOV     R3,A
 000186 A3               908             INC     DPTR
 000187 E0               909             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    15
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    15
 
 000188 FA               910             MOV     R2,A
 000189 A3               911             INC     DPTR
@@ -1017,7 +1017,7 @@ LOC    OBJ             LINE     SOURCE
                         973                             ; SOURCE LINE # 137
 000038 74FF             974             MOV     A,#0FFH
 00003A FF               975             MOV     R7,A
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    16
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    16
 
 00003B FE               976             MOV     R6,A
 00003C FD               977             MOV     R5,A
@@ -1085,7 +1085,7 @@ LOC    OBJ             LINE     SOURCE
 000097 F9              1038             MOV     R1,A
 000098 E4              1039             CLR     A
 000099 3A              1040             ADDC    A,R2
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    17
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    17
 
 00009A FA              1041             MOV     R2,A
 00009B 12000000   E    1042             LCALL   ?C?PLDPTR
@@ -1153,7 +1153,7 @@ LOC    OBJ             LINE     SOURCE
 0000ED 90000007        1103             MOV     DPTR,#07H
 0000F1 12000000   E    1104             LCALL   ?C?XBPOFF
 0000F5 E0              1105             MOVX    A,@DPTR
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    18
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    18
 
 0000F6 FB              1106             MOV     R3,A
 0000F7 A3              1107             INC     DPTR
@@ -1221,7 +1221,7 @@ LOC    OBJ             LINE     SOURCE
 00014F 850083     E    1169             MOV     DPH,?C_XBP
 000152 850082     E    1170             MOV     DPL,?C_XBP+01H
 000155 759300     E    1171             MOV     DPX,#?C?XDATASEG
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    19
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    19
 
 000158 E0              1172             MOVX    A,@DPTR
 000159 FB              1173             MOV     R3,A
@@ -1289,7 +1289,7 @@ LOC    OBJ             LINE     SOURCE
 0001B0 FA              1235             MOV     R2,A
 0001B1 12000000   E    1236             LCALL   ?C?PSTPTR
                        1237     ;       pxNewListItem->pxNext->pxPrevious = ( volatile xListItem * ) pxNewListItem;
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    20
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    20
 
                        1238                             ; SOURCE LINE # 155
 0001B5 9000000A        1239             MOV     DPTR,#0AH
@@ -1357,7 +1357,7 @@ LOC    OBJ             LINE     SOURCE
 000218 E4              1301             CLR     A
 000219 3A              1302             ADDC    A,R2
 00021A FA              1303             MOV     R2,A
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    21
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    21
 
 00021B 12000000   E    1304             LCALL   ?C?PSTPTR
                        1305     ;       pxIterator->pxNext = ( volatile xListItem * ) pxNewListItem;
@@ -1425,7 +1425,7 @@ LOC    OBJ             LINE     SOURCE
 000279 FA              1367             MOV     R2,A
 00027A 12000000   E    1368             LCALL   ?C?PSTPTR
                        1369     ; 
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    22
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    22
 
                        1370     ;       ( pxList->usNumberOfItems )++;
                        1371                             ; SOURCE LINE # 163
@@ -1493,7 +1493,7 @@ LOC    OBJ             LINE     SOURCE
 000035 C001            1433             PUSH    AR1
 000037 90000003        1434             MOV     DPTR,#03H
 00003B 12000000   E    1435             LCALL   ?C?XBPOFF
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    23
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    23
 
 00003F E0              1436             MOVX    A,@DPTR
 000040 FB              1437             MOV     R3,A
@@ -1561,7 +1561,7 @@ LOC    OBJ             LINE     SOURCE
                        1499     ;       /* The list item knows which list it is in.  Obtain the list from the list
                        1500     ;       item. */
                        1501     ;       pxList = ( xList * ) pxItemToRemove->pvContainer;
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    24
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    24
 
                        1502                             ; SOURCE LINE # 176
 00009E 90000003        1503             MOV     DPTR,#03H
@@ -1629,7 +1629,7 @@ LOC    OBJ             LINE     SOURCE
 0000FE 6B              1565             XRL     A,R3
 0000FF 7008            1566             JNZ     ?C0015
 000101 E9              1567             MOV     A,R1
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    25
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    25
 
 000102 6582            1568             XRL     A,DPL
 000104 7003            1569             JNZ     ?C0015
@@ -1697,7 +1697,7 @@ LOC    OBJ             LINE     SOURCE
 00015D A3              1631             INC     DPTR
 00015E E0              1632             MOVX    A,@DPTR
 00015F 240D            1633             ADD     A,#0DH
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    26
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    26
 
 000161 F9              1634             MOV     R1,A
 000162 E4              1635             CLR     A
@@ -1727,7 +1727,7 @@ LOC    OBJ             LINE     SOURCE
                        1659     ; END OF _?vListRemove
                        1660     
                        1661             END
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    27
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    27
 
 SYMBOL TABLE LISTING
 ------ ----- -------
@@ -1795,7 +1795,7 @@ CL. . . . . . . . . . . . . . . . . . .    D  ADDR  00C4H     A
 CMOD. . . . . . . . . . . . . . . . . .    D  ADDR  00C2H     A   
 CPRL2 . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.0   A   
 CSREPR. . . . . . . . . . . . . . . . .    D  ADDR  008FH     A   
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    28
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    28
 
 CT2 . . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.1   A   
 CY. . . . . . . . . . . . . . . . . . .    B  ADDR  00D0H.7   A   
@@ -1863,7 +1863,7 @@ LSR . . . . . . . . . . . . . . . . . .    D  ADDR  00A3H     A
 LSSR. . . . . . . . . . . . . . . . . .    D  ADDR  00A3H     A   
 MCIR. . . . . . . . . . . . . . . . . .    D  ADDR  00B6H     A   
 MD0 . . . . . . . . . . . . . . . . . .    D  ADDR  00F9H     A   
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    29
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    29
 
 MD1 . . . . . . . . . . . . . . . . . .    D  ADDR  00FAH     A   
 MD2 . . . . . . . . . . . . . . . . . .    D  ADDR  00FBH     A   
@@ -1931,7 +1931,7 @@ PX0 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.0   A
 PX1 . . . . . . . . . . . . . . . . . .    B  ADDR  00B8H.2   A   
 RB08. . . . . . . . . . . . . . . . . .    B  ADDR  0098H.2   A   
 RB18. . . . . . . . . . . . . . . . . .    B  ADDR  00C0H.2   A   
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    30
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    30
 
 RCLK. . . . . . . . . . . . . . . . . .    B  ADDR  00C8H.5   A   
 RD. . . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.7   A   
@@ -1999,7 +1999,7 @@ UR2_MSR . . . . . . . . . . . . . . . .    D  ADDR  00E7H     A
 UR2_RBR . . . . . . . . . . . . . . . .    D  ADDR  00E1H     A   
 UR2_THR . . . . . . . . . . . . . . . .    D  ADDR  00E1H     A   
 WDCON . . . . . . . . . . . . . . . . .    D  ADDR  00D8H     A   
-AX51 MACRO ASSEMBLER  LIST                                                                  05/24/13 13:18:43 PAGE    31
+AX51 MACRO ASSEMBLER  LIST                                                                  05/28/13 16:07:30 PAGE    31
 
 WDIF. . . . . . . . . . . . . . . . . .    B  ADDR  00D8H.3   A   
 WR. . . . . . . . . . . . . . . . . . .    B  ADDR  00B0H.6   A   

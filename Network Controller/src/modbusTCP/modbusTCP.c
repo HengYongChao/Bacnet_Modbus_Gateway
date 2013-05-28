@@ -553,6 +553,56 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 						send_tcp[UIP_HEAD + 3 + loop * 2] = 0;	
 						send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = phoneNumber[temp_number];					 // LJ
 					}
+
+//				else if(StartAdd + loop == MODBUS_DYNDNS_ENABLE)
+//				{
+//					send_tcp[UIP_HEAD + 3 + loop * 2] = 0;
+//					send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = dyndns_enable;
+//				}
+//				else if(StartAdd + loop == MODBUS_DYNDNS_PROVIDER)
+//				{
+//					send_tcp[UIP_HEAD + 3 + loop * 2] = 0;
+//					send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = dyndns_provider;
+//				}
+//				else if(StartAdd + loop == MODBUS_DYNDNS_CHECK_IP_EVERY)
+//				{
+//					send_tcp[UIP_HEAD + 3 + loop * 2] = 0;
+//					send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = check_ip_every;
+//				}
+//				else if(StartAdd + loop == MODBUS_DYNDNS_FORCE_UPDATE_EVERY)
+//				{
+//					send_tcp[UIP_HEAD + 3 + loop * 2] = 0;
+//					send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = force_update_every;
+//				}
+//				else if((StartAdd + loop >= MODBUS_DYNDNS_DOMAIN_NAME_START) && (StartAdd + loop < MODBUS_DYNDNS_DOMAIN_NAME_END))
+//				{
+//					send_tcp[UIP_HEAD + 3 + loop * 2] = 0;
+//					send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = dyndns_domain_name[StartAdd + loop - MODBUS_DYNDNS_DOMAIN_NAME_START];
+//				}
+//				else if((StartAdd + loop >= MODBUS_DYNDNS_USERNAME_START) && (StartAdd + loop < MODBUS_DYNDNS_USERNAME_END))
+//				{
+//					send_tcp[UIP_HEAD + 3 + loop * 2] = 0;
+//					send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = dyndns_username[StartAdd + loop - MODBUS_DYNDNS_USERNAME_START];
+//				}
+//				else if((StartAdd + loop >= MODBUS_DYNDNS_PASSWORD_START) && (StartAdd + loop < MODBUS_DYNDNS_PASSWORD_END))
+//				{
+//					send_tcp[UIP_HEAD + 3 + loop * 2] = 0;
+//					send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = dyndns_password[StartAdd + loop - MODBUS_DYNDNS_PASSWORD_START];
+//				}
+
+//				else if(StartAdd + loop == MODBUS_PING_START)
+//				{
+//					send_tcp[UIP_HEAD + 3 + loop * 2] = 0;
+//					send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = test_uip_len;//ping_enable;
+//				}
+//
+//				else if((StartAdd + loop >= MODBUS_TEST_PING_BUF_START) && (StartAdd + loop < MODBUS_TEST_PING_BUF_END))
+//				{
+//					send_tcp[UIP_HEAD + 3 + loop * 2] = 0;
+//					send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = test_uip_buf[StartAdd + loop - MODBUS_TEST_PING_BUF_START];//ping_enable;
+//				}
+
+
 /*-------------------------  read select 485 id  ----------------------------------------*/
 //					else if(((StartAdd + loop) >= MODBUS_BACNET_START) && ((StartAdd + loop) < MODBUS_BACNET_LAST))
 //				    {

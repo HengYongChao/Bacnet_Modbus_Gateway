@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   GUDPBC                                                                05/24/2013 13:18:42 PAGE 1   
+C51 COMPILER V9.06   GUDPBC                                                                05/28/2013 10:15:30 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE GUDPBC
@@ -8,8 +8,8 @@ COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\management\gudpbc.c L
                     -ur\;..\SRC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\
                     -SRC\buffer\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX1100
                     -0\;..\Src\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusT
-                    -CP;..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\gudpbc.lst) OBJECT(.
-                    -\gudpbc.obj)
+                    -CP;..\src\gs2e;..\src\adpter1;..\src\scan;..\src\gsm;..\src\dyndns) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\gudpbc
+                    -.lst) OBJECT(.\gudpbc.obj)
 
 line level    source
 
@@ -62,7 +62,7 @@ line level    source
   47          
   48          #define GUDPBC_MAX_CONNS                        4
   49          #define GUDPBC_NO_NEW_CONN                      0xFF
-C51 COMPILER V9.06   GUDPBC                                                                05/24/2013 13:18:42 PAGE 2   
+C51 COMPILER V9.06   GUDPBC                                                                05/28/2013 10:15:30 PAGE 2   
 
   50          
   51          #define GUDPBC_STATE_FREE                       0
@@ -126,7 +126,7 @@ line level    source
  109   1      ab[22]=Para[221];
  110   1      ab[23]=0;
  111   1      //port
-C51 COMPILER V9.06   GUDPBC                                                                05/24/2013 13:18:42 PAGE 3   
+C51 COMPILER V9.06   GUDPBC                                                                05/28/2013 10:15:30 PAGE 3   
 
  112   1      //ab[24]=(U8_T)(UdpPort);
  113   1      //ab[25]=(U8_T)(UdpPort>>8);
@@ -190,7 +190,7 @@ line level    source
  171   2                      Time.UN.Setime[1] = (U8_T)(time_year % 100);           //year low
  172   2      
  173   2                      if(!(time_year % 4))  //leap year
-C51 COMPILER V9.06   GUDPBC                                                                05/24/2013 13:18:42 PAGE 4   
+C51 COMPILER V9.06   GUDPBC                                                                05/28/2013 10:15:30 PAGE 4   
 
  174   2                      {
  175   3                              if( (time_day >= 0) && (time_day <= 30) ) // january
@@ -254,7 +254,7 @@ line level    source
  233   4                                      Time.UN.Setime[4] = time_day - 335 + 1; 
  234   4                              }
  235   3      
-C51 COMPILER V9.06   GUDPBC                                                                05/24/2013 13:18:42 PAGE 5   
+C51 COMPILER V9.06   GUDPBC                                                                05/28/2013 10:15:30 PAGE 5   
 
  236   3                      }
  237   2                      else
@@ -318,7 +318,7 @@ line level    source
  295   3                              {
  296   4                                      Time.UN.Setime[2] = 12;
  297   4                                      Time.UN.Setime[4] = time_day - 334 + 1; 
-C51 COMPILER V9.06   GUDPBC                                                                05/24/2013 13:18:42 PAGE 6   
+C51 COMPILER V9.06   GUDPBC                                                                05/28/2013 10:15:30 PAGE 6   
 
  298   4                              }
  299   3              
@@ -382,7 +382,7 @@ line level    source
  357   1      } /* End of GUDPBC_Task() */
  358          
  359          /*
-C51 COMPILER V9.06   GUDPBC                                                                05/24/2013 13:18:42 PAGE 7   
+C51 COMPILER V9.06   GUDPBC                                                                05/28/2013 10:15:30 PAGE 7   
 
  360           * ----------------------------------------------------------------------------
  361           * Function Name: GUDPBC_Init()
@@ -446,7 +446,7 @@ line level    source
  419   1              
  420   1              return GUDPBC_NO_NEW_CONN;
  421   1      
-C51 COMPILER V9.06   GUDPBC                                                                05/24/2013 13:18:42 PAGE 8   
+C51 COMPILER V9.06   GUDPBC                                                                05/28/2013 10:15:30 PAGE 8   
 
  422   1      } /* End of GUDPBC_NewConn() */
  423          
@@ -487,267 +487,256 @@ line level    source
  458   2                      }
  459   1      
  460   1         return       socket;
- 461   1      }
- 462          
+ 461   1      
+ 462   1      }
  463          
- 464          /*
- 465           * ----------------------------------------------------------------------------
- 466           * Function Name: GUDPBC_Receive
- 467           * Purpose: 
- 468           * Params:
- 469           * Returns:
- 470           * Note:
- 471           * ----------------------------------------------------------------------------
- 472           */
- 473          void GUDPBC_Receive(U8_T XDATA* pData, U16_T length, U8_T id)
- 474          {
- 475   1      //      U8_T opcode = 0xFF;
- 476   1      //      BOOL bValidReq = FALSE;
- 477   1      //      GCONFIG_MAC_ADDR macAddr;
- 478   1          U8_T  n=0;
- 479   1              U32_T time_s=0;
- 480   1       
- 481   1          //Uart0_Tx(pData,length);
- 482   1              if( (length == 48) )  //(gudpbc_Conns[id].UdpSocket == Time_Server.UdpSocket) && 
- 483   1              {
-C51 COMPILER V9.06   GUDPBC                                                                05/24/2013 13:18:42 PAGE 9   
+ 464          
+ 465          
+ 466          /*
+ 467           * ----------------------------------------------------------------------------
+ 468           * Function Name: GUDPBC_Receive
+ 469           * Purpose: 
+ 470           * Params:
+ 471           * Returns:
+ 472           * Note:
+ 473           * ----------------------------------------------------------------------------
+ 474           */
+ 475          void GUDPBC_Receive(U8_T XDATA* pData, U16_T length, U8_T id)
+ 476          {
+ 477   1          U8_T  n=0;
+ 478   1              U32_T time_s=0;
+ 479   1       
+ 480   1              if( (length == 48) )  //(gudpbc_Conns[id].UdpSocket == Time_Server.UdpSocket) && 
+ 481   1              {
+ 482   2                      Para[399] = 1;
+ 483   2                      time_s = ( ((U32_T)pData[40]) << 24 ) | ( ((U32_T)pData[41]) << 16 ) | ( ((U32_T)pData[42]) << 8 ) |  ((
+C51 COMPILER V9.06   GUDPBC                                                                05/28/2013 10:15:30 PAGE 9   
 
- 484   2                      Para[399] = 1;
- 485   2                      time_s = ( ((U32_T)pData[40]) << 24 ) | ( ((U32_T)pData[41]) << 16 ) | ( ((U32_T)pData[42]) << 8 ) |  ((
              -U32_T)pData[43]) ;
- 486   2                      TimeServer_Deal(time_s,Para[23]);
- 487   2                      TCPIP_UdpClose(Time_Server.UdpSocket);
- 488   2              }
- 489   1              else
- 490   1              {
- 491   2                  if((pData[0] == 100)&&(pData[1] == 0))
- 492   2                  { 
- 493   3                              scanstart = 1;
- 494   3                      state = 1;
- 495   3                  }
- 496   2                  if(scanstart)
- 497   2                      {  
- 498   3                              for(n = 0; n < (U8_T)length/4; n++)
- 499   3                      { 
- 500   4                              if( (pData[4*n+1] == Para[215])&&(pData[4*n+2] == Para[217])&&(pData[4*n+3] == Para[219])&&(pDat
+ 484   2                      TimeServer_Deal(time_s,Para[23]);
+ 485   2                      TCPIP_UdpClose(Time_Server.UdpSocket);
+ 486   2              }
+ 487   1              else
+ 488   1              {
+ 489   2                  if((pData[0] == 100)&&(pData[1] == 0))
+ 490   2                  { 
+ 491   3                              scanstart = 1;
+ 492   3                      state = 1;
+ 493   3                  }
+ 494   2                  if(scanstart)
+ 495   2                      {  
+ 496   3                              for(n = 0; n < (U8_T)length/4; n++)
+ 497   3                      { 
+ 498   4                              if( (pData[4*n+1] == Para[215])&&(pData[4*n+2] == Para[217])&&(pData[4*n+3] == Para[219])&&(pDat
              -a[4*n+4] == Para[221]))
- 501   4                          { 
- 502   5                                              scanstart=0;
- 503   5                              state=0;
- 504   5                              break;
- 505   5                          }
- 506   4                      }
- 507   3      
- 508   3                      if(state)
- 509   3                              {
- 510   4      //                              gudpbc_HandleSearchReq(pData, id);
- 511   4                                      //use broadcast when scan
- 512   4                                      U8_T socket = TCPIP_UdpNew(2, 3, 0xffffffff, 0, 4321);
- 513   4                                      UdpData();
- 514   4                                      TCPIP_UdpSend(socket, 0, 0, ab, 40);
- 515   4                                      TCPIP_UdpClose(socket);
- 516   4                              }                   
- 517   3                  }
- 518   2                                           
- 519   2                  if((pData[0] == 0xee) && (pData[1] == 0x10))
- 520   2                  {   
- 521   3                              gudpbc_HandleSearchReq(pData, id); 
- 522   3                      IntFlashErase(ERA_RUN, 0x60000);
- 523   3                      FlagIsp = 1;
- 524   3                              USB_disable();
- 525   3                              lcdreset();
- 526   3                              Lcd_Initial();
- 527   3                              Display_Updating();
- 528   3                      AX11000_SoftReboot();   
- 529   3                  }
- 530   2              }
- 531   1      } /* End of GUDPBC_Receive() */
- 532          
- 533          /*
- 534           * ----------------------------------------------------------------------------
- 535           * Function Name: gudpbc_HandleSearchReq
- 536           * Purpose: 
- 537           * Params:
- 538           * Returns:
- 539           * Note:
- 540           * ----------------------------------------------------------------------------
- 541           */
- 542          void gudpbc_HandleSearchReq(U8_T XDATA* pData, U8_T id)
- 543          {
-C51 COMPILER V9.06   GUDPBC                                                                05/24/2013 13:18:42 PAGE 10  
+ 499   4                          { 
+ 500   5                                              scanstart=0;
+ 501   5                              state=0;
+ 502   5                              break;
+ 503   5                          }
+ 504   4                      }
+ 505   3      
+ 506   3                      if(state)
+ 507   3                              {
+ 508   4                                      U8_T socket = TCPIP_UdpNew(2, 3, 0xffffffff, 0, 4321);
+ 509   4                                      UdpData();
+ 510   4                                      TCPIP_UdpSend(socket, 0, 0, ab, 40);
+ 511   4                                      TCPIP_UdpClose(socket);
+ 512   4                              }                   
+ 513   3                  }
+ 514   2                                           
+ 515   2                  if((pData[0] == 0xee) && (pData[1] == 0x10))
+ 516   2                  {   
+ 517   3                              gudpbc_HandleSearchReq(pData, id); 
+ 518   3                      IntFlashErase(ERA_RUN, 0x60000);
+ 519   3                      FlagIsp = 1;
+ 520   3                              USB_disable();
+ 521   3                              lcdreset();
+ 522   3                              Lcd_Initial();
+ 523   3                              Display_Updating();
+ 524   3                      AX11000_SoftReboot();   
+ 525   3                  }
+ 526   2              }
+ 527   1      } /* End of GUDPBC_Receive() */
+ 528          
+ 529          /*
+ 530           * ----------------------------------------------------------------------------
+ 531           * Function Name: gudpbc_HandleSearchReq
+ 532           * Purpose: 
+ 533           * Params:
+ 534           * Returns:
+ 535           * Note:
+ 536           * ----------------------------------------------------------------------------
+ 537           */
+ 538          void gudpbc_HandleSearchReq(U8_T XDATA* pData, U8_T id)
+ 539          {
+ 540   1              pData = pData;
+ 541   1              UdpData();
+ 542   1              TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, ab, 40);
+ 543   1      }/* End of gudpbc_HandleSearchReq() */
+C51 COMPILER V9.06   GUDPBC                                                                05/28/2013 10:15:30 PAGE 10  
 
- 544   1              pData = pData;
- 545   1              UdpData();
- 546   1              TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, ab, 40);
- 547   1      }/* End of gudpbc_HandleSearchReq() */
- 548          
- 549          /*
- 550           * ----------------------------------------------------------------------------
- 551           * Function Name: gudpbc_HandleSetReq
- 552           * Purpose: 
- 553           * Params:
- 554           * Returns:
- 555           * Note:
- 556           * ----------------------------------------------------------------------------
- 557           */
- 558          void gudpbc_HandleSetReq(U8_T XDATA* pData, U16_T length, U8_T id)
- 559          {
- 560   1      #if GUDPBC_ENABLE_DEBUG_MSG
+ 544          
+ 545          /*
+ 546           * ----------------------------------------------------------------------------
+ 547           * Function Name: gudpbc_HandleSetReq
+ 548           * Purpose: 
+ 549           * Params:
+ 550           * Returns:
+ 551           * Note:
+ 552           * ----------------------------------------------------------------------------
+ 553           */
+ 554          void gudpbc_HandleSetReq(U8_T XDATA* pData, U16_T length, U8_T id)
+ 555          {
+ 556   1      #if GUDPBC_ENABLE_DEBUG_MSG
                       printd("gudpbc_HandleSetReq()...\n\r");
               #endif
- 563   1      
- 564   1      #if GS2E_ENABLE_STATE_MACHINE   
+ 559   1      
+ 560   1      #if GS2E_ENABLE_STATE_MACHINE   
                       if (GS2E_GetTaskState() == GS2E_STATE_IDLE)
               #else
- 567   1              if (1)
- 568   1      #endif
- 569   1              {
- 570   2                      GCONFIG_SetConfigPacket(&gudpbc_ConfigRxPkt);
- 571   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_SET_ACK;
- 572   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
- 573   2              }
- 574   1              else
- 575   1              {
- 576   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_SET_DENY;     
- 577   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);         
- 578   2              }
- 579   1      } /* End of gudpbc_HandleSetReq() */
- 580          
- 581          
- 582          
- 583          /*
- 584           * ----------------------------------------------------------------------------
- 585           * Function Name: GCONFIG_SetFirmwareUpgradeMode
- 586           * Purpose: 
- 587           * Params: mode = 1: enable firmware ipgrade after reboot ,  mode = 0: disable
- 588           * Returns:
- 589           * Note:
- 590           * ----------------------------------------------------------------------------
- 591           */
- 592          //void GCONFIG_SetFirmwareUpgradeMode(U8_T mode)
- 593          //{
- 594          //      gconfig_ConfigData.FirmwareUpgradeMode = mode;
- 595          //} /* End of GCONFIG_SetFirmwareUpgradeMode() */
- 596          
- 597          
- 598          
- 599          
- 600          
- 601          /*
- 602           * ----------------------------------------------------------------------------
- 603           * Function Name: gudpbc_HandleUpgradeReq
- 604           * Purpose: 
- 605           * Params:
-C51 COMPILER V9.06   GUDPBC                                                                05/24/2013 13:18:42 PAGE 11  
+ 563   1              if (1)
+ 564   1      #endif
+ 565   1              {
+ 566   2                      GCONFIG_SetConfigPacket(&gudpbc_ConfigRxPkt);
+ 567   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_SET_ACK;
+ 568   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
+ 569   2              }
+ 570   1              else
+ 571   1              {
+ 572   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_SET_DENY;     
+ 573   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);         
+ 574   2              }
+ 575   1      } /* End of gudpbc_HandleSetReq() */
+ 576          
+ 577          
+ 578          
+ 579          /*
+ 580           * ----------------------------------------------------------------------------
+ 581           * Function Name: GCONFIG_SetFirmwareUpgradeMode
+ 582           * Purpose: 
+ 583           * Params: mode = 1: enable firmware ipgrade after reboot ,  mode = 0: disable
+ 584           * Returns:
+ 585           * Note:
+ 586           * ----------------------------------------------------------------------------
+ 587           */
+ 588          //void GCONFIG_SetFirmwareUpgradeMode(U8_T mode)
+ 589          //{
+ 590          //      gconfig_ConfigData.FirmwareUpgradeMode = mode;
+ 591          //} /* End of GCONFIG_SetFirmwareUpgradeMode() */
+ 592          
+ 593          
+ 594          /*
+ 595           * ----------------------------------------------------------------------------
+ 596           * Function Name: gudpbc_HandleUpgradeReq
+ 597           * Purpose: 
+ 598           * Params:
+ 599           * Returns:
+ 600           * Note:
+ 601           * ----------------------------------------------------------------------------
+ 602           */
+ 603          void gudpbc_HandleUpgradeReq(U8_T XDATA* pData, U16_T length, U8_T id)
+ 604          {       
+ 605   1      #if GUDPBC_ENABLE_DEBUG_MSG
+C51 COMPILER V9.06   GUDPBC                                                                05/28/2013 10:15:30 PAGE 11  
 
- 606           * Returns:
- 607           * Note:
- 608           * ----------------------------------------------------------------------------
- 609           */
- 610          void gudpbc_HandleUpgradeReq(U8_T XDATA* pData, U16_T length, U8_T id)
- 611          {       
- 612   1      #if GUDPBC_ENABLE_DEBUG_MSG
                       printd("gudpbc_HandleUpgradeReq()...\n\r");
               #endif
- 615   1      
- 616   1      #if GS2E_ENABLE_STATE_MACHINE   
+ 608   1      
+ 609   1      #if GS2E_ENABLE_STATE_MACHINE   
                       if (GS2E_GetTaskState() == GS2E_STATE_IDLE)
               #else
- 619   1              if (1)
- 620   1      #endif
- 621   1              {
- 622   2      //              GCONFIG_SetFirmwareUpgradeMode(GCONFIG_FW_UPGRADE_ENABLE);
- 623   2                      GCONFIG_WriteConfigData();
- 624   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_UPGRADE_ACK;
- 625   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
- 626   2              //      FirmwareUpdate();
- 627   2              }
- 628   1              else
- 629   1              {
- 630   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_UPGRADE_DENY;         
- 631   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
- 632   2              }
- 633   1      } /* End of gudpbc_HandleUpgradeReq() */
- 634          
- 635          
- 636          
- 637          
- 638          
- 639          
- 640          
- 641          /*
- 642           * ----------------------------------------------------------------------------
- 643           * Function Name: gudpbc_HandleResetReq
- 644           * Purpose: 
- 645           * Params:
- 646           * Returns:
- 647           * Note:
- 648           * ----------------------------------------------------------------------------
- 649           */
- 650          void gudpbc_HandleResetReq(U8_T XDATA* pData, U16_T length, U8_T id)
- 651          {
- 652   1      #if GUDPBC_ENABLE_DEBUG_MSG
+ 612   1              if (1)
+ 613   1      #endif
+ 614   1              {
+ 615   2      //              GCONFIG_SetFirmwareUpgradeMode(GCONFIG_FW_UPGRADE_ENABLE);
+ 616   2                      GCONFIG_WriteConfigData();
+ 617   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_UPGRADE_ACK;
+ 618   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
+ 619   2              //      FirmwareUpdate();
+ 620   2              }
+ 621   1              else
+ 622   1              {
+ 623   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_UPGRADE_DENY;         
+ 624   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
+ 625   2              }
+ 626   1      } /* End of gudpbc_HandleUpgradeReq() */
+ 627          
+ 628          
+ 629          
+ 630          /*
+ 631           * ----------------------------------------------------------------------------
+ 632           * Function Name: gudpbc_HandleResetReq
+ 633           * Purpose: 
+ 634           * Params:
+ 635           * Returns:
+ 636           * Note:
+ 637           * ----------------------------------------------------------------------------
+ 638           */
+ 639          void gudpbc_HandleResetReq(U8_T XDATA* pData, U16_T length, U8_T id)
+ 640          {
+ 641   1      #if GUDPBC_ENABLE_DEBUG_MSG
                       printd("gudpbc_HandleResetReq()...\n\r");
               #endif
- 655   1      
- 656   1      #if GS2E_ENABLE_STATE_MACHINE   
+ 644   1      
+ 645   1      #if GS2E_ENABLE_STATE_MACHINE   
                       if (GS2E_GetTaskState() == GS2E_STATE_IDLE)
               #else
- 659   1              if (1)
- 660   1      #endif
- 661   1              {
- 662   2                      GCONFIG_ReadDefaultConfigData();
- 663   2                      GCONFIG_WriteConfigData();
- 664   2                      GCONFIG_GetConfigPacket(&gudpbc_ConfigRxPkt);
- 665   2                      gudpbc_ConfigRxPkt.Opcode = GCONFIG_OPCODE_RESET_ACK;
- 666   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, (U8_T*) &gudpbc_ConfigRxPkt, GCONFIG_CFG_PKT_LEN);
- 667   2              }
-C51 COMPILER V9.06   GUDPBC                                                                05/24/2013 13:18:42 PAGE 12  
+ 648   1              if (1)
+ 649   1      #endif
+ 650   1              {
+ 651   2                      GCONFIG_ReadDefaultConfigData();
+ 652   2                      GCONFIG_WriteConfigData();
+ 653   2                      GCONFIG_GetConfigPacket(&gudpbc_ConfigRxPkt);
+ 654   2                      gudpbc_ConfigRxPkt.Opcode = GCONFIG_OPCODE_RESET_ACK;
+ 655   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, (U8_T*) &gudpbc_ConfigRxPkt, GCONFIG_CFG_PKT_LEN);
+ 656   2              }
+ 657   1              else
+ 658   1              {
+ 659   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_RESET_DENY;   
+ 660   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
+ 661   2              }
+ 662   1      } /* End of gudpbc_HandleResetReq() */
+ 663          
+ 664          /*
+ 665           * ----------------------------------------------------------------------------
+ 666           * Function Name: gudpbc_HandleRebootReq
+ 667           * Purpose: 
+C51 COMPILER V9.06   GUDPBC                                                                05/28/2013 10:15:30 PAGE 12  
 
- 668   1              else
- 669   1              {
- 670   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_RESET_DENY;   
- 671   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
- 672   2              }
- 673   1      } /* End of gudpbc_HandleResetReq() */
- 674          
- 675          /*
- 676           * ----------------------------------------------------------------------------
- 677           * Function Name: gudpbc_HandleRebootReq
- 678           * Purpose: 
- 679           * Params:
- 680           * Returns:
- 681           * Note:
- 682           * ----------------------------------------------------------------------------
- 683           */
- 684          void gudpbc_HandleRebootReq(U8_T XDATA* pData, U16_T length, U8_T id)
- 685          {
- 686   1      #if GUDPBC_ENABLE_DEBUG_MSG
+ 668           * Params:
+ 669           * Returns:
+ 670           * Note:
+ 671           * ----------------------------------------------------------------------------
+ 672           */
+ 673          void gudpbc_HandleRebootReq(U8_T XDATA* pData, U16_T length, U8_T id)
+ 674          {
+ 675   1      #if GUDPBC_ENABLE_DEBUG_MSG
                       printd("gudpbc_HandleRebootReq()...\n\r");
               #endif
- 689   1      
- 690   1      #if GS2E_ENABLE_STATE_MACHINE
+ 678   1      
+ 679   1      #if GS2E_ENABLE_STATE_MACHINE
                       if (GS2E_GetTaskState() == GS2E_STATE_IDLE)
               #else
- 693   1              if (1)
- 694   1      #endif
- 695   1              {
- 696   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_REBOOT_ACK;   
- 697   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
- 698   2                      // May store current status/setting here before restart
- 699   2                      lcdreset();
- 700   2                      Lcd_Initial();
- 701   2                      Display_Updating();
- 702   2                      AX11000_SoftReboot();
- 703   2              }
- 704   1              else
- 705   1              {
- 706   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_RESET_DENY;   
- 707   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
- 708   2              }
- 709   1      } /* End of gudpbc_HandleRebootReq() */
- 710          
- 711          #if GUDPBC_EEPROM_CONFIG
+ 682   1              if (1)
+ 683   1      #endif
+ 684   1              {
+ 685   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_REBOOT_ACK;   
+ 686   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
+ 687   2                      // May store current status/setting here before restart
+ 688   2                      lcdreset();
+ 689   2                      Lcd_Initial();
+ 690   2                      Display_Updating();
+ 691   2                      AX11000_SoftReboot();
+ 692   2              }
+ 693   1              else
+ 694   1              {
+ 695   2                      *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_RESET_DENY;   
+ 696   2                      TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
+ 697   2              }
+ 698   1      } /* End of gudpbc_HandleRebootReq() */
+ 699          
+ 700          #if GUDPBC_EEPROM_CONFIG
               /*
                * ----------------------------------------------------------------------------
                * Function Name: gudpbc_HandleEepromReadReq
@@ -766,8 +755,6 @@ line level    source
                       GCONFIG_GetConfigPacket(&gudpbc_ConfigRxPkt);
                       *(pData + GCONFIG_OPCODE_OFFSET) = GCONFIG_OPCODE_EEPROM_READ_ACK;
                       TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
-C51 COMPILER V9.06   GUDPBC                                                                05/24/2013 13:18:42 PAGE 13  
-
               }
               
               /*
@@ -779,6 +766,8 @@ line level    source
                * Note:
                * ----------------------------------------------------------------------------
                */
+C51 COMPILER V9.06   GUDPBC                                                                05/28/2013 10:15:30 PAGE 13  
+
               void gudpbc_HandleEepromWriteReq(U8_T XDATA* pData, U16_T length, U8_T id)
               {
               #if GUDPBC_ENABLE_DEBUG_MSG
@@ -791,7 +780,7 @@ line level    source
                       TCPIP_UdpSend(gudpbc_Conns[id].UdpSocket, 0, 0, pData, length);
               }
               #endif
- 753          /* End of gudpbc.c */
+ 742          /* End of gudpbc.c */
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE

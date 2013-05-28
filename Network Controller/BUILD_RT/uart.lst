@@ -1,4 +1,4 @@
-C51 COMPILER V9.06   UART                                                                  05/24/2013 13:13:41 PAGE 1   
+C51 COMPILER V9.06   UART                                                                  05/28/2013 10:15:27 PAGE 1   
 
 
 C51 COMPILER V9.06, COMPILATION OF MODULE UART
@@ -8,7 +8,8 @@ COMPILER INVOKED BY: E:\Keil_4_9.06\C51\BIN\C51.EXE ..\src\uart\uart.c LARGE OMF
                     -RC\debug\;..\SRC\dhcp\;..\SRC\dns\;..\SRC\adapter\;..\SRC\pppoe\;..\SRC\management;..\SRC\i2c\;..\SRC\flash\;..\SRC\buff
                     -er\;..\SRC\onewire\;..\SRC\http\;..\SRC\web\;..\SRC\AX110xx_SNTP_v100;..\Src\FreeRTOSSource\portable\Keil\AX11000\;..\Sr
                     -c\FreeRTOSSource\include\;..\Src\schedule\;..\src\bacnet;..\src\include;..\src\LCD;..\src\version;..\src\modbusTCP;..\sr
-                    -c\gs2e;..\src\adpter1;..\src\scan;..\src\gsm) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\uart.lst) OBJECT(.\uart.obj)
+                    -c\gs2e;..\src\adpter1;..\src\scan;..\src\gsm;..\src\dyndns) DEFINE(KEIL_AX11000) VARBANKING DEBUG PRINT(.\uart.lst) OBJE
+                    -CT(.\uart.obj)
 
 line level    source
 
@@ -61,9 +62,9 @@ line level    source
   47          #include        "hsuart.h"
   48          #endif
   49          #include        "adapter_cfg.h"
-  50          
-C51 COMPILER V9.06   UART                                                                  05/24/2013 13:13:41 PAGE 2   
+C51 COMPILER V9.06   UART                                                                  05/28/2013 10:15:27 PAGE 2   
 
+  50          
   51          // #include "Main.h"
   52          // #include <string.h>
   53          
@@ -125,9 +126,9 @@ line level    source
  109          U8_T far UartRev[8] ;
  110          extern  U8_T SYS_FREQUENCY_PERIOD;
  111          extern  U8_T SYS_FREQUENCY_PERIOD1;
- 112          
-C51 COMPILER V9.06   UART                                                                  05/24/2013 13:13:41 PAGE 3   
+C51 COMPILER V9.06   UART                                                                  05/28/2013 10:15:27 PAGE 3   
 
+ 112          
  113          
  114          U8_T far UartSend[255];
  115          U8_T far UartRevNum=0;
@@ -189,9 +190,9 @@ line level    source
  171   1              if (TI0)
  172   1              {
  173   2                      
- 174   2                      FlagSend = 1;// finishing sending flag
-C51 COMPILER V9.06   UART                                                                  05/24/2013 13:13:41 PAGE 4   
+C51 COMPILER V9.06   UART                                                                  05/28/2013 10:15:27 PAGE 4   
 
+ 174   2                      FlagSend = 1;// finishing sending flag
  175   2                      TI0 = 0;
  176   2      
  177   2      
@@ -253,9 +254,9 @@ line level    source
  233   2                              break;
  234   2                      case SCS_25M :
  235   2                      //      AX_DBG_LED(0x25);
- 236   2                              SYS_FREQUENCY_PERIOD1 =100;
-C51 COMPILER V9.06   UART                                                                  05/24/2013 13:13:41 PAGE 5   
+C51 COMPILER V9.06   UART                                                                  05/28/2013 10:15:27 PAGE 5   
 
+ 236   2                              SYS_FREQUENCY_PERIOD1 =100;
  237   2                              SYS_FREQUENCY_PERIOD = 200;
  238   2                              TH1 = 0xF9;             // Baud rate = 9600 @ 25MHz.
  239   2                              break;
@@ -317,9 +318,9 @@ line level    source
  295   1              uart0_TxHead++;
  296   1              uart0_TxHead &= MAX_TX_UART0_MASK;
  297   1      
- 298   1              if (!uart0_TxFlag)
-C51 COMPILER V9.06   UART                                                                  05/24/2013 13:13:41 PAGE 6   
+C51 COMPILER V9.06   UART                                                                  05/28/2013 10:15:27 PAGE 6   
 
+ 298   1              if (!uart0_TxFlag)
  299   1              {
  300   2                      uart0_TxFlag = 1;
  301   2                      SBUF0 = uart0_TxBuf[uart0_TxTail];
@@ -381,9 +382,9 @@ line level    source
  357   2                      uart0_RxTail &= MAX_RX_UART0_MASK;
  358   2                      return c;
  359   2              }
- 360   1              else
-C51 COMPILER V9.06   UART                                                                  05/24/2013 13:13:41 PAGE 7   
+C51 COMPILER V9.06   UART                                                                  05/28/2013 10:15:27 PAGE 7   
 
+ 360   1              else
  361   1              {
  362   2                      return FALSE;
  363   2              }
@@ -445,9 +446,9 @@ line level    source
  419           * ----------------------------------------------------------------------------
  420           */
  421          static void uart1_Init(void)
- 422          {
-C51 COMPILER V9.06   UART                                                                  05/24/2013 13:13:41 PAGE 8   
+C51 COMPILER V9.06   UART                                                                  05/28/2013 10:15:27 PAGE 8   
 
+ 422          {
  423   1              U8_T    sysClk = 0;
  424   1              U16_T   i;
  425   1      
@@ -509,9 +510,9 @@ line level    source
  481   1              U16_T   count = 0;
  482   1      
  483   1              if (c == 0xa)
- 484   1              {
-C51 COMPILER V9.06   UART                                                                  05/24/2013 13:13:41 PAGE 9   
+C51 COMPILER V9.06   UART                                                                  05/28/2013 10:15:27 PAGE 9   
 
+ 484   1              {
  485   2                      do
  486   2                      {
  487   3                              EA = 0;
@@ -573,9 +574,9 @@ line level    source
  543   1              uart1_RxTail++;
  544   1              uart1_RxTail &= MAX_RX_UART1_MASK;
  545   1              return c;
- 546   1      }
-C51 COMPILER V9.06   UART                                                                  05/24/2013 13:13:41 PAGE 10  
+C51 COMPILER V9.06   UART                                                                  05/28/2013 10:15:27 PAGE 10  
 
+ 546   1      }
  547          
  548          /*
  549           * ----------------------------------------------------------------------------
@@ -637,9 +638,9 @@ line level    source
  605           * Purpose : UART putchar function. This function is the entry of putting
  606           *           characters into software buffer of system's UART ports,
  607           *           UART0, UART1 and HSUR. 
- 608           * Params  : c - one byte character to be put.
-C51 COMPILER V9.06   UART                                                                  05/24/2013 13:13:41 PAGE 11  
+C51 COMPILER V9.06   UART                                                                  05/28/2013 10:15:27 PAGE 11  
 
+ 608           * Params  : c - one byte character to be put.
  609           * Returns : ch - the same character to be replied.
  610           * Note    : The default UART port is UART0.
  611           * ----------------------------------------------------------------------------
@@ -701,9 +702,9 @@ line level    source
  667   1              return c;
  668   1      }
  669          
- 670          /*
-C51 COMPILER V9.06   UART                                                                  05/24/2013 13:13:41 PAGE 12  
+C51 COMPILER V9.06   UART                                                                  05/28/2013 10:15:27 PAGE 12  
 
+ 670          /*
  671           * ----------------------------------------------------------------------------
  672           * BOOL UART_ParityChk(S8_T checkByte)
  673           * Purpose : UART parity checked function in one byte transfer.
@@ -765,9 +766,9 @@ line level    source
  729          
  730          /*
  731           * ----------------------------------------------------------------------------
- 732           * BOOL UART_SetPort(U8_T portNum)
-C51 COMPILER V9.06   UART                                                                  05/24/2013 13:13:41 PAGE 13  
+C51 COMPILER V9.06   UART                                                                  05/28/2013 10:15:27 PAGE 13  
 
+ 732           * BOOL UART_SetPort(U8_T portNum)
  733           * Purpose : Setting which UART port will be used.
  734           * Params  : portNum - uart port number (0~2).
  735           * Returns : none
@@ -829,9 +830,9 @@ line level    source
                       // Initialize TIMER1 for standard 8051 UART clock
                       PCON  = BIT7;           // Enable BaudRate doubler.
                       SM01  = 1;                      // Use serial port 0 in mode 1 with 8-bits data.
-                      REN0  = 1;                      // Enable UART0 receiver.
-C51 COMPILER V9.06   UART                                                                  05/24/2013 13:13:41 PAGE 14  
+C51 COMPILER V9.06   UART                                                                  05/28/2013 10:15:27 PAGE 14  
 
+                      REN0  = 1;                      // Enable UART0 receiver.
                       TMOD  = 0x20;           // Use timer 1 in mode 2, 8-bit counter with auto-reload.
               
                       TH1 = 0xFE;                     // Baud rate = 1200 @ 25MHz.

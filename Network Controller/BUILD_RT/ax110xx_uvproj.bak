@@ -74,7 +74,7 @@
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>1</RunUserProg2>
             <UserProg1Name>..\hex2bin -s 0 ax110xx.hex</UserProg1Name>
-            <UserProg2Name>..\makeruntime ax110xx.bin NC.bin</UserProg2Name>
+            <UserProg2Name>..\makeruntime ax110xx.bin NC_Rev.bin</UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
           </AfterMake>
@@ -540,7 +540,7 @@
             <File>
               <FileName>gconfig.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\src\gs2e\gconfig.c</FilePath>
+              <FilePath>..\src\management\gconfig.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1539,6 +1539,21 @@
               <FileName>gsm.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\gsm\gsm.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>dyndns</GroupName>
+          <Files>
+            <File>
+              <FileName>dyndns.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\dyndns\dyndns.c</FilePath>
+            </File>
+            <File>
+              <FileName>dyndns_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\dyndns\dyndns_app.c</FilePath>
             </File>
           </Files>
         </Group>
