@@ -15,6 +15,7 @@ extern U8_T far CRChi;
 extern void CRC16_Tstat(U8_T ch);
 extern U8_T Sever_Order;
 extern U8_T far Para[400];
+extern U8_T   global_signal;
 
 SCAN_DB far scan_db[MAX_ID];
 SCAN_DB far current_db;
@@ -257,20 +258,27 @@ void dealwith_conflict_id(void)
 void scan_tstat(void)
 {
 	U8_T cnt[5];
-	
-	bin_search(1, 254);
-	dealwith_conflict_id();
 
-	cnt[0] =  db_ctr;
-//	Uart0_Tx(cnt, 1);
-
-
-	if(scan_db_changed == TRUE)
+	if(!global_signal)
 	{
-		scan_db_changed = FALSE;
-		ChangeFlash = 1;
+	//	global_signal = 1;	
+		
+		bin_search(1, 254);
+		dealwith_conflict_id();
+	
+		cnt[0] =  db_ctr;
+	
+		if(scan_db_changed == TRUE)
+		{
+			scan_db_changed = FALSE;
+			ChangeFlash = 1;
+		}
 	}
 }
+
+
+
+
 
 // read from flash to get the init online status
 void init_scan(void)

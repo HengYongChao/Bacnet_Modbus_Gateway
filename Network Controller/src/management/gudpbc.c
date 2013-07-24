@@ -73,7 +73,7 @@ void gudpbc_HandleEepromWriteReq(U8_T XDATA* pData, U16_T length, U8_T id);
 #endif
 
 U8_T    FlagIsp=0;
-U16_T UdpPort=1234;
+//U16_T UdpPort=1234;
 extern   U8_T  far  Para[400]; 
 U8_T ab[40]={0x65,0,0x0e,0};//0x0b
 
@@ -369,9 +369,6 @@ void GUDPBC_Init(U16_T localPort)
 {
 	U8_T	i;
 
-	printd("GUDPBC_Init()...\n\r");
-//	printd("NC fw69.11hw26bl14\n\r");
-//	char abc[] = {"NC fw69.11hw26bl14"};
 
 	for (i = 0; i < GUDPBC_MAX_CONNS; i++)
 		gudpbc_Conns[i].State = GUDPBC_STATE_FREE;

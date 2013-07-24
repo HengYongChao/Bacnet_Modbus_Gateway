@@ -60,7 +60,7 @@ static MODBUSTCP_SERVER_CONN XDATA MODBUSTCP_Connects[MAX_MODBUSTCP_CONNECT];
 static U8_T MODBUSTCP_NewConfig(void);
 static void	MODBUSTCP_DivideHtmlFile(MODBUSTCP_SERVER_CONN XDATA*, U8_T);
 extern void Led_ReSet();
-
+extern  U8_T   global_signal;
 
 /* LOCAL VARIABLES */
 static U8_T XDATA PostTable[MAX_POST_COUNT];
@@ -129,7 +129,9 @@ extern U8_T bacnet_id ;
 U16_T sessonid;
 U16_T sessonlen;
 
-extern enum ledState LED;
+//extern enum ledState LED;
+
+extern U8_T LED;
 extern U8_T Sever_id;
 //sbit En=P3^6;
 unsigned char far CRClo;
@@ -366,11 +368,11 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 			send_tcp[UIP_HEAD+2] = Para[13];
 			NTFlag = 5;
 		}	
-		else*/
+		else
+		*/
 	    if(pData[UIP_HEAD + 1] == 0x19) //scan Tsnet
 		{
 			TcpSocket_ME = pMODBUSTCPConn->TcpSocket;
-			LED = S485_OK;
 
 		    Sever_Order = SERVER_TCPIP;
 			Sever_id = pData[UIP_HEAD];
@@ -735,7 +737,7 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 		{
 			ChangeFlash = 1;
 			StartAdd = (pData[UIP_HEAD+2] << 8) + pData[UIP_HEAD + 3]; //起始地址
-			if((StartAdd == 100) && (pData[UIP_HEAD + 6] == 12))
+			if((StartAdd == 100) && (pData[UIP_HEAD + 6] == 12))		 //MAC MULTI-WRITE
 			{
 				Para[201] = pData[UIP_HEAD + 8];
 				Para[203] = pData[UIP_HEAD + 10];
@@ -743,6 +745,25 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 				Para[207] = pData[UIP_HEAD + 14];
 				Para[209] = pData[UIP_HEAD + 16];
 				Para[211] = pData[UIP_HEAD + 18];
+
+				mac_change_enable = 1;
+				ChangeIP = 1;
+			}
+			else if((StartAdd == 107) && (pData[UIP_HEAD + 6] == 24))	//IP,MASK,GATEWAY,multi-write
+			{
+
+				Para[215] = pData[UIP_HEAD + 8];
+				Para[217] = pData[UIP_HEAD + 10];
+				Para[219] = pData[UIP_HEAD + 12];
+				Para[221] = pData[UIP_HEAD + 14];
+				Para[223] = pData[UIP_HEAD + 16];
+				Para[225] = pData[UIP_HEAD + 18];
+				Para[227] = pData[UIP_HEAD + 20];
+				Para[229] = pData[UIP_HEAD + 22];
+				Para[231] = pData[UIP_HEAD + 24];
+				Para[233] = pData[UIP_HEAD + 26];
+				Para[235] = pData[UIP_HEAD + 28];
+				Para[237] = pData[UIP_HEAD + 30];
 
 				mac_change_enable = 1;
 				ChangeIP = 1;
@@ -759,8 +780,6 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 			}
 			else if(StartAdd == SCHEDUAL_MODBUS_ADDRESS) //200th register ,write time 
 			{
-//				if((StartAdd - SCHEDUAL_MODBUS_ADDRESS) % 8 == 0)
-//					memcpy(Time.UN.Setime,&pData[UIP_HEAD + 7], 8);
 				if(pData[UIP_HEAD + 5] == 8)
 				{
 					if(pData[UIP_HEAD + 5] == pData[UIP_HEAD + 6])
@@ -885,12 +904,12 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 		}
 		else if(NTFlag == 2)//single_write response byte num=6  ChangeFlash=1;
 		{
-			LED = Ethnet_OK;
+		   	LED = Ethnet_OK;
 			TCPIP_TcpSend(pMODBUSTCPConn->TcpSocket, send_tcp, RealNum+UIP_HEAD, TCPIP_SEND_NOT_FINAL);
 		}
 		else if(NTFlag == 3)//multi_write  ChangeFlash=1;
 		{
-			LED = Ethnet_OK;
+		   	LED = Ethnet_OK;
 			TCPIP_TcpSend(pMODBUSTCPConn->TcpSocket, send_tcp, RealNum+UIP_HEAD, TCPIP_SEND_NOT_FINAL);            
 		} 
 		else if(NTFlag == 5)
@@ -907,12 +926,18 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 	{
 		EA = 0; 
 
-		LED = Ethnet_OK;
+		global_signal = 2;
+
+		
+		if(LED == Zigbee_OK)
+			LED = Zigbee_OK;
+		else
+			LED = S485_OK ;
 
 		TsataId = pData[UIP_HEAD];
 
 		TcpSocket_ME = pMODBUSTCPConn->TcpSocket;
-//		sessonid = ((U16_T)pData[0] << 8) | pData[1];
+
 		if(pData[UIP_HEAD + 1] == READ_VARIABLES)
 		{
 			sessonlen = 2 * pData[UIP_HEAD + 5];//有效字节数目
@@ -940,10 +965,6 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 		EA = 1;
 //		Uart0_Tx(send_tcp, StartAdd);//////////////////
 		Tx_To_Tstat(send_tcp, StartAdd);
-	#if 0
-		DELAY_Ms(40);
-		Uart2_Receive();
-	#endif
 	
 	}
 } /* End of MODBUSTCP_Receive() */

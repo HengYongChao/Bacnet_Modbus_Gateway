@@ -131,7 +131,6 @@ void Flash_Write_Schedule(void)
 				for(loop2 = 0; loop2 < ptr_flash.len; loop2++)
 					IntFlashWriteByte(0x70000 + base_addr + loop2, tempbuf[loop2]);		
 				break;
-
 			case T_ID:
 				for(loop1 = 0; loop1 < MAX_ID; loop1++)
 				{
@@ -167,6 +166,8 @@ void Flash_Write_Schedule(void)
 				for(loop2 = 0; loop2 < ptr_flash.len; loop2++)
 					IntFlashWriteByte(0x70000 + base_addr + loop2, tempbuf[loop2]);
 				break;
+
+
 			default:	
 				break;
 		

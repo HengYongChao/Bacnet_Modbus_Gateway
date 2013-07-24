@@ -14,6 +14,8 @@ STR_WR far WR_Roution[MAX_WR];
 STR_AR far AR_Roution[MAX_AR];
 UN_ID far ID_Config[MAX_ID];
 
+extern  U8_T   global_signal;
+
 bit BIT_FLAG;  // 0 -- run schedule 
 unsigned char idata current_hour;
 unsigned char idata current_minute;
@@ -101,67 +103,8 @@ bit GetBit(unsigned char bit_number,unsigned char *value)
 	return (bit)(*(value + octet_index) & mask);
 }
 
-U8_T Read_ORT(U8_T id)
-{
-	U8_T send_data[8], tstat_id, i;
-	union
-	{
-		unsigned int word;
-		unsigned char byte[2];
-	}crc_16;
 
-	tstat_id = id;
-	send_data[0] = tstat_id;
-	send_data[1] = 0x03;
-	send_data[2] = 0;
-	send_data[3] = 211; // unoccupied override time
-	send_data[4] = 0;
-	send_data[5] = 1;
-	crc_16.word = CRC16(send_schedual, 0x06);
-	send_data[6] = crc_16.byte[0];
-	send_data[7] = crc_16.byte[1];
-	Tx_To_Tstat(send_data, 8);	  				
-	DELAY_Ms(60);
-    i = 0;
-	if(hsurRxCount > 0)
-	{
-		while(hsurRxCount)
-			send_data[i++] = HSUR_GetCharNb();
-	}
-	else if(uart1_RxCount > 0)
-	{
-		for(i = 0; i < uart1_RxCount; i++)
-			send_data[i] = uart1_RxBuf[i];
-		uart1_RxCount = 0;
-	}
 
-	if(i > 0)
-		return(send_data[4]);
-
-	return 0;
-}
-
-void Write_ORT(U8_T id, U8_T ort)
-{
-	U8_T send_data[8];
-	union
-	{
-		unsigned int word;
-		unsigned char byte[2];
-	}crc_16;
-
-	send_data[0] = id;
-	send_data[1] = 0x06;
-	send_data[2] = 0;
-	send_data[3] = 211; // unoccupied override time
-	send_data[4] = 0;
-	send_data[5] = ort;
-	crc_16.word = CRC16(send_data, 0x06);
-	send_data[6] = crc_16.byte[0];
-	send_data[7] = crc_16.byte[1];
-
-	Tx_To_Tstat(send_data, 8);
-}
 
 /////LHN ADD///////////////////
 void SendSchedualData(unsigned char id_index, bit output)
@@ -172,34 +115,10 @@ void SendSchedualData(unsigned char id_index, bit output)
 		unsigned char byte[2];
 	}crc;
 	
-//	unsigned char output_value;
-//	unsigned char ort_num = 0;
 
 	unsigned char retry_times = 3;
 	schedule_id = id_index + 1;
-
-//	if(output)
-//	{
-//		output_value = 1;
-//		/////LHN ADD///////////////////
-//		/*ort_num = Read_ORT(number);
-//		if(ort_num)
-//		{
-//			Ort_Table[number] = ort_num;
-//			Write_ORT(number, 0);
-//		}*/
-//	}
-//	else
-//	{	
-//		output_value = 0;
-//		/////LHN ADD///////////////////
-//		/*ort_num = Read_ORT(number);
-//		if(!ort_num)
-//		{
-//			ort_num = Ort_Table[number];
-//			Write_ORT(number, ort_num);
-//		}*/
-//	}		 
+	 
 	
 	send_schedual[0] = schedule_id;
 	send_schedual[1] = 0x06;
@@ -212,7 +131,7 @@ void SendSchedualData(unsigned char id_index, bit output)
 	send_schedual[6] = crc.byte[0];
 	send_schedual[7] = crc.byte[1];
 
-	while(retry_times)
+	while(retry_times )						
 	{
 		Sever_Order = SERVER_SCHEDULE;
  		Tx_To_Tstat(send_schedual, 8);						  
@@ -228,25 +147,22 @@ void SendSchedualData(unsigned char id_index, bit output)
 		}		
 	}
 
-//	if(retry_times)
-//	{
-		if(output) 
+	if(output) 
+	{
+		if(GetBit(id_index, output_state_index) == 0)
 		{
-			if(GetBit(id_index, output_state_index) == 0)
-			{
-				SetBit(id_index & 0x07, &output_state_index[id_index >> 3]);
-				ID_CHANGED = 0;
-			}
+			SetBit(id_index & 0x07, &output_state_index[id_index >> 3]);
+			ID_CHANGED = 0;
 		}
-		else 
+	}
+	else 
+	{
+		if(GetBit(id_index, output_state_index) == 1)
 		{
-			if(GetBit(id_index, output_state_index) == 1)
-			{
-				ClearBit(id_index & 0x07, &output_state_index[id_index >> 3]);
-				ID_CHANGED = 0;
-			}
+			ClearBit(id_index & 0x07, &output_state_index[id_index >> 3]);
+			ID_CHANGED = 0;
 		}
-//	}
+	}
 }
  
 /* Execute per 500ms */

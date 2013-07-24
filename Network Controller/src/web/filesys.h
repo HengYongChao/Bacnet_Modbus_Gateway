@@ -28,21 +28,22 @@
 #define FILE_ADVSETTING			1
 #define FILE_AXJS0			3
 #define FILE_BSCSETTING			4
-#define FILE_INDEX			5
-#define FILE_JMPINDEX			6
-#define FILE_MSGACCERR			7
-#define FILE_MSGADVERR			8
-#define FILE_MSGAUTHERR			9
-#define FILE_MSGAUTHOK			10
-#define FILE_MSGBSCERR			11
-#define FILE_MSGREBOOT			12
-#define FILE_MSGRESTORE			13
-#define FILE_MSGSCTERR			14
-#define FILE_MSGUNPWOK			15
-#define FILE_MSGUPG			16
-#define FILE_SECURITY			17
+#define FILE_DDNS			5
+#define FILE_INDEX			6
+#define FILE_JMPINDEX			7
+#define FILE_MSGACCERR			8
+#define FILE_MSGADVERR			9
+#define FILE_MSGAUTHERR			10
+#define FILE_MSGAUTHOK			11
+#define FILE_MSGBSCERR			12
+#define FILE_MSGREBOOT			13
+#define FILE_MSGRESTORE			14
+#define FILE_MSGSCTERR			15
+#define FILE_MSGUNPWOK			16
+#define FILE_MSGUPG			17
+#define FILE_SECURITY			18
 
-#define MAX_STORE_FILE_NUM	18
+#define MAX_STORE_FILE_NUM	19
 #define MAX_FILE_NAME_LEN	30
 
 #define FILE_TYPE_HTML		0
@@ -50,12 +51,12 @@
 #define FILE_TYPE_JS		BIT1
 #define FILE_TYPE_CSS		BIT1|BIT0
 
-#define MAX_POST_RECORDS	23
+#define MAX_POST_RECORDS	28
 #define MAX_POST_BUF_SUBMIT	3
-#define MAX_POST_BUF_TEXT	5
+#define MAX_POST_BUF_TEXT	8
 #define MAX_POST_BUF_TAG	0
 #define MAX_POST_BUF_RADIO	0
-#define MAX_POST_BUF_SELECT	9
+#define MAX_POST_BUF_SELECT	11
 #define MAX_POST_NAME_LEN	15
 #define MAX_POST_VALUE_LEN	65
 #define NORM_POST_VALUE_LEN	16
@@ -83,12 +84,17 @@
 #define RECORD_TEXT_static_ip		13
 #define RECORD_TEXT_mask		14
 #define RECORD_TEXT_gateway_ip		15
-#define RECORD_TEXT_username		16
-#define RECORD_TEXT_password		17
-#define RECORD_TEXT_new_usn		19
-#define RECORD_TEXT_old_psw		20
-#define RECORD_TEXT_new_psw		21
-#define RECORD_TEXT_cfm_psw		22
+#define RECORD_SELECT_select_service		16
+#define RECORD_TEXT_ddns_name		17
+#define RECORD_TEXT_ddns_psd		18
+#define RECORD_TEXT_host_name		19
+#define RECORD_SELECT_chk_ddns_frey		20
+#define RECORD_TEXT_username		21
+#define RECORD_TEXT_password		22
+#define RECORD_TEXT_new_usn		24
+#define RECORD_TEXT_old_psw		25
+#define RECORD_TEXT_new_psw		26
+#define RECORD_TEXT_cfm_psw		27
 
 /* TYPE DECLARATIONS */
 /*-------------------------------------------------------------*/
@@ -175,13 +181,17 @@ typedef struct _BUF_SELECT
 
 } BUF_SELECT;
 #endif
+
+
 /*-------------------------------------------------------------*/
  typedef struct {
 	U8_T* name;
 	U8_T* val;
 } entry;
-	extern entry entries[20];
-	extern U8_T num_parms;
+
+
+extern entry entries[20];
+extern U8_T num_parms;
 
 /*-------------------------------------------------------------*/
 
@@ -213,6 +223,11 @@ void FUN_SELECT_dhcp (void *pWebData);
 void FUN_TEXT_static_ip (void *pWebData);
 void FUN_TEXT_mask (void *pWebData);
 void FUN_TEXT_gateway_ip (void *pWebData);
+void FUN_SELECT_select_service (void *pWebData);
+void FUN_TEXT_ddns_name (void *pWebData);
+void FUN_TEXT_ddns_psd (void *pWebData);
+void FUN_TEXT_host_name (void *pWebData);
+void FUN_SELECT_chk_ddns_frey (void *pWebData);
 void FUN_TEXT_username (void *pWebData);
 void FUN_TEXT_password (void *pWebData);
 void FUN_TEXT_new_usn (void *pWebData);

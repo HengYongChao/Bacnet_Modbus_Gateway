@@ -105,12 +105,12 @@
 
 /* STATIC VARIABLE DECLARATIONS */
 
-U8_T far hsurRxBuffer[UR2_MAX_RX_SIZE];
+	   U8_T far hsurRxBuffer[UR2_MAX_RX_SIZE];
 static U8_T	far 	hsurTxBuffer[UR2_MAX_TX_SIZE];
 static U16_T far 	hsurRxBufNum = 0;
 static U16_T far 	hsurTxBufNum = 0;
 static U8_T	 far 	hsurRxTrigLvl = 0;
-U16_T	far hsurRxCount = 0;
+	   U16_T	far hsurRxCount = 0;
 static S16_T far 	hsurTxCount = 0;
 static U16_T far 	hsurGetPtr = 0;
 static U16_T far 	hsurPutPtr = 0;
@@ -130,8 +130,8 @@ static U8_T	 far 	hsurLineControlValue = 0;
 static U8_T	 far 	hsurModemControlValue = 0;
 static U8_T	 far 	hsurFifoControlValue = 0;
 static U8_T	 far 	hsurAppFlowOn = 0;
-static U8_T     far  hsurFlowCtrlXoff = FALSE;
-static U8_T    far  hsurFlowCtrlXon = FALSE;
+static U8_T  far  	hsurFlowCtrlXoff = FALSE;
+static U8_T  far  	hsurFlowCtrlXon = FALSE;
 static U8_T	 far 	hsurFlowCtrlHwCTSon = FALSE;
 
 U8_T far uart2_timeout = UART2_TIMEOUT;

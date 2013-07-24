@@ -103,6 +103,7 @@ function chkForm(index) {
 }
 
 	if (errFlag) return false;
+	
 	switch (submitType)
 {
 	case 1:

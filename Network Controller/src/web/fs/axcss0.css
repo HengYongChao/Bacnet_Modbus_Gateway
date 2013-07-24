@@ -51,6 +51,19 @@
 	width: 200px;
 	white-space: nowrap;
 }
+
+.item_3 {
+
+	font-family: Verdana, Geneva, sans-serif;
+	font-size: 0.33cm;
+	color: #036;
+	margin-top: 10px;
+	position: static;
+	width: 200px;
+	white-space: nowrap;	
+	
+}
+
 .item_2 {
 	margin-left: 20px;
 	margin-top: 10px;
@@ -101,4 +114,14 @@ a:active {
 	white-space: nowrap;
 	font-style: italic;
 }
-
+.wz{
+	font-family: Verdana, Geneva, sans-serif;
+	font-size: 0.33cm;
+	color: #036;
+	position:static;
+	}
+	
+.msg{
+		padding:20px 0px 0px 100px;
+		width:100%;
+	}

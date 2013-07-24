@@ -35,23 +35,28 @@
 	<tr>
     <td colspan="2" align="left" bgcolor="#C0C0C0"><table width="20" border="0" cellpadding="0" cellspacing="0">
         <tr>
+        	
           <td bgcolor="#C0C0C0"><div class="menuitem_1"><a href="bscsetting.htm">Basic</a></div></td>
-          <td bgcolor="#EDEFEF"><div class="menuitem_1"><a href="advsetting.htm">Advance</a></div></td>
+          <td bgcolor="#EDEFEF"><div class="menuitem_1"><a href="advsetting.htm">Advance</a></div></td>          
           <td><div class="menuitem_1"><a href="security.htm">Security</a></div></td>
+          <td bgcolor="#C0C0C0"><div class="menuitem_1"><a href="ddns.htm">Dyndns</a></div></td>
         </tr>
     </table></td>
 	</tr>
+	
 <form name="advsetting" method="POST" onsubmit="return chkForm(0);">  
   <tr>
     <td colspan="2" bgcolor="#EDEFEF"><div class="subitem_1"><strong>Firmware Upgrade Settings</strong></div></td>
 </tr>
   <tr>
     <td bgcolor="#EDEFEF"><div class="item_1">TFTP Server IP</div></td>
-    <td bgcolor="#EDEFEF"><input name="tftps_ip" type="text" class="item_2" style="width: 140px" value="192.168.0.3" maxlength="15" /><span id="tftps_ip_msg" class="errMsg0"></span></td>
+    <td bgcolor="#EDEFEF">
+    	<input name="tftps_ip" type="text" class="item_2" style="width: 140px" value="192.168.0.3" maxlength="15" /><span id="tftps_ip_msg" class="errMsg0"></span></td>
 </tr>
   <tr>
     <td bgcolor="#EDEFEF"><div class="item_1">File Name</div></td>
-    <td bgcolor="#EDEFEF"><input name="file_name" type="text" class="item_2" style="width: 140px" value="NC.bin" maxlength="64" /><span id="file_name_msg" class="errMsg0"></span></td>
+    <td bgcolor="#EDEFEF">
+    	<input name="file_name" type="text" class="item_2" style="width: 140px" value="NC.bin" maxlength="64" /><span id="file_name_msg" class="errMsg0"></span></td>
 </tr>
   <tr>
     <td colspan="2" bgcolor="#EDEFEF">&nbsp;</td>

@@ -15,6 +15,10 @@
  * Date:
  * Notes:
  * $Log: adapter.c,v $
+ *
+ * Revision 1.8  2013/06/06 14:56:39  hyc
+ * 1.add dyndns webpage features.
+ *
  * Revision 1.8  2006/05/23 05:22:39  robin6633
  * 1.Removed old command input.
  *
@@ -105,6 +109,14 @@
 #include "../gsm/gsm.h"
 #include "dyndns_app.h"
 
+#include	"spi.h"
+#include  	"spiapi.h"
+#include    "sd.h"
+
+#include "../bacnet/gudpmc.h"
+
+
+
 /* NAMING CONSTANT DECLARATIONS */
 #ifdef DEBUG
 #define DBGMSG(A) {A}
@@ -114,15 +126,13 @@
 #define TIME_OUT_COUNTER	(250/SWTIMER_INTERVAL)  //250
 #define Hardware_Rev22       22
 
-#define RS485_EN2 	0   // if enable new rs485 port
+#define RS485_EN2 	0   		// if enable new rs485 port
 
 #define GSM_TASK_ENABLE  	0	// if enbale gsm task
 
-
+U8_T   global_signal = 0;		// uart0 status
 
 extern  GCONFIG_Init1();
-
-
 
 volatile char xdata  temco_version[30] _at_ 0x02;
 char temco_version[30] = {"model:100 fw:69.11 hw:26"}; 		//ascii hw:26 bl:14
@@ -141,6 +151,7 @@ APP_BUF	XDATA app_arp_buf;
 
 /* GLOBAL VARIABLES  */
 static U16_T ServerBroadcastListenPort;
+static U16_T bacnetListenPort;
 extern U8_T FlagIsp;
 extern U8_T ChangeFlash;
 extern U8_T far CRClo;
@@ -148,7 +159,9 @@ extern U8_T far CRChi;
 extern U8_T far FlagSend;
 extern U8_T far Parame[400]; 
 extern U8_T far Para[400]; 
-enum ledState LED = None;
+//enum ledState LED = None;
+U8_T  LED = None  ;
+
 extern U8_T TsataId;
 
 #if 1 //lihengning    
@@ -178,6 +191,13 @@ static void CheckArpTable(void);
 extern void InitCRC16(void);
 extern void CRC16_Tstat(unsigned char ch);
 
+extern BOOL SPI_mmc_write_byte (U8_T Byte);
+extern void write_two_byte(U8_T len,U8_T *bytes);
+extern void SPI_MMC_Enable(void);
+extern void SPI_MMC_Disable(void);
+extern U8_T SPI_mmc_Init(void);
+extern void SPI_SD_test(void);
+
 /* LOCAL VARIABLES DECLARATIONS */
 xTaskHandle xHandle1;
 xTaskHandle xHandle2;
@@ -194,7 +214,7 @@ xTaskHandle xHandle12;
 xTaskHandle xHandle13; 
 
 
-   
+U8_T  byteWrite[4] = {0xa5,0x31,0x45,0x32};   
 
 char err485=0;
 U8_T data LedSta = 0xff;
@@ -203,17 +223,21 @@ U8_T  far WebText[6][30]={"time.windows.com","time.stdtime.gov.tw","clock.stdtim
                            "watch.stdtime.gov.tw", "pool.ntp.org"};
 U32_T far IpServer[6]={0x3b7cc454,0xdc829e48,0xda4b0482,0x7ae2c004,0x3b7cc455};
 
-
+U8_T  j,k;
 
 U8_T far test1[5] = {0x54,0x31};
 U8_T far test2[2] = {0x45,0x32};
+U8_T test99[1];
+U8_T hardversion[2];
 
 U8_T  Hardware_Revision;
 
 
 U8_T Read_Hardware_Revision(void)
 {
-	return Para[17];
+
+	return Para[18];
+
 }
 
 
@@ -308,6 +332,7 @@ void TCPIP_Task(void)reentrant
 {
    portTickType xDelayPeriod  = ( portTickType ) 200 / portTICK_RATE_MS;  //250
    	
+   
 
 #if (BOOTLDR_ISR)
 	ERROR: BOOTLDR_ISR must set to '0' in non-bootloader driver.
@@ -322,12 +347,10 @@ void TCPIP_Task(void)reentrant
 	U32_T 	dhcpTimeStop = 0;
 #endif
 
-//	Uart0_Tx("step1",5);
 
 /* Initialize Network adapter */
 	ETH_Init();
 
-//	Uart0_Tx("step2",5);
 
 	DHCP_Init();
 
@@ -340,14 +363,7 @@ void TCPIP_Task(void)reentrant
 	I2C_Init();
 #endif
 
-
-//	Uart0_Tx("step2",5);
-
-
 	GCONFIG_Init();
-
-
-
 
 #if (INCLUDE_DHCP_CLIENT)	
 	if ( (Para[213] == 1) && ((GCONFIG_GetNetwork() & GCONFIG_NETWORK_DHCP_ENABLE) == GCONFIG_NETWORK_DHCP_ENABLE) )
@@ -371,19 +387,21 @@ void TCPIP_Task(void)reentrant
 	GUDPBC_Init(ServerBroadcastListenPort);
 #endif
 
-//	Uart0_Tx("step3",5);
 
 
-   	ServerBroadcastListenPort = 1234; 
+//	bacnetListenPort = 47808;
+//	GUDPMC_Init(bacnetListenPort);	   		// bacnet port
+
+	ServerBroadcastListenPort = 1234;
 	GUDPBC_Init(ServerBroadcastListenPort);
+
+
 
 	HTTP_Init();
 	MODBUSTCP_Init();	  // add modbustcp service instead http modbus old and add webpage feature.
 
 	FSYS_Init();
 	ETH_Start();
-
-//	Uart0_Tx("step4",5);
 
 	init_dyndns();
 
@@ -476,7 +494,9 @@ void TCPIP_Task(void)reentrant
 #endif
 
 	   do_dyndns();
-//	  Uart0_Tx("step5",5);
+
+	  //write_two_byte(4,byteWrite);
+	  
 
 	}
 } /* End of main() */
@@ -498,7 +518,6 @@ void Beat_ON(void)//Set Pin low
 
 	LE = 0; 
 	LedSta = 0xfd;
-//	for(i = 0; i < 100; i++);                     	   
 	LEDS = LedSta;            	                                 
 	LE = 1;  
 }
@@ -522,20 +541,32 @@ void Beat_OFF(void)  //Set Pin high
 void Led_EthSend(void)//Pin set low
 {
 	if(Hardware_Revision >= Hardware_Rev22)
-	 {	DisPlay1 = 0;
-		DisPlay2 = 1; }
-	else {
-	DisPlay1 = 1;
-	DisPlay2 = 0;  }
+	{	
+		DisPlay1 = 0;
+		DisPlay2 = 1; 
 	
+		LE = 0;
+		if(BeatSta == 0)
+			LedSta = 0xf7;						  
+		else
+			LedSta = 0xf6;       	   			  
+		LEDS = LedSta;                               
+		LE = 1;                               
+
+	}
+	else 
+	{
+		DisPlay1 = 1;
+		DisPlay2 = 0;  
 	
-	LE = 0;
-	if(BeatSta == 0)
-		LedSta = 0xf7;						  
-	else
-		LedSta = 0xf6;       	   			  
-	LEDS = LedSta;                               
-	LE = 1;                               
+		LE = 0;
+		if(BeatSta == 0)
+			LedSta = 0xef;						  
+		else
+			LedSta = 0xed;       	   			  
+		LEDS = LedSta;                               
+		LE = 1;                               
+	}
 }
 
 
@@ -543,92 +574,143 @@ void Led_EthSend(void)//Pin set low
 void Led_EthRxD(void) //Pin set low 
 {
 	if(Hardware_Revision >= Hardware_Rev22)
-	 {	DisPlay1 = 0;
-		DisPlay2 = 1; }
-	else {
-	DisPlay1 = 1;
-	DisPlay2 = 0;  }
+	{	
+		DisPlay1 = 0;
+		DisPlay2 = 1; 
+	
+		LE = 0;
+		if(BeatSta == 0)
+			LedSta = 0xef;  					  
+		else  
+			LedSta = 0xee;              	   	  
+		LEDS = LedSta; 
+		LE = 1;
+		
+	}
+	else 
+	{
+		DisPlay1 = 1;
+		DisPlay2 = 0;  
+		
+		LE = 0;
+		if(BeatSta == 0)
+			LedSta = 0xdf;  					  
+		else  
+			LedSta = 0xdd;              	   	  
+		LEDS = LedSta; 
+		LE = 1;
+	}
 
-
-
-	LE = 0;
-	if(BeatSta == 0)
-		LedSta = 0xef;  					  
-	else  
-		LedSta = 0xee;              	   	  
-	LEDS = LedSta; 
-	LE = 1;
 }
 
 void Led_485RxD(void)//Pin set low 
 {    
 	if(Hardware_Revision >= Hardware_Rev22)
-	 {	DisPlay1 = 1;
-		DisPlay2 = 0; }
-	else {
-	DisPlay1 = 0;
-	DisPlay2 = 1;  }
+	 {
+	 	DisPlay1 = 1;
+		DisPlay2 = 0; 
 	
-	
-	LE = 0;
-	LedSta = 0x7f;               	 
-	LEDS = LedSta; 
-	LE = 1;
+		LE = 0;
+		LedSta = 0x7f;               	 
+		LEDS = LedSta; 
+		LE = 1;
+	}
+	else
+	{
+		DisPlay1 = 0;
+		DisPlay2 = 1;
+		LE = 0;
+
+		LedSta = 0xbf;               	   
+		LEDS = LedSta; 
+		LE = 1;
+	}
 }
 
 void Led_485Send(void) //Pin set low 
 {      
 	if(Hardware_Revision >= Hardware_Rev22)
-	 {	DisPlay1 = 1;
-		DisPlay2 = 0; }
-	else {
-	DisPlay1 = 0;
-	DisPlay2 = 1;  }
-	
-	
-	LE = 0;
-	LedSta = 0xbf;					   
-	LEDS = LedSta;
-	LE = 1;
+	{	
+		DisPlay1 = 1;
+		DisPlay2 = 0; 
+			
+		LE = 0;
+		LedSta = 0xbf;					   
+		LEDS = LedSta;
+		LE = 1;
+	}
+	else
+	{
+		DisPlay1 = 0;
+		DisPlay2 = 1;
+		LE = 0;
+		LedSta = 0xdf;
+		LEDS = LedSta;
+		LE = 1;
+	}
 }
 
 void Led_485ERR(void) //Pin set low 
 {   
 	if(Hardware_Revision >= Hardware_Rev22)
-	 {	DisPlay1 = 0;
-		DisPlay2 = 1; }
-	else {
-	DisPlay1 = 1;
-	DisPlay2 = 0;  }
+	{	
+		DisPlay1 = 0;
+		DisPlay2 = 1; 
+	
+		LE = 0;
+		if(BeatSta == 0)
+			LedSta = 0xfb;  
+		else
+			LedSta = 0xf9;                   	   
+		LEDS = LedSta; 
+		LE = 1;
+	}
+	else 
+	{
+		DisPlay1 = 1;
+		DisPlay2 = 0;
+		LE = 0;
+		if(BeatSta == 0)
+			LedSta = 0xfb;  
+		else
+			LedSta = 0xf9;                   	   
+		LEDS = LedSta; 
+		LE = 1;
+	}
 
 
 
-	LE = 0;
-	if(BeatSta == 0)
-		LedSta = 0xfb;  
-	else
-		LedSta = 0xf9;                   	   
-	LEDS = LedSta; 
-	LE = 1;
 }
 void Led_ReSet(void)
 {
 	if(Hardware_Revision >= Hardware_Rev22)
-	 {	DisPlay1 = 0;
-		DisPlay2 = 1; }
-	else {
-	DisPlay1 = 1;
-	DisPlay2 = 0;  }
-	
-	
+	 {	
+	 	DisPlay1 = 0;
+		DisPlay2 = 1; 
+		
+		LE = 0;
+		if(BeatSta == 0)
+			LedSta = 0xff;  
+		else
+			LedSta = 0xfd;                   	   
+		LEDS = LedSta; 
+		LE = 1;
 
-	LE = 0;
-	if(BeatSta == 0)
-		LedSta = 0xff;  
+	}
 	else
-		LedSta = 0xfd;                   	   
-	LEDS = LedSta; 
-	LE = 1;
+	{
+		DisPlay1 = 1;
+		DisPlay2 = 0;
+		LE = 0;
+		if(BeatSta == 0)
+			LedSta = 0xff;  
+		else
+			LedSta = 0xfd;                   	   
+		LEDS = LedSta; 
+		LE = 1;
+
+	}
+
 }
 
 /************************************************/
@@ -730,39 +812,61 @@ void Led_GSM_Rx(void)
 void Led_RS232_Tx(void)
 {
 	if(Hardware_Revision >= Hardware_Rev22)
-	 {	DisPlay1 = 0;
-		DisPlay2 = 1; }
-	else {
+	 {	
+	 	DisPlay1 = 0;
+		DisPlay2 = 1; 
+		
+		LE = 0;
+		if(BeatSta == 0)
+			LedSta = 0xdf;						  
+		else
+			LedSta = 0xde;       	   			  
+		LEDS = LedSta;                               
+		LE = 1;                               
+	}
+	else 
+	{
 	DisPlay1 = 1;
-	DisPlay2 = 0;  }
+	DisPlay2 = 0;  
+	
+		LE = 0;
+		if(BeatSta == 0)
+			LedSta = 0xbf;						  
+		else
+			LedSta = 0xbe;       	   			  
+		LEDS = LedSta;                               
+		LE = 1;                               
+	}
 	
 	
-	LE = 0;
-	if(BeatSta == 0)
-		LedSta = 0xdf;						  
-	else
-		LedSta = 0xde;       	   			  
-	LEDS = LedSta;                               
-	LE = 1;                               
 }
 void Led_RS232_Rx(void)
 {
 	if(Hardware_Revision >= Hardware_Rev22)
 	 {	DisPlay1 = 0;
-		DisPlay2 = 1; }
-	else {
-	DisPlay1 = 1;
-	DisPlay2 = 0;  }
+		DisPlay2 = 1; 
 
-
-
-	LE = 0;
-	if(BeatSta == 0)
-		LedSta = 0xbf;  					  
-	else  
-		LedSta = 0xbe;              	   	  
-	LEDS = LedSta; 
-	LE = 1;
+		LE = 0;
+		if(BeatSta == 0)
+			LedSta = 0xbf;  					  
+		else  
+			LedSta = 0xbe;              	   	  
+		LEDS = LedSta; 
+		LE = 1;
+	}
+	else
+	{
+		DisPlay1 = 1;
+		DisPlay2 = 0;  
+	
+		LE = 0;
+		if(BeatSta == 0)
+			LedSta = 0x7f;  					  
+		else  
+			LedSta = 0x7e;              	   	  
+		LEDS = LedSta; 
+		LE = 1;
+	}
 }
 
 
@@ -815,6 +919,9 @@ void Uart0_Receive(void)
 		
 		if((uart0_RxBuf[0] == Para[13]) || (uart0_RxBuf[0] == 0xff))//Address of NetControl 
 		{ 
+			
+			LED = RS232_ONLY;
+			
 			if(uart0_RxBuf[1] == 0x19) //scan Tsnet
 			{
 				Sever_Order = SERVER_RS232;
@@ -1146,6 +1253,25 @@ void Uart0_Receive(void)
 						} 
 					}
 				}
+//				else if((StartAdd == 107) && (uart0_RxBuf[6] == 24))	//IP,MASK,GATEWAY,multi-write
+//				{
+//	
+//					Para[215] = uart0_RxBuf[8];
+//					Para[217] = uart0_RxBuf[10];
+//					Para[219] = uart0_RxBuf[12];
+//					Para[221] = uart0_RxBuf[14];
+//					Para[223] = uart0_RxBuf[16];
+//					Para[225] = uart0_RxBuf[18];
+//					Para[227] = uart0_RxBuf[20];
+//					Para[229] = uart0_RxBuf[22];
+//					Para[231] = uart0_RxBuf[24];
+//					Para[233] = uart0_RxBuf[26];
+//					Para[235] = uart0_RxBuf[28];
+//					Para[237] = uart0_RxBuf[30];
+//	
+//					mac_change_enable = 1;
+//					ChangeIP = 1;
+//				}
 				else if(StartAdd == SCHEDUAL_MODBUS_ADDRESS) //200th register ,write time 
 				{
 //					if((StartAdd - SCHEDUAL_MODBUS_ADDRESS) % 8 == 0)
@@ -1254,6 +1380,10 @@ void Uart0_Receive(void)
 		}
 		else
 		{
+			global_signal = 3;
+
+			LED = RS232_OK;
+
 			Sever_Order = SERVER_RS232;
 			Sever_id = uart0_RxBuf[0];				  
 			Tx_To_Tstat(uart0_RxBuf, uart0_RxCount);								 			          			 
@@ -1266,7 +1396,7 @@ void Uart0_Receive(void)
 
 /*****************************************/
 /*****************************************/
-/*****Uart1 routine***********************/
+/************Uart1 routine****************/
 void Uart1_Tx(U8_T *buf,U8_T len)
 {     
 	U8_T i;
@@ -1290,8 +1420,6 @@ void Uart1_Receive(void)
 	U16_T  length = 0;
 	U16_T  uart1_cnt;
 
-
-//	Uart0_Tx(uart1_RxBuf,uart1_RxCount);
 
 	EA = 0;
 	if(uart1_RxCount)
@@ -1438,7 +1566,6 @@ void Uart1_Receive(void)
 
 
 
-
 void display_ip(void)
 {
 	U8_T adr,i;		//num,
@@ -1456,32 +1583,29 @@ void display_ip(void)
 	d =  Para[1];
 
 	sn = a + b + c + d ;
-
-//	Lcd_Show_String(1,1,"    ",1,12);
 	
-	Lcd_Show_String(3,1,"ip = ",1,5);
-	Lcd_Show_Data(3,6,Para[215],0,1);
-	Lcd_Show_String(3,9,".",1,1);
-	Lcd_Show_Data(3,10,Para[217],0,1);
-	Lcd_Show_String(3,13,".",1,1);
-	Lcd_Show_Data(3,14,Para[219],0,1);
-	Lcd_Show_String(3,15,".",1,1);
-	Lcd_Show_Data(3,16,Para[221],0,1);
+	Lcd_Show_String(3,0,"ip = ",1,5);
+	Lcd_Show_Data(3,5,Para[215],0,1);
+	Lcd_Show_String(3,8,".",1,1);
+	Lcd_Show_Data(3,9,Para[217],0,1);
+	Lcd_Show_String(3,12,".",1,1);
+	Lcd_Show_Data(3,13,Para[219],0,1);
+	Lcd_Show_String(3,14,".",1,1);
+	Lcd_Show_Data(3,15,Para[221],0,1);
 
 
-	Lcd_Show_String(1,1,"id = ",1,5);
-	Lcd_Show_Data(1,6,Para[13],0,1);
+	Lcd_Show_String(1,0,"id = ",1,5);
+	Lcd_Show_Data(1,5,Para[13],0,1);
 
-	Lcd_Show_String(2,1,"sn = ",1,5);
-	Lcd_show_for_32bit(2,6,sn,1);
+	Lcd_Show_String(2,0,"sn = ",1,5);
+	Lcd_show_for_32bit(2,5,sn,1);
 
-	
 	adr = Para[9] % 10 ;
-	i = 1;
+	i = 0;
 	Lcd_Show_String(4,i,"fw:",1,3);
 	Lcd_Show_Data(4,i+3,Para[11],0,1);
 	Lcd_Show_String(4,i+5,".",1,1);
-//	Lcd_Show_Data(4,7,adr,0,1);
+
  	Lcd_Show_Data(4,i+6,Para[9],0,1);
 
 	Lcd_Show_String(4,i+9,"hw:",1,3);
@@ -1490,11 +1614,12 @@ void display_ip(void)
 	Lcd_Show_String(4,i+15,"bl:",1,3);
 	Lcd_Show_Data(4,i+18,Para[29],0,1);
 
-
-//	Lcd_Show_Data(4,adr,(U16_T)(sn >> 16),0,1);
-//	Lcd_Show_Data(4,adr+4,(U16_T)sn,0,1);
-	Lcd_Show_String(0,1,"Network Controller",1,12);
+	Lcd_Show_String(0,1,"Network Controller",0,12);		 //invert color!
+	Lcd_Show_String(3,0,"ip = ",1,5);
+	Lcd_Show_String(4,0,"fw:",1,3);
 }
+
+
 
 void Display_Updating(void)
 {
@@ -1509,6 +1634,8 @@ void Uart2_Receive(void)
 {
 	U16_T uart2_count = 0;
 
+  //  Uart0_Tx("uart2",5);
+
 	EA = 0;
 	if(hsurRxCount)
 	{
@@ -1522,6 +1649,7 @@ void Uart2_Receive(void)
 		uart2_count += hsurRxCount;
 		hsurRxCount = 0;
 		EA = 1;
+
 	}
 	else
 	{
@@ -1533,6 +1661,7 @@ void Uart2_Receive(void)
 	{
 		if(Sever_Order == SERVER_TCPIP)  //Sever Order is from TCPIP
 		{
+			
 			if(TcpIp_Scan == 1)
 			{
 				TcpIp_Scan = 0;
@@ -1541,17 +1670,14 @@ void Uart2_Receive(void)
 			else
 			{
 				TCPIP_TcpSend(TcpSocket_ME, forward_buffer, uart2_count-2, TCPIP_SEND_NOT_FINAL);
-			
-			 //   Uart0_Tx(forward_buffer,uart2_count-2);
-			
+				
+			  // Uart0_Tx(forward_buffer,uart2_count-2);
 			}
-		LED = S485_OK;
 	
 		}
 		else if(Sever_Order == SERVER_RS232)
 		{
 			Uart0_Tx(forward_buffer, uart2_count);
-			LED = S485_OK;
 		}
 		else if(Sever_Order == SERVER_USB)
 		{
@@ -1559,7 +1685,6 @@ void Uart2_Receive(void)
 			UpCtr = uart2_count;
 			UpIndex = 0;
 			ENDP2_NEED_UP_FLAG = 1;
-			LED = S485_OK;
 		}
 		else if(Sever_Order == SERVER_SCHEDULE) // schedule commands
 		{
@@ -1606,7 +1731,7 @@ void Uart2_Receive(void)
 							}
 						}
 					}
-					// and none tstat in the range will wait timeout in the waitrsponse routine
+				// and none tstat in the range will wait timeout in the waitrsponse routine
 					break;
 				case SCAN_ASSIGN_ID_WITH_SN:
 					if(uart2_count == 12) //right
@@ -1636,9 +1761,13 @@ void Tx_To_Tstat(U8_T *buf, U8_T len)
 
 	Uart1_Tx(buf, len);
 
+//	Uart0_Tx(buf, len);
 
-	for(i = 0; i < len; i++)  
+//	if(global_signal )
+	{
+    	for(i = 0; i < len; i++)  
 		HSUR_PutChar(buf[i]);
+	}
 
 	if(len < 10)
 		DELAY_Ms(1);
@@ -1686,7 +1815,6 @@ void Realtimer_task(void) reentrant
                { SetimeFlag=0;
                  Initial_Clock();
                }*/
-
 			// Uart0_Tx(Data,48);
              Read_Clock(2);
         }
@@ -1711,10 +1839,7 @@ void Timer_task(void) reentrant
 		 else if(ChangeFlash == 2)
 	     {  
 			ChangeFlash=0;		
-			Flash_Write_Schedule();	
-		  //  IntFlashErase(ERA_RUN,0x070000);		//erase		                    
-   		  //  MassFlashWrite(0,Para,400);           //write to flash
-			
+			Flash_Write_Schedule();				
          }
 
 		 if(ChangeIP > 0)  //LHN add
@@ -1743,6 +1868,11 @@ void Timer_task(void) reentrant
 			}
 		}
 
+		if(LED != S485_OK)
+		{
+			global_signal = 0;
+		}
+
 		Read_Clock(2);
 		vTaskDelay(xDelayPeriod);
 	}
@@ -1751,48 +1881,60 @@ void Timer_task(void) reentrant
 
 void Ledflash_task(void) reentrant
 {
-	portTickType	xDelayPeriod = ( portTickType ) SYS_FREQUENCY_PERIOD / portTICK_RATE_MS;//200
-	portTickType	xDelayPeriod1 = ( portTickType ) SYS_FREQUENCY_PERIOD1 / portTICK_RATE_MS;//100
+	portTickType	xDelayPeriod = ( portTickType ) 400 / portTICK_RATE_MS;//200
+	portTickType	xDelayPeriod1 = ( portTickType ) 100 / portTICK_RATE_MS;//100
 
 	for (;;)
 	{  
-          if(LED==Ethnet_OK){ Led_EthSend(); vTaskDelay(xDelayPeriod1);Led_EthRxD(); vTaskDelay(xDelayPeriod1);
+
+		  if(LED==S485_OK){   Led_EthSend(); vTaskDelay(xDelayPeriod1);Led_EthRxD(); vTaskDelay(xDelayPeriod1);
+		                
+		                  Led_485Send();vTaskDelay(xDelayPeriod1);Led_485RxD();vTaskDelay(xDelayPeriod1);
+						
+				         LED=None;Led_ReSet();	  }
+
+
+		  if(LED == Ethnet_OK){//  Uart0_Tx("E", 1);
+		  					  	Led_EthSend(); vTaskDelay(xDelayPeriod1);Led_EthRxD(); vTaskDelay(xDelayPeriod1);
 					          LED= None;Led_ReSet();	}
 
 
-		  if(LED==RS232_OK) {   Led_RS232_Tx(); vTaskDelay(xDelayPeriod1); Led_RS232_Rx(); 	vTaskDelay(xDelayPeriod1);	
+		  if(LED == RS232_ONLY) {   Led_RS232_Tx(); vTaskDelay(xDelayPeriod1); Led_RS232_Rx(); 	vTaskDelay(xDelayPeriod1);	
 		  						 LED= None;Led_ReSet();	}
 
 
-          if(LED==Zigbee_OK) { Led_zigbee_Tx();  vTaskDelay(xDelayPeriod1);	Led_zigbee_Rx(); vTaskDelay(xDelayPeriod1);
+		  if(LED==RS232_OK){   Led_RS232_Tx(); vTaskDelay(xDelayPeriod1);Led_RS232_Rx(); vTaskDelay(xDelayPeriod1);
+		                
+		                  Led_485Send();vTaskDelay(xDelayPeriod1);Led_485RxD();vTaskDelay(xDelayPeriod1);
+						
+				         LED=None;Led_ReSet();	  }
+      
+	  
+	      if(LED == Zigbee_OK) {Led_EthSend(); vTaskDelay(xDelayPeriod1); Led_zigbee_Tx();  vTaskDelay(xDelayPeriod1);
+		  						Led_zigbee_Rx(); vTaskDelay(xDelayPeriod1);	Led_485RxD();vTaskDelay(xDelayPeriod1);
 							   LED= None;Led_ReSet();	
 							 }
 
-
-		  if(LED==Usb_OK) {	Led_USB_Tx(); vTaskDelay(xDelayPeriod1); Led_USB_Rx();vTaskDelay(xDelayPeriod1);
+		  if(LED == Usb_OK) {	Led_USB_Tx(); vTaskDelay(xDelayPeriod1); Led_USB_Rx();vTaskDelay(xDelayPeriod1);
 		  					   LED= None;Led_ReSet();	}
 
 
- 		  if(LED==Gsm_OK) {  	}
+ 		  if(LED == Gsm_OK) {  	}
            
 
-		  if(LED==S485_OK){  
-		                      Led_485Send();vTaskDelay(xDelayPeriod1);Led_485RxD();vTaskDelay(xDelayPeriod1);
-				              LED=None;Led_ReSet();	    }
-		    
 
-          if(LED==S485_ERR){ Led_485ERR(); vTaskDelay(xDelayPeriod1); vTaskDelay(xDelayPeriod1);
+          if(LED == S485_ERR){ Led_485ERR(); vTaskDelay(xDelayPeriod1); vTaskDelay(xDelayPeriod1);
 					          LED= None;Led_ReSet();	}
          
 
-	       vTaskDelay(xDelayPeriod);
+	      vTaskDelay(xDelayPeriod);
 	}
 }
 
 
 void Scan_task(void)
 {
-	portTickType xDelayPeriod = (portTickType)10000 / portTICK_RATE_MS;
+	portTickType xDelayPeriod = (portTickType)15000 / portTICK_RATE_MS;
 	init_scan();
 	while(1)
 	{
@@ -1818,7 +1960,7 @@ void Uart0_task(void) reentrant
 
 void Uart1_task(void) reentrant
 {
-	portTickType xDelayPeriod = ( portTickType ) 40 / portTICK_RATE_MS;//50
+	portTickType xDelayPeriod = ( portTickType ) 40 / portTICK_RATE_MS;//40
    	
 	for (;;)
     { 
@@ -1833,12 +1975,12 @@ void Uart1_task(void) reentrant
 
 void Uart2_task(void) reentrant
 {
-	portTickType xDelayPeriod = ( portTickType ) 50 / portTICK_RATE_MS;//1000
+	portTickType xDelayPeriod = ( portTickType ) 500 / portTICK_RATE_MS;	//50
 
 	for (;;)
     { 
 		vTaskDelay(xDelayPeriod);
-		if(uart2_timeout == 0)
+	//	if(uart2_timeout == 0)
 		{
 			Uart2_Receive();
 		}
@@ -2191,6 +2333,9 @@ void USB_task(void)
 					}
 					else
 					{
+
+					   global_signal = 4;
+
 						Sever_Order = SERVER_USB;		//USB
 						Sever_id = DownBuf[0];				  
 						Tx_To_Tstat(DownBuf, DownCtr);								 			          			 
@@ -2252,7 +2397,7 @@ void gsm_task(void) reentrant						// LJ
 //				gsm_debug( "RETURN ERROR");
 				break;
 			case GSM_INIT_DONE:
-				if(0)          // wait for temperature register
+				if(1)          // wait for temperature register
 				{
 					if(send_out)
 					{
@@ -2323,6 +2468,7 @@ void main(void )
 	U8_T flag_store_schedule;
 	ExecuteRuntimeFlag = 1;
 
+
    #if  RS485_EN2
 	Rs485_2_EN = 0;
    #endif
@@ -2345,10 +2491,11 @@ void main(void )
 			baudRateDiv = UR2_BR100_19200;
 			break;
 		}
-
 	HSUR_Setup(baudRateDiv, (UR2_CHAR_8|UR2_STOP_10), (UR2_RDI_ENB|UR2_RLSI_ENB),
 	(UR2_FIFO_MODE|UR2_RXFIFO_RST|UR2_TXFIFO_RST|UR2_TRIG_08), UR2_RTS);
-	
+
+
+
     I2C_Init();
 
 
@@ -2397,11 +2544,13 @@ void main(void )
      	FlagIsp=1; 
 
 	display_ip();
-	Hardware_Revision = Read_Hardware_Revision();
 
 
+	for(i = 0; i < 2 ;i++)
+		hardversion[i] = Para[16 + i];
 
- // MAC_SetMacAddr(add_mac);
+	Hardware_Revision = hardversion[1] ;
+
 
   sTaskCreate(TCPIP_Task, (const signed portCHAR * const)"TCPIP_task",
 		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, (xTaskHandle *)&xHandle1); //0 2
@@ -2416,7 +2565,7 @@ void main(void )
 		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 5, (xTaskHandle *)&xHandle4);  //!!!!
 
    sTaskCreate(Uart0_task, (const signed portCHAR * const)"Uart0_task",
-		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 8, (xTaskHandle *)&xHandle5); //!!!!
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 7, (xTaskHandle *)&xHandle5); //!!!!
 
    sTaskCreate(Uart1_task, (const signed portCHAR * const)"Uart1_task",
 		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 9, (xTaskHandle *)&xHandle6);
@@ -2439,11 +2588,11 @@ void main(void )
     sTaskCreate(USB_task, (const signed portCHAR * const)"USB_task",
 		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 10, (xTaskHandle *)&xHandle11);//8
 
-#if GSM_TASK_ENABLE
+#if   GSM_TASK_ENABLE
 	sTaskCreate(gsm_task, (const signed portCHAR * const)"gsm_task",
 		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 4, (xTaskHandle *)&xHandle13);		  
 #endif
-	   /*GSM task has a issue that may cause TCPIP task very lag */
+	   /* GSM task may has a issue that cause TCPIP task very lag */
 
   /* Finally kick off the scheduler.  This function should never return. */
 	vTaskStartScheduler( portUSE_PREEMPTION );

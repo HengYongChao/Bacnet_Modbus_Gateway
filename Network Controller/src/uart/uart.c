@@ -804,4 +804,23 @@ void PMM_Uart0Init(void)
 #endif
 
 
+/*
+ * ----------------------------------------------------------------------------
+ * S8_T GetKey(void)
+ * Purpose : UART0 input function. This function replies one byte data from the
+ *           software character buffer.
+ * Params  : none
+ * Returns : c - one byte character.
+ * Note    : none
+ * ----------------------------------------------------------------------------
+ */
+S8_T GetKey(void)
+{
+    S8_T	ch = 0;
+   
+   	ch = uart0_GetKey();
+	return ch;
+}
+/* End of uart.c */
+
 /* End of uart.c */

@@ -32,6 +32,8 @@
 #include	"ax110xx.h"
 #include	"types.h"
 #include	"interrupt.h"
+#include 	"main.h"
+
 
 #if AX_LBI_INT_ENABLE
 #include	"lbi.h"
@@ -109,7 +111,11 @@ static void ax11000_PeripherialISR(void) interrupt 9 //use external interrupt 4 
 		EA = 1;
 
 		if ((intrStt1 == 0) && (intrStt2 == 0))
+		{
+//			if(INT4F)
+//			  EIF |= 0x04;
 			break;
+		}
 
 #if AX_LBI_INT_ENABLE
 		if (intrStt1 & LB_INT_STU)
@@ -130,6 +136,7 @@ static void ax11000_PeripherialISR(void) interrupt 9 //use external interrupt 4 
 		if (intrStt1 & ETH_INT_STU)
 		{
 			MAC_SetInterruptFlag();
+
 		}
 #endif
 #endif
@@ -139,6 +146,7 @@ static void ax11000_PeripherialISR(void) interrupt 9 //use external interrupt 4 
 		if (intrStt1 & TOE_INT_STU)
 		{
 			STOE_SetInterruptFlag();
+
 		}
 #endif
 #endif
@@ -161,6 +169,7 @@ static void ax11000_PeripherialISR(void) interrupt 9 //use external interrupt 4 
 		if (intrStt1 & SPI_INT_STU)
 		{
 			SPI_Func();
+			
 		}
 #endif
 
@@ -177,6 +186,10 @@ static void ax11000_PeripherialISR(void) interrupt 9 //use external interrupt 4 
 			HSUR_Func();
 		}
 #endif
+
+	 
+
+
 	}
 }
 

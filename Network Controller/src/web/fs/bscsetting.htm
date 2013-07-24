@@ -38,6 +38,7 @@
           <td bgcolor="#EDEFEF"><div class="menuitem_1"><a href="bscsetting.htm">Basic</a></div></td>
           <td><div class="menuitem_1"><a href="advsetting.htm">Advance</a></div></td>
           <td class="menuitem_1"><div class="menuitem_1"><a href="security.htm">Security</a></div></td>
+          <td bgcolor="#C0C0C0"><div class="menuitem_1"><a href="ddns.htm">Dyndns</a></div></td>
 	</tr>
     </table></td>
 </tr>
@@ -111,18 +112,22 @@
 </tr>
   <tr>
     <td bgcolor="#EDEFEF"><div class="item_1">Static IP Address</div></td>
-    <td bgcolor="#EDEFEF"><input name="static_ip" type="text" class="item_2" style="WIDTH: 140px" value="192.168.0.3" maxlength="15" /><span id="static_ip_msg" class="errMsg0"></span></td>
+    <td bgcolor="#EDEFEF">
+    	<input name="static_ip" type="text" class="item_2" style="WIDTH: 140px" value="192.168.0.3" maxlength="15" /><span id="static_ip_msg" class="errMsg0"></span></td>
 </tr>
   <tr>
     <td bgcolor="#EDEFEF"><div class="item_1">Static Subnet Mask</div></td>
-    <td bgcolor="#EDEFEF"><input name="mask" type="text" class="item_2" style="WIDTH: 140px" value="255.255.255.0" maxlength="15" /><span id="mask_msg" class="errMsg0"></span></td>
+    <td bgcolor="#EDEFEF">
+    	<input name="mask" type="text" class="item_2" style="WIDTH: 140px" value="255.255.255.0" maxlength="15" /><span id="mask_msg" class="errMsg0"></span></td>
 </tr>
   <tr>
     <td bgcolor="#EDEFEF"><div class="item_1">Static Default Gateway</div></td>
-    <td bgcolor="#EDEFEF"><input name="gateway_ip" type="text" class="item_2" style="WIDTH: 140px" value="192.168.0.1" maxlength="15" /><span id="gateway_ip_msg" class="errMsg0"></span></td>
+    <td bgcolor="#EDEFEF">
+    	<input name="gateway_ip" type="text" class="item_2" style="WIDTH: 140px" value="192.168.0.1" maxlength="15" /><span id="gateway_ip_msg" class="errMsg0"></span></td>
 </tr>
   <tr>
-    <td colspan="2" align="center" bgcolor="#EDEFEF"><input name="Apply" type="submit" class="item_2" style="WIDTH: 60px; HEIGHT: 24px;" onclick="setSubmitType(1)" value="Apply" />
+    <td colspan="2" align="center" bgcolor="#EDEFEF">
+    	<input name="Apply" type="submit" class="item_2" style="WIDTH: 60px; HEIGHT: 24px;" onclick="setSubmitType(1)" value="Apply" />
       <input name="Cancel" type="reset" class="item_2" style="WIDTH: 60px; HEIGHT: 24px;" value="Cancel" />
       <input name="restore" type="button" class="item_2" style="WIDTH: 122px; HEIGHT: 24px;" onclick="res()" value="Restore default" />
       <input name="reboot" type="button" class="item_2" style="WIDTH: 80px; HEIGHT: 24px;" onclick="reb()" value="Reboot"/></td>

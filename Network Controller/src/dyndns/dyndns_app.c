@@ -35,6 +35,11 @@ _STR_DYNDNS_SERVER const code dyndns_server_array[3] =
 		CONF_DDNS_NOIP,		// www.no-ip.com
 		0x0817E06E,			// 8.23.224.110
 	}
+//	{
+//		CONF_DDNS_ODS,		//update.ods.com
+//		0x081E5919,			//8.30.89.19
+//	}
+
 };
 
 void init_dyndns(void)
@@ -50,8 +55,12 @@ void do_dyndns(void)
 
 	if(update_from_dyndns == TRUE)
 	{
-		DynDNS_DoUpdateDynDns(dyndns_server_array[dyndns_provider].type, dyndns_server_array[dyndns_provider].ip, \
-								dyndns_domain_name, dyndns_username, dyndns_password);
+		DynDNS_DoUpdateDynDns(dyndns_server_array[dyndns_provider].type,
+		 						dyndns_server_array[dyndns_provider].ip, 
+								dyndns_domain_name, 
+								dyndns_username, 
+								dyndns_password);
+		
 		if(DynDNS_GetUpdateState() == TRUE)
 		{
 			update_from_dyndns = FALSE;

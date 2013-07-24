@@ -25,11 +25,8 @@
 #include "types.h"
 
 /* NAMING CONSTANT DECLARATIONS */
-//#define MAX_STORE_FILE_NUM	13
 #define MAX_FILE_NAME_LEN	30
 
-//#define FILE_TYPE_HTML		0
-//#define FILE_TYPE_BIN		BIT0
 
 #define MAX_POST_RECORDS	26
 #define MAX_POST_BUF_SUBMIT	1
@@ -42,36 +39,6 @@
 #define MAX_SELECT_OPTION_NUM	2
 #define MAX_RADIO_OPTION_NUM	2
 
-//#define POST_TYPE_SUBMIT	1
-//#define POST_TYPE_TEXT		2
-//#define POST_TYPE_RADIO		3
-//#define POST_TYPE_SELECT	4
-//
-//#define RECORD_RADIO_p0		0
-//#define RECORD_RADIO_p1		1
-//#define RECORD_RADIO_p2		2
-//#define RECORD_RADIO_p3		3
-//#define RECORD_RADIO_p4		4
-//#define RECORD_RADIO_p5		5
-//#define RECORD_RADIO_p6		6
-//#define RECORD_RADIO_p7		7
-//#define RECORD_SELECT_p0		9
-//#define RECORD_SELECT_p1		10
-//#define RECORD_SELECT_p2		11
-//#define RECORD_SELECT_p3		12
-//#define RECORD_SELECT_p4		13
-//#define RECORD_SELECT_p5		14
-//#define RECORD_SELECT_p6		15
-//#define RECORD_SELECT_p7		16
-//#define RECORD_TEXT_temperature		17
-//#define RECORD_TEXT_p0		18
-//#define RECORD_TEXT_p1		19
-//#define RECORD_TEXT_p2		20
-//#define RECORD_TEXT_p3		21
-//#define RECORD_TEXT_p4		22
-//#define RECORD_TEXT_p5		23
-//#define RECORD_TEXT_p6		24
-//#define RECORD_TEXT_p7		25
 
 /* TYPE DECLARATIONS */
 /*-------------------------------------------------------------*/
@@ -149,12 +116,10 @@ typedef struct _BUF_SELECT
 /*-------------------------------------------------------------*/
 
 /* EXPORTED SUBPROGRAM SPECIFICATIONS */
-//#if (MAX_STORE_FILE_NUM)
-//extern FILE_MANAGEMEMT XDATA FSYS_Manage[MAX_STORE_FILE_NUM];
+
+//#if (MAX_POST_RECORDS)
+//extern POST_RECORD XDATA POST_Record[MAX_POST_RECORDS];
 //#endif
-#if (MAX_POST_RECORDS)
-extern POST_RECORD XDATA POST_Record[MAX_POST_RECORDS];
-#endif
 
 #if (MAX_POST_BUF_RADIO)
 extern BUF_RADIO XDATA BUF_Radio[MAX_POST_BUF_RADIO];

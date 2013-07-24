@@ -105,12 +105,11 @@ typedef unsigned char       	U8_T;			/* 8-bit unsigned */
 
 
 enum ledState { None, Ethnet_OK,S485_OK,S485_ERR,
-				Zigbee_OK, Gsm_OK, Usb_OK, RS232_OK };	 //heng addd enum line
+				Zigbee_OK, Gsm_OK, Usb_OK, RS232_OK,RS232_ONLY 
+				
+				 };	 
 										
-										
-										
-										
-
+														  //heng addd enum line
 
 
 #endif 	/* end of TYPES_H */

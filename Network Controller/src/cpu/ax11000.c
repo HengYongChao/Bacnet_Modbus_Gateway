@@ -164,6 +164,9 @@ void AX11000_Init(void)
 	EXTINT5(OFF);		// EINT5 interrupt for software timer.
 	EXTINT6(ON);		// EINT6 interrupt for wake-up of power management mode and stop mode.
 
+	EIE |= 0x04;
+
+
 	if (globeInt & BIT7)
 		EA = globeInt & BIT0;
 	else

@@ -40,6 +40,9 @@
 #include "ax11000.h"
 #include "ctype.h"
 #include "lcd.h"
+#include "schedule.h"
+
+
 
 
 #if (INCLUDE_EVENT_DETECT)
@@ -49,6 +52,13 @@
 
 /* GLOBAL VARIABLES DECLARATIONS */
 entry entries[20];
+static U8_T test[10];
+
+extern U8_T far dyndns_username[MAX_USERNAME_SIZE];
+extern U8_T far dyndns_domain_name[MAX_DOMAIN_SIZE];
+extern U8_T far dyndns_password[MAX_PASSWORD_SIZE];
+
+
 U8_T num_parms;
 /* LOCAL VARIABLES DECLARATIONS */
 static HTTP_SERVER_CONN XDATA HTTP_Connects[MAX_HTTP_CONNECT];
@@ -180,7 +190,6 @@ void HTTP_Event(U8_T id, U8_T event)
 				Display_reboot();
 				AX11000_SoftReboot();
 
-				
 			}
 /*====== for msgrestore.htm web page, end ====== */	
 /*====== for msgupg.htm web page, start ====== */		
@@ -195,7 +204,6 @@ void HTTP_Event(U8_T id, U8_T event)
 				Lcd_Initial();
 				Display_reboot();
 				AX11000_SoftReboot();
-
 
 			}
 /*====== for msgupg.htm web page, end ====== */				
@@ -258,6 +266,9 @@ void HTTP_Event(U8_T id, U8_T event)
 		else if (HTTP_Connects[id].State == HTTP_STATE_SEND_DATA)
 		{
 SENDHTML:
+
+//			Uart0_Tx("send.",5);
+
 			{
 				BUF_TEXT XDATA		*pText;
 //				BUF_TAG XDATA*		pTag;
@@ -272,6 +283,9 @@ SENDHTML:
 				
 				if (!HTTP_Connects[id].Divide.PadFlag)
 				{
+					
+				//	Uart0_Tx("send0",5);
+						
 					if (index == 0)
 						dataLen = HTTP_Connects[id].Divide.Offset[index];
 					else if (index == HTTP_Connects[id].Divide.Fragment)
@@ -284,6 +298,8 @@ SENDHTML:
 					{
 						TCPIP_TcpSend(HTTP_Connects[id].TcpSocket, pSour, dataLen, TCPIP_SEND_FINAL);
 						HTTP_Connects[id].State = HTTP_STATE_SEND_FINAL;
+
+						 Uart0_Tx("s-1",3);
 					}
 					else
 					{
@@ -291,12 +307,19 @@ SENDHTML:
 						HTTP_Connects[id].Divide.PData += dataLen;
 						HTTP_Connects[id].Divide.LeftLen -= dataLen;
 						HTTP_Connects[id].Divide.PadFlag = 1;
+
+						 Uart0_Tx("s-2",3);
 					}
 				}
 				else
 				{
+				//	Uart0_Tx("send1",5);
+
 					if (HTTP_Connects[id].Divide.PostType[index] == POST_TYPE_RADIO)
 					{
+						
+						Uart0_Tx("radio",5);
+						
 						if (HTTP_Connects[id].Divide.SetFlag[index] == 1)
 							TCPIP_TcpSend(HTTP_Connects[id].TcpSocket, pTrue, 8, TCPIP_SEND_NOT_FINAL);
 						else if (HTTP_Connects[id].Divide.SetFlag[index] == 2)
@@ -320,6 +343,9 @@ SENDHTML:
 					}
 					else if (HTTP_Connects[id].Divide.PostType[index] == POST_TYPE_TEXT)
 					{
+						
+						Uart0_Tx("text.",5);
+						
 							pText = POST_Record[HTTP_Connects[id].Divide.RecordIndex[index]].PValue;
 							leftLen -= pText->DefaultLength;
 							if (!leftLen)
@@ -337,6 +363,10 @@ SENDHTML:
 #if(MAX_POST_BUF_TAG)					
 					else if (HTTP_Connects[id].Divide.PostType[index] == POST_TYPE_TAG)
 					{
+					
+						 Uart0_Tx("Tag",3);
+					
+					
 						pTag = POST_Record[HTTP_Connects[id].Divide.RecordIndex[index]].PValue;
 						leftLen -= pTag->DefaultLength;
 						if(pTag->CurrLength)
@@ -354,6 +384,8 @@ SENDHTML:
 #endif										
 					else if (HTTP_Connects[id].Divide.PostType[index] == POST_TYPE_SELECT)
 					{
+					  Uart0_Tx("select",6);
+					
 						if (HTTP_Connects[id].Divide.SetFlag[index] == 1)
 						{
 							TCPIP_TcpSend(HTTP_Connects[id].TcpSocket, pSele, 9, TCPIP_SEND_NOT_FINAL);
@@ -520,6 +552,16 @@ void HTTP_LoadSetting(void)
 	pSelect = POST_Record[RECORD_SELECT_dhcp].PValue;		//Load DHCP control bit.
 	pSelect->CurrentSet = (temp16 & GCONFIG_NETWORK_DHCP_ENABLE) ? 1 : 0;//+1 for web display
 	
+
+//	// Load ddns username
+//	pText = POST_Record[RECORD_TEXT_ddns_name].PValue;
+//	pText->CurrLength = HTTP_Short2Str(GCONFIG_GetClientDestPort(), pText->CurrValue);
+//	pText->CurrValue[pText->CurrLength ++] = '"';	
+
+
+
+
+
 //	pSelect = POST_Record[RECORD_SELECT_conntype].PValue;	//Load Connection type option.
 //	pSelect->CurrentSet = (temp16 & GCONFIG_NETWORK_PROTO_TCP) ? 0 : 1;	
 		
@@ -658,12 +700,13 @@ U8_T http_UserPost(U8_T XDATA* pData, U16_T length, U8_T fileId, U8_T continueFl
   	U8_T tempchar;
 	
 	U8_T IPtemp[4];	
-//	U16_T Porttemp;
+
 	if (continueFlag)
 		goto MAPRECORD;
 
 	if (length < 150)
 	{
+		//Uart0_Tx("F0",2);
 		return HTTP_POST_FAILURE;
 	}
 
@@ -674,14 +717,7 @@ U8_T http_UserPost(U8_T XDATA* pData, U16_T length, U8_T fileId, U8_T continueFl
 		pData += 1;
 		goto MAPRECORD;
 	}
-/*
-	if (length > 170) // parse the last 170 bytes
-	{
-		length -= 170;
-		pData += length;
-		length = 170;		
-	}
-*/
+
 	i = 0;
 	while(i < length)
 	{
@@ -699,7 +735,11 @@ U8_T http_UserPost(U8_T XDATA* pData, U16_T length, U8_T fileId, U8_T continueFl
 			{
 				pData++;
 				i++;
-				if ((i + 3) >= length) return HTTP_POST_FAILURE;
+				if ((i + 3) >= length) 
+				
+			//	Uart0_Tx("F1",2);
+
+				return HTTP_POST_FAILURE;
 			}
 		}
 MAPRECORD:
@@ -743,10 +783,12 @@ MAPRECORD:
 								HTTPtemp.PostTable[HTTPtemp.PostCnt] = x;
 								HTTPtemp.PostCnt ++;
 
-								printd ("SUBMIT\n\r");
+							//	Uart0_Tx("SUBMIT",6);
+							//	printd ("SUBMIT\n\r");
 
 								if (pSubmit->IsApply)
 								{
+								//  Uart0_Tx("F2",2);
 									return (status ? HTTP_POST_FAILURE : HTTP_POST_SUCCESS);
 								}
 								else
@@ -811,6 +853,8 @@ MAPRECORD:
 									}
 									else
 									{
+									
+								//	   	Uart0_Tx("F3",2);
 										return HTTP_POST_FAILURE;
 									}
 //------------------- Add for chack username & password function end -------------------------------
@@ -841,17 +885,22 @@ MAPRECORD:
 									}
 									else
 									{
+									
+										//	Uart0_Tx("F4",2);
 										return HTTP_POST_FAILURE;
 									}
 								}
 								else									
 //------------------- Add for set new username & password function end -------------------------------
 								{
+								//	Uart0_Tx("F5",2);
+								
 									return HTTP_POST_FAILURE;
 								}
 							}
 							else
 							{
+//									Uart0_Tx("F8",2);
 									strncpy(pText->UserValue, HTTPtemp.Buf[0], strlen(HTTPtemp.Buf[0]) + 1);//copy post data to user value include '\0' character.
 									pText->UserLength = strlen(HTTPtemp.Buf[0]);//set user length not include '\0' character.
 /*====== for nrmsetting.htm web page, start ====== */
@@ -861,19 +910,32 @@ MAPRECORD:
 
 									if ((x == RECORD_TEXT_static_ip) ||
 										(x == RECORD_TEXT_tftps_ip)) 									
-																		{
+									{
 										*(U32_T*)IPtemp = HTTP_IpAddr2Ulong(pText->UserValue, pText->UserLength);
-										if (*(U32_T*)IPtemp == 0xffffffff) return HTTP_POST_FAILURE;
-										if ((IPtemp[0] == 0) || (IPtemp[0] > 223) || (IPtemp[3] == 0) || (IPtemp[3] == 255)) return HTTP_POST_FAILURE;
+										if (*(U32_T*)IPtemp == 0xffffffff){ 
+								//		Uart0_Tx("F17",3);
+										return HTTP_POST_FAILURE;	   }
+										if ((IPtemp[0] == 0) || (IPtemp[0] > 223) || (IPtemp[3] == 0) || (IPtemp[3] == 255)) 
+									//	 Uart0_Tx("F16",3);
+										return HTTP_POST_FAILURE;
 									}
 									else if (x == RECORD_TEXT_mask)
 									{
 										*(U32_T*)IPtemp = HTTP_IpAddr2Ulong(pText->UserValue, pText->UserLength);
-										if (*(U32_T*)IPtemp == 0xffffffff) return HTTP_POST_FAILURE;
-										if (IPtemp[0] != 255) return HTTP_POST_FAILURE;
+										if (*(U32_T*)IPtemp == 0xffffffff) 
+											{
+									//		Uart0_Tx("F15",3);
+											return HTTP_POST_FAILURE; }
+										if (IPtemp[0] != 255) 
+										   {
+									//	   Uart0_Tx("F14",3);
+											return HTTP_POST_FAILURE;
+											}
 										if (IPtemp[0] >= 128)
 										{
-											if (IPtemp[1] != 255) return HTTP_POST_FAILURE;
+											if (IPtemp[1] != 255) 
+									//		Uart0_Tx("F13",3);
+											return HTTP_POST_FAILURE;
 										}
 									}
 									else if (x == RECORD_TEXT_gateway_ip)
@@ -881,8 +943,10 @@ MAPRECORD:
 										*(U32_T*)IPtemp = HTTP_IpAddr2Ulong(pText->UserValue, pText->UserLength);									
 										if (pText->UserLength)
 										{
-											if (*(U32_T*)IPtemp == 0xffffffff) return HTTP_POST_FAILURE;
- // 											if ((IPtemp[3] == 0) || (IPtemp[3] == 255)) return HTTP_POST_FAILURE;
+											if (*(U32_T*)IPtemp == 0xffffffff) 
+										//	   	Uart0_Tx("F12",3);
+											return HTTP_POST_FAILURE;
+// 											if ((IPtemp[3] == 0) || (IPtemp[3] == 255)) return HTTP_POST_FAILURE;
 										}
 									}
 //								   else if	((x == RECORD_TEXT_s_lstport) ||
@@ -901,8 +965,8 @@ MAPRECORD:
 //										if (*(U32_T*)IPtemp == 0xffffffff) return HTTP_POST_FAILURE;
 ////										if ((IPtemp[3] == 255)) return HTTP_POST_FAILURE;									
 //								}
-/*====== for nrmsetting.htm web page, end ====== */
 							}
+/*====== for nrmsetting.htm web page, end ====== */
 							if (strlen(HTTPtemp.Buf[0]) == MAX_POST_VALUE_LEN)
 							{
 								if ((pData[a] != '&') && (pData[a] != ' '))
@@ -930,6 +994,7 @@ MAPRECORD:
 							HTTPtemp.PostCnt ++;
 							if (final == 1)
 							{
+							//	Uart0_Tx("F6",2);
 								return (status ? HTTP_POST_FAILURE : HTTP_POST_SUCCESS);									
 							}
 							pData += (a + 1);
@@ -958,6 +1023,7 @@ MAPRECORD:
 									goto MAPRECORD;
 								}
 							}
+					//		Uart0_Tx("F7",2);
 							return HTTP_POST_FAILURE;
 							break;
 #endif
@@ -968,6 +1034,8 @@ MAPRECORD:
 							pSelect->UserSet = (*pData) - 0x30;
 
 							if (pSelect->UserSet >= pSelect->Count)
+								
+						//		Uart0_Tx("F8",2);
 								return HTTP_POST_FAILURE;
 
 							pData++;
@@ -981,8 +1049,10 @@ MAPRECORD:
 									pSelect->UserSet *= 10;
 									pSelect->UserSet += ((*pData) - 0x30);
 									if (pSelect->UserSet >= pSelect->Count)
+										{
+								//			Uart0_Tx("F11",3);
 										return HTTP_POST_FAILURE;
-
+										}
 									pData++;
 									i++;
 								}
@@ -1017,7 +1087,9 @@ MAPRECORD:
 				}
 			}
 		}
-	}			
+	}
+	
+	//	Uart0_Tx("F9",2);			
 	return HTTP_POST_FAILURE;																				
 } /* End of GHTTP_UserPost() */
 
@@ -1046,7 +1118,9 @@ U8_T http_PostVal(U8_T XDATA* pData, U16_T length,U8_T Continue_Flag )
   	{
 		if((pData[temp]=='\r') && (pData[temp+1]=='\n') && (pData[temp+2]=='\r') && (pData[temp+3]=='\n')) break;
   	}
-  	if(temp==length) return HTTP_POST_FAILURE;
+  	if(temp==length) 
+//	Uart0_Tx("F21",3);
+	return HTTP_POST_FAILURE;
 	pData+=temp+4;
   }
   
@@ -1066,7 +1140,7 @@ U8_T http_PostVal(U8_T XDATA* pData, U16_T length,U8_T Continue_Flag )
       if (*pData == '&')
       {
         *pData++ = 0x0;    
-        if (*pData == 0x0d) pData +=2;  //for \r\n
+        if (*pData == 0x0d) pData += 2;  //for \r\n
         break;
       }
       pData++;
@@ -1166,6 +1240,10 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 	if (fileStatus)
 		fileId = FSYS_FindFile(pFName);
 
+//	 Uart0_Tx("FileId=.",7);
+//	 test[0] = fileStatus;
+//	 Uart0_Tx(test,1);
+
 //-----  Add for accessible IP function start ------	
 	if ((HTTPtemp.AccessibleIP_EnableFlag != 0) && (FSYS_Manage[fileId].FType == FILE_TYPE_HTML))
 	{
@@ -1183,20 +1261,6 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 	}
 //-----  Add for accessible IP function end ------
 //--------- Add for user link to not index page directly start ----------------------------------------
-//	if ((fileId != FILE_INDEX) && (FSYS_Manage[fileId].FType == FILE_TYPE_HTML))
-//	{
-//		for (i = 0; i < 4; i++)
-//		{
-//			if (HTTPtemp.AuthenIP[i] == pHttpConn->Ip) break;
-//		}
-//		if (i == 4)//not found in table.
-//		{
-//		//	fileId = FILE_JMPINDEX;	     /* jump */
-//			fileId = FILE_BSCSETTING;
-//
-//			goto HTTP_TX_HEADER;					
-//		}
-//	}
 //--------- Add for user link to not index page directly end ----------------------------------------	
 	if (fileStatus == 2) /* for GET /XXX.XXX?--- mode */
 		goto POST_START;
@@ -1204,9 +1268,9 @@ void HTTP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 	if (command == HTTP_CMD_POST)
 	{
 POST_START:
-		if (fileId == MAX_STORE_FILE_NUM)
+
+		if (fileId == MAX_STORE_FILE_NUM)		//19
 		{
-			printd ("POST error file not found.\n\r");
 			TCPIP_TcpClose(pHttpConn->TcpSocket); /*RST | ACK*/
 			pHttpConn->State = HTTP_STATE_FREE;
 			return;
@@ -1218,7 +1282,6 @@ POST_START:
 
 			if (status == HTTP_POST_CONTINUE)
 			{
-				printd ("POST continue.\n\r");
 				pHttpConn->ContinueFlag = 1;
 				pHttpConn->ContinueFileId = fileId;
 				return;
@@ -1234,7 +1297,6 @@ POST_START:
 
 			if (status == HTTP_POST_FAILURE)
 			{
-				printd ("POST error data0.\n\r");
 
 				TCPIP_TcpClose(pHttpConn->TcpSocket);/* RST | ACK*/
 				pHttpConn->State = HTTP_STATE_FREE;
@@ -1242,12 +1304,18 @@ POST_START:
 			}
 		}	
 		else
-		{
+		{								 /* 0 ~ 18*/
 			/* look for Referer */
 			status = http_UserPost(pData, length, FSYS_Manage[fileId].CgiRef, pHttpConn->ContinueFlag);
 
+				 Uart0_Tx("staus=",6);
+				 test[0] = status;
+				 Uart0_Tx(test,1);
+
+
 			if (status == HTTP_POST_SUCCESS)
 			{
+			
 				pHttpConn->ContinueFlag = 0;
 
 /*====== for index.htm web page, start ====== */
@@ -1257,7 +1325,8 @@ POST_START:
 					if (status == HTTP_POST_FAILURE)
 					{
 #if (INCLUDE_EVENT_DETECT)
-//						GEVENT_SetAuthFailEvent(1);//*** Add for authentication fail detect ***					
+//						GEVENT_SetAuthFailEvent(1);
+//						*** Add for authentication fail detect ***					
 #endif
 						fileId = FILE_MSGAUTHERR;
 					}
@@ -1286,6 +1355,17 @@ POST_START:
 					}
 					else
 						goto POST_NORM;
+				}
+/*==================  dyndns ==============================*/
+				else if (fileId == FILE_DDNS )
+				{
+
+//				 for(i = 0; i < (U8_T)strlen(dyndns_username);i++)
+//				 {
+//				 	test[0] = dyndns_username[i];
+//					Uart0_Tx(test,1);
+//				 }
+
 				}
 				else
 				{
@@ -1320,7 +1400,9 @@ POST_NORM:
 			}
 			else if (status == HTTP_POST_CONTINUE)
 			{
-				printd ("POST continue.\n\r");			
+							
+				Uart0_Tx("POST continue.",14);
+			
 				pHttpConn->ContinueFlag = 1;
 				pHttpConn->ContinueFileId = fileId;
 				return;
@@ -1328,7 +1410,8 @@ POST_NORM:
 			else if (status == HTTP_POST_FAILURE)
 			{
 				pHttpConn->ContinueFlag = 0;				
-				printd ("POST error data1.\n\r");
+
+				Uart0_Tx("POST error data.",16);
 
 				if (fileId == FILE_ADVSETTING)
 					fileId = FILE_MSGADVERR;
@@ -1336,6 +1419,9 @@ POST_NORM:
 					fileId = FILE_MSGBSCERR;
 				else if (fileId == FILE_SECURITY)
 					fileId = FILE_MSGSCTERR;
+				else if (fileId == FILE_DDNS)
+					fileId = FILE_DDNS;
+
 				else
 				{
 				TCPIP_TcpClose(pHttpConn->TcpSocket);/* RST | ACK*/
@@ -1348,7 +1434,7 @@ POST_NORM:
 
 	if (command == HTTP_CMD_GET)
 	{
-
+	//	Uart0_Tx("get the webpage.",16);
 		if (fileStatus)
 		{
 			if (fileId == MAX_STORE_FILE_NUM)
@@ -1377,15 +1463,14 @@ POST_NORM:
 		}
 	}
 
-    //call cgi function
+//call cgi function
 	if(FSYS_Manage[fileId].CgiCall)
 	{
 		void (*pF)(void);
 		pF= FSYS_Manage[fileId].CgiCall;
 		pF();
-	}
-	
-	// update data in some web page
+	}	
+// update data in some web page
 	{
 		U8_T i;
 
@@ -1565,7 +1650,7 @@ void HTTP_DivideHtmlFile(HTTP_SERVER_CONN XDATA* pHttpConn, U8_T id)
 						pHttpConn->Divide.RecordIndex[tableIndex] = i;
 						pHttpConn->Divide.PostType[tableIndex] = POST_TYPE_SELECT;
 						pHttpConn->Divide.SetFlag[tableIndex] = 2;
-						tableIndex++;
+						tableIndex++;	  
 					}
 					else if (pSelect->CurrentSet == k)
 					{
@@ -1610,6 +1695,10 @@ U8_T HTTP_NewConfig(void)
 
 	HTTPtemp.SaveCfgFlag = 0;
 	HTTPtemp.SysRebootFlag = 0;	
+
+
+	return HTTP_POST_SUCCESS;
+
 
 	for (i = 0; i < HTTPtemp.PostCnt; i++)
 	{
@@ -1771,6 +1860,8 @@ U8_T HTTP_CheckPassWord(HTTP_SERVER_CONN XDATA*	pHttpConn)
 		(HTTPtemp.PostTable[1] != RECORD_TEXT_password))
 	{
 		printd ("Login: Lost username or password data!\n\r");	
+		
+	//	Uart0_Tx("F22",3);
 		return HTTP_POST_FAILURE;
 	}
 
@@ -1780,6 +1871,7 @@ U8_T HTTP_CheckPassWord(HTTP_SERVER_CONN XDATA*	pHttpConn)
 		(HTTPtemp.PassWordLen > MAX_AUTH_POST_VALUE_LEN))
 	{
 		printd ("Login: username or password length error!\n\r");
+	//	Uart0_Tx("F23",3);
 		return HTTP_POST_FAILURE;	
 	}
 	
@@ -1796,7 +1888,8 @@ U8_T HTTP_CheckPassWord(HTTP_SERVER_CONN XDATA*	pHttpConn)
 	if (Index == MAX_USER_COUNT)
 	{
 		printd ("Login: username or password not metch!\n\r");	
- 		return HTTP_POST_FAILURE;
+ 	//	Uart0_Tx("F24",3);
+		return HTTP_POST_FAILURE;
 	}
 	
 	for (Index = 0 ; Index < MAX_HTTP_CONNECT ; Index ++)		//Fine a empty space for save authenticationed IP.
@@ -1830,12 +1923,15 @@ U8_T HTTP_CheckNewPassword(void)
 {
 	U8_T Index, LvlTemp;
 	
+	  return HTTP_POST_SUCCESS;
+
 	if ((HTTPtemp.PostCnt != 4) ||
 		(HTTPtemp.PostTable[0] != RECORD_TEXT_old_psw) || 
 		(HTTPtemp.PostTable[1] != RECORD_TEXT_new_psw) || 
 		(HTTPtemp.PostTable[2] != RECORD_TEXT_cfm_psw))
 	{
 		printd ("Change PassWord: Lost password data!\n\r");	
+	//	Uart0_Tx("F25",3);
 		return HTTP_POST_FAILURE;
 	}
 
@@ -1845,6 +1941,7 @@ U8_T HTTP_CheckNewPassword(void)
 		(HTTPtemp.CfmPassWordLen > MAX_AUTH_POST_VALUE_LEN))
 	{
 		printd ("Change PassWord: New password or confirm password length error!\n\r");
+//		Uart0_Tx("F25",3);
 		return HTTP_POST_FAILURE;	
 	}
 
@@ -1859,18 +1956,22 @@ U8_T HTTP_CheckNewPassword(void)
 	if (Index == MAX_USER_COUNT) 
 	{
 		printd ("Change PassWord: Old password not found!\n\r");		
+	//	Uart0_Tx("F26",3);
+		
 		return HTTP_POST_FAILURE;
 	}
 
 	if (HTTPtemp.NewPassWordLen != HTTPtemp.CfmPassWordLen)
 	{
 		printd ("Change PassWord: New password and confirm password length not equal!\n\r");	
+//		Uart0_Tx("F27",3);
 		return HTTP_POST_FAILURE;
 	}
 
 	if (memcmp(HTTPtemp.NewPassWord, HTTPtemp.CfmPassWord, HTTPtemp.NewPassWordLen))
 	{
 		printd ("Change PassWord: Data not equal in %s to %s\n\r",HTTPtemp.OldPassWord , HTTPtemp.NewPassWord);
+//		Uart0_Tx("F28",3);
 		return HTTP_POST_FAILURE;
 	}
 
@@ -1897,11 +1998,16 @@ U8_T HTTP_CheckNewUsername(void)
 {
 	U8_T Temp;
 	
-	if (HTTPtemp.PostCnt != 2) return HTTP_POST_FAILURE;
+	return HTTP_POST_SUCCESS;
+
+	if (HTTPtemp.PostCnt != 2) 
+//	 Uart0_Tx("F29",3);
+	return HTTP_POST_FAILURE;
 	
 	if ((!HTTPtemp.NewUserNameLen) || (HTTPtemp.NewUserNameLen > MAX_AUTH_POST_VALUE_LEN))
 	{
 		printd ("Change UserName: New username length error!\n\r");
+//		Uart0_Tx("F30",3);
 		return HTTP_POST_FAILURE;
 	}
 	

@@ -57,7 +57,7 @@ GCONFIG_GID XDATA GCONFIG_Gid = {'A','S','I','X','X','I','S','A'};
 /* LOCAL VARIABLES DECLARATIONS */
 U8_T XDATA gconfig_SysClock;
 GCONFIG_CFG_DATA XDATA gconfig_ConfigData;
-U8_T IDATA FirmwareUpgradeFlag[4] _at_ 0x31;
+U8_T IDATA FirmwareUpgradeFlag[4] _at_ 0x36;
 static GCONFIG_MAC_ADDR macAddr;
 
 U8_T XDATA gs2e_State;

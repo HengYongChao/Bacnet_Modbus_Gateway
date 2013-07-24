@@ -22,7 +22,7 @@ U8_T init_state = 0;
 //U8_T gsm_flag;
 char phone_num[20] = {0};
 
-U8_T phoneNumber[PHONE_NUM_SIZE + 1] = "+8613917905693";
+U8_T phoneNumber[PHONE_NUM_SIZE + 1] = "+8613917905693";	//Ä¿±êºÅÂë
 
 U8_T gsm_timeout = GSM_TIMEOUT_VALUE;
 
@@ -301,27 +301,6 @@ U8_T gsm_msg_process( char *msg)
 						buf[6] = CRChi;
 						buf[7] = CRClo;
 
-//							if( buf[0] == 0xfd)
-//								gsm_debug( "!!!!!MOD ID OK");
-//							else
-//								gsm_debug( "!!!!!MOD ID ERROR");
-//							if( ( buf[2] == 0x01) && ( buf[3] == 0x5b))
-//								gsm_debug( "@@@@@REG ID OK");
-//							else
-//								gsm_debug( "@@@@@REG ID ERROR");
-//							if( buf[5] == 0x19)
-//								gsm_debug( "#####SET ID OK");
-//							else
-//								gsm_debug( "#####SET ID ERROR");
-//							if( (buf[6] == 0x2c) && ( buf[7] == 0x13))
-//								gsm_debug( "$$$$$CRC OK");
-//							else
-//							{
-//								gsm_debug( "$$$$$CRC ERROR, BUF6:");
-//								gsm_debug( &buf[6]);
-//								gsm_debug( "BUF7:");
-//								gsm_debug( &buf[7]);
-//							}	
 						Tx_To_Tstat(buf, 8);
 
 						g_state = GSM_INIT_DONE;

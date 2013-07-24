@@ -57,7 +57,8 @@
 
 /* extern uart tx function */
 extern U8_T xdata FlagSend0;
-extern enum ledState LED;
+//extern enum ledState LED;
+
 extern void Uart0_Tx(U8_T *buf,U8_T len);
 extern U8_T frame_gap ;
 extern U8_T receivenodataframe ;
@@ -240,7 +241,7 @@ void MSTP_Create_And_Send_Frame(
 
     RS485_Send_Frame(mstp_port, (uint8_t *) & mstp_port->OutputBuffer[0], len);
 
-	LED = S485_OK;
+	LED |= S485_OK;
 
     /* FIXME: be sure to reset SilenceTimer() after each octet is sent! */
 }

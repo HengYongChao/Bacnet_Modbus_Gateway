@@ -102,6 +102,8 @@ BOOL	UART_SetPort(U8_T portNum);
 U16_T	UART_GetRxBufCount(void);
 void	PMM_Uart0Init(void);
 S8_T	uart0_PutChar(S8_T c);
+S8_T 	GetKey(void);
+
 
 #endif /* End of __UART_H__ */
 

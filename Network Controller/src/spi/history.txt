@@ -1,0 +1,17 @@
+//======================================================================
+// AX11000 Firmware Revision History
+// Module Name: SPI
+//
+// This document describes the major changes, additions and bug fixes made 
+// to the AX11000 Firmware between released versions. 
+//======================================================================
+
+Version 1.0.1  (2006-09-25)
+
+1. Add slave functions in SPI slave mode.
+
+
+Version 1.0.0  (2006-04-14)
+
+1. Initial release
+

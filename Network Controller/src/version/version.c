@@ -26,7 +26,10 @@
 //U8_T code hw = 0x26;
 
 //volatile char xdata  version[30] _at_ 0x6200;
-char code bac[30] = {"model:100 fw:69.11 hw:26 bl:14"}; 			//ascii 
+//char code version[30] = {"model:100 fw:69.15 hw:26 bl:14"}; 			//ascii 
+
+U8_T code version[5] = {100,69,15,26,14};
+
 
 /* LOCAL SUBPROGRAM DECLARATIONS */
 

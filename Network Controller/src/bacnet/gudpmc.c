@@ -37,6 +37,7 @@
 #include "main.h"
 #include "types.h"
 #include "delay.h"
+#include "hsuart.h"
 #include <string.h>
 
 /* NAMING CONSTANT DECLARATIONS */
@@ -154,7 +155,7 @@ static	U16_T 	Object_Type = 0 ;				//REAL 10BITS
 static	U32_T 	Instance_Number = 0 ;			//REAL 22BITS
 static  U32_T 	BACnetObjectIdentifier   ;		//32bit
 static	U32_T	ObjectIdentifier ;				//32bit
-static	U32_T	device_object_identifier = 0x02004e20 ;
+static	U32_T	device_object_identifier = 0x02030d40 ;
 
 /*-----------     analog value object  ------------*/
 static	U32_T	ObjectIdentifier_av1 = 0x00800001	;
@@ -213,14 +214,17 @@ static	U8_T Invoke_Id ;
 static	U8_T system_status = 0 ;
 static	U8_T Service_Choice ;
 static	U8_T Service_Request ;
-char  device_object_name[] = "Network Controller"	;
+char  device_object_name[] = "NC System Controller"	;
 char  vendor_name[] = "Temco Controls, Ltd." ;
 BOOL	send_flag ;
 BOOL	flag_answer_whois ;	
 BOOL    point_flag ;  // 小数点flag	
 U8_T	str_len ;
 
-extern U8_T forward_buffer[300];
+extern U8_T far hsurRxBuffer[UR2_MAX_RX_SIZE];
+				 /* may be hsuart buff issue ,need to check it. */
+
+
 extern U16_T far hsurRxCount ;
 extern void InitCRC16(void);
 extern void CRC16_Tstat(unsigned char ch);
@@ -448,25 +452,6 @@ else 			  // 不带小数点的实数处理
 
 device_object_id_got(void)
 {
-	
-//	U8_T i ;
-//	U8_T temp[8] = {0xff,0x03,0x00,0x06,0x00,0x01};
-//	
-//	InitCRC16();
-//	for(i = 0; i < 6; i++)
-//	CRC16_Tstat(temp[i]);
-//	temp[i] = CRChi;                        
-//	temp[i + 1] = CRClo;
-//	
-//	for(i = 0 ; i < 8 ; i ++)
-//	Uart0_Tx(&temp[i],1) ;
-//
-//	Tx_To_Tstat(temp,8);			 
-//	hsurRxCount=0;
-//
-//	DELAY_Ms(2)	;
-//	for(i=0;i<8;i++) 
-//	Uart0_Tx(&forward_buffer[i],1) ; 
 
    return device_object_identifier;
 
@@ -482,34 +467,18 @@ device_object_id_got(void)
 /*=======================================*/
 void  modbus_uart_arry(void)
 {
-	U8_T i;
-//	U8_T temp[8] = {0xff,0x03,0x1b,0x66,0x00,0x01};
-//	
-//	InitCRC16();
-//	for(i = 0; i < 6; i++)
-//	CRC16_Tstat(temp[i]);
-//	temp[i] = CRChi;                        
-//	temp[i + 1] = CRClo;
-//	
-//	for(i = 0 ; i < 8 ; i ++)
-//	Uart0_Tx(&temp[i],1) ;
-//
-//	Tx_To_Tstat(UART_ARRY1,8);			 
-//	hsurRxCount=0;
-//
-//
-//	for(i=0;i<8;i++) 
-//	Uart0_Tx(&forward_buffer[i],1) ; 
+	U8_T 		i;
 
 
-
-
-	modbus_id = bacnet_id ;//(U8_T) (BACnetObjectIdentifier >> 8);
+	modbus_id = 254	;		//bacnet_id ;//(U8_T) (BACnetObjectIdentifier >> 8);
 	UART_ARRY1[0] = modbus_id ;
 	UART_ARRY1[1] = modbus_read_fun ;
 	UART_ARRY1[2] = (U8_T) (modbus_addr	>> 8) ;
+
 	UART_ARRY1[3] = (U8_T)  modbus_addr	 ;
+
 	UART_ARRY1[4] = (U8_T) (modbus_length >> 8) ;
+
 	UART_ARRY1[5] = (U8_T)  modbus_length	 ;
 
 	InitCRC16();
@@ -538,17 +507,7 @@ void GUDPMC_Receive(U8_T XDATA* pData, U16_T length, U8_T id)
   	U8_T i;
 	U32_T f;
 	U16_T	modbus_data;
-	
-////*==========================================*/
-//	Tx_To_Tstat(UART_ARRY1,8);
-//	hsurRxCount=0;
-////	DELAY_Ms(2)	;
-//	for(i=0;i<203;i++) {
-//	Edata_arry[i]=forward_buffer[i] ;
-//	Uart0_Tx(&Edata_arry[i],1) ;  }
-//	f = Decimalist_to_real(forward_buffer[47]);
-////*==========================================*/
-	
+		
 	length = length ;
 	send_flag = 0 ;
 
@@ -593,9 +552,6 @@ void GUDPMC_Receive(U8_T XDATA* pData, U16_T length, U8_T id)
 						  send_arry[bvlc_head + 1] = BVLC_ORIGINAL_BROADCAST_NPDU;	// NPDU BROADCAST	
 						  len = 4;
 						  send_len = len ;
-
-						  
-
 						  break;
 			        default:
 			            break;
@@ -660,86 +616,86 @@ void GUDPMC_Receive(U8_T XDATA* pData, U16_T length, U8_T id)
 			 }
 
 /*---------------   apdu  -------------------------------*/
-   	apdu_head = (U8_T) len ;
-	send_apdu_head =  send_len ;
-    switch (pData[apdu_head] & 0xF0) 	/* APDU Type */
-	{
-        case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:	 	//有证实请求PDU
-			 
-			 First_Head_Octet = PDU_TYPE_COMPLEX_ACK;
+	       	apdu_head = (U8_T) len ;
+			send_apdu_head =  send_len ;
+		    switch (pData[apdu_head] & 0xF0) 	/* APDU Type */
+			{
+	            case PDU_TYPE_CONFIRMED_SERVICE_REQUEST:	 	//有证实请求PDU
+					 
+					 First_Head_Octet = PDU_TYPE_COMPLEX_ACK;
 //					 First_Head_Octet = First_Head_Octet << 4;	  //BACnet-ComplexACK-pdu
-			 send_arry[send_apdu_head] = First_Head_Octet ;
-			 send_len++;
-
-			 /*-------  invoke id ------*/
-			 Invoke_Id =  pData[apdu_head + 2] ;
-			 send_arry[send_apdu_head + 1] =  Invoke_Id ;	   //invoke-id
-			 send_len++;
-
-			/*-----  Service_Choice  ------*/					 
-			 if(pData[apdu_head] & BIT3) 						//if segmented message = 1
-				Service_Choice = pData[apdu_head + 5] ;
-			 else
-			 	Service_Choice = pData[apdu_head + 3] ;
-			
-			/*-----  Service_Request  ------*/   
-			 if(Service_Choice == READPROPERTY)		 	//readproperty func	  /*读*/
-			 	{
-					 send_arry[send_apdu_head + 2] = READPROPERTY ;
+					 send_arry[send_apdu_head] = First_Head_Octet ;
 					 send_len++;
-					 if((pData[apdu_head + 4] & 0x07) != 0x05)			// < 4 bytes
-					 	{
-							if((pData[apdu_head + 4] & 0x07) == 0x04 )	   //means 4 bytes
-								{
-									send_arry[send_apdu_head + 3] = pData[apdu_head + 4];
-									send_len++;
-									
-									Object_Type = (pData[apdu_head + 5] << 8) + pData[apdu_head + 6] ;
-									Object_Type &= 0xFFC0 ;
-									Object_Type = Object_Type >> 6;
 
-									/*-------  BACnetObjectIdentifier  ---------*/
-									ReadObjectIdentifier = 0;
+					 /*-------  invoke id ------*/
+					 Invoke_Id =  pData[apdu_head + 2] ;
+					 send_arry[send_apdu_head + 1] =  Invoke_Id ;	   //invoke-id
+					 send_len++;
+
+					/*-----  Service_Choice  ------*/					 
+					 if(pData[apdu_head] & BIT3) 						//if segmented message = 1
+						Service_Choice = pData[apdu_head + 5] ;
+					 else
+					 	Service_Choice = pData[apdu_head + 3] ;
+					
+					/*-----  Service_Request  ------*/   
+					 if(Service_Choice == READPROPERTY)		 	//readproperty func	  /*读*/
+					 	{
+							 send_arry[send_apdu_head + 2] = READPROPERTY ;
+							 send_len++;
+							 if((pData[apdu_head + 4] & 0x07) != 0x05)			// < 4 bytes
+							 	{
+									if((pData[apdu_head + 4] & 0x07) == 0x04 )	   //means 4 bytes
+										{
+											send_arry[send_apdu_head + 3] = pData[apdu_head + 4];
+											send_len++;
+											
+											Object_Type = (pData[apdu_head + 5] << 8) + pData[apdu_head + 6] ;
+											Object_Type &= 0xFFC0 ;
+											Object_Type = Object_Type >> 6;
+
+											/*-------  BACnetObjectIdentifier  ---------*/
+											ReadObjectIdentifier = 0;
 //											ReadObjectIdentifier =   (pData[apdu_head + 5] << 24) +
 //																	 (pData[apdu_head + 6] << 16) +
 //																	 (pData[apdu_head + 7] << 8) +
 //																	  pData[apdu_head + 8] ;
-									ReadObjectIdentifier = ReadObjectIdentifier | ((U32_T) pData[apdu_head + 5]) ;
-									ReadObjectIdentifier = ReadObjectIdentifier << 8 ;
-									ReadObjectIdentifier = ReadObjectIdentifier | ((U32_T) pData[apdu_head + 6]) ;
-									ReadObjectIdentifier = ReadObjectIdentifier << 8 ;
-									ReadObjectIdentifier = ReadObjectIdentifier | ((U32_T) pData[apdu_head + 7]) ;
-									ReadObjectIdentifier = ReadObjectIdentifier << 8 ;
-									ReadObjectIdentifier = ReadObjectIdentifier | ((U32_T) pData[apdu_head + 8]) ;
+											ReadObjectIdentifier = ReadObjectIdentifier | ((U32_T) pData[apdu_head + 5]) ;
+											ReadObjectIdentifier = ReadObjectIdentifier << 8 ;
+											ReadObjectIdentifier = ReadObjectIdentifier | ((U32_T) pData[apdu_head + 6]) ;
+											ReadObjectIdentifier = ReadObjectIdentifier << 8 ;
+											ReadObjectIdentifier = ReadObjectIdentifier | ((U32_T) pData[apdu_head + 7]) ;
+											ReadObjectIdentifier = ReadObjectIdentifier << 8 ;
+											ReadObjectIdentifier = ReadObjectIdentifier | ((U32_T) pData[apdu_head + 8]) ;
 
 
-							//		ReadObjectIdentifier = BACnetObjectIdentifier ;
-									BACnetObjectIdentifier = ReadObjectIdentifier ;
+									//		ReadObjectIdentifier = BACnetObjectIdentifier ;
+											BACnetObjectIdentifier = ReadObjectIdentifier ;
 
-									Instance_Number = 0 ;
-									Instance_Number = (U8_T) (ReadObjectIdentifier << 16) +
-													  (U8_T) (ReadObjectIdentifier << 8) +
-													  (U8_T) ReadObjectIdentifier ;
-
-
-							//		if(BACnetObjectIdentifier == ReadObjectIdentifier )
-							//		   {
-										send_arry[send_apdu_head + 4] = (U8_T) (BACnetObjectIdentifier >> 24);
-										send_arry[send_apdu_head + 5] = (U8_T) (BACnetObjectIdentifier >> 16);
-										send_arry[send_apdu_head + 6] = (U8_T) (BACnetObjectIdentifier >> 8);
-										send_arry[send_apdu_head + 7] = (U8_T)  BACnetObjectIdentifier ;
-										send_len += 4;
+											Instance_Number = 0 ;
+											Instance_Number = (U8_T) (ReadObjectIdentifier << 16) +
+															  (U8_T) (ReadObjectIdentifier << 8) +
+															  (U8_T) ReadObjectIdentifier ;
 
 
-										PropertyIdentifier = (pData[apdu_head + 9] << 8) + pData[apdu_head + 10];
-										PropertyValue = pData[apdu_head + 10] ;
-
-										send_arry[send_apdu_head + 8] = (U8_T) (PropertyIdentifier >> 8) ;
-										send_arry[send_apdu_head + 9] = (U8_T)  PropertyIdentifier ;
-										send_len += 2;
-
-
-										//PropertyValueHead = send_len ;
+									//		if(BACnetObjectIdentifier == ReadObjectIdentifier )
+									//		   {
+												send_arry[send_apdu_head + 4] = (U8_T) (BACnetObjectIdentifier >> 24);
+												send_arry[send_apdu_head + 5] = (U8_T) (BACnetObjectIdentifier >> 16);
+												send_arry[send_apdu_head + 6] = (U8_T) (BACnetObjectIdentifier >> 8);
+												send_arry[send_apdu_head + 7] = (U8_T)  BACnetObjectIdentifier ;
+												send_len += 4;
+	
+	
+												PropertyIdentifier = (pData[apdu_head + 9] << 8) + pData[apdu_head + 10];
+												PropertyValue = pData[apdu_head + 10] ;
+	
+												send_arry[send_apdu_head + 8] = (U8_T) (PropertyIdentifier >> 8) ;
+												send_arry[send_apdu_head + 9] = (U8_T)  PropertyIdentifier ;
+												send_len += 2;
+	
+	
+												//PropertyValueHead = send_len ;
 
 
 		   switch(Object_Type)
@@ -999,8 +955,14 @@ analog_value:
 								}
 
 
+
+
+
+
+
 							   else 
 							   		break;
+
 
 enumerated_data:
 							    modbus_uart_arry();
@@ -1014,9 +976,9 @@ enumerated_data:
 								send_arry[send_apdu_head + 10] =  opening_context_tag;
 								send_arry[send_apdu_head + 11] =  0x91 ;
 								
-								if(forward_buffer[4] == 0x01)
+								if(hsurRxBuffer[4] == 0x01)
 								send_arry[send_apdu_head + 12] = 0x01 ;
-								else if(forward_buffer[4] == 0x00)
+								else if(hsurRxBuffer[4] == 0x00)
 								send_arry[send_apdu_head + 12] = 0x00 ;
 
 								send_arry[send_apdu_head + 13] =  closing_context_tag;
@@ -1026,32 +988,38 @@ enumerated_data:
 								send_flag = 1;
 								break;	
 
+
 real_data:
 								modbus_uart_arry();
 
-//								for(i = 0 ; i < 8 ; i ++)
-//								Uart0_Tx(&UART_ARRY1[i],1);
+								for(i = 0 ; i < 8 ; i ++)
+								Uart0_Tx(&UART_ARRY1[i],1);
 
 
 								Tx_To_Tstat(UART_ARRY1,8);			 
 								hsurRxCount=0;
 								
-//								for(i = 0 ; i < 8 ; i ++)
-//								Uart0_Tx(&forward_buffer[i],1);
+								for(i = 0 ; i < 7 ; i ++)
+								Uart0_Tx(&hsurRxBuffer[i],1);
 
-								if(forward_buffer[0] != bacnet_id)	   //check 
-							//	if(forward_buffer[1] != 0x03)	   //check 
-								{break;}
+//								if(forward_buffer[0] != bacnet_id)	   //check 
+//								{break;}
 
-								modbus_data = ((U16_T) (forward_buffer[3] << 8)) | ((U16_T) forward_buffer[4]);
 
-							    forward_buffer[0] = 0;
-								forward_buffer[1] = 0;
+								modbus_data = ((U16_T) (hsurRxBuffer[3] << 8)) | ((U16_T) hsurRxBuffer[4]);
+
+							    hsurRxBuffer[0] = 0;
+								hsurRxBuffer[1] = 0;
 
 //								Edata_arry[0]= (U8_T) (modbus_data >> 8);
 //								Uart0_Tx(&Edata_arry[0],1) ; 
 //								Edata_arry[0]= (U8_T) modbus_data ;
 //								Uart0_Tx(&Edata_arry[0],1) ; 
+
+								Uart0_Tx(&hsurRxBuffer[3],1) ; 
+								Uart0_Tx(&hsurRxBuffer[4],1) ; 
+
+
 
 direct_data_loop:
 								f = Decimalist_to_real(modbus_data);
@@ -1085,9 +1053,9 @@ direct_data_loop:
 								send_arry[send_apdu_head + 10] =  opening_context_tag;
 								send_arry[send_apdu_head + 11] =  0x91 ;
 
-								if(forward_buffer[4] == 0x00)
+								if(hsurRxBuffer[4] == 0x00)
 								send_arry[send_apdu_head + 12] =  0x3e;					 //degrees-Celsius
-								else if(forward_buffer[4] == 0x01)
+								else if(hsurRxBuffer[4] == 0x01)
 								send_arry[send_apdu_head + 12] =  0x40;					//degrees-Fahrenheit
 
 								send_arry[send_apdu_head + 13] =  closing_context_tag;
@@ -1168,8 +1136,8 @@ DEVICE_LOOP:
 									send_flag = 1;
 									break;
 								}
-//									Uart0_Tx(&send_arry[bvlc_function + 1],1);
-//									Uart0_Tx(&send_arry[bvlc_function + 2],1);
+								//	Uart0_Tx(&send_arry[bvlc_function + 1],1);
+								//	Uart0_Tx(&send_arry[bvlc_function + 2],1);
 							 if(PropertyValue == 77)	   //object-name
 							   	{
 								   send_arry[send_apdu_head + 10] =  opening_context_tag;
@@ -1208,12 +1176,6 @@ DEVICE_LOOP:
 									send_arry[send_apdu_head + 13] = (U8_T) (BACnetObjectIdentifier >> 16);
 									send_arry[send_apdu_head + 14] = (U8_T) (BACnetObjectIdentifier >> 8);
 									send_arry[send_apdu_head + 15] = (U8_T)  BACnetObjectIdentifier ;
-									
-									
-									
-									
-									
-									
 									send_arry[send_apdu_head + 16] =  closing_context_tag;
 									send_len += 7;
 									send_arry[bvlc_function + 1] = (U8_T) (send_len >> 8) ;
@@ -1445,12 +1407,6 @@ DEVICE_LOOP:
 								send_len++;
 								/*---------  I-AM Request Service  -------*/
 								Unconfirmed_Request_service = 0x00 ;	//i-am request 
-							   
-							   	send_arry[0] = 0x81;
-							   	send_arry[1] = 0x0b;
-								send_arry[2] = 0x00;
-								send_arry[3] = 0x14;
-							   
 							   	send_arry[send_apdu_head + 1] = Unconfirmed_Request_service ;
 								send_len++;
 								/*--------  I AM DEVICE IDENTIFIER -------*/
@@ -1539,7 +1495,6 @@ void GUDPMC_Init(U16_T bacnetPort)
 
 
 //	init_iam();
-
 //	Uart0_Tx("UDP broadcast init ok.\n\r", 24);
 
 	for (i = 0; i < GUDPMC_MAX_CONNS; i++)
