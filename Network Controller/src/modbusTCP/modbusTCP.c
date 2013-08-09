@@ -60,7 +60,7 @@ static MODBUSTCP_SERVER_CONN XDATA MODBUSTCP_Connects[MAX_MODBUSTCP_CONNECT];
 static U8_T MODBUSTCP_NewConfig(void);
 static void	MODBUSTCP_DivideHtmlFile(MODBUSTCP_SERVER_CONN XDATA*, U8_T);
 extern void Led_ReSet();
-extern  U8_T   global_signal;
+
 
 /* LOCAL VARIABLES */
 static U8_T XDATA PostTable[MAX_POST_COUNT];
@@ -129,9 +129,7 @@ extern U8_T bacnet_id ;
 U16_T sessonid;
 U16_T sessonlen;
 
-//extern enum ledState LED;
-
-extern U8_T LED;
+extern enum ledState LED;
 extern U8_T Sever_id;
 //sbit En=P3^6;
 unsigned char far CRClo;
@@ -368,11 +366,11 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 			send_tcp[UIP_HEAD+2] = Para[13];
 			NTFlag = 5;
 		}	
-		else
-		*/
+		else*/
 	    if(pData[UIP_HEAD + 1] == 0x19) //scan Tsnet
 		{
 			TcpSocket_ME = pMODBUSTCPConn->TcpSocket;
+			LED = S485_OK;
 
 		    Sever_Order = SERVER_TCPIP;
 			Sever_id = pData[UIP_HEAD];
@@ -904,12 +902,12 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 		}
 		else if(NTFlag == 2)//single_write response byte num=6  ChangeFlash=1;
 		{
-		   	LED = Ethnet_OK;
+			LED = Ethnet_OK;
 			TCPIP_TcpSend(pMODBUSTCPConn->TcpSocket, send_tcp, RealNum+UIP_HEAD, TCPIP_SEND_NOT_FINAL);
 		}
 		else if(NTFlag == 3)//multi_write  ChangeFlash=1;
 		{
-		   	LED = Ethnet_OK;
+			LED = Ethnet_OK;
 			TCPIP_TcpSend(pMODBUSTCPConn->TcpSocket, send_tcp, RealNum+UIP_HEAD, TCPIP_SEND_NOT_FINAL);            
 		} 
 		else if(NTFlag == 5)
@@ -926,18 +924,12 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 	{
 		EA = 0; 
 
-		global_signal = 2;
-
-		
-		if(LED == Zigbee_OK)
-			LED = Zigbee_OK;
-		else
-			LED = S485_OK ;
+		LED = Ethnet_OK;
 
 		TsataId = pData[UIP_HEAD];
 
 		TcpSocket_ME = pMODBUSTCPConn->TcpSocket;
-
+//		sessonid = ((U16_T)pData[0] << 8) | pData[1];
 		if(pData[UIP_HEAD + 1] == READ_VARIABLES)
 		{
 			sessonlen = 2 * pData[UIP_HEAD + 5];//有效字节数目
@@ -965,6 +957,10 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 		EA = 1;
 //		Uart0_Tx(send_tcp, StartAdd);//////////////////
 		Tx_To_Tstat(send_tcp, StartAdd);
+	#if 0
+		DELAY_Ms(40);
+		Uart2_Receive();
+	#endif
 	
 	}
 } /* End of MODBUSTCP_Receive() */

@@ -369,6 +369,9 @@ void GUDPBC_Init(U16_T localPort)
 {
 	U8_T	i;
 
+	printd("GUDPBC_Init()...\n\r");
+//	printd("NC fw69.11hw26bl14\n\r");
+//	char abc[] = {"NC fw69.11hw26bl14"};
 
 	for (i = 0; i < GUDPBC_MAX_CONNS; i++)
 		gudpbc_Conns[i].State = GUDPBC_STATE_FREE;

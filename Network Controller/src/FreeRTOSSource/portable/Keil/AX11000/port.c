@@ -126,7 +126,7 @@ portSTACK_TYPE *pxPortInitialiseStack( portSTACK_TYPE *pxTopOfStack, pdTASK_CODE
 //	*--stk			 = 'X';                 /* DPX1 for second DPTR */
 //	*--stk			 = 'H';                 /* DPH1 for second DPTR */
 //	*--stk			 = 'L';                 /* DPL1 for second DPTR */
-//	*--stk			 = DPS;                 /* DPS for second DPTR */
+//	*--stk			 = DPS;                 /* DPS  for second DPTR */
 	*--stk			 = PSW;					/* PSW */
 	*--stk			 = 0;                   /* R0  */
 /*
@@ -135,7 +135,7 @@ portSTACK_TYPE *pxPortInitialiseStack( portSTACK_TYPE *pxTopOfStack, pdTASK_CODE
 	*--stk			 = 3;                   // should be R3
 */
 	stk				-= sizeof(void *);      /* Keil C uses R1,R2,R3 to pass the */
-	*(void**)stk	 = pvParameters;                  /* arguments of functions.          */
+	*(void**)stk	 = pvParameters;        /* arguments of functions.          */
 
 	*--stk			 = 4;                   /* R4  */
 	*--stk			 = 5;                   /* R5  */

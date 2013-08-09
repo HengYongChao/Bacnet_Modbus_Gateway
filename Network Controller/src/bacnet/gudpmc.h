@@ -44,7 +44,7 @@ U8_T GUDPMC_NewConn(U32_T XDATA* , U16_T , U8_T );
 void GUDPMC_Event(U8_T, U8_T);
 void GUDPMC_Receive(U8_T XDATA* , U16_T , U8_T);
 
-//void I2C_Init(void);
+
 
 #endif /* End of __GUDPMC_H__ */
 
