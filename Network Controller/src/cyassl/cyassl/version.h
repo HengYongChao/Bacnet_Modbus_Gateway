@@ -20,7 +20,11 @@
  */
 
 
-#pragma once
+
+//#pragma once
+#ifndef _VERSION_H_ 
+#define _VERSION_H_
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,4 +36,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#endif  //end version
 

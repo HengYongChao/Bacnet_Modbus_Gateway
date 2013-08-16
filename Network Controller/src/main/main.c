@@ -110,10 +110,8 @@
 #include "dyndns_app.h"
 
 //#include	"spi.h"
-//#include  	"spiapi.h"
-//#include    "sd.h"
-
-
+//#include  "spiapi.h"
+//#include  "sd.h"
 
 
 
@@ -126,7 +124,7 @@
 #define TIME_OUT_COUNTER	(250/SWTIMER_INTERVAL)  //250
 #define Hardware_Rev22       22
 
-#define RS485_EN2 	0   		// if enable new rs485 port
+#define RS485_EN2 			0   // if enable new rs485 port
 
 #define GSM_TASK_ENABLE  	0	// if enbale gsm task
 
@@ -2516,11 +2514,11 @@ void main(void )
    sTaskCreate(Uart2_task, (const signed portCHAR * const)"Uart2_task",
 		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 9, (xTaskHandle *)&xHandle9);//!!!!
 
-   sTaskCreate(Scan_task, (const signed portCHAR * const)"Scan_task",
-		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 6, (xTaskHandle *)&xHandle12);//8
+//   sTaskCreate(Scan_task, (const signed portCHAR * const)"Scan_task",
+//		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 6, (xTaskHandle *)&xHandle12);//8
 
-   sTaskCreate(Schedule_task, (const signed portCHAR * const)"Schedule_task",
-		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 6, (xTaskHandle *)&xHandle8);//!!!
+//   sTaskCreate(Schedule_task, (const signed portCHAR * const)"Schedule_task",
+//		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 6, (xTaskHandle *)&xHandle8);//!!!
 
    sTaskCreate(TimeServer_task, (const signed portCHAR * const)"TimeServer_task",
 		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 7, (xTaskHandle *)&xHandle7);// no 

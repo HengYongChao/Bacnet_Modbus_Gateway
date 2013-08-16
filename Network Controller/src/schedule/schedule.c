@@ -163,6 +163,7 @@ void Write_ORT(U8_T id, U8_T ort)
 	Tx_To_Tstat(send_data, 8);
 }
 
+
 /////LHN ADD///////////////////
 void SendSchedualData(unsigned char id_index, bit output)
 {
@@ -172,34 +173,8 @@ void SendSchedualData(unsigned char id_index, bit output)
 		unsigned char byte[2];
 	}crc;
 	
-//	unsigned char output_value;
-//	unsigned char ort_num = 0;
-
-	unsigned char retry_times = 3;
+	unsigned char retry_times = 3;					/* 3 */
 	schedule_id = id_index + 1;
-
-//	if(output)
-//	{
-//		output_value = 1;
-//		/////LHN ADD///////////////////
-//		/*ort_num = Read_ORT(number);
-//		if(ort_num)
-//		{
-//			Ort_Table[number] = ort_num;
-//			Write_ORT(number, 0);
-//		}*/
-//	}
-//	else
-//	{	
-//		output_value = 0;
-//		/////LHN ADD///////////////////
-//		/*ort_num = Read_ORT(number);
-//		if(!ort_num)
-//		{
-//			ort_num = Ort_Table[number];
-//			Write_ORT(number, ort_num);
-//		}*/
-//	}		 
 	
 	send_schedual[0] = schedule_id;
 	send_schedual[1] = 0x06;
@@ -228,27 +203,27 @@ void SendSchedualData(unsigned char id_index, bit output)
 		}		
 	}
 
-//	if(retry_times)
-//	{
-		if(output) 
+	if(output) 
+	{
+		if(GetBit(id_index, output_state_index) == 0)
 		{
-			if(GetBit(id_index, output_state_index) == 0)
-			{
-				SetBit(id_index & 0x07, &output_state_index[id_index >> 3]);
-				ID_CHANGED = 0;
-			}
+			SetBit(id_index & 0x07, &output_state_index[id_index >> 3]);
+			ID_CHANGED = 0;
 		}
-		else 
+	}
+	else 
+	{
+		if(GetBit(id_index, output_state_index) == 1)
 		{
-			if(GetBit(id_index, output_state_index) == 1)
-			{
-				ClearBit(id_index & 0x07, &output_state_index[id_index >> 3]);
-				ID_CHANGED = 0;
-			}
+			ClearBit(id_index & 0x07, &output_state_index[id_index >> 3]);
+			ID_CHANGED = 0;
 		}
-//	}
+	}
 }
  
+
+
+
 /* Execute per 500ms */
 void CaculateTime(void)
 {
@@ -645,7 +620,7 @@ void CheckIdRoutines(void)
 			ID_FLAG = ID_Config[i].Str.flag;
 			wr1_valid = 0;
 			wr2_valid = 0;
-//			test0 = ID_Config[i].Str.schedule1;
+
 			if(ID_Config[i].Str.schedule1 > 0 && ID_Config[i].Str.schedule1 <= MAX_WR)
 			{
 				if(GetBit(ID_Config[i].Str.schedule1 - 1, wr_state_index))
@@ -700,8 +675,6 @@ void CheckIdRoutines(void)
 			{
  				if(wr1_valid || wr2_valid)
 				{
-//					test0 = 5;
-//					SendSchedualData(i,wr1_value | wr2_value);  
 			#if 1
 					output_value = GetBit(i, output_state_index); 
 	 				temp_bit = GetBit(i, first_time_schedual);
