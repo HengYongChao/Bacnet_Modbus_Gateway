@@ -1,6 +1,6 @@
 /* sniffer_error.h
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -99,8 +99,6 @@
 #define BAD_DECRYPT_TYPE 65
 #define BAD_FINISHED_MSG 66
 #define BAD_COMPRESSION_STR 67
-#define BAD_DERIVE_STR 68
-#define ACK_MISSED_STR 69
 
 /* !!!! also add to msgTable in sniffer.c and .rc file !!!! */
 

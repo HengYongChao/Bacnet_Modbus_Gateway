@@ -1,6 +1,6 @@
 /* asn.h
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -19,7 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
 
-#ifndef NO_ASN
 
 #ifndef CTAO_CRYPT_ASN_H
 #define CTAO_CRYPT_ASN_H
@@ -142,7 +141,6 @@ enum Misc_ASN {
 #endif
     MAX_OCSP_EXT_SZ     = 58,      /* Max OCSP Extension length */
     MAX_OCSP_NONCE_SZ   = 18,      /* OCSP Nonce size           */
-    EIGHTK_BUF          = 8192,    /* Tmp buffer size           */
     MAX_PUBLIC_KEY_SZ   = MAX_NTRU_ENC_SZ + MAX_ALGO_SZ + MAX_SEQ_SZ * 2
                                    /* use bigger NTRU size */
 };
@@ -273,11 +271,6 @@ struct DecodedCert {
 #endif /* CYASSL_CERT_GEN */
 };
 
-#ifdef SHA_DIGEST_SIZE
-#define SIGNER_DIGEST_SIZE SHA_DIGEST_SIZE
-#else
-#define SIGNER_DIGEST_SIZE 160
-#endif
 
 /* CA Signers */
 struct Signer {
@@ -285,7 +278,7 @@ struct Signer {
     word32  pubKeySize;
     word32  keyOID;                  /* key type */
     char*   name;                    /* common name */
-    byte    hash[SIGNER_DIGEST_SIZE];/* sha hash of names in certificate */
+    byte    hash[SHA_DIGEST_SIZE];   /* sha hash of names in certificate */
     Signer* next;
 };
 
@@ -422,7 +415,6 @@ struct OcspResponse {
 struct OcspRequest {
     DecodedCert* cert;
 
-    byte    useNonce;
     byte    nonce[MAX_OCSP_NONCE_SZ];
     int     nonceSz;
 
@@ -439,8 +431,7 @@ struct OcspRequest {
 CYASSL_LOCAL void InitOcspResponse(OcspResponse*, CertStatus*, byte*, word32);
 CYASSL_LOCAL int  OcspResponseDecode(OcspResponse*);
 
-CYASSL_LOCAL void InitOcspRequest(OcspRequest*, DecodedCert*,
-                                                          byte, byte*, word32);
+CYASSL_LOCAL void InitOcspRequest(OcspRequest*, DecodedCert*, byte*, word32);
 CYASSL_LOCAL int  EncodeOcspRequest(OcspRequest*);
 
 CYASSL_LOCAL int  CompareOcspReqResp(OcspRequest*, OcspResponse*);
@@ -469,7 +460,7 @@ struct DecodedCRL {
     word32  signatureOID;            /* sum of algorithm object id       */
     byte*   signature;               /* pointer into raw source, not owned */
     byte    issuerHash[SHA_DIGEST_SIZE];  /* issuer hash                 */ 
-    byte    crlHash[SHA_DIGEST_SIZE];     /* raw crl data hash           */ 
+    byte    crlHash[MD5_DIGEST_SIZE];     /* raw crl data hash           */ 
     byte    lastDate[MAX_DATE_SIZE]; /* last date updated  */
     byte    nextDate[MAX_DATE_SIZE]; /* next update date   */
     byte    lastDateFormat;          /* format of last date */
@@ -479,7 +470,7 @@ struct DecodedCRL {
 };
 
 CYASSL_LOCAL void InitDecodedCRL(DecodedCRL*);
-CYASSL_LOCAL int  ParseCRL(DecodedCRL*, const byte* buff, word32 sz, void* cm);
+CYASSL_LOCAL int  ParseCRL(DecodedCRL*, const byte* buff, long sz, void* cm);
 CYASSL_LOCAL void FreeDecodedCRL(DecodedCRL*);
 
 
@@ -492,4 +483,3 @@ CYASSL_LOCAL void FreeDecodedCRL(DecodedCRL*);
 
 #endif /* CTAO_CRYPT_ASN_H */
 
-#endif /* !NO_ASN */

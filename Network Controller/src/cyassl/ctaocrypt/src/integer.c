@@ -1,6 +1,6 @@
 /* integer.c
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -33,19 +33,10 @@
 /* in case user set USE_FAST_MATH there */
 #include <cyassl/ctaocrypt/settings.h>
 
-#ifndef NO_BIG_INT 
-
 #ifndef USE_FAST_MATH
 
 #include <cyassl/ctaocrypt/integer.h>
 
-#ifndef NO_CYASSL_SMALL_STACK
-    #ifndef CYASSL_SMALL_STACK
-        #define CYASSL_SMALL_STACK
-    #endif
-#endif
-
-static void bn_reverse (unsigned char *s, int len);
 
 /* math settings check */
 word32 CheckRunTimeSettings(void)
@@ -124,9 +115,6 @@ void
 mp_clear (mp_int * a)
 {
   int i;
-
-  if (a == NULL)
-      return;
 
   /* only do anything if a hasn't been freed previously */
   if (a->dp != NULL) {
@@ -1869,7 +1857,7 @@ int mp_exptmod_fast (mp_int * G, mp_int * X, mp_int * P, mp_int * Y,
     }
 
     /* grab the next msb from the exponent */
-    y     = (int)(buf >> (DIGIT_BIT - 1)) & 1;
+    y     = (mp_digit)(buf >> (DIGIT_BIT - 1)) & 1;
     buf <<= (mp_digit)1;
 
     /* if the bit is zero and mode == 0 then we ignore it
@@ -3277,7 +3265,7 @@ int s_mp_exptmod (mp_int * G, mp_int * X, mp_int * P, mp_int * Y, int redmode)
     }
 
     /* grab the next msb from the exponent */
-    y     = (int)(buf >> (mp_digit)(DIGIT_BIT - 1)) & 1;
+    y     = (buf >> (mp_digit)(DIGIT_BIT - 1)) & 1;
     buf <<= (mp_digit)1;
 
     /* if the bit is zero and mode == 0 then we ignore it
@@ -3736,7 +3724,7 @@ int mp_sqrmod (mp_int * a, mp_int * b, mp_int * c)
 #endif
 
 
-#if defined(CYASSL_KEY_GEN) || defined(HAVE_ECC) || defined(OPENSSL_EXTRA)
+#if defined(CYASSL_KEY_GEN) || defined(HAVE_ECC) || !defined(NO_PWDBASED)
 
 /* single digit addition */
 int mp_add_d (mp_int* a, mp_digit b, mp_int* c)
@@ -3796,10 +3784,8 @@ int mp_add_d (mp_int* a, mp_digit b, mp_int* c)
         *tmpc++ &= MP_MASK;
      }
      /* set final carry */
-     if (mu != 0 && ix < c->alloc) {
-        ix++;
-        *tmpc++  = mu;
-     }
+     ix++;
+     *tmpc++  = mu;
 
      /* setup size */
      c->used = a->used + 1;
@@ -4456,4 +4442,3 @@ int mp_read_radix (mp_int * a, const char *str, int radix)
 
 #endif /* USE_FAST_MATH */
 
-#endif /* NO_BIG_INT */

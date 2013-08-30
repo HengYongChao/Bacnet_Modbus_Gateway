@@ -110,7 +110,7 @@ static U8_T	far 	hsurTxBuffer[UR2_MAX_TX_SIZE];
 static U16_T far 	hsurRxBufNum = 0;
 static U16_T far 	hsurTxBufNum = 0;
 static U8_T	 far 	hsurRxTrigLvl = 0;
-U16_T	far hsurRxCount = 0;
+	   U16_T	far hsurRxCount = 0;
 static S16_T far 	hsurTxCount = 0;
 static U16_T far 	hsurGetPtr = 0;
 static U16_T far 	hsurPutPtr = 0;
@@ -130,8 +130,8 @@ static U8_T	 far 	hsurLineControlValue = 0;
 static U8_T	 far 	hsurModemControlValue = 0;
 static U8_T	 far 	hsurFifoControlValue = 0;
 static U8_T	 far 	hsurAppFlowOn = 0;
-static U8_T     far  hsurFlowCtrlXoff = FALSE;
-static U8_T    far  hsurFlowCtrlXon = FALSE;
+static U8_T  far  	hsurFlowCtrlXoff = FALSE;
+static U8_T  far  	hsurFlowCtrlXon = FALSE;
 static U8_T	 far 	hsurFlowCtrlHwCTSon = FALSE;
 
 U8_T far uart2_timeout = UART2_TIMEOUT;
@@ -162,35 +162,24 @@ static void hsur_ReadLsr(void)
 
 	if (hsurLineStatusValue & UR2_OE)
 	{
-		// Overrun Error
 		hsurErrorCount ++;
-//		P3 = BIT0;
 	}
 	if (hsurLineStatusValue & UR2_PE)
 	{
-		// Parity Error
 		hsurErrorCount ++;
-//		P3 = BIT1;
 	}
 	if (hsurLineStatusValue & UR2_FE)
 	{
-		// Framing Error
 		hsurErrorCount ++;
-//		P3 = BIT2;
 	}
 	if (hsurLineStatusValue & UR2_BI)
 	{
-		// Break Interrupt Occured
 		hsurErrorCount ++;
-//		P3 = BIT3;
 	}
 	if (hsurLineStatusValue & UR2_FRAME_ERR)
 	{
-		// Mixing Error
 		hsurErrorCount ++;
-//		P3 = BIT4;
 	}
-
 	if (hsurErrorCount)
 	{
 		UR2_FCR |= UR2_RXFIFO_RST;

@@ -1,6 +1,6 @@
 /* tfm.c
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -169,7 +169,7 @@ void s_fp_sub(fp_int *a, fp_int *b, fp_int *c)
   for (; x < a->used; x++) {
      t         = ((fp_word)a->dp[x]) - t;
      c->dp[x]  = (fp_digit)t;
-     t         = (t >> DIGIT_BIT)&1;
+     t         = (t >> DIGIT_BIT);
    }
   for (; x < oldused; x++) {
      c->dp[x] = 0;
@@ -1005,7 +1005,7 @@ static int _fp_exptmod(fp_int * G, fp_int * X, fp_int * P, fp_int * Y)
     }
 
     /* grab the next msb from the exponent */
-    y     = (int)(buf >> (DIGIT_BIT - 1)) & 1;
+    y     = (fp_digit)(buf >> (DIGIT_BIT - 1)) & 1;
     buf <<= (fp_digit)1;
 
     /* do ops */
@@ -1107,7 +1107,7 @@ static int _fp_exptmod(fp_int * G, fp_int * X, fp_int * P, fp_int * Y)
     }
 
     /* grab the next msb from the exponent */
-    y     = (int)(buf >> (DIGIT_BIT - 1)) & 1;
+    y     = (fp_digit)(buf >> (DIGIT_BIT - 1)) & 1;
     buf <<= (fp_digit)1;
 
     /* if the bit is zero and mode == 0 then we ignore it
@@ -1548,7 +1548,7 @@ void fp_montgomery_calc_normalization(fp_int *a, fp_int *b)
 /* computes x/R == x (mod N) via Montgomery Reduction */
 void fp_montgomery_reduce(fp_int *a, fp_int *m, fp_digit mp)
 {
-   fp_digit c[FP_SIZE], *_c, *tmpm, mu = 0;
+   fp_digit c[FP_SIZE], *_c, *tmpm, mu;
    int      oldused, x, y, pa;
 
    /* bail if too large */
@@ -1565,8 +1565,10 @@ void fp_montgomery_reduce(fp_int *a, fp_int *m, fp_digit mp)
 #endif
 
 
+#if defined(USE_MEMSET)
    /* now zero the buff */
    XMEMSET(c, 0, sizeof c);
+#endif
    pa = m->used;
 
    /* copy the input */
@@ -1574,6 +1576,11 @@ void fp_montgomery_reduce(fp_int *a, fp_int *m, fp_digit mp)
    for (x = 0; x < oldused; x++) {
        c[x] = a->dp[x];
    }
+#if !defined(USE_MEMSET)
+   for (; x < 2*pa+1; x++) {
+       c[x] = 0;
+   }
+#endif
    MONT_START;
 
    for (x = 0; x < pa; x++) {

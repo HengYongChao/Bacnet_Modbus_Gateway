@@ -1,6 +1,6 @@
 /* random.h
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -23,13 +23,7 @@
 #ifndef CTAO_CRYPT_RANDOM_H
 #define CTAO_CRYPT_RANDOM_H
 
-#include <cyassl/ctaocrypt/types.h>
-
-#ifndef NO_RC4
-    #include <cyassl/ctaocrypt/arc4.h>
-#else
-    #include <cyassl/ctaocrypt/sha256.h>
-#endif
+#include <cyassl/ctaocrypt/arc4.h>
 
 #ifdef __cplusplus
     extern "C" {
@@ -55,53 +49,21 @@ typedef struct OS_Seed {
     #endif
 } OS_Seed;
 
-
 CYASSL_LOCAL
 int GenerateSeed(OS_Seed* os, byte* seed, word32 sz);
 
-#ifndef NO_RC4
-
-#define CYASSL_RNG_CAVIUM_MAGIC 0xBEEF0004
 
 /* secure Random Nnumber Generator */
 typedef struct RNG {
     OS_Seed seed;
     Arc4    cipher;
-#ifdef HAVE_CAVIUM
-    int    devId;           /* nitrox device id */
-    word32 magic;           /* using cavium magic */
-#endif
 } RNG;
 
-
-#ifdef HAVE_CAVIUM
-    CYASSL_API int  InitRngCavium(RNG*, int);
-#endif
-
-#else /* NO_RC4 */
-
-#define DBRG_SEED_LEN (440/8)
-
-/* secure Random Nnumber Generator */
-typedef struct RNG {
-    OS_Seed seed;
-
-    Sha256 sha;
-    byte digest[SHA256_DIGEST_SIZE];
-    byte V[DBRG_SEED_LEN];
-    byte C[DBRG_SEED_LEN];
-    word64 reseed_ctr;
-} RNG;
-
-#endif
 
 CYASSL_API int  InitRng(RNG*);
 CYASSL_API void RNG_GenerateBlock(RNG*, byte*, word32 sz);
 CYASSL_API byte RNG_GenerateByte(RNG*);
 
-#ifdef NO_RC4
-    CYASSL_API void FreeRng(RNG*);
-#endif
 
 #ifdef __cplusplus
     } /* extern "C" */

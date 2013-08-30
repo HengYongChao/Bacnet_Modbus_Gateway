@@ -1,6 +1,6 @@
 /* memory.c 
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -23,9 +23,10 @@
     #include <config.h>
 #endif
 
-#include <cyassl/ctaocrypt/settings.h>
-
 /* submitted by eof */
+
+
+#include <cyassl/ctaocrypt/settings.h>
 
 #ifdef USE_CYASSL_MEMORY
 

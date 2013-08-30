@@ -449,24 +449,6 @@ else 			  // 不带小数点的实数处理
 device_object_id_got(void)
 {
 	
-//	U8_T i ;
-//	U8_T temp[8] = {0xff,0x03,0x00,0x06,0x00,0x01};
-//	
-//	InitCRC16();
-//	for(i = 0; i < 6; i++)
-//	CRC16_Tstat(temp[i]);
-//	temp[i] = CRChi;                        
-//	temp[i + 1] = CRClo;
-//	
-//	for(i = 0 ; i < 8 ; i ++)
-//	Uart0_Tx(&temp[i],1) ;
-//
-//	Tx_To_Tstat(temp,8);			 
-//	hsurRxCount=0;
-//
-//	DELAY_Ms(2)	;
-//	for(i=0;i<8;i++) 
-//	Uart0_Tx(&forward_buffer[i],1) ; 
 
    return device_object_identifier;
 
@@ -483,25 +465,6 @@ device_object_id_got(void)
 void  modbus_uart_arry(void)
 {
 	U8_T i;
-//	U8_T temp[8] = {0xff,0x03,0x1b,0x66,0x00,0x01};
-//	
-//	InitCRC16();
-//	for(i = 0; i < 6; i++)
-//	CRC16_Tstat(temp[i]);
-//	temp[i] = CRChi;                        
-//	temp[i + 1] = CRClo;
-//	
-//	for(i = 0 ; i < 8 ; i ++)
-//	Uart0_Tx(&temp[i],1) ;
-//
-//	Tx_To_Tstat(UART_ARRY1,8);			 
-//	hsurRxCount=0;
-//
-//
-//	for(i=0;i<8;i++) 
-//	Uart0_Tx(&forward_buffer[i],1) ; 
-
-
 
 
 	modbus_id = bacnet_id ;//(U8_T) (BACnetObjectIdentifier >> 8);
@@ -538,17 +501,7 @@ void GUDPMC_Receive(U8_T XDATA* pData, U16_T length, U8_T id)
   	U8_T i;
 	U32_T f;
 	U16_T	modbus_data;
-	
-////*==========================================*/
-//	Tx_To_Tstat(UART_ARRY1,8);
-//	hsurRxCount=0;
-////	DELAY_Ms(2)	;
-//	for(i=0;i<203;i++) {
-//	Edata_arry[i]=forward_buffer[i] ;
-//	Uart0_Tx(&Edata_arry[i],1) ;  }
-//	f = Decimalist_to_real(forward_buffer[47]);
-////*==========================================*/
-	
+		
 	length = length ;
 	send_flag = 0 ;
 

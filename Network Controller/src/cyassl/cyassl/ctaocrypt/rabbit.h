@@ -1,6 +1,6 @@
 /* rabbit.h
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -52,8 +52,8 @@ typedef struct Rabbit {
 } Rabbit;
 
 
-CYASSL_API int RabbitProcess(Rabbit*, byte*, const byte*, word32);
-CYASSL_API int RabbitSetKey(Rabbit*, const byte* key, const byte* iv);
+CYASSL_API void RabbitProcess(Rabbit*, byte*, const byte*, word32);
+CYASSL_API void RabbitSetKey(Rabbit*, const byte* key, const byte* iv);
 
 
 #ifdef __cplusplus

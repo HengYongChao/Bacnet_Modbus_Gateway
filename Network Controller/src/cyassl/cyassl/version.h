@@ -1,6 +1,6 @@
 /* cyassl_version.h.in
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2011 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -20,21 +20,21 @@
  */
 
 
-
 //#pragma once
-#ifndef _VERSION_H_ 
+#ifndef _VERSION_H_
 #define _VERSION_H_
+
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define LIBCYASSL_VERSION_STRING "2.6.0"
-#define LIBCYASSL_VERSION_HEX 0x02006000
+#define LIBCYASSL_VERSION_STRING "2.3.0"
+#define LIBCYASSL_VERSION_HEX 0x02003000
 
 #ifdef __cplusplus
 }
 #endif
-#endif  //end version
 
+#endif

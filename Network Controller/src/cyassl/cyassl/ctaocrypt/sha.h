@@ -1,6 +1,6 @@
 /* sha.h
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -20,8 +20,6 @@
  */
 
 
-#ifndef NO_SHA
-
 #ifndef CTAO_CRYPT_SHA_H
 #define CTAO_CRYPT_SHA_H
 
@@ -34,9 +32,6 @@
 
 /* in bytes */
 enum {
-#ifdef STM32F2_CRYPTO
-    SHA_REG_SIZE     =  4,    /* STM32 register size, bytes */
-#endif
     SHA              =  1,    /* hash type unique */
     SHA_BLOCK_SIZE   = 64,
     SHA_DIGEST_SIZE  = 20,
@@ -64,5 +59,4 @@ CYASSL_API void ShaFinal(Sha*, byte*);
 #endif
 
 #endif /* CTAO_CRYPT_SHA_H */
-#endif /* NO_SHA */
 

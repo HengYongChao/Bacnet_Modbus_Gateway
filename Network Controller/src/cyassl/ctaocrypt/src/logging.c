@@ -1,6 +1,6 @@
 /* logging.c
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -23,10 +23,9 @@
     #include <config.h>
 #endif
 
-#include <cyassl/ctaocrypt/settings.h>
-
 /* submitted by eof */
 
+#include <cyassl/ctaocrypt/settings.h>
 #include <cyassl/ctaocrypt/logging.h>
 #include <cyassl/ctaocrypt/error.h>
 
@@ -89,11 +88,7 @@ void CyaSSL_Debugging_OFF(void)
 
 #ifdef DEBUG_CYASSL
 
-#ifdef FREESCALE_MQX
-    #include <fio.h>
-#else
-    #include <stdio.h>   /* for default printf stuff */
-#endif
+#include <stdio.h>   /* for default printf stuff */
 
 #ifdef THREADX
     int dc_log_printf(char*, ...);

@@ -6,9 +6,7 @@ nobase_include_HEADERS+= \
                          cyassl/ctaocrypt/arc4.h \
                          cyassl/ctaocrypt/asn.h \
                          cyassl/ctaocrypt/asn_public.h \
-                         cyassl/ctaocrypt/camellia.h \
                          cyassl/ctaocrypt/coding.h \
-                         cyassl/ctaocrypt/compress.h \
                          cyassl/ctaocrypt/des3.h \
                          cyassl/ctaocrypt/dh.h \
                          cyassl/ctaocrypt/dsa.h \
@@ -30,9 +28,6 @@ nobase_include_HEADERS+= \
                          cyassl/ctaocrypt/sha256.h \
                          cyassl/ctaocrypt/sha512.h \
                          cyassl/ctaocrypt/sha.h \
-                         cyassl/ctaocrypt/blake2.h \
-                         cyassl/ctaocrypt/blake2-int.h \
-                         cyassl/ctaocrypt/blake2-impl.h \
                          cyassl/ctaocrypt/tfm.h \
                          cyassl/ctaocrypt/types.h \
                          cyassl/ctaocrypt/visibility.h \

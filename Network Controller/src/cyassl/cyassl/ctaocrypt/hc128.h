@@ -1,6 +1,6 @@
 /* hc128.h
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -47,8 +47,8 @@ typedef struct HC128 {
 } HC128;
 
 
-CYASSL_API int Hc128_Process(HC128*, byte*, const byte*, word32);
-CYASSL_API int Hc128_SetKey(HC128*, const byte* key, const byte* iv);
+CYASSL_API void Hc128_Process(HC128*, byte*, const byte*, word32);
+CYASSL_API void Hc128_SetKey(HC128*, const byte* key, const byte* iv);
 
 
 #ifdef __cplusplus

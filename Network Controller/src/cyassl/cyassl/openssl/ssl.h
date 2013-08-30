@@ -1,6 +1,6 @@
 /* ssl.h
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -92,8 +92,6 @@ typedef CYASSL_X509_STORE_CTX X509_STORE_CTX;
 #ifdef CYASSL_DTLS
     #define DTLSv1_client_method CyaDTLSv1_client_method
     #define DTLSv1_server_method CyaDTLSv1_server_method
-    #define DTLSv1_2_client_method CyaDTLSv1_2_client_method
-    #define DTLSv1_2_server_method CyaDTLSv1_2_server_method
 #endif
 
 
@@ -118,7 +116,6 @@ typedef CYASSL_X509_STORE_CTX X509_STORE_CTX;
 
 #define SSL_write    CyaSSL_write
 #define SSL_read     CyaSSL_read
-#define SSL_peek     CyaSSL_peek
 #define SSL_accept   CyaSSL_accept
 #define SSL_CTX_free CyaSSL_CTX_free
 #define SSL_free     CyaSSL_free

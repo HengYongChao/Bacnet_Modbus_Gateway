@@ -1,6 +1,6 @@
 /* md5.h
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -19,7 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA
  */
 
-#ifndef NO_MD5
 
 #ifndef CTAO_CRYPT_MD5_H
 #define CTAO_CRYPT_MD5_H
@@ -33,9 +32,6 @@
 
 /* in bytes */
 enum {
-#ifdef STM32F2_CRYPTO
-    MD5_REG_SIZE    =  4,      /* STM32 register size, bytes */
-#endif
     MD5             =  0,      /* hash type unique */
     MD5_BLOCK_SIZE  = 64,
     MD5_DIGEST_SIZE = 16,
@@ -63,4 +59,4 @@ CYASSL_API void Md5Final(Md5*, byte*);
 #endif
 
 #endif /* CTAO_CRYPT_MD5_H */
-#endif /* NO_MD5 */
+

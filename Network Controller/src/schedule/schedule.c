@@ -3,6 +3,14 @@
 #include "8563.h"
 #include "main.h"
 
+#include "task.h"
+#include "semphr.h"
+
+
+extern xSemaphoreHandle sem_subnet_tx;
+extern xQueueHandle qSubSerial;
+
+
 //////////LHN ADD////////////////
 #include "delay.h"
 #include "uart.h"
@@ -101,68 +109,6 @@ bit GetBit(unsigned char bit_number,unsigned char *value)
 	return (bit)(*(value + octet_index) & mask);
 }
 
-U8_T Read_ORT(U8_T id)
-{
-	U8_T send_data[8], tstat_id, i;
-	union
-	{
-		unsigned int word;
-		unsigned char byte[2];
-	}crc_16;
-
-	tstat_id = id;
-	send_data[0] = tstat_id;
-	send_data[1] = 0x03;
-	send_data[2] = 0;
-	send_data[3] = 211; // unoccupied override time
-	send_data[4] = 0;
-	send_data[5] = 1;
-	crc_16.word = CRC16(send_schedual, 0x06);
-	send_data[6] = crc_16.byte[0];
-	send_data[7] = crc_16.byte[1];
-	Tx_To_Tstat(send_data, 8);	  				
-	DELAY_Ms(60);
-    i = 0;
-	if(hsurRxCount > 0)
-	{
-		while(hsurRxCount)
-			send_data[i++] = HSUR_GetCharNb();
-	}
-	else if(uart1_RxCount > 0)
-	{
-		for(i = 0; i < uart1_RxCount; i++)
-			send_data[i] = uart1_RxBuf[i];
-		uart1_RxCount = 0;
-	}
-
-	if(i > 0)
-		return(send_data[4]);
-
-	return 0;
-}
-
-void Write_ORT(U8_T id, U8_T ort)
-{
-	U8_T send_data[8];
-	union
-	{
-		unsigned int word;
-		unsigned char byte[2];
-	}crc_16;
-
-	send_data[0] = id;
-	send_data[1] = 0x06;
-	send_data[2] = 0;
-	send_data[3] = 211; // unoccupied override time
-	send_data[4] = 0;
-	send_data[5] = ort;
-	crc_16.word = CRC16(send_data, 0x06);
-	send_data[6] = crc_16.byte[0];
-	send_data[7] = crc_16.byte[1];
-
-	Tx_To_Tstat(send_data, 8);
-}
-
 
 /////LHN ADD///////////////////
 void SendSchedualData(unsigned char id_index, bit output)
@@ -190,7 +136,18 @@ void SendSchedualData(unsigned char id_index, bit output)
 	while(retry_times)
 	{
 		Sever_Order = SERVER_SCHEDULE;
- 		Tx_To_Tstat(send_schedual, 8);						  
+
+#ifdef  SemaphoreCreate						  
+		if(cSemaphoreTake(sem_subnet_tx, 10) == pdFALSE)
+			return;
+#endif
+			Tx_To_Tstat(send_schedual, 8);
+#ifdef  SemaphoreCreate						  
+		cSemaphoreGive(sem_subnet_tx);
+#endif
+
+		
+							  
 		OSDelay(5);
 		if(schedule_flag == 1)
 		{

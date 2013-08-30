@@ -17,12 +17,9 @@
 	    #include <ws2tcpip.h>
         #include <wspiapi.h>
     #endif
-    #define SOCKET_T unsigned int
-    #define SNPRINTF _snprintf
+    #define SOCKET_T int
 #else
     #include <string.h>
-    #include <sys/types.h>
-#ifndef CYASSL_LEANPSK
     #include <unistd.h>
     #include <netdb.h>
     #include <netinet/in.h>
@@ -30,25 +27,17 @@
     #include <arpa/inet.h>
     #include <sys/ioctl.h>
     #include <sys/time.h>
+    #include <sys/types.h>
     #include <sys/socket.h>
     #include <pthread.h>
-    #include <fcntl.h>
+    #ifdef NON_BLOCKING
+        #include <fcntl.h>
+    #endif
     #ifdef TEST_IPV6
         #include <netdb.h>
     #endif
-#endif
-    #define SOCKET_T int
-    #ifndef SO_NOSIGPIPE
-        #include <signal.h>  /* ignore SIGPIPE */
-    #endif
-    #define SNPRINTF snprintf
+    #define SOCKET_T unsigned int
 #endif /* USE_WINDOWS_API */
-
-#ifdef HAVE_CAVIUM
-    #include "cavium_sysdep.h"
-    #include "cavium_common.h"
-    #include "cavium_ioctl.h"
-#endif
 
 #ifdef _MSC_VER
     /* disable conversion warning */
@@ -64,16 +53,11 @@
 #endif
 
 
-/* HPUX doesn't use socklent_t for third parameter to accept, unless
-   _XOPEN_SOURCE_EXTENDED is defined */
+/* HPUX doesn't use socklent_t for third parameter to accept */
 #if !defined(__hpux__)
     typedef socklen_t* ACCEPT_THIRD_T;
 #else
-    #if defined _XOPEN_SOURCE_EXTENDED
-        typedef socklen_t* ACCEPT_THIRD_T;
-    #else
-        typedef int*       ACCEPT_THIRD_T;
-    #endif
+    typedef int*       ACCEPT_THIRD_T;
 #endif
 
 
@@ -115,11 +99,7 @@
    
 
 #define SERVER_DEFAULT_VERSION 3
-#define SERVER_DTLS_DEFAULT_VERSION (-2)
-#define SERVER_INVALID_VERSION (-99)
 #define CLIENT_DEFAULT_VERSION 3
-#define CLIENT_DTLS_DEFAULT_VERSION (-2)
-#define CLIENT_INVALID_VERSION (-99)
 
 /* all certs relative to CyaSSL home directory now */
 #define caCert     "./certs/ca-cert.pem"
@@ -138,7 +118,6 @@
 
 typedef struct tcp_ready {
     int ready;              /* predicate */
-    int port;
 #ifdef _POSIX_THREADS
     pthread_mutex_t mutex;
     pthread_cond_t  cond;
@@ -165,19 +144,14 @@ void start_thread(THREAD_FUNC, func_args*, THREAD_TYPE*);
 void join_thread(THREAD_TYPE);
 
 /* yaSSL */
-#ifndef TEST_IPV6
-    static const char* const yasslIP   = "127.0.0.1";
-#else
-    static const char* const yasslIP   = "::1";
-#endif
+static const char* const yasslIP   = "127.0.0.1";
 static const word16      yasslPort = 11111;
 
 
 static INLINE void err_sys(const char* msg)
 {
     printf("yassl error: %s\n", msg);
-    if (msg)
-        exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
 }
 
 
@@ -186,7 +160,7 @@ static INLINE void err_sys(const char* msg)
 extern int   myoptind;
 extern char* myoptarg;
 
-static INLINE int mygetopt(int argc, char** argv, const char* optstring)
+static INLINE int mygetopt(int argc, char** argv, char* optstring)
 {
     static char* next = NULL;
 
@@ -225,8 +199,7 @@ static INLINE int mygetopt(int argc, char** argv, const char* optstring)
     }
 
     c  = *next++;
-    /* The C++ strchr can return a different value */
-    cp = (char*)strchr(optstring, c);
+    cp = strchr(optstring, c);
 
     if (cp == NULL || c == ':') 
         return '?';
@@ -254,8 +227,6 @@ static INLINE int mygetopt(int argc, char** argv, const char* optstring)
 
 static INLINE int PasswordCallBack(char* passwd, int sz, int rw, void* userdata)
 {
-    (void)rw;
-    (void)userdata;
     strncpy(passwd, "yassl123", sz);
     return 8;
 }
@@ -265,12 +236,11 @@ static INLINE int PasswordCallBack(char* passwd, int sz, int rw, void* userdata)
 
 static INLINE void showPeer(CYASSL* ssl)
 {
+#ifdef OPENSSL_EXTRA
 
     CYASSL_CIPHER* cipher;
-#ifdef KEEP_PEER_CERT
     CYASSL_X509*   peer = CyaSSL_get_peer_certificate(ssl);
     if (peer) {
-#ifdef OPENSSL_EXTRA
         char* altName;
         char* issuer  = CyaSSL_X509_NAME_oneline(
                                        CyaSSL_X509_get_issuer_name(peer), 0, 0);
@@ -302,17 +272,14 @@ static INLINE void showPeer(CYASSL* ssl)
 
         XFREE(subject, 0, DYNAMIC_TYPE_OPENSSL);
         XFREE(issuer,  0, DYNAMIC_TYPE_OPENSSL);
-#else
-        printf("peer has a cert!\n");
-#endif
     }
     else
         printf("peer has no cert!\n");
-#endif
     printf("SSL version is %s\n", CyaSSL_get_version(ssl));
 
     cipher = CyaSSL_get_current_cipher(ssl);
     printf("SSL cipher suite is %s\n", CyaSSL_CIPHER_get_name(cipher));
+#endif
 
 #if defined(SESSION_CERTS) && defined(SHOW_CERTS)
     {
@@ -330,89 +297,50 @@ static INLINE void showPeer(CYASSL* ssl)
         }
     }
 #endif
-  (void)ssl;
+
 }
 
 
-static INLINE void build_addr(SOCKADDR_IN_T* addr, const char* peer,
-                              word16 port, int udp)
+static INLINE void tcp_socket(SOCKET_T* sockfd, SOCKADDR_IN_T* addr,
+                              const char* peer, word16 port, int udp)
 {
-    int useLookup = 0;
-    (void)useLookup;
-    (void)udp;
-
-    memset(addr, 0, sizeof(SOCKADDR_IN_T));
-
 #ifndef TEST_IPV6
+    const char* host = peer;
+
     /* peer could be in human readable form */
-    if (peer != INADDR_ANY && isalpha((int)peer[0])) {
+    if (peer != INADDR_ANY && isalpha(peer[0])) {
         struct hostent* entry = gethostbyname(peer);
 
         if (entry) {
-            memcpy(&addr->sin_addr.s_addr, entry->h_addr_list[0],
+            struct sockaddr_in tmp;
+            memset(&tmp, 0, sizeof(struct sockaddr_in));
+            memcpy(&tmp.sin_addr.s_addr, entry->h_addr_list[0],
                    entry->h_length);
-            useLookup = 1;
+            host = inet_ntoa(tmp.sin_addr);
         }
         else
             err_sys("no entry for host");
     }
 #endif
 
-
-#ifndef TEST_IPV6
-    addr->sin_family = AF_INET_V;
-    addr->sin_port = htons(port);
-    if (peer == INADDR_ANY)
-        addr->sin_addr.s_addr = INADDR_ANY;
-    else {
-        if (!useLookup)
-            addr->sin_addr.s_addr = inet_addr(peer);
-    }
-#else
-    addr->sin6_family = AF_INET_V;
-    addr->sin6_port = htons(port);
-    if (peer == INADDR_ANY)
-        addr->sin6_addr = in6addr_any;
-    else {
-        #ifdef HAVE_GETADDRINFO
-            struct addrinfo  hints;
-            struct addrinfo* answer = NULL;
-            int    ret;
-            char   strPort[80];
-
-            memset(&hints, 0, sizeof(hints));
-
-            hints.ai_family   = AF_INET_V;
-            hints.ai_socktype = udp ? SOCK_DGRAM : SOCK_STREAM;
-            hints.ai_protocol = udp ? IPPROTO_UDP : IPPROTO_TCP;
-
-            SNPRINTF(strPort, sizeof(strPort), "%d", port);
-            strPort[79] = '\0';
-
-            ret = getaddrinfo(peer, strPort, &hints, &answer);
-            if (ret < 0 || answer == NULL)
-                err_sys("getaddrinfo failed");
-
-            memcpy(addr, answer->ai_addr, answer->ai_addrlen);
-            freeaddrinfo(answer);
-        #else
-            printf("no ipv6 getaddrinfo, loopback only tests/examples\n");
-            addr->sin6_addr = in6addr_loopback;
-        #endif
-    }
-#endif
-}
-
-
-static INLINE void tcp_socket(SOCKET_T* sockfd, int udp)
-{
     if (udp)
         *sockfd = socket(AF_INET_V, SOCK_DGRAM, 0);
     else
         *sockfd = socket(AF_INET_V, SOCK_STREAM, 0);
+    memset(addr, 0, sizeof(SOCKADDR_IN_T));
 
-    if (*sockfd < 0)
-        err_sys("socket failed\n");
+#ifndef TEST_IPV6
+    addr->sin_family = AF_INET_V;
+    addr->sin_port = htons(port);
+    if (host == INADDR_ANY)
+        addr->sin_addr.s_addr = INADDR_ANY;
+    else
+        addr->sin_addr.s_addr = inet_addr(host);
+#else
+    addr->sin6_family = AF_INET_V;
+    addr->sin6_port = htons(port);
+    addr->sin6_addr = in6addr_loopback;
+#endif
 
 #ifndef USE_WINDOWS_API 
 #ifdef SO_NOSIGPIPE
@@ -423,9 +351,7 @@ static INLINE void tcp_socket(SOCKET_T* sockfd, int udp)
         if (res < 0)
             err_sys("setsockopt SO_NOSIGPIPE failed\n");
     }
-#else  /* no S_NOSIGPIPE */
-    signal(SIGPIPE, SIG_IGN);
-#endif /* S_NOSIGPIPE */
+#endif
 
 #if defined(TCP_NODELAY)
     if (!udp)
@@ -445,74 +371,30 @@ static INLINE void tcp_connect(SOCKET_T* sockfd, const char* ip, word16 port,
                                int udp)
 {
     SOCKADDR_IN_T addr;
-    build_addr(&addr, ip, port, udp);
-    tcp_socket(sockfd, udp);
+    tcp_socket(sockfd, &addr, ip, port, udp);
 
-    if (!udp) {
-        if (connect(*sockfd, (const struct sockaddr*)&addr, sizeof(addr)) != 0)
-            err_sys("tcp connect failed");
-    }
-}
-
-
-static INLINE void udp_connect(SOCKET_T* sockfd, void* addr, int addrSz)
-{
-    if (connect(*sockfd, (const struct sockaddr*)addr, addrSz) != 0)
+    if (connect(*sockfd, (const struct sockaddr*)&addr, sizeof(addr)) != 0)
         err_sys("tcp connect failed");
 }
 
 
-enum {
-    TEST_SELECT_FAIL,
-    TEST_TIMEOUT,
-    TEST_RECV_READY,
-    TEST_ERROR_READY
-};
-
-static INLINE int tcp_select(SOCKET_T socketfd, int to_sec)
-{
-    fd_set recvfds, errfds;
-    SOCKET_T nfds = socketfd + 1;
-    struct timeval timeout = { (to_sec > 0) ? to_sec : 0, 0};
-    int result;
-
-    FD_ZERO(&recvfds);
-    FD_SET(socketfd, &recvfds);
-    FD_ZERO(&errfds);
-    FD_SET(socketfd, &errfds);
-
-    result = select(nfds, &recvfds, NULL, &errfds, &timeout);
-
-    if (result == 0)
-        return TEST_TIMEOUT;
-    else if (result > 0) {
-        if (FD_ISSET(socketfd, &recvfds))
-            return TEST_RECV_READY;
-        else if(FD_ISSET(socketfd, &errfds))
-            return TEST_ERROR_READY;
-    }
-
-    return TEST_SELECT_FAIL;
-}
-
-
-static INLINE void tcp_listen(SOCKET_T* sockfd, int* port, int useAnyAddr,
+static INLINE void tcp_listen(SOCKET_T* sockfd, int port, int useAnyAddr,
                               int udp)
 {
     SOCKADDR_IN_T addr;
 
     /* don't use INADDR_ANY by default, firewall may block, make user switch
        on */
-    build_addr(&addr, (useAnyAddr ? INADDR_ANY : yasslIP), *port, udp);
-    tcp_socket(sockfd, udp);
+    if (useAnyAddr)
+        tcp_socket(sockfd, &addr, INADDR_ANY, port, udp);
+    else
+        tcp_socket(sockfd, &addr, yasslIP, port, udp);
 
 #ifndef USE_WINDOWS_API 
     {
-        int       res, on  = 1;
+        int       on  = 1;
         socklen_t len = sizeof(on);
-        res = setsockopt(*sockfd, SOL_SOCKET, SO_REUSEADDR, &on, len);
-        if (res < 0)
-            err_sys("setsockopt SO_REUSEADDR failed\n");
+        setsockopt(*sockfd, SOL_SOCKET, SO_REUSEADDR, &on, len);
     }
 #endif
 
@@ -522,18 +404,6 @@ static INLINE void tcp_listen(SOCKET_T* sockfd, int* port, int useAnyAddr,
         if (listen(*sockfd, 5) != 0)
             err_sys("tcp listen failed");
     }
-    #if defined(NO_MAIN_DRIVER) && !defined(USE_WINDOWS_API)
-        if (*port == 0) {
-            socklen_t len = sizeof(addr);
-            if (getsockname(*sockfd, (struct sockaddr*)&addr, &len) == 0) {
-                #ifndef TEST_IPV6
-                    *port = ntohs(addr.sin_port);
-                #else
-                    *port = ntohs(addr.sin6_port);
-                #endif
-            }
-        }
-    #endif
 }
 
 
@@ -544,8 +414,8 @@ static INLINE int udp_read_connect(SOCKET_T sockfd)
     int           n;
     socklen_t     len = sizeof(cliaddr);
 
-    n = (int)recvfrom(sockfd, (char*)b, sizeof(b), MSG_PEEK,
-                      (struct sockaddr*)&cliaddr, &len);
+    n = recvfrom(sockfd, (char*)b, sizeof(b), MSG_PEEK,
+                (struct sockaddr*)&cliaddr, &len);
     if (n > 0) {
         if (connect(sockfd, (const struct sockaddr*)&cliaddr,
                     sizeof(cliaddr)) != 0)
@@ -557,41 +427,23 @@ static INLINE int udp_read_connect(SOCKET_T sockfd)
     return sockfd;
 }
 
-static INLINE void udp_accept(SOCKET_T* sockfd, int* clientfd, int useAnyAddr,
-                              int port, func_args* args)
+static INLINE void udp_accept(SOCKET_T* sockfd, int* clientfd, func_args* args)
 {
     SOCKADDR_IN_T addr;
 
-    (void)args;
-    build_addr(&addr, (useAnyAddr ? INADDR_ANY : yasslIP), port, 1);
-    tcp_socket(sockfd, 1);
+    tcp_socket(sockfd, &addr, yasslIP, yasslPort, 1);
 
 
 #ifndef USE_WINDOWS_API 
     {
-        int       res, on  = 1;
+        int       on  = 1;
         socklen_t len = sizeof(on);
-        res = setsockopt(*sockfd, SOL_SOCKET, SO_REUSEADDR, &on, len);
-        if (res < 0)
-            err_sys("setsockopt SO_REUSEADDR failed\n");
+        setsockopt(*sockfd, SOL_SOCKET, SO_REUSEADDR, &on, len);
     }
 #endif
 
     if (bind(*sockfd, (const struct sockaddr*)&addr, sizeof(addr)) != 0)
         err_sys("tcp bind failed");
-
-    #if defined(NO_MAIN_DRIVER) && !defined(USE_WINDOWS_API)
-        if (port == 0) {
-            socklen_t len = sizeof(addr);
-            if (getsockname(*sockfd, (struct sockaddr*)&addr, &len) == 0) {
-                #ifndef TEST_IPV6
-                    port = ntohs(addr.sin_port);
-                #else
-                    port = ntohs(addr.sin6_port);
-                #endif
-            }
-        }
-    #endif
 
 #if defined(_POSIX_THREADS) && defined(NO_MAIN_DRIVER)
     /* signal ready to accept data */
@@ -599,7 +451,6 @@ static INLINE void udp_accept(SOCKET_T* sockfd, int* clientfd, int useAnyAddr,
     tcp_ready* ready = args->signal;
     pthread_mutex_lock(&ready->mutex);
     ready->ready = 1;
-    ready->port = port;
     pthread_cond_signal(&ready->cond);
     pthread_mutex_unlock(&ready->mutex);
     }
@@ -615,11 +466,11 @@ static INLINE void tcp_accept(SOCKET_T* sockfd, int* clientfd, func_args* args,
     socklen_t client_len = sizeof(client);
 
     if (udp) {
-        udp_accept(sockfd, clientfd, useAnyAddr, port, args);
+        udp_accept(sockfd, clientfd, args);
         return;
     }
 
-    tcp_listen(sockfd, &port, useAnyAddr, udp);
+    tcp_listen(sockfd, port, useAnyAddr, udp);
 
 #if defined(_POSIX_THREADS) && defined(NO_MAIN_DRIVER)
     /* signal ready to tcp_accept */
@@ -627,7 +478,6 @@ static INLINE void tcp_accept(SOCKET_T* sockfd, int* clientfd, func_args* args,
     tcp_ready* ready = args->signal;
     pthread_mutex_lock(&ready->mutex);
     ready->ready = 1;
-    ready->port = port;
     pthread_cond_signal(&ready->cond);
     pthread_mutex_unlock(&ready->mutex);
     }
@@ -642,17 +492,15 @@ static INLINE void tcp_accept(SOCKET_T* sockfd, int* clientfd, func_args* args,
 
 static INLINE void tcp_set_nonblocking(SOCKET_T* sockfd)
 {
+#ifdef NON_BLOCKING
     #ifdef USE_WINDOWS_API 
         unsigned long blocking = 1;
         int ret = ioctlsocket(*sockfd, FIONBIO, &blocking);
     #else
         int flags = fcntl(*sockfd, F_GETFL, 0);
-        if (flags < 0)
-            err_sys("fcntl get failed");
-        flags = fcntl(*sockfd, F_SETFL, flags | O_NONBLOCK);
-        if (flags < 0)
-            err_sys("fcntl set failed");
+        int ret = fcntl(*sockfd, F_SETFL, flags | O_NONBLOCK);
     #endif
+#endif
 }
 
 
@@ -662,10 +510,6 @@ static INLINE unsigned int my_psk_client_cb(CYASSL* ssl, const char* hint,
         char* identity, unsigned int id_max_len, unsigned char* key,
         unsigned int key_max_len)
 {
-    (void)ssl;
-    (void)hint;
-    (void)key_max_len;
-
     /* identity is OpenSSL testing default for openssl s_client, keep same */
     strncpy(identity, "Client_identity", id_max_len);
 
@@ -684,9 +528,6 @@ static INLINE unsigned int my_psk_client_cb(CYASSL* ssl, const char* hint,
 static INLINE unsigned int my_psk_server_cb(CYASSL* ssl, const char* identity,
         unsigned char* key, unsigned int key_max_len)
 {
-    (void)ssl;
-    (void)key_max_len;
-
     /* identity is OpenSSL testing default for openssl s_client, keep same */
     if (strncmp(identity, "Client_identity", 15) != 0)
         return 0;
@@ -730,7 +571,7 @@ static INLINE unsigned int my_psk_server_cb(CYASSL* ssl, const char* identity,
 
     #include <sys/time.h>
 
-    static INLINE double current_time(void)
+    static INLINE double current_time()
     {
         struct timeval tv;
         gettimeofday(&tv, 0);
@@ -741,7 +582,7 @@ static INLINE unsigned int my_psk_server_cb(CYASSL* ssl, const char* identity,
 #endif /* USE_WINDOWS_API */
 
 
-#if defined(NO_FILESYSTEM) && !defined(NO_CERTS)
+#ifdef NO_FILESYSTEM
 
     enum {
         CYASSL_CA   = 1,
@@ -789,14 +630,10 @@ static INLINE int myVerify(int preverify, CYASSL_X509_STORE_CTX* store)
 {
     char buffer[80];
 
-#ifdef OPENSSL_EXTRA
-    CYASSL_X509* peer;
-#endif
-
     printf("In verification callback, error = %d, %s\n", store->error,
                                  CyaSSL_ERR_error_string(store->error, buffer));
 #ifdef OPENSSL_EXTRA
-    peer = store->current_cert;
+    CYASSL_X509* peer = store->current_cert;
     if (peer) {
         char* issuer  = CyaSSL_X509_NAME_oneline(
                                        CyaSSL_X509_get_issuer_name(peer), 0, 0);
@@ -821,7 +658,7 @@ static INLINE int myVerify(int preverify, CYASSL_X509_STORE_CTX* store)
 
 #ifdef HAVE_CRL
 
-static INLINE void CRL_CallBack(const char* url)
+static void INLINE CRL_CallBack(const char* url)
 {
     printf("CRL callback url = %s\n", url);
 }
@@ -829,11 +666,8 @@ static INLINE void CRL_CallBack(const char* url)
 #endif
 
 
-#ifndef NO_CERTS
-
 static INLINE void CaCb(unsigned char* der, int sz, int type)
 {
-    (void)der;
     printf("Got CA cache add callback, derSz = %d, type = %d\n", sz, type);
 }
 
@@ -892,32 +726,6 @@ static INLINE void SetDHCtx(CYASSL_CTX* ctx)
     CyaSSL_CTX_SetTmpDH(ctx, p, sizeof(p), g, sizeof(g));
 }
 
-#endif /* !NO_CERTS */
-
-#ifdef HAVE_CAVIUM
-
-static INLINE int OpenNitroxDevice(int dma_mode,int dev_id)
-{
-   Csp1CoreAssignment core_assign;
-   Uint32             device;
-
-   if (CspInitialize(CAVIUM_DIRECT,CAVIUM_DEV_ID))
-      return -1;
-   if (Csp1GetDevType(&device))
-      return -1;
-   if (device != NPX_DEVICE) {
-      if (ioctl(gpkpdev_hdlr[CAVIUM_DEV_ID], IOCTL_CSP1_GET_CORE_ASSIGNMENT,
-                (Uint32 *)&core_assign)!= 0)
-         return -1;
-   }
-   CspShutdown(CAVIUM_DEV_ID);
-
-   return CspInitialize(dma_mode, dev_id);
-}
-
-#endif /* HAVE_CAVIUM */
-
-
 #ifdef USE_WINDOWS_API 
 
 /* do back x number of directories */
@@ -942,18 +750,10 @@ static INLINE void ChangeDirBack(int x)
 /* does current dir contain str */
 static INLINE int CurrentDir(const char* str)
 {
-    char  path[MAX_PATH];
-    char* baseName;
+    char path[MAX_PATH];
 
     GetCurrentDirectoryA(sizeof(path), path);
-
-    baseName = strrchr(path, '\\');
-    if (baseName)
-        baseName++;
-    else
-        baseName = path;
-
-    if (strstr(baseName, str))
+    if (strstr(path, str))
         return 1;
 
     return 0;
@@ -988,227 +788,19 @@ static INLINE void ChangeDirBack(int x)
 /* does current dir contain str */
 static INLINE int CurrentDir(const char* str)
 {
-    char  path[MAX_PATH];
-    char* baseName;
+    char path[MAX_PATH];
 
     if (getcwd(path, sizeof(path)) == NULL) {
         printf("no current dir?\n");
         return 0;
     }
-
-    baseName = strrchr(path, '/');
-    if (baseName)
-        baseName++;
-    else
-        baseName = path;
-
-    if (strstr(baseName, str))
+    if (strstr(path, str))
         return 1;
 
     return 0;
 }
 
 #endif /* USE_WINDOWS_API */
-
-
-#ifdef USE_CYASSL_MEMORY
-
-    typedef struct memoryStats {
-        size_t totalAllocs;     /* number of allocations */
-        size_t totalBytes;      /* total number of bytes allocated */
-        size_t peakBytes;       /* concurrent max bytes */
-        size_t currentBytes;    /* total current bytes in use */
-    } memoryStats;
-
-    typedef struct memHint {
-        size_t thisSize;      /* size of this memory */
-        void*  thisMemory;    /* actual memory for user */
-    } memHint;
-
-    typedef struct memoryTrack {
-        union {
-            memHint hint;
-            byte    alignit[16];   /* make sure we have strong alignment */
-        } u;
-    } memoryTrack;
-
-    #if defined(CYASSL_TRACK_MEMORY)
-        #define DO_MEM_STATS
-        static memoryStats ourMemStats;
-    #endif
-
-    static INLINE void* TrackMalloc(size_t sz)
-    {
-        memoryTrack* mt;
-
-        if (sz == 0)
-            return NULL;
-
-        mt = (memoryTrack*)malloc(sizeof(memoryTrack) + sz);
-        if (mt == NULL)
-            return NULL;
-
-        mt->u.hint.thisSize   = sz;
-        mt->u.hint.thisMemory = (byte*)mt + sizeof(memoryTrack);
-
-#ifdef DO_MEM_STATS
-        ourMemStats.totalAllocs++;
-        ourMemStats.totalBytes   += sz;
-        ourMemStats.currentBytes += sz;
-        if (ourMemStats.currentBytes > ourMemStats.peakBytes)
-            ourMemStats.peakBytes = ourMemStats.currentBytes;
-#endif
-
-        return mt->u.hint.thisMemory;
-    }
-
-
-    static INLINE void TrackFree(void* ptr)
-    {
-        memoryTrack* mt;
-
-        if (ptr == NULL)
-            return;
-
-        mt = (memoryTrack*)((byte*)ptr - sizeof(memoryTrack));
-
-#ifdef DO_MEM_STATS 
-        ourMemStats.currentBytes -= mt->u.hint.thisSize; 
-#endif
-
-        free(mt);
-    }
-
-
-    static INLINE void* TrackRealloc(void* ptr, size_t sz)
-    {
-        void* ret = TrackMalloc(sz);
-
-        if (ptr) {
-            /* if realloc is bigger, don't overread old ptr */
-            memoryTrack* mt = (memoryTrack*)((byte*)ptr - sizeof(memoryTrack));
-
-            if (mt->u.hint.thisSize < sz)
-                sz = mt->u.hint.thisSize;
-        }
-
-        if (ret && ptr)
-            memcpy(ret, ptr, sz);
-
-        if (ret)
-            TrackFree(ptr);
-
-        return ret;
-    }
-
-    static INLINE void InitMemoryTracker(void) 
-    {
-        if (CyaSSL_SetAllocators(TrackMalloc, TrackFree, TrackRealloc) != 0)
-            err_sys("CyaSSL SetAllocators failed for track memory");
-
-    #ifdef DO_MEM_STATS
-        ourMemStats.totalAllocs  = 0;
-        ourMemStats.totalBytes   = 0;
-        ourMemStats.peakBytes    = 0;
-        ourMemStats.currentBytes = 0;
-    #endif
-    }
-
-    static INLINE void ShowMemoryTracker(void) 
-    {
-    #ifdef DO_MEM_STATS 
-        printf("total   Allocs = %9lu\n",
-                                       (unsigned long)ourMemStats.totalAllocs);
-        printf("total   Bytes  = %9lu\n",
-                                       (unsigned long)ourMemStats.totalBytes);
-        printf("peak    Bytes  = %9lu\n",
-                                       (unsigned long)ourMemStats.peakBytes);
-        printf("current Bytes  = %9lu\n",
-                                       (unsigned long)ourMemStats.currentBytes);
-    #endif
-    }
-
-#endif /* USE_CYASSL_MEMORY */
-
-
-#ifdef HAVE_STACK_SIZE
-
-typedef THREAD_RETURN CYASSL_THREAD (*thread_func)(void* args);
-
-
-static INLINE void StackSizeCheck(func_args* args, thread_func tf)
-{
-    int            ret, i, used;
-    unsigned char* myStack;
-    int            stackSize = 1024*128;
-    pthread_attr_t myAttr;
-    pthread_t      threadId;
-
-#ifdef PTHREAD_STACK_MIN
-    if (stackSize < PTHREAD_STACK_MIN)
-        stackSize = PTHREAD_STACK_MIN;
-#endif
-
-    ret = posix_memalign((void**)&myStack, sysconf(_SC_PAGESIZE), stackSize);
-    if (ret != 0) 
-        err_sys("posix_memalign failed\n");        
-
-    memset(myStack, 0xee, stackSize);
-
-    ret = pthread_attr_init(&myAttr);
-    if (ret != 0)
-        err_sys("attr_init failed");
-
-    ret = pthread_attr_setstack(&myAttr, myStack, stackSize);
-    if (ret != 0)
-        err_sys("attr_setstackaddr failed");
-
-    ret = pthread_create(&threadId, &myAttr, tf, args);
-    if (ret != 0) {
-        perror("pthread_create failed");
-        exit(EXIT_FAILURE);
-    }
-
-    ret = pthread_join(threadId, NULL);
-    if (ret != 0)
-        err_sys("pthread_join failed");
-
-    for (i = 0; i < stackSize; i++) {
-        if (myStack[i] != 0xee) {
-            break;
-        }
-    }
-
-    used = stackSize - i;
-    printf("stack used = %d\n", used);
-}
-
-
-#endif /* HAVE_STACK_SIZE */
-
-#ifdef __hpux__
-
-/* HP/UX doesn't have strsep, needed by test/suites.c */
-static INLINE char* strsep(char **stringp, const char *delim)
-{
-    char* start;
-    char* end;
-
-    start = *stringp;
-    if (start == NULL)
-        return NULL;
-
-    if ((end = strpbrk(start, delim))) {
-        *end++ = '\0';
-        *stringp = end;
-    } else {
-        *stringp = NULL;
-    }
-
-    return start;
-}
-
-#endif /* __hpux__ */
 
 #endif /* CyaSSL_TEST_H */
 

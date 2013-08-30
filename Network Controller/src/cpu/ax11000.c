@@ -128,6 +128,9 @@ void AX11000_Init(void)
 		CPU_FREQUENCY = 25000000;
 
 
+//	IP = 0x02;	  // SET UART1 priority.
+	PINT4 = 1;
+	PS1 = 1;		 //PRIORITY
 
 	progWtst = WTST & 0x07;
 	dataStretch = CKCON & 0x07;

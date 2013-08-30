@@ -1,6 +1,6 @@
 /* crl.c
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -23,7 +23,6 @@
     #include <config.h>
 #endif
 
-#include <cyassl/ctaocrypt/settings.h>
 
 #ifdef HAVE_CRL
 
@@ -31,7 +30,6 @@
 #include <cyassl/error.h>
 
 #include <dirent.h>
-#include <sys/stat.h>
 #include <string.h>
 
 
@@ -60,8 +58,7 @@ static int InitCRL_Entry(CRL_Entry* crle, DecodedCRL* dcrl)
     CYASSL_ENTER("InitCRL_Entry");
 
     XMEMCPY(crle->issuerHash, dcrl->issuerHash, SHA_DIGEST_SIZE);
-    /* XMEMCPY(crle->crlHash, dcrl->crlHash, SHA_DIGEST_SIZE);
-     *   copy the hash here if needed for optimized comparisons */
+    XMEMCPY(crle->crlHash, dcrl->crlHash, MD5_DIGEST_SIZE);
     XMEMCPY(crle->lastDate, dcrl->lastDate, MAX_DATE_SIZE);
     XMEMCPY(crle->nextDate, dcrl->nextDate, MAX_DATE_SIZE);
     crle->lastDateFormat = dcrl->lastDateFormat;
@@ -92,7 +89,7 @@ static void FreeCRL_Entry(CRL_Entry* crle)
 
 
 /* Free all CRL resources */
-void FreeCRL(CYASSL_CRL* crl, int dynamic)
+void FreeCRL(CYASSL_CRL* crl)
 {
     CRL_Entry* tmp = crl->crlList;
 
@@ -118,8 +115,6 @@ void FreeCRL(CYASSL_CRL* crl, int dynamic)
     }
 #endif
     FreeMutex(&crl->crlLock);
-    if (dynamic)   /* free self */
-        XFREE(crl, NULL, DYNAMIC_TYPE_CRL);
 }
 
 
@@ -128,6 +123,7 @@ int CheckCertCRL(CYASSL_CRL* crl, DecodedCert* cert)
 {
     CRL_Entry* crle;
     int        foundEntry = 0;
+    int        revoked = 0;
     int        ret = 0;
 
     CYASSL_ENTER("CheckCertCRL");
@@ -161,6 +157,7 @@ int CheckCertCRL(CYASSL_CRL* crl, DecodedCert* cert)
         while (rc) {
             if (XMEMCMP(rc->serialNumber, cert->serial, rc->serialSz) == 0) {
                 CYASSL_MSG("Cert revoked");
+                revoked = 1;
                 ret = CRL_CERT_REVOKED;
                 break;
             }
@@ -259,7 +256,7 @@ int BufferLoadCRL(CYASSL_CRL* crl, const byte* buff, long sz, int type)
     }
 
     InitDecodedCRL(&dcrl);
-    ret = ParseCRL(&dcrl, myBuffer, (word32)sz, crl->cm);
+    ret = ParseCRL(&dcrl, myBuffer, sz, crl->cm);
     if (ret != 0) {
         CYASSL_MSG("ParseCRL error");
     }
@@ -299,7 +296,7 @@ static int SwapLists(CYASSL_CRL* crl)
         ret = LoadCRL(&tmp, crl->monitors[0].path, SSL_FILETYPE_PEM, 0);
         if (ret != SSL_SUCCESS) {
             CYASSL_MSG("PEM LoadCRL on dir change failed");
-            FreeCRL(&tmp, 0);
+            FreeCRL(&tmp);
             return -1;
         }
     }
@@ -308,14 +305,14 @@ static int SwapLists(CYASSL_CRL* crl)
         ret = LoadCRL(&tmp, crl->monitors[1].path, SSL_FILETYPE_ASN1, 0);
         if (ret != SSL_SUCCESS) {
             CYASSL_MSG("DER LoadCRL on dir change failed");
-            FreeCRL(&tmp, 0);
+            FreeCRL(&tmp);
             return -1;
         }
     }
 
     if (LockMutex(&crl->crlLock) != 0) {
         CYASSL_MSG("LockMutex failed");
-        FreeCRL(&tmp, 0);
+        FreeCRL(&tmp);
         return -1;
     }
 
@@ -327,25 +324,17 @@ static int SwapLists(CYASSL_CRL* crl)
 
     UnLockMutex(&crl->crlLock);
 
-    FreeCRL(&tmp, 0);
+    FreeCRL(&tmp);
 
     return 0;
 }
 
 
-#if (defined(__MACH__) || defined(__FreeBSD__))
+#ifdef __MACH__
 
-#include <sys/types.h>
 #include <sys/event.h>
 #include <sys/time.h>
 #include <fcntl.h>
-
-#ifdef __MACH__
-    #define XEVENT_MODE O_EVTONLY
-#elif defined(__FreeBSD__)
-    #define XEVENT_MODE EVFILT_VNODE
-#endif
-
 
 /* OS X  monitoring */
 static void* DoMonitor(void* arg)
@@ -367,7 +356,7 @@ static void* DoMonitor(void* arg)
     fDER = -1;
 
     if (crl->monitors[0].path) {
-        fPEM = open(crl->monitors[0].path, XEVENT_MODE);
+        fPEM = open(crl->monitors[0].path, O_EVTONLY);
         if (fPEM == -1) {
             CYASSL_MSG("PEM event dir open failed");
             return NULL;
@@ -375,7 +364,7 @@ static void* DoMonitor(void* arg)
     }
 
     if (crl->monitors[1].path) {
-        fDER = open(crl->monitors[1].path, XEVENT_MODE);
+        fDER = open(crl->monitors[1].path, O_EVTONLY);
         if (fDER == -1) {
             CYASSL_MSG("DER event dir open failed");
             return NULL;
@@ -410,7 +399,7 @@ static void* DoMonitor(void* arg)
 }
 
 
-#elif defined(__linux__)
+#elif __linux__
 
 #include <sys/types.h>
 #include <sys/inotify.h>
@@ -450,8 +439,8 @@ static void* DoMonitor(void* arg)
     }
 
     for (;;) {
-        char          buff[8192];
-        int           length = read(notifyFd, buff, sizeof(buff));
+        char          buffer[8192];
+        int           length = read(notifyFd, buffer, sizeof(buffer));
        
         CYASSL_MSG("Got notify event");
 
@@ -469,9 +458,6 @@ static void* DoMonitor(void* arg)
 }
 
 
-#else
-
-#error "CRL monitor only currently supported on linux or mach"
 
 #endif /* MACH or linux */
 
@@ -506,8 +492,6 @@ static int StartMonitorCRL(CYASSL_CRL* crl)
 
 static int StartMonitorCRL(CYASSL_CRL* crl)
 {
-    (void)crl;
-
     CYASSL_ENTER("StartMonitorCRL");
     CYASSL_MSG("Not compiled in");
 
@@ -534,19 +518,8 @@ int LoadCRL(CYASSL_CRL* crl, const char* path, int type, int monitor)
         return BAD_PATH_ERROR;
     }
     while ( (entry = readdir(dir)) != NULL) {
-        char name[MAX_FILENAME_SZ];
-        struct stat s;
-
-        XMEMSET(name, 0, sizeof(name));
-        XSTRNCPY(name, path, MAX_FILENAME_SZ/2 - 2);
-        XSTRNCAT(name, "/", 1);
-        XSTRNCAT(name, entry->d_name, MAX_FILENAME_SZ/2);
-
-        if (stat(name, &s) != 0) {
-            CYASSL_MSG("stat on name failed");
-            continue;
-        }
-        if (s.st_mode & S_IFREG) {
+        if (entry->d_type & DT_REG) {
+            char name[MAX_FILENAME_SZ];
 
             if (type == SSL_FILETYPE_PEM) {
                 if (strstr(entry->d_name, ".pem") == NULL) {
@@ -562,6 +535,11 @@ int LoadCRL(CYASSL_CRL* crl, const char* path, int type, int monitor)
                     continue;
                 }
             }
+
+            XMEMSET(name, 0, sizeof(name));
+            XSTRNCPY(name, path, MAX_FILENAME_SZ/2 - 2);
+            XSTRNCAT(name, "/", 1);
+            XSTRNCAT(name, entry->d_name, MAX_FILENAME_SZ/2);
 
             if (ProcessFile(NULL, name, type, CRL_TYPE, NULL, 0, crl)
                                                                != SSL_SUCCESS) {
@@ -591,8 +569,6 @@ int LoadCRL(CYASSL_CRL* crl, const char* path, int type, int monitor)
             ret = StartMonitorCRL(crl);
        } 
     }
-    
-    closedir(dir);
 
     return ret;
 }

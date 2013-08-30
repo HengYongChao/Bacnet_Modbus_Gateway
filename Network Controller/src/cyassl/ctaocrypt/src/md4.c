@@ -1,6 +1,6 @@
 /* md4.c
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -23,7 +23,6 @@
     #include <config.h>
 #endif
 
-#include <cyassl/ctaocrypt/settings.h>
 
 #ifndef NO_MD4
 
@@ -146,14 +145,14 @@ static INLINE void AddLength(Md4* md4, word32 len)
 }
 
 
-void Md4Update(Md4* md4, const byte* data, word32 len)
+void Md4Update(Md4* md4, const byte* vdata, word32 len)
 {
     /* do block size increments */
     byte* local = (byte*)md4->buffer;
 
     while (len) {
         word32 add = min(len, MD4_BLOCK_SIZE - md4->buffLen);
-        XMEMCPY(&local[md4->buffLen], data, add);
+        XMEMCPY(&local[md4->buffLen], vdata, add);
 
         md4->buffLen += add;
         data         += add;

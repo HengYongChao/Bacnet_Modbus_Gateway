@@ -1,6 +1,6 @@
-/* ocsp.h
+/* ssl.h
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -25,7 +25,6 @@
 #ifndef CYASSL_OCSP_H
 #define CYASSL_OCSP_H
 
-#ifdef HAVE_OCSP
 
 #include <cyassl/ssl.h>
 #include <cyassl/ctaocrypt/asn.h>
@@ -48,7 +47,6 @@ CYASSL_LOCAL int  CyaSSL_OCSP_Lookup_Cert(CYASSL_OCSP*, DecodedCert*);
 #endif
 
 
-#endif /* HAVE_OCSP */
 #endif /* CYASSL_OCSP_H */
 
 

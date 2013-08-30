@@ -1,6 +1,6 @@
 /* error.h
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -102,15 +102,6 @@ enum CyaSSL_ErrorCodes {
     OCSP_LOOKUP_FAIL       = -267,            /* OCSP lookup not successful */
     MAX_CHAIN_ERROR        = -268,            /* max chain depth exceeded */
     COOKIE_ERROR           = -269,            /* dtls cookie error */
-    SEQUENCE_ERROR         = -270,            /* dtls sequence error */
-    SUITES_ERROR           = -271,            /* suites pointer error */
-    SSL_NO_PEM_HEADER      = -272,            /* no PEM header found */
-    OUT_OF_ORDER_E         = -273,            /* out of order message */
-    BAD_KEA_TYPE_E         = -274,            /* bad KEA type found */
-    SANITY_CIPHER_E        = -275,            /* sanity check on cipher error */
-    RECV_OVERFLOW_E        = -276,            /* RXCB returned more than rqed */
-    GEN_COOKIE_E           = -277,            /* Generate Cookie Error */
-    NO_PEER_VERIFY         = -278,            /* Need peer cert verify Error */
     /* add strings to SetErrorString !!!!! */
 
     /* begin negotiation parameter errors */
@@ -130,7 +121,7 @@ enum CyaSSL_ErrorCodes {
 
 
 CYASSL_LOCAL
-void SetErrorString(int err, char* buff);
+void SetErrorString(int error, char* buffer);
 
 
 #ifdef __cplusplus

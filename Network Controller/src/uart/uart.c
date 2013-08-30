@@ -392,7 +392,6 @@ static void uart1_ISR(void) interrupt 6
 		if(uart1_RxCount >= MAX_RX_UART1_BUF_SIZE)
 			uart1_RxCount = 0;
 		
-
 		RI1 = 0;
 
 		uart1_timeout = 5;	 // reveice data  timer = 20		  (3)
@@ -406,8 +405,50 @@ static void uart1_ISR(void) interrupt 6
 	} /* End of if(TI0) */
    EA = 1;
 }  
-
 #endif 
+
+#if 0
+static void uart1_ISR(void) interrupt 6
+{
+	U8_T	parity = 0;
+
+	if (RI1)
+	{
+		EA = 0;
+		if (uart1_RxCount != MAX_RX_UART1_BUF_SIZE) 
+		{
+			uart1_RxBuf[uart1_RxHead] = SBUF1;
+			uart1_RxCount++;
+			uart1_RxHead++;
+			uart1_RxHead &= MAX_RX_UART1_MASK;
+	    }
+		RI1 = 0;
+		EA = 1;
+	} /* End of if(RI0) */
+
+	if (TI1)
+	{
+		EA = 0;
+
+		uart1_TxTail++;
+		uart1_TxTail &= MAX_TX_UART1_MASK;
+		uart1_TxCount--;
+		if (uart1_TxCount > 0)
+		{
+			SBUF1 = uart1_TxBuf[uart1_TxTail];
+		}
+		else
+			uart1_TxFlag = 0;
+
+		TI1 = 0;
+		EA = 1;
+
+	} /* End of if(TI0) */
+
+}
+#endif
+
+
 
 /*
  * ----------------------------------------------------------------------------

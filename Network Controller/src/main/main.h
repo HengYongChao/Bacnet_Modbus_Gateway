@@ -85,7 +85,7 @@ extern void Uart0_Receive(void);
 extern void Uart1_Tx(U8_T *buf,U8_T len);
 //extern void Uart1_Receive(U8_T length);
 //extern void Uart1_Receive(void);
-extern void Uart2_Receive(void);
+//extern void Uart2_Receive(void);
 extern void Tx_To_Tstat(U8_T *buf,U8_T len);
 
 void OSDelay(U8_T x);

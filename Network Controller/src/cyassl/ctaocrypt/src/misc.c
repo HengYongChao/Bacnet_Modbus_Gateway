@@ -1,6 +1,6 @@
 /* misc.c
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -22,8 +22,6 @@
 #ifdef HAVE_CONFIG_H
     #include <config.h>
 #endif
-
-#include <cyassl/ctaocrypt/settings.h>
 
 #include <cyassl/ctaocrypt/misc.h>
 
@@ -78,8 +76,6 @@ STATIC INLINE word32 ByteReverseWord32(word32 value)
 #ifdef PPC_INTRINSICS
     /* PPC: load reverse indexed instruction */
     return (word32)__lwbrx(&value,0);
-#elif defined(KEIL_INTRINSICS)
-    return (word32)__rev(value);
 #elif defined(FAST_ROTATE)
     /* 5 instructions with rotate instruction, 9 without */
     return (rotrFixed(value, 8U) & 0xff00ff00) |
@@ -95,7 +91,7 @@ STATIC INLINE word32 ByteReverseWord32(word32 value)
 STATIC INLINE void ByteReverseWords(word32* out, const word32* in,
                                     word32 byteCount)
 {
-    word32 count = byteCount/(word32)sizeof(word32), i;
+    word32 count = byteCount/sizeof(word32), i;
 
     for (i = 0; i < count; i++)
         out[i] = ByteReverseWord32(in[i]);
@@ -136,7 +132,7 @@ STATIC INLINE word64 ByteReverseWord64(word64 value)
 STATIC INLINE void ByteReverseWords64(word64* out, const word64* in,
                                       word32 byteCount)
 {
-    word32 count = byteCount/(word32)sizeof(word64), i;
+    word32 count = byteCount/sizeof(word64), i;
 
     for (i = 0; i < count; i++)
         out[i] = ByteReverseWord64(in[i]);
@@ -165,8 +161,8 @@ STATIC INLINE void XorWords(word* r, const word* a, word32 n)
 
 STATIC INLINE void xorbuf(byte* buf, const byte* mask, word32 count)
 {
-    if (((word)buf | (word)mask | count) % CYASSL_WORD_SIZE == 0)
-        XorWords( (word*)buf, (const word*)mask, count / CYASSL_WORD_SIZE);
+    if (((word)buf | (word)mask | count) % WORD_SIZE == 0)
+        XorWords( (word*)buf, (const word*)mask, count / WORD_SIZE);
     else {
         word32 i;
         for (i = 0; i < count; i++) buf[i] ^= mask[i];

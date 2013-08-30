@@ -114,6 +114,11 @@
 //#include  "sd.h"
 
 
+//#include "sddriver.h"
+//#include "ff.h"
+
+#include "semphr.h"
+
 
 /* NAMING CONSTANT DECLARATIONS */
 #ifdef DEBUG
@@ -162,6 +167,13 @@ extern U8_T TsataId;
 
 #if 1 //lihengning    
 extern U8_T  far UartRevNum;  
+
+
+xSemaphoreHandle sem_subnet_tx;
+xQueueHandle qSubSerial;
+
+U8_T  MUTEX_TASK = 0;
+
 
 extern U8_T gudpbc_InterAppId;
 U8_T TcpSocket_ME;
@@ -476,14 +488,33 @@ void TCPIP_Task(void)reentrant
 			}
 		}
 #endif
-
 	   do_dyndns();
 
 	  //write_two_byte(4,byteWrite);
-	  
-
 	}
 } /* End of main() */
+
+
+void uart2_rescue(void)
+{
+	U16_T baudRateDiv = 0;
+//	HSUR_InitValue();
+	switch (CSREPR & (BIT6|BIT7))
+		{
+	    case SCS_25M:
+	 		baudRateDiv = UR2_BR25_19200;
+			break;
+		case SCS_50M:
+			baudRateDiv = UR2_BR50_19200;
+			break;
+		case SCS_100M:
+			baudRateDiv = UR2_BR100_19200;
+			break;
+		}
+
+	HSUR_Setup(baudRateDiv, (UR2_CHAR_8|UR2_STOP_10), (UR2_RDI_ENB|UR2_RLSI_ENB),
+	(UR2_FIFO_MODE|UR2_RXFIFO_RST|UR2_TXFIFO_RST|UR2_TRIG_01), UR2_RTS);
+}
 
 
 
@@ -552,8 +583,6 @@ void Led_EthSend(void)//Pin set low
 		LE = 1;                               
 	}
 }
-
-
 
 void Led_EthRxD(void) //Pin set low 
 {
@@ -907,7 +936,18 @@ void Uart0_Receive(void)
 			{
 				Sever_Order = SERVER_RS232;
 				Sever_id = uart0_RxBuf[0]; 
-				Tx_To_Tstat(uart0_RxBuf, uart0_RxCount);			   												
+
+
+#ifdef  SemaphoreCreate						  
+				if(cSemaphoreTake(sem_subnet_tx, 10) == pdFALSE)
+					return;
+#endif
+				Tx_To_Tstat(uart0_RxBuf, uart0_RxCount);
+#ifdef  SemaphoreCreate						  
+				cSemaphoreGive(sem_subnet_tx);
+#endif
+
+
 			}					
 			else if(uart0_RxBuf[1] == 0x1a) //scan NC
 			{
@@ -1098,7 +1138,7 @@ void Uart0_Receive(void)
 			   #if  RS485_EN2
 				Rs485_2_EN = 1;
 			   #endif
-
+				
 				Uart0_Tx(uart0_TxBuf, uart0_TxCount);
 
 			   #if  RS485_EN2
@@ -1236,8 +1276,6 @@ void Uart0_Receive(void)
 				}
 				else if(StartAdd == SCHEDUAL_MODBUS_ADDRESS) //200th register ,write time 
 				{
-//					if((StartAdd - SCHEDUAL_MODBUS_ADDRESS) % 8 == 0)
-//						memcpy(Time.UN.Setime,&uart0_RxBuf[7], 8);
 					if(uart0_RxBuf[5] == 8)
 					{
 						if(uart0_RxBuf[5] == uart0_RxBuf[6])
@@ -1343,8 +1381,17 @@ void Uart0_Receive(void)
 		else
 		{
 			Sever_Order = SERVER_RS232;
-			Sever_id = uart0_RxBuf[0];				  
-			Tx_To_Tstat(uart0_RxBuf, uart0_RxCount);								 			          			 
+			Sever_id = uart0_RxBuf[0];	
+			
+#ifdef  SemaphoreCreate						  
+				if(cSemaphoreTake(sem_subnet_tx, 10) == pdFALSE)
+					return;
+#endif
+				Tx_To_Tstat(uart0_RxBuf, uart0_RxCount);
+#ifdef  SemaphoreCreate						  
+				cSemaphoreGive(sem_subnet_tx);
+#endif
+											 			          			 
 		}
 
 		uart0_RxCount = 0;    
@@ -1368,6 +1415,8 @@ void Uart1_Tx(U8_T *buf,U8_T len)
 
 U8_T forward_buffer[300];
 U8_T forward_buffer1[300];
+//U16_T 	uart2_count = 0;
+
 extern U16_T sessonlen;
 extern void Set_transaction_ID(U8_T *str, U16_T reg);
 
@@ -1379,9 +1428,7 @@ void Uart1_Receive(void)
 	U16_T  uart1_cnt;
 
 
-//	Uart0_Tx(uart1_RxBuf,uart1_RxCount);
-
-	EA = 0;
+	ES1 = 0;
 	if(uart1_RxCount)
 	{
 		if(Sever_Order == 1)
@@ -1394,15 +1441,15 @@ void Uart1_Receive(void)
 
 		memcpy(forward_buffer1 + uart1_count, uart1_RxBuf, uart1_RxCount);
 
-//		Uart0_Tx(uart1_RxBuf,uart1_RxCount);		   // for test !
 		uart1_count += uart1_RxCount;
 		uart1_RxCount = 0;
-		EA = 1;
+		ES1 = 1;
 	
 	}
 	else
 	{
-		EA = 1;
+		ES1 = 1;
+//		Uart0_Tx("U1",2);
 		return;
 	}
 
@@ -1438,7 +1485,7 @@ void Uart1_Receive(void)
 
 			TCPIP_TcpSend(TcpSocket_ME, forward_buffer1, length , TCPIP_SEND_NOT_FINAL);
 
-	//		Uart0_Tx(forward_buffer,length);
+		//	Uart0_Tx(forward_buffer1,length);
 		
 		}
 		else if(Sever_Order == SERVER_RS232)
@@ -1481,19 +1528,23 @@ void Uart1_Receive(void)
 			{
 				case SCAN_BINSEARCH:
 					scan_response_state = MULTIPLE_ID;
-					if(uart1_count >= 9) // right
+					if(uart1_count >= 9) 
 					{
 						U8_T i;
 						InitCRC16();
 						for(i = 0; i < 7; i++)
-							CRC16_Tstat(forward_buffer[i]);
+							CRC16_Tstat(forward_buffer1[i]);
 		
-						if((forward_buffer[7] == CRChi) && (forward_buffer[8] == CRClo))
+						if((forward_buffer1[7] == CRChi) && (forward_buffer1[8] == CRClo))
 						{
-							if((forward_buffer[0] == 0xff) && (forward_buffer[1] == 0x19)) // double check it is the response for scan command
+							if((forward_buffer1[0] == 0xff) && (forward_buffer1[1] == 0x19))
 							{
-								current_db.id = forward_buffer[2];
-								current_db.sn = ((U32_T)forward_buffer[6] << 24) | ((U32_T)forward_buffer[5] << 16) | ((U32_T)forward_buffer[4] << 8) | forward_buffer[3];
+								current_db.id = forward_buffer1[2];
+								current_db.sn = ((U32_T)forward_buffer1[6] << 24) |
+								 				((U32_T)forward_buffer1[5] << 16) |
+								  				 ((U32_T)forward_buffer1[4] << 8) |
+								   							   forward_buffer1[3];
+
 								if(uart1_count == 9)
 								{
 									scan_response_state = UNIQUE_ID;
@@ -1505,13 +1556,44 @@ void Uart1_Receive(void)
 							}
 						}
 					}
-					// and none tstat in the range will wait timeout in the waitrsponse routine
+//					if(uart2_count >= 9) 
+//					{
+//						U8_T i;
+//						InitCRC16();
+//						for(i = 0; i < 7; i++)
+//							CRC16_Tstat(forward_buffer[i]);
+//		
+//						if((forward_buffer[7] == CRChi) && (forward_buffer[8] == CRClo))
+//						{
+//							if((forward_buffer[0] == 0xff) && (forward_buffer[1] == 0x19)) 
+//							{
+//								current_db.id = forward_buffer[2];
+//								current_db.sn = ((U32_T)forward_buffer[6] << 24) |
+//								 				((U32_T)forward_buffer[5] << 16) |
+//								  					((U32_T)forward_buffer[4] << 8) |
+//								   							forward_buffer[3];
+//								if(uart2_count == 9)
+//								{
+//									scan_response_state = UNIQUE_ID;
+//								}
+//								else
+//								{
+//									scan_response_state = UNIQUE_ID_FROM_MULTIPLE;
+//								}
+//							}
+//						}
+//					}
+
 					break;
 				case SCAN_ASSIGN_ID_WITH_SN:
-					if(uart1_count == 12) //right
+					if(uart1_count == 12) 
 					{
 						scan_response_state = ASSIGN_ID;
 					}
+//					if(uart2_count == 12) 
+//					{
+//						scan_response_state = ASSIGN_ID;
+//					}
 					break;
 			}
 		}
@@ -1590,13 +1672,12 @@ void Display_Updating(void)
 
 
 /*****Uart2 routine***********************/
+
 void Uart2_Receive(void)
 {
 	U16_T 	uart2_count = 0;
-//	U8_T	TEST[2];
+	EINT4 = 0;
 
-
-	EA = 0;
 	if(hsurRxCount)
 	{
 		if(Sever_Order == SERVER_TCPIP)
@@ -1606,16 +1687,20 @@ void Uart2_Receive(void)
 		}
 
 		memcpy(forward_buffer + uart2_count, hsurRxBuffer, hsurRxCount);
+
 		uart2_count += hsurRxCount;
 		hsurRxCount = 0;
-		EA = 1;
+
+		EINT4 = 1;
 	}
 	else
 	{
-		EA = 1;
-		return;
-	}
+		EINT4 = 1;
 
+	//	Uart0_Tx("U2",2);
+		return;
+
+	}
 	if(uart2_count)
 	{
 		if(Sever_Order == SERVER_TCPIP)  //Sever Order is from TCPIP
@@ -1628,13 +1713,12 @@ void Uart2_Receive(void)
 			else
 			{
 				TCPIP_TcpSend(TcpSocket_ME, forward_buffer, uart2_count-2, TCPIP_SEND_NOT_FINAL);
-			
-//				TEST[0] =  uart2_count - 2;
-//			    Uart0_Tx("TEST",1);
-			
+			//	TEST[0] = forward_buffer[7] + 7;
+			//  Uart0_Tx("TEST",1);
+			//	 Uart0_Tx(forward_buffer,uart2_count-2);
 			}
 		LED = S485_OK;
-	
+
 		}
 		else if(Sever_Order == SERVER_RS232)
 		{
@@ -1670,7 +1754,7 @@ void Uart2_Receive(void)
 			{
 				case SCAN_BINSEARCH:
 					scan_response_state = MULTIPLE_ID;
-					if(uart2_count >= 9) // right
+					if(uart2_count >= 9) 
 					{
 						U8_T i;
 						InitCRC16();
@@ -1697,7 +1781,7 @@ void Uart2_Receive(void)
 					// and none tstat in the range will wait timeout in the waitrsponse routine
 					break;
 				case SCAN_ASSIGN_ID_WITH_SN:
-					if(uart2_count == 12) //right
+					if(uart2_count == 12) 
 					{
 						scan_response_state = ASSIGN_ID;
 					}
@@ -1710,10 +1794,9 @@ void Uart2_Receive(void)
 			
 		}
 		Sever_Order = SERVER_NONE;
-
-		
 	}
 }
+
 
 /********** transmit order to tstat ******************/
 void Tx_To_Tstat(U8_T *buf, U8_T len)
@@ -1722,14 +1805,16 @@ void Tx_To_Tstat(U8_T *buf, U8_T len)
 
 	Rs485_EN = 1;
 
+
 	Uart1_Tx(buf, len);
 
+	Uart0_Tx(buf, len);
 
 	for(i = 0; i < len; i++)  
 		HSUR_PutChar(buf[i]);
 
 	if(len < 10)
-		DELAY_Ms(1);		   //1
+		DELAY_Us(1900);		   //1
 	else
 		DELAY_Ms((len + 1) / 8);
 
@@ -1891,11 +1976,17 @@ void Ledflash_task(void) reentrant
 void Scan_task(void)
 {
 	portTickType xDelayPeriod = (portTickType)10000 / portTICK_RATE_MS;
+	
 	init_scan();
+
 	while(1)
 	{
 		vTaskDelay(xDelayPeriod);
-		scan_tstat();
+		
+		if(!MUTEX_TASK)
+		{
+			scan_tstat();
+		}
 	}
 }
 
@@ -1916,7 +2007,7 @@ void Uart0_task(void) reentrant
 
 void Uart1_task(void) reentrant
 {
-	portTickType xDelayPeriod = ( portTickType ) 40 / portTICK_RATE_MS;//50
+	portTickType xDelayPeriod = ( portTickType ) 200 / portTICK_RATE_MS;//40
    	
 	for (;;)
     { 
@@ -1931,8 +2022,7 @@ void Uart1_task(void) reentrant
 
 void Uart2_task(void) reentrant
 {
-	portTickType xDelayPeriod = ( portTickType ) 1000 / portTICK_RATE_MS;	//50
-
+	portTickType xDelayPeriod = ( portTickType ) 2000 / portTICK_RATE_MS;	//1000
 	for (;;)
     { 
 		vTaskDelay(xDelayPeriod);
@@ -1950,31 +2040,30 @@ void Schedule_task(void) reentrant
 	portTickType xDelayPeriod = ( portTickType ) 500 / portTICK_RATE_MS;//500
 	for (;;)
 	{ 
-#if 1
-/* implement CaculateTime rution  per 500ms */
-		CaculateTime();
-/* implement CheckWeeklyRoutines rution  per 1s */
-		if(count % 2 == 0)  // 1s
-		{
-			//Para[1]++;
-			CheckWeeklyRoutines();
+	   if(!MUTEX_TASK)
+		 {
+			/* implement CaculateTime rution  per 500ms */
+			CaculateTime();
+			/* implement CheckWeeklyRoutines rution  per 1s */
+			if(count % 2 == 0)  // 1s
+			{
+				CheckWeeklyRoutines();
+			}
+			/* implement CheckAnnualRoutines rution  per 3s */
+			/* implement CheckIdRoutines rution  per 3s */	
+			if(count % 6 == 0)  // 3s
+			{
+				CheckAnnualRoutines();
+				CheckIdRoutines();
+			}
+			if(count < 6) count++;
+			else count = 0;
 		}
-/* implement CheckAnnualRoutines rution  per 3s */
-/* implement CheckIdRoutines rution  per 3s */	
-		if(count % 6 == 0)  // 3s
-		{
-			//Para[3]++;
-			CheckAnnualRoutines();
-			CheckIdRoutines();
-		}
-
-#endif		
-		if(count < 6) count++;
-		else count = 0;
-
 		vTaskDelay(xDelayPeriod);
 	}
 }
+
+
 
 void TimeServer_task(void) reentrant
 {
@@ -2050,7 +2139,17 @@ void USB_task(void)
 						{
 							Sever_Order = SERVER_USB;		//USB
 							Sever_id = DownBuf[0];
-							Tx_To_Tstat(DownBuf, DownCtr);			   												
+
+
+#ifdef  SemaphoreCreate						  
+							if(cSemaphoreTake(sem_subnet_tx, 10) == pdFALSE)
+								return;
+#endif
+								Tx_To_Tstat(DownBuf, DownCtr);
+#ifdef  SemaphoreCreate						  
+							cSemaphoreGive(sem_subnet_tx);
+#endif
+
 						}					
 						else if(DownBuf[1] == 0x1a)	//scan NC
 						{ 
@@ -2281,8 +2380,17 @@ void USB_task(void)
 					else
 					{
 						Sever_Order = SERVER_USB;		//USB
-						Sever_id = DownBuf[0];				  
-						Tx_To_Tstat(DownBuf, DownCtr);								 			          			 
+						Sever_id = DownBuf[0];	
+						
+#ifdef  SemaphoreCreate						  
+						if(cSemaphoreTake(sem_subnet_tx, 10) == pdFALSE)
+							return;
+#endif
+						Tx_To_Tstat(DownBuf, DownCtr);	
+#ifdef  SemaphoreCreate						  
+						cSemaphoreGive(sem_subnet_tx);
+#endif									  
+												 			          			 
 					} 
 					
 					DownCtr = 0;
@@ -2376,7 +2484,15 @@ void gsm_task(void) reentrant						// LJ
 				}
 				break;
 			case SET_POINT:
+
+#ifdef  SemaphoreCreate						  
+				if(cSemaphoreTake(sem_subnet_tx, 10) == pdFALSE)
+					break;
+#endif
 				Tx_To_Tstat( test_setpoint, 8);
+#ifdef  SemaphoreCreate						  
+				cSemaphoreGive(sem_subnet_tx);
+#endif
 				g_state = GSM_INIT_DONE;
 				break;
 			default:
@@ -2390,8 +2506,6 @@ void gsm_task(void) reentrant						// LJ
 }
 
 
-
-
 /*
  * ----------------------------------------------------------------------------
  * Function Name: main
@@ -2403,42 +2517,26 @@ void gsm_task(void) reentrant						// LJ
 
 void main(void )
 { 
-	U16_T i;
-    U8_T FlashFlag=0; //已经烧写过flash 还是没有
-    U8_T dat[100];
-    U16_T baudRateDiv=0;
-	U8_T flag_store_schedule;
+	U16_T 	i;
+    U8_T 	FlashFlag=0; //已经烧写过flash 还是没有
+    U8_T 	dat[100];
+    U16_T 	baudRateDiv=0 ;
+	U8_T 	flag_store_schedule;
 	ExecuteRuntimeFlag = 1;
-
-
-   #if  RS485_EN2
+	
+#if  RS485_EN2
 	Rs485_2_EN = 0;
-   #endif
+#endif
 
 	AX11000_Init();
 	UART_Init(0);
 	UART_Init(1);
 	Lcd_Initial();
 
-    HSUR_InitValue();
-	switch (CSREPR & (BIT6|BIT7))
-		{
-	    case SCS_25M:
-	 		baudRateDiv = UR2_BR25_19200;
-			break;
-		case SCS_50M:
-			baudRateDiv = UR2_BR50_19200;
-			break;
-		case SCS_100M:
-			baudRateDiv = UR2_BR100_19200;
-			break;
-		}
+	uart2_rescue();
 
-	HSUR_Setup(baudRateDiv, (UR2_CHAR_8|UR2_STOP_10), (UR2_RDI_ENB|UR2_RLSI_ENB),
-	(UR2_FIFO_MODE|UR2_RXFIFO_RST|UR2_TXFIFO_RST|UR2_TRIG_08), UR2_RTS);
-	
+
     I2C_Init();
-
 
 	for(i = 0; i < 100; i++)
     { 
@@ -2486,48 +2584,48 @@ void main(void )
 
 	display_ip();
 	
-	
 	for(i = 0; i < 2 ;i++)
 		hardversion[i] = Para[16 + i];
 
 	Hardware_Revision = hardversion[1] ;
 
 
+
   sTaskCreate(TCPIP_Task, (const signed portCHAR * const)"TCPIP_task",
-		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, (xTaskHandle *)&xHandle1); //0 2
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, (xTaskHandle *)&xHandle1);  //2
 
   sTaskCreate(LedBeat_task, (const signed portCHAR * const)"LedBeat_task",
 		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 4, (xTaskHandle *)&xHandle3);  //3
 
   sTaskCreate(Timer_task, (const signed portCHAR * const)"Timer_task",
-		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 3, (xTaskHandle *)&xHandle2);  //!!!
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 3, (xTaskHandle *)&xHandle2);  
 
    sTaskCreate(Ledflash_task, (const signed portCHAR * const)"Ledflash_task",
-		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 5, (xTaskHandle *)&xHandle4);  //!!!!
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 5, (xTaskHandle *)&xHandle4);  
 
    sTaskCreate(Uart0_task, (const signed portCHAR * const)"Uart0_task",
-		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 8, (xTaskHandle *)&xHandle5); //!!!!
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 8, (xTaskHandle *)&xHandle5); 
 
    sTaskCreate(Uart1_task, (const signed portCHAR * const)"Uart1_task",
 		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 9, (xTaskHandle *)&xHandle6);
 
    sTaskCreate(Uart2_task, (const signed portCHAR * const)"Uart2_task",
-		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 9, (xTaskHandle *)&xHandle9);//!!!!
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 9, (xTaskHandle *)&xHandle9);
 
-//   sTaskCreate(Scan_task, (const signed portCHAR * const)"Scan_task",
-//		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 6, (xTaskHandle *)&xHandle12);//8
+   sTaskCreate(Scan_task, (const signed portCHAR * const)"Scan_task",	
+   		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 6, (xTaskHandle *)&xHandle12);
 
-//   sTaskCreate(Schedule_task, (const signed portCHAR * const)"Schedule_task",
-//		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 6, (xTaskHandle *)&xHandle8);//!!!
+   sTaskCreate(Schedule_task, (const signed portCHAR * const)"Schedule_task",
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 6, (xTaskHandle *)&xHandle8);
 
    sTaskCreate(TimeServer_task, (const signed portCHAR * const)"TimeServer_task",
-		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 7, (xTaskHandle *)&xHandle7);// no 
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 7, (xTaskHandle *)&xHandle7); 
 
    sTaskCreate(UdpBroadcast_task, (const signed portCHAR * const)"UdpBroadcast_task",
-		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 4, (xTaskHandle *)&xHandle10);// no 
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 4, (xTaskHandle *)&xHandle10); 
 
     sTaskCreate(USB_task, (const signed portCHAR * const)"USB_task",
-		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 10, (xTaskHandle *)&xHandle11);//8
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 10, (xTaskHandle *)&xHandle11);  
 
 #if   GSM_TASK_ENABLE
 	sTaskCreate(gsm_task, (const signed portCHAR * const)"gsm_task",
@@ -2538,9 +2636,6 @@ void main(void )
   /* Finally kick off the scheduler.  This function should never return. */
 	vTaskStartScheduler( portUSE_PREEMPTION );
 }
-
-
-
 
 
 /* End of adapter.c */

@@ -1,6 +1,6 @@
 /* error.h
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -99,22 +99,12 @@ enum {
     ALT_NAME_E         = -177,  /* alt name size problem, too big */
 
     AES_GCM_AUTH_E     = -180,  /* AES-GCM Authentication check failure */
-    AES_CCM_AUTH_E     = -181,  /* AES-CCM Authentication check failure */
-
-    CAVIUM_INIT_E      = -182,  /* Cavium Init type error */
-
-    COMPRESS_INIT_E    = -183,  /* Compress init error */
-    COMPRESS_E         = -184,  /* Compress error */
-    DECOMPRESS_INIT_E  = -185,  /* DeCompress init error */
-    DECOMPRESS_E       = -186,  /* DeCompress error */
-
-    BAD_ALIGN_E        = -187,  /* Bad alignment for operation, no alloc */
 
     MIN_CODE_E         = -200   /* errors -101 - -199 */
 };
 
 
-CYASSL_API void CTaoCryptErrorString(int err, char* buff);
+CYASSL_API void CTaoCryptErrorString(int error, char* buffer);
 
 
 #ifdef __cplusplus

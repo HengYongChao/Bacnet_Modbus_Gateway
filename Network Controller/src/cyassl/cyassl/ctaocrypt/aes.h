@@ -1,6 +1,6 @@
 /* aes.h
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -28,11 +28,6 @@
 
 #include <cyassl/ctaocrypt/types.h>
 
-#ifdef HAVE_CAVIUM
-    #include <cyassl/ctaocrypt/logging.h>
-    #include "cavium_common.h"
-#endif
-
 #ifdef CYASSL_AESNI
 
 #include <wmmintrin.h>
@@ -58,8 +53,6 @@
 #endif
 
 
-#define CYASSL_AES_CAVIUM_MAGIC 0xBEEF0002
-
 enum {
     AES_ENC_TYPE   = 1,   /* cipher unique type */
     AES_ENCRYPTION = 0,
@@ -83,55 +76,32 @@ typedef struct Aes {
     ALIGN16 byte M0[256][AES_BLOCK_SIZE];
 #endif /* GCM_TABLE */
 #endif /* HAVE_AESGCM */
-#ifdef CYASSL_AESNI
-    byte use_aesni;
-#endif /* CYASSL_AESNI */
-#ifdef HAVE_CAVIUM
-    AesType type;            /* aes key type */
-    int     devId;           /* nitrox device id */
-    word32  magic;           /* using cavium magic */
-    word64  contextHandle;   /* nitrox context memory handle */
-#endif
 } Aes;
 
 
 CYASSL_API int  AesSetKey(Aes* aes, const byte* key, word32 len, const byte* iv,
                           int dir);
 CYASSL_API int  AesSetIV(Aes* aes, const byte* iv);
-CYASSL_API int  AesCbcEncrypt(Aes* aes, byte* out, const byte* in, word32 sz);
-CYASSL_API int  AesCbcDecrypt(Aes* aes, byte* out, const byte* in, word32 sz);
+CYASSL_API void AesCbcEncrypt(Aes* aes, byte* out, const byte* in, word32 sz);
+CYASSL_API void AesCbcDecrypt(Aes* aes, byte* out, const byte* in, word32 sz);
 CYASSL_API void AesCtrEncrypt(Aes* aes, byte* out, const byte* in, word32 sz);
 CYASSL_API void AesEncryptDirect(Aes* aes, byte* out, const byte* in);
 CYASSL_API void AesDecryptDirect(Aes* aes, byte* out, const byte* in);
-CYASSL_API int  AesSetKeyDirect(Aes* aes, const byte* key, word32 len,
-                                const byte* iv, int dir);
+
 #ifdef HAVE_AESGCM
-CYASSL_API void AesGcmSetKey(Aes* aes, const byte* key, word32 len);
+CYASSL_API void AesGcmSetKey(Aes* aes, const byte* key, word32 len,
+                              const byte* implicitIV);
+CYASSL_API void AesGcmSetExpIV(Aes* aes, const byte* iv);
+CYASSL_API void AesGcmGetExpIV(Aes* aes, byte* iv);
+CYASSL_API void AesGcmIncExpIV(Aes* aes);
 CYASSL_API void AesGcmEncrypt(Aes* aes, byte* out, const byte* in, word32 sz,
-                              const byte* iv, word32 ivSz,
                               byte* authTag, word32 authTagSz,
                               const byte* authIn, word32 authInSz);
 CYASSL_API int  AesGcmDecrypt(Aes* aes, byte* out, const byte* in, word32 sz,
-                              const byte* iv, word32 ivSz,
                               const byte* authTag, word32 authTagSz,
                               const byte* authIn, word32 authInSz);
 #endif /* HAVE_AESGCM */
-#ifdef HAVE_AESCCM
-CYASSL_API void AesCcmSetKey(Aes* aes, const byte* key, word32 keySz);
-CYASSL_API void AesCcmEncrypt(Aes* aes, byte* out, const byte* in, word32 inSz,
-                              const byte* nonce, word32 nonceSz,
-                              byte* authTag, word32 authTagSz,
-                              const byte* authIn, word32 authInSz);
-CYASSL_API int  AesCcmDecrypt(Aes* aes, byte* out, const byte* in, word32 inSz,
-                              const byte* nonce, word32 nonceSz,
-                              const byte* authTag, word32 authTagSz,
-                              const byte* authIn, word32 authInSz);
-#endif /* HAVE_AESCCM */
 
-#ifdef HAVE_CAVIUM
-    CYASSL_API int  AesInitCavium(Aes*, int);
-    CYASSL_API void AesFreeCavium(Aes*);
-#endif
 
 #ifdef __cplusplus
     } /* extern "C" */

@@ -1,6 +1,6 @@
 /* ripemd.c
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -23,8 +23,6 @@
 #ifdef HAVE_CONFIG_H
     #include <config.h>
 #endif
-
-#include <cyassl/ctaocrypt/settings.h>
 
 #ifdef CYASSL_RIPEMD
 

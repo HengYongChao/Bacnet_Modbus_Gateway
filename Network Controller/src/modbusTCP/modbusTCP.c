@@ -49,9 +49,13 @@
 #include "scan.h"
 #include "../gsm/gsm.h"
 
+#include "task.h"
+#include "semphr.h"
+
 /* NAMING CONSTANT DECLARATIONS */
 
 /* GLOBAL VARIABLES DECLARATIONS */
+extern U8_T MUTEX_TASK;
 
 /* LOCAL VARIABLES DECLARATIONS */
 static MODBUSTCP_SERVER_CONN XDATA MODBUSTCP_Connects[MAX_MODBUSTCP_CONNECT];
@@ -61,6 +65,9 @@ static U8_T MODBUSTCP_NewConfig(void);
 static void	MODBUSTCP_DivideHtmlFile(MODBUSTCP_SERVER_CONN XDATA*, U8_T);
 extern void Led_ReSet();
 
+
+extern xSemaphoreHandle sem_subnet_tx;
+extern xQueueHandle qSubSerial;
 
 /* LOCAL VARIABLES */
 static U8_T XDATA PostTable[MAX_POST_COUNT];
@@ -349,6 +356,8 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 
   	if((pData[UIP_HEAD] == Para[13]) || (pData[UIP_HEAD] == 0xff))//Address of NetControl 
 	{   
+		MUTEX_TASK = 0;
+	
 		StartAdd = (pData[UIP_HEAD + 2] << 8) + pData[UIP_HEAD + 3]; //起始地址
 		if(pData[UIP_HEAD + 1] == READ_VARIABLES)
 		{
@@ -387,7 +396,15 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 			send_tcp[StartAdd++] = CRChi;
 		    send_tcp[StartAdd++] = CRClo;
 
+#ifdef  SemaphoreCreate						  
+			if(cSemaphoreTake(sem_subnet_tx, 10) == pdFALSE)
+				return;
+#endif
 			Tx_To_Tstat(send_tcp, StartAdd);
+#ifdef  SemaphoreCreate						  
+			cSemaphoreGive(sem_subnet_tx);
+#endif					  
+
 		}
 	    else if(pData[UIP_HEAD+1] == READ_VARIABLES)  //读命令
 		{
@@ -929,7 +946,6 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 		TsataId = pData[UIP_HEAD];
 
 		TcpSocket_ME = pMODBUSTCPConn->TcpSocket;
-//		sessonid = ((U16_T)pData[0] << 8) | pData[1];
 		if(pData[UIP_HEAD + 1] == READ_VARIABLES)
 		{
 			sessonlen = 2 * pData[UIP_HEAD + 5];//有效字节数目
@@ -955,13 +971,19 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 	    send_tcp[StartAdd++] = CRClo;
 	
 		EA = 1;
-//		Uart0_Tx(send_tcp, StartAdd);//////////////////
+	//	Uart0_Tx(send_tcp, StartAdd);//////////////////
+
+		MUTEX_TASK = 1;
+
+#ifdef  SemaphoreCreate						  
+		if(cSemaphoreTake(sem_subnet_tx, 10) == pdFALSE)
+			return;
+#endif
 		Tx_To_Tstat(send_tcp, StartAdd);
-	#if 0
-		DELAY_Ms(40);
-		Uart2_Receive();
-	#endif
-	
+#ifdef  SemaphoreCreate						  
+		cSemaphoreGive(sem_subnet_tx);
+#endif
+
 	}
 } /* End of MODBUSTCP_Receive() */
 

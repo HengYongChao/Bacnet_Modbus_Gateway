@@ -14,9 +14,7 @@ nobase_include_HEADERS+= \
                          cyassl/sniffer_error.h \
                          cyassl/sniffer.h \
                          cyassl/callbacks.h \
-                         cyassl/certs_test.h \
                          cyassl/test.h \
                          cyassl/version.h \
-                         cyassl/options.h \
                          cyassl/ocsp.h \
                          cyassl/crl.h

@@ -92,7 +92,7 @@ any details of its type. */
 void LoadCtx() reentrant;   /* Save the current working registers to stack, defined in OS_CPU_A.ASM */
 extern INT8U xdata * data C_XBP, TICK_INT;
 
-
+extern U8_T  MUTEX_TASK;
 /*
  * Setup the hardware to generate an interrupt off timer 2 at the required 
  * frequency.
@@ -282,7 +282,11 @@ void vTimer2ISR( void ) interrupt 10
 		isr = EA;
 		EA = 0;
 		if(uart2_timeout)
+		{
 			uart2_timeout--;
+		   if(!uart2_timeout)
+		   		MUTEX_TASK = 0;
+		}
 		if(uart1_timeout)
 		{ uart1_timeout--;  }
 		if(USB_timeout)

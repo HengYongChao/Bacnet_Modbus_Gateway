@@ -42,9 +42,9 @@
 
 /* 下面函数不常用,如果用户不需要,可置为 0 裁剪指定函数 */
 
-#define SD_ReadMultiBlock_EN    0			/* 是否使能读多块函数 */
+#define SD_ReadMultiBlock_EN    1			/* 是否使能读多块函数 */
 
-#define SD_WriteMultiBlock_EN   0			/* 是否使能写多块函数 */
+#define SD_WriteMultiBlock_EN   1			/* 是否使能写多块函数 */
 
 #define SD_EraseBlock_EN		1			/* 是否使能擦卡函数 */
 

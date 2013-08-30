@@ -1,6 +1,6 @@
 /* asn_public.h
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -40,8 +40,7 @@ enum CertType {
     PRIVATEKEY_TYPE,
     DH_PARAM_TYPE,
     CRL_TYPE,
-    CA_TYPE,
-    ECC_PRIVATEKEY_TYPE
+    CA_TYPE
 };
 
 

@@ -1,6 +1,6 @@
 /* coding.c
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -22,10 +22,6 @@
 #ifdef HAVE_CONFIG_H
     #include <config.h>
 #endif
-
-#include <cyassl/ctaocrypt/settings.h>
-
-#ifndef NO_CODING
 
 #include <cyassl/ctaocrypt/coding.h>
 #include <cyassl/ctaocrypt/error.h>
@@ -108,18 +104,16 @@ int Base64_Decode(const byte* in, word32 inLen, byte* out, word32* outLen)
             break;
         
         inLen -= 4;
-        if (inLen && (in[j] == ' ' || in[j] == '\r' || in[j] == '\n')) {
+        if (in[j] == ' ' || in[j] == '\r' || in[j] == '\n') {
             byte endLine = in[j++];
             inLen--;
-            while (inLen && endLine == ' ') {   /* allow trailing whitespace */
+            while (endLine == ' ') {   /* allow trailing whitespace */
                 endLine = in[j++];
                 inLen--;
             }
             if (endLine == '\r') {
-                if (inLen) {
-                    endLine = in[j++];
-                    inLen--;
-                }
+                endLine = in[j++];
+                inLen--;
             }
             if (endLine != '\n') {
                 CYASSL_MSG("Bad end of line in Base64 Decode");
@@ -268,5 +262,4 @@ int Base16_Decode(const byte* in, word32 inLen, byte* out, word32* outLen)
 }
 
 
-#endif  /* defined(OPENSSL_EXTRA) || defined (SESSION_CERTS) || defined(CYASSL_KEY_GEN) || defined(CYASSL_CERT_GEN) || defined(HAVE_WEBSERVER) */
-#endif /* NO_CODING */
+#endif  /* OPENSSL_EXTRA */

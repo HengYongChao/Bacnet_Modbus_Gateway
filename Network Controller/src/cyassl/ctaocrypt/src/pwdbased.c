@@ -1,6 +1,6 @@
 /* pwdbased.c
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -22,8 +22,6 @@
 #ifdef HAVE_CONFIG_H
     #include <config.h>
 #endif
-
-#include <cyassl/ctaocrypt/settings.h>
 
 #ifndef NO_PWDBASED
 
@@ -56,7 +54,7 @@ int PBKDF1(byte* output, const byte* passwd, int pLen, const byte* salt,
 {
     Md5  md5;
     Sha  sha;
-    int  hLen = (hashType == MD5) ? (int)MD5_DIGEST_SIZE : (int)SHA_DIGEST_SIZE;
+    int  hLen = (hashType == MD5) ? MD5_DIGEST_SIZE : SHA_DIGEST_SIZE;
     int  i;
     byte buffer[SHA_DIGEST_SIZE];  /* max size */
 
@@ -105,11 +103,7 @@ int PBKDF2(byte* output, const byte* passwd, int pLen, const byte* salt,
     int    hLen;
     int    j;
     Hmac   hmac;
-#ifdef CYASSL_SHA512
-    byte   buffer[SHA512_DIGEST_SIZE];
-#else
-    byte   buffer[INNER_HASH_SIZE];  /* max size, doesn't handle 512 yet */
-#endif
+    byte   buffer[INNER_HASH_SIZE];  /* max size */
 
     if (hashType == MD5) {
         hLen = MD5_DIGEST_SIZE;
@@ -242,16 +236,6 @@ int PKCS12_PBKDF(byte* output, const byte* passwd, int passLen,const byte* salt,
         mp_int B1;
 
         if (hashType == MD5) {
-            Md5 md5;
-
-            InitMd5(&md5);
-            Md5Update(&md5, buffer, totalLen);
-            Md5Final(&md5, Ai);
-
-            for (i = 1; i < iterations; i++) {
-                Md5Update(&md5, Ai, u);
-                Md5Final(&md5, Ai);
-            }
         }
         else if (hashType == SHA) {
             Sha sha;
@@ -267,44 +251,21 @@ int PKCS12_PBKDF(byte* output, const byte* passwd, int passLen,const byte* salt,
         }
 #ifndef NO_SHA256
         else if (hashType == SHA256) {
-            Sha256 sha256;
-
-            InitSha256(&sha256);
-            Sha256Update(&sha256, buffer, totalLen);
-            Sha256Final(&sha256, Ai);
-
-            for (i = 1; i < iterations; i++) {
-                Sha256Update(&sha256, Ai, u);
-                Sha256Final(&sha256, Ai);
-            }
         }
 #endif
 #ifdef CYASSL_SHA512
         else if (hashType == SHA512) {
-            Sha512 sha512;
-
-            InitSha512(&sha512);
-            Sha512Update(&sha512, buffer, totalLen);
-            Sha512Final(&sha512, Ai);
-
-            for (i = 1; i < iterations; i++) {
-                Sha512Update(&sha512, Ai, u);
-                Sha512Final(&sha512, Ai);
-            }
         }
 #endif
 
         for (i = 0; i < (int)v; i++)
             B[i] = Ai[i % u];
 
-        if (mp_init(&B1) != MP_OKAY)
-            ret = MP_INIT_E;
-        else if (mp_read_unsigned_bin(&B1, B, v) != MP_OKAY)
+        mp_init(&B1);
+        if (mp_read_unsigned_bin(&B1, B, v) != MP_OKAY)
             ret = MP_READ_E;
-        else if (mp_add_d(&B1, (mp_digit)1, &B1) != MP_OKAY)
+        else if (mp_add_d(&B1, (mp_digit)1, &B1) != MP_OKAY) {
             ret = MP_ADD_E;
-
-        if (ret != 0) {
             mp_clear(&B1);
             break;
         }
@@ -314,10 +275,9 @@ int PKCS12_PBKDF(byte* output, const byte* passwd, int passLen,const byte* salt,
             mp_int i1;
             mp_int res;
 
-            if (mp_init_multi(&i1, &res, NULL, NULL, NULL, NULL) != MP_OKAY) {
-                ret = MP_INIT_E;
-                break;
-            }
+            mp_init(&i1);
+            mp_init(&res);
+
             if (mp_read_unsigned_bin(&i1, I + i, v) != MP_OKAY)
                 ret = MP_READ_E;
             else if (mp_add(&i1, &B1, &res) != MP_OKAY)

@@ -32,7 +32,7 @@
 #include	"ax110xx.h"
 #include	"types.h"
 #include	"interrupt.h"
-#include 	"main.h"
+//#include 	"main.h"
 
 
 #if AX_LBI_INT_ENABLE
@@ -112,8 +112,6 @@ static void ax11000_PeripherialISR(void) interrupt 9 //use external interrupt 4 
 
 		if ((intrStt1 == 0) && (intrStt2 == 0))
 		{
-//			if(INT4F)
-//			  EIF |= 0x04;
 			break;
 		}
 
@@ -187,9 +185,6 @@ static void ax11000_PeripherialISR(void) interrupt 9 //use external interrupt 4 
 		}
 #endif
 
-	 
-
-
 	}
 }
 
@@ -215,8 +210,6 @@ static void ax11000_PmmISR(void) interrupt 11 //use external interrupt 6 (0x5B)
 	EA = 0;
 	EIF &= ~INT6F;	// Clear the flag of interrupt 6.
 	EA = 1;
-
-	
 
 	wakeStatus = PCON;
 	if (!(wakeStatus & SWB_))

@@ -1,6 +1,6 @@
 /* des3.h
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -33,8 +33,6 @@
     extern "C" {
 #endif
 
-#define CYASSL_3DES_CAVIUM_MAGIC 0xBEEF0003
-
 enum {
     DES_ENC_TYPE    = 2,     /* cipher unique type */
     DES3_ENC_TYPE   = 3,     /* cipher unique type */
@@ -42,15 +40,8 @@ enum {
     DES_KS_SIZE     = 32,
 
     DES_ENCRYPTION  = 0,
-    DES_DECRYPTION  = 1
+    DES_DECRYPTION  = 1,
 };
-
-#ifdef STM32F2_CRYPTO
-enum {
-    DES_CBC = 0,
-    DES_ECB = 1
-};
-#endif
 
 
 /* DES encryption and decryption */
@@ -66,11 +57,6 @@ typedef struct Des3 {
     word32 key[3][DES_KS_SIZE];
     word32 reg[DES_BLOCK_SIZE / sizeof(word32)];      /* for CBC mode */
     word32 tmp[DES_BLOCK_SIZE / sizeof(word32)];      /* same         */
-#ifdef HAVE_CAVIUM
-    int     devId;           /* nitrox device id */
-    word32  magic;           /* using cavium magic */
-    word64  contextHandle;   /* nitrox context memory handle */
-#endif
 } Des3;
 
 
@@ -84,12 +70,6 @@ CYASSL_API void Des3_SetKey(Des3* des, const byte* key, const byte* iv,int dir);
 CYASSL_API void Des3_SetIV(Des3* des, const byte* iv);
 CYASSL_API void Des3_CbcEncrypt(Des3* des, byte* out, const byte* in,word32 sz);
 CYASSL_API void Des3_CbcDecrypt(Des3* des, byte* out, const byte* in,word32 sz);
-
-
-#ifdef HAVE_CAVIUM
-    CYASSL_API int  Des3_InitCavium(Des3*, int);
-    CYASSL_API void Des3_FreeCavium(Des3*);
-#endif
 
 
 #ifdef __cplusplus

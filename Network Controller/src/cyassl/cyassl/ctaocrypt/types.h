@@ -1,6 +1,6 @@
 /* types.h
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -30,7 +30,7 @@
 #endif
 
 
-#if defined(WORDS_BIGENDIAN)
+#if defined(WORDS_BIGENDIAN) || (defined(__MWERKS__) && !defined(__INTEL__))
     #define BIG_ENDIAN_ORDER
 #endif
 
@@ -54,7 +54,7 @@
                 || defined(__mips64)  || defined(__x86_64__)) 
             /* long should be 64bit */
             #define SIZEOF_LONG 8
-        #elif defined(__i386__) 
+        #elif (defined__i386__) 
             /* long long should be 64bit */
             #define SIZEOF_LONG_LONG 8
         #endif
@@ -66,15 +66,11 @@
     #define WORD64_AVAILABLE
     #define W64LIT(x) x##ui64
     typedef unsigned __int64 word64;
-#elif defined(SIZEOF_LONG) && SIZEOF_LONG == 8
+#elif SIZEOF_LONG == 8
     #define WORD64_AVAILABLE
     #define W64LIT(x) x##LL
     typedef unsigned long word64;
-#elif defined(SIZEOF_LONG_LONG) && SIZEOF_LONG_LONG == 8 
-    #define WORD64_AVAILABLE
-    #define W64LIT(x) x##LL
-    typedef unsigned long long word64;
-#elif defined(__SIZEOF_LONG_LONG__) && __SIZEOF_LONG_LONG__ == 8 
+#elif SIZEOF_LONG_LONG == 8 
     #define WORD64_AVAILABLE
     #define W64LIT(x) x##LL
     typedef unsigned long long word64;
@@ -86,7 +82,7 @@
 
 /* These platforms have 64-bit CPU registers.  */
 #if (defined(__alpha__) || defined(__ia64__) || defined(_ARCH_PPC64) || \
-     defined(__mips64)  || defined(__x86_64__) || defined(_M_X64)) 
+     defined(__mips64)  || defined(__x86_64__)) 
     typedef word64 word;
 #else
     typedef word32 word;
@@ -97,12 +93,11 @@
 
 
 enum {
-    CYASSL_WORD_SIZE  = sizeof(word),
-    CYASSL_BIT_SIZE   = 8,
-    CYASSL_WORD_BITS  = CYASSL_WORD_SIZE * CYASSL_BIT_SIZE
+    WORD_SIZE  = sizeof(word),
+    BIT_SIZE   = 8,
+    WORD_BITS  = WORD_SIZE * BIT_SIZE
 };
 
-#define CYASSL_MAX_16BIT 0xffffU
 
 /* use inlining if compiler allows */
 #ifndef INLINE
@@ -113,8 +108,6 @@ enum {
         #define INLINE inline
     #elif defined(THREADX)
         #define INLINE _Inline
-    #elif defined(__IAR_SYSTEMS_ICC__)
-        #define INLINE inline
     #else
         #define INLINE 
     #endif
@@ -139,8 +132,7 @@ enum {
 
 
 /* Micrium will use Visual Studio for compilation but not the Win32 API */
-#if defined(_WIN32) && !defined(MICRIUM) && !defined(FREERTOS) \
-        && !defined(EBSNET)
+#if defined(_WIN32) && !defined(MICRIUM) && !defined(FREERTOS)
     #define USE_WINDOWS_API
 #endif
 
@@ -149,24 +141,16 @@ enum {
 /* default to libc stuff */
 /* XREALLOC is used once in normal math lib, not in fast math lib */
 /* XFREE on some embeded systems doesn't like free(0) so test  */
-#if defined(XMALLOC_USER)
+#ifdef XMALLOC_USER
     /* prototypes for user heap override functions */
     #include <stddef.h>  /* for size_t */
     extern void *XMALLOC(size_t n, void* heap, int type);
     extern void *XREALLOC(void *p, size_t n, void* heap, int type);
     extern void XFREE(void *p, void* heap, int type);
-#elif defined(NO_CYASSL_MEMORY)
-    /* just use plain C stdlib stuff if desired */
-    #include <stdlib.h>
-    #define XMALLOC(s, h, t)     ((void)h, (void)t, malloc((s)))
-    #define XFREE(p, h, t)       {void* xp = (p); if((xp)) free((xp));}
-    #define XREALLOC(p, n, h, t) realloc((p), (n))
-#elif !defined(MICRIUM_MALLOC) && !defined(EBSNET) \
-        && !defined(CYASSL_SAFERTOS) && !defined(FREESCALE_MQX) \
-        && !defined(CYASSL_LEANPSK)
-    /* default C runtime, can install different routines at runtime via cbs */
+#elif !defined(MICRIUM_MALLOC)
+    /* default C runtime, can install different routines at runtime */
     #include <cyassl/ctaocrypt/memory.h>
-    #define XMALLOC(s, h, t)     ((void)h, (void)t, CyaSSL_Malloc((s)))
+    #define XMALLOC(s, h, t)     CyaSSL_Malloc((s))
     #define XFREE(p, h, t)       {void* xp = (p); if((xp)) CyaSSL_Free((xp));}
     #define XREALLOC(p, n, h, t) CyaSSL_Realloc((p), (n))
 #endif
@@ -188,14 +172,12 @@ enum {
     #define XSTRNSTR(s1,s2,n) mystrnstr((s1),(s2),(n))
     #define XSTRNCMP(s1,s2,n) strncmp((s1),(s2),(n))
     #define XSTRNCAT(s1,s2,n) strncat((s1),(s2),(n))
-    #define XSTRNCASECMP(s1,s2,n) strncasecmp((s1),(s2),(n))
 #endif
 
-#if defined(HAVE_ECC) || defined(HAVE_OCSP)
+#ifdef HAVE_ECC
     #ifndef CTYPE_USER
         #include <ctype.h>
         #define XTOUPPER(c)     toupper((c))
-        #define XISALPHA(c)     isalpha((c))
     #endif
 #endif
 
@@ -230,19 +212,7 @@ enum {
     DYNAMIC_TYPE_CRL_MONITOR  = 26,
     DYNAMIC_TYPE_OCSP_STATUS  = 27,
     DYNAMIC_TYPE_OCSP_ENTRY   = 28,
-    DYNAMIC_TYPE_ALTNAME      = 29,
-    DYNAMIC_TYPE_SUITES       = 30,
-    DYNAMIC_TYPE_CIPHER       = 31,
-    DYNAMIC_TYPE_RNG          = 32,
-    DYNAMIC_TYPE_ARRAYS       = 33,
-    DYNAMIC_TYPE_DTLS_POOL    = 34,
-    DYNAMIC_TYPE_SOCKADDR     = 35,
-    DYNAMIC_TYPE_LIBZ         = 36,
-    DYNAMIC_TYPE_ECC          = 37,
-    DYNAMIC_TYPE_TMP_BUFFER   = 38,
-    DYNAMIC_TYPE_DTLS_MSG     = 39,
-    DYNAMIC_TYPE_CAVIUM_TMP   = 40,
-    DYNAMIC_TYPE_CAVIUM_RSA   = 41 
+    DYNAMIC_TYPE_ALTNAME      = 29
 };
 
 /* stack protection */

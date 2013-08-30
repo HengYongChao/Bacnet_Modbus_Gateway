@@ -1,6 +1,6 @@
 /* aes.c
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -23,8 +23,6 @@
     #include <config.h>
 #endif
 
-#include <cyassl/ctaocrypt/settings.h>
-
 #ifndef NO_AES
 
 #include <cyassl/ctaocrypt/aes.h>
@@ -42,380 +40,6 @@
     #pragma warning(disable: 4127)
 #endif
 
-
-#ifdef HAVE_CAVIUM
-    static int  AesCaviumSetKey(Aes* aes, const byte* key, word32 length,
-                                const byte* iv);
-    static void AesCaviumCbcEncrypt(Aes* aes, byte* out, const byte* in,
-                                    word32 length);
-    static void AesCaviumCbcDecrypt(Aes* aes, byte* out, const byte* in,
-                                    word32 length);
-#endif
-
-#ifdef STM32F2_CRYPTO
-    /*
-     * STM32F2 hardware AES support through the STM32F2 standard peripheral
-     * library. Documentation located in STM32F2xx Standard Peripheral Library
-     * document (See note in README).
-     */
-    #include "stm32f2xx.h"
-
-    int AesSetKey(Aes* aes, const byte* userKey, word32 keylen, const byte* iv,
-                  int dir)
-    {
-        word32 *rk = aes->key;
-
-        if (!((keylen == 16) || (keylen == 24) || (keylen == 32)))
-            return BAD_FUNC_ARG;
-
-        aes->rounds = keylen/4 + 6;
-        XMEMCPY(rk, userKey, keylen);
-        ByteReverseWords(rk, rk, keylen);
-
-        return AesSetIV(aes, iv);
-    }
-
-    int AesCbcEncrypt(Aes* aes, byte* out, const byte* in, word32 sz)
-    {
-        word32 *enc_key, *iv;
-        CRYP_InitTypeDef AES_CRYP_InitStructure;
-        CRYP_KeyInitTypeDef AES_CRYP_KeyInitStructure;
-        CRYP_IVInitTypeDef AES_CRYP_IVInitStructure;
-
-        enc_key = aes->key;
-        iv = aes->reg;
-
-        /* crypto structure initialization */
-        CRYP_KeyStructInit(&AES_CRYP_KeyInitStructure);
-        CRYP_StructInit(&AES_CRYP_InitStructure);
-        CRYP_IVStructInit(&AES_CRYP_IVInitStructure);
-
-        /* reset registers to their default values */
-        CRYP_DeInit();
-
-        /* load key into correct registers */
-        switch(aes->rounds)
-        {
-            case 10: /* 128-bit key */
-                AES_CRYP_InitStructure.CRYP_KeySize = CRYP_KeySize_128b;
-                AES_CRYP_KeyInitStructure.CRYP_Key2Left  = enc_key[0];
-                AES_CRYP_KeyInitStructure.CRYP_Key2Right = enc_key[1];
-                AES_CRYP_KeyInitStructure.CRYP_Key3Left  = enc_key[2];
-                AES_CRYP_KeyInitStructure.CRYP_Key3Right = enc_key[3];
-                break;
-
-            case 12: /* 192-bit key */
-                AES_CRYP_InitStructure.CRYP_KeySize = CRYP_KeySize_192b;
-                AES_CRYP_KeyInitStructure.CRYP_Key1Left  = enc_key[0];
-                AES_CRYP_KeyInitStructure.CRYP_Key1Right = enc_key[1];
-                AES_CRYP_KeyInitStructure.CRYP_Key2Left  = enc_key[2];
-                AES_CRYP_KeyInitStructure.CRYP_Key2Right = enc_key[3];
-                AES_CRYP_KeyInitStructure.CRYP_Key3Left  = enc_key[4];
-                AES_CRYP_KeyInitStructure.CRYP_Key3Right = enc_key[5];
-                break;
-
-            case 14: /* 256-bit key */
-                AES_CRYP_InitStructure.CRYP_KeySize = CRYP_KeySize_256b;
-                AES_CRYP_KeyInitStructure.CRYP_Key0Left  = enc_key[0];
-                AES_CRYP_KeyInitStructure.CRYP_Key0Right = enc_key[1];
-                AES_CRYP_KeyInitStructure.CRYP_Key1Left  = enc_key[2];
-                AES_CRYP_KeyInitStructure.CRYP_Key1Right = enc_key[3];
-                AES_CRYP_KeyInitStructure.CRYP_Key2Left  = enc_key[4];
-                AES_CRYP_KeyInitStructure.CRYP_Key2Right = enc_key[5];
-                AES_CRYP_KeyInitStructure.CRYP_Key3Left  = enc_key[6];
-                AES_CRYP_KeyInitStructure.CRYP_Key3Right = enc_key[7];
-                break;
-
-            default:
-                break;
-        }
-        CRYP_KeyInit(&AES_CRYP_KeyInitStructure);
-
-        /* set iv */
-        ByteReverseWords(iv, iv, AES_BLOCK_SIZE);
-        AES_CRYP_IVInitStructure.CRYP_IV0Left  = iv[0];
-        AES_CRYP_IVInitStructure.CRYP_IV0Right = iv[1];
-        AES_CRYP_IVInitStructure.CRYP_IV1Left  = iv[2];
-        AES_CRYP_IVInitStructure.CRYP_IV1Right = iv[3];
-        CRYP_IVInit(&AES_CRYP_IVInitStructure);
-
-        /* set direction, mode, and datatype */
-        AES_CRYP_InitStructure.CRYP_AlgoDir  = CRYP_AlgoDir_Encrypt;
-        AES_CRYP_InitStructure.CRYP_AlgoMode = CRYP_AlgoMode_AES_CBC;
-        AES_CRYP_InitStructure.CRYP_DataType = CRYP_DataType_8b;
-        CRYP_Init(&AES_CRYP_InitStructure);
-
-        /* enable crypto processor */
-        CRYP_Cmd(ENABLE);
-
-        while (sz > 0)
-        {
-            /* flush IN/OUT FIFOs */
-            CRYP_FIFOFlush();
-
-            CRYP_DataIn(*(uint32_t*)&in[0]);
-            CRYP_DataIn(*(uint32_t*)&in[4]);
-            CRYP_DataIn(*(uint32_t*)&in[8]);
-            CRYP_DataIn(*(uint32_t*)&in[12]);
-
-            /* wait until the complete message has been processed */
-            while(CRYP_GetFlagStatus(CRYP_FLAG_BUSY) != RESET) {}
-
-            *(uint32_t*)&out[0]  = CRYP_DataOut();
-            *(uint32_t*)&out[4]  = CRYP_DataOut();
-            *(uint32_t*)&out[8]  = CRYP_DataOut();
-            *(uint32_t*)&out[12] = CRYP_DataOut();
-
-            /* store iv for next call */
-            XMEMCPY(aes->reg, out + sz - AES_BLOCK_SIZE, AES_BLOCK_SIZE);
-
-            sz  -= 16;
-            in  += 16;
-            out += 16;
-        }
-
-        /* disable crypto processor */
-        CRYP_Cmd(DISABLE);
-
-        return 0;
-    }
-
-    int AesCbcDecrypt(Aes* aes, byte* out, const byte* in, word32 sz)
-    {
-        word32 *dec_key, *iv;
-        CRYP_InitTypeDef AES_CRYP_InitStructure;
-        CRYP_KeyInitTypeDef AES_CRYP_KeyInitStructure;
-        CRYP_IVInitTypeDef AES_CRYP_IVInitStructure;
-
-        dec_key = aes->key;
-        iv = aes->reg;
-
-        /* crypto structure initialization */
-        CRYP_KeyStructInit(&AES_CRYP_KeyInitStructure);
-        CRYP_StructInit(&AES_CRYP_InitStructure);
-        CRYP_IVStructInit(&AES_CRYP_IVInitStructure);
-
-        /* if input and output same will overwrite input iv */
-        XMEMCPY(aes->tmp, in + sz - AES_BLOCK_SIZE, AES_BLOCK_SIZE);
-
-        /* reset registers to their default values */
-        CRYP_DeInit();
-
-        /* load key into correct registers */
-        switch(aes->rounds)
-        {
-            case 10: /* 128-bit key */
-                AES_CRYP_InitStructure.CRYP_KeySize = CRYP_KeySize_128b;
-                AES_CRYP_KeyInitStructure.CRYP_Key2Left  = dec_key[0];
-                AES_CRYP_KeyInitStructure.CRYP_Key2Right = dec_key[1];
-                AES_CRYP_KeyInitStructure.CRYP_Key3Left  = dec_key[2];
-                AES_CRYP_KeyInitStructure.CRYP_Key3Right = dec_key[3];
-                break;
-
-            case 12: /* 192-bit key */
-                AES_CRYP_InitStructure.CRYP_KeySize = CRYP_KeySize_192b;
-                AES_CRYP_KeyInitStructure.CRYP_Key1Left  = dec_key[0];
-                AES_CRYP_KeyInitStructure.CRYP_Key1Right = dec_key[1];
-                AES_CRYP_KeyInitStructure.CRYP_Key2Left  = dec_key[2];
-                AES_CRYP_KeyInitStructure.CRYP_Key2Right = dec_key[3];
-                AES_CRYP_KeyInitStructure.CRYP_Key3Left  = dec_key[4];
-                AES_CRYP_KeyInitStructure.CRYP_Key3Right = dec_key[5];
-                break;
-
-            case 14: /* 256-bit key */
-                AES_CRYP_InitStructure.CRYP_KeySize = CRYP_KeySize_256b;
-                AES_CRYP_KeyInitStructure.CRYP_Key0Left  = dec_key[0];
-                AES_CRYP_KeyInitStructure.CRYP_Key0Right = dec_key[1];
-                AES_CRYP_KeyInitStructure.CRYP_Key1Left  = dec_key[2];
-                AES_CRYP_KeyInitStructure.CRYP_Key1Right = dec_key[3];
-                AES_CRYP_KeyInitStructure.CRYP_Key2Left  = dec_key[4];
-                AES_CRYP_KeyInitStructure.CRYP_Key2Right = dec_key[5];
-                AES_CRYP_KeyInitStructure.CRYP_Key3Left  = dec_key[6];
-                AES_CRYP_KeyInitStructure.CRYP_Key3Right = dec_key[7];
-                break;
-
-            default:
-                break;
-        }
-
-        /* set direction, mode, and datatype for key preparation */
-        AES_CRYP_InitStructure.CRYP_AlgoDir  = CRYP_AlgoDir_Decrypt;
-        AES_CRYP_InitStructure.CRYP_AlgoMode = CRYP_AlgoMode_AES_Key;
-        AES_CRYP_InitStructure.CRYP_DataType = CRYP_DataType_32b;
-        CRYP_Init(&AES_CRYP_InitStructure);
-        CRYP_KeyInit(&AES_CRYP_KeyInitStructure);
-
-        /* enable crypto processor */
-        CRYP_Cmd(ENABLE);
-
-        /* wait until key has been prepared */
-        while(CRYP_GetFlagStatus(CRYP_FLAG_BUSY) != RESET) {}
-
-        /* set direction, mode, and datatype for decryption */
-        AES_CRYP_InitStructure.CRYP_AlgoDir  = CRYP_AlgoDir_Decrypt;
-        AES_CRYP_InitStructure.CRYP_AlgoMode = CRYP_AlgoMode_AES_CBC;
-        AES_CRYP_InitStructure.CRYP_DataType = CRYP_DataType_8b;
-        CRYP_Init(&AES_CRYP_InitStructure);
-
-        /* set iv */
-        ByteReverseWords(iv, iv, AES_BLOCK_SIZE);
-
-        AES_CRYP_IVInitStructure.CRYP_IV0Left  = iv[0];
-        AES_CRYP_IVInitStructure.CRYP_IV0Right = iv[1];
-        AES_CRYP_IVInitStructure.CRYP_IV1Left  = iv[2];
-        AES_CRYP_IVInitStructure.CRYP_IV1Right = iv[3];
-        CRYP_IVInit(&AES_CRYP_IVInitStructure);
-
-        /* enable crypto processor */
-        CRYP_Cmd(ENABLE);
-
-        while (sz > 0)
-        {
-            /* flush IN/OUT FIFOs */
-            CRYP_FIFOFlush();
-
-            CRYP_DataIn(*(uint32_t*)&in[0]);
-            CRYP_DataIn(*(uint32_t*)&in[4]);
-            CRYP_DataIn(*(uint32_t*)&in[8]);
-            CRYP_DataIn(*(uint32_t*)&in[12]);
-
-            /* wait until the complete message has been processed */
-            while(CRYP_GetFlagStatus(CRYP_FLAG_BUSY) != RESET) {}
-
-            *(uint32_t*)&out[0]  = CRYP_DataOut();
-            *(uint32_t*)&out[4]  = CRYP_DataOut();
-            *(uint32_t*)&out[8]  = CRYP_DataOut();
-            *(uint32_t*)&out[12] = CRYP_DataOut();
-
-            /* store iv for next call */
-            XMEMCPY(aes->reg, aes->tmp, AES_BLOCK_SIZE);
-
-            sz -= 16;
-            in += 16;
-            out += 16;
-        }
-
-        /* disable crypto processor */
-        CRYP_Cmd(DISABLE);
-
-        return 0;
-    }
-
-    #ifdef CYASSL_AES_COUNTER
-
-    /* AES-CTR calls this for key setup */
-    int AesSetKeyDirect(Aes* aes, const byte* userKey, word32 keylen,
-                        const byte* iv, int dir)
-    {
-        return AesSetKey(aes, userKey, keylen, iv, dir);
-    }
-
-    void AesCtrEncrypt(Aes* aes, byte* out, const byte* in, word32 sz)
-    {
-        word32 *enc_key, *iv;
-        CRYP_InitTypeDef AES_CRYP_InitStructure;
-        CRYP_KeyInitTypeDef AES_CRYP_KeyInitStructure;
-        CRYP_IVInitTypeDef AES_CRYP_IVInitStructure;
-
-        enc_key = aes->key;
-        iv = aes->reg;
-
-        /* crypto structure initialization */
-        CRYP_KeyStructInit(&AES_CRYP_KeyInitStructure);
-        CRYP_StructInit(&AES_CRYP_InitStructure);
-        CRYP_IVStructInit(&AES_CRYP_IVInitStructure);
-
-        /* reset registers to their default values */
-        CRYP_DeInit();
-
-        /* load key into correct registers */
-        switch(aes->rounds)
-        {
-            case 10: /* 128-bit key */
-                AES_CRYP_InitStructure.CRYP_KeySize = CRYP_KeySize_128b;
-                AES_CRYP_KeyInitStructure.CRYP_Key2Left  = enc_key[0];
-                AES_CRYP_KeyInitStructure.CRYP_Key2Right = enc_key[1];
-                AES_CRYP_KeyInitStructure.CRYP_Key3Left  = enc_key[2];
-                AES_CRYP_KeyInitStructure.CRYP_Key3Right = enc_key[3];
-                break;
-
-            case 12: /* 192-bit key */
-                AES_CRYP_InitStructure.CRYP_KeySize = CRYP_KeySize_192b;
-                AES_CRYP_KeyInitStructure.CRYP_Key1Left  = enc_key[0];
-                AES_CRYP_KeyInitStructure.CRYP_Key1Right = enc_key[1];
-                AES_CRYP_KeyInitStructure.CRYP_Key2Left  = enc_key[2];
-                AES_CRYP_KeyInitStructure.CRYP_Key2Right = enc_key[3];
-                AES_CRYP_KeyInitStructure.CRYP_Key3Left  = enc_key[4];
-                AES_CRYP_KeyInitStructure.CRYP_Key3Right = enc_key[5];
-                break;
-
-            case 14: /* 256-bit key */
-                AES_CRYP_InitStructure.CRYP_KeySize = CRYP_KeySize_256b;
-                AES_CRYP_KeyInitStructure.CRYP_Key0Left  = enc_key[0];
-                AES_CRYP_KeyInitStructure.CRYP_Key0Right = enc_key[1];
-                AES_CRYP_KeyInitStructure.CRYP_Key1Left  = enc_key[2];
-                AES_CRYP_KeyInitStructure.CRYP_Key1Right = enc_key[3];
-                AES_CRYP_KeyInitStructure.CRYP_Key2Left  = enc_key[4];
-                AES_CRYP_KeyInitStructure.CRYP_Key2Right = enc_key[5];
-                AES_CRYP_KeyInitStructure.CRYP_Key3Left  = enc_key[6];
-                AES_CRYP_KeyInitStructure.CRYP_Key3Right = enc_key[7];
-                break;
-
-            default:
-                break;
-        }
-        CRYP_KeyInit(&AES_CRYP_KeyInitStructure);
-
-        /* set iv */
-        ByteReverseWords(iv, iv, AES_BLOCK_SIZE);
-        AES_CRYP_IVInitStructure.CRYP_IV0Left  = iv[0];
-        AES_CRYP_IVInitStructure.CRYP_IV0Right = iv[1];
-        AES_CRYP_IVInitStructure.CRYP_IV1Left  = iv[2];
-        AES_CRYP_IVInitStructure.CRYP_IV1Right = iv[3];
-        CRYP_IVInit(&AES_CRYP_IVInitStructure);
-
-        /* set direction, mode, and datatype */
-        AES_CRYP_InitStructure.CRYP_AlgoDir  = CRYP_AlgoDir_Encrypt;
-        AES_CRYP_InitStructure.CRYP_AlgoMode = CRYP_AlgoMode_AES_CTR;
-        AES_CRYP_InitStructure.CRYP_DataType = CRYP_DataType_8b;
-        CRYP_Init(&AES_CRYP_InitStructure);
-
-        /* enable crypto processor */
-        CRYP_Cmd(ENABLE);
-
-        while (sz > 0)
-        {
-            /* flush IN/OUT FIFOs */
-            CRYP_FIFOFlush();
-
-            CRYP_DataIn(*(uint32_t*)&in[0]);
-            CRYP_DataIn(*(uint32_t*)&in[4]);
-            CRYP_DataIn(*(uint32_t*)&in[8]);
-            CRYP_DataIn(*(uint32_t*)&in[12]);
-
-            /* wait until the complete message has been processed */
-            while(CRYP_GetFlagStatus(CRYP_FLAG_BUSY) != RESET) {}
-
-            *(uint32_t*)&out[0]  = CRYP_DataOut();
-            *(uint32_t*)&out[4]  = CRYP_DataOut();
-            *(uint32_t*)&out[8]  = CRYP_DataOut();
-            *(uint32_t*)&out[12] = CRYP_DataOut();
-
-            /* store iv for next call */
-            XMEMCPY(aes->reg, out + sz - AES_BLOCK_SIZE, AES_BLOCK_SIZE);
-
-            sz  -= 16;
-            in  += 16;
-            out += 16;
-        }
-
-        /* disable crypto processor */
-        CRYP_Cmd(DISABLE);
-    }
-
-    #endif /* CYASSL_AES_COUNTER */
-
-#else /* CTaoCrypt software implementation */
 
 static const word32 rcon[] = {
     0x01000000, 0x02000000, 0x04000000, 0x08000000,
@@ -1119,7 +743,7 @@ static const word32 Td[5][256] = {
 #endif /* _MSC_VER */
 
             
-static int Check_CPU_support_AES(void)
+static int Check_CPU_support_AES()
 {
     unsigned int a,b,c,d;
     cpuid(1,a,b,c,d);
@@ -1134,34 +758,27 @@ static int checkAESNI = 0;
 static int haveAESNI  = 0;
 
 
-/* tell C compiler these are asm functions in case any mix up of ABI underscore
-   prefix between clang/gcc/llvm etc */
 void AES_CBC_encrypt(const unsigned char* in, unsigned char* out,
                      unsigned char* ivec, unsigned long length,
-                     const unsigned char* KS, int nr)
-                     asm ("AES_CBC_encrypt");
+                     const unsigned char* KS, int nr);
 
 
 void AES_CBC_decrypt(const unsigned char* in, unsigned char* out,
                      unsigned char* ivec, unsigned long length,
-                     const unsigned char* KS, int nr)
-                     asm ("AES_CBC_decrypt");
+                     const unsigned char* KS, int nr);
 
 void AES_128_Key_Expansion(const unsigned char* userkey, 
-                           unsigned char* key_schedule)
-                           asm ("AES_128_Key_Expansion");
+                           unsigned char* key_schedule);
 
 void AES_192_Key_Expansion(const unsigned char* userkey, 
-                           unsigned char* key_schedule)
-                           asm ("AES_192_Key_Expansion");
+                           unsigned char* key_schedule);
 
 void AES_256_Key_Expansion(const unsigned char* userkey, 
-                           unsigned char* key_schedule)
-                           asm ("AES_256_Key_Expansion");
+                           unsigned char* key_schedule);
 
 
-static int AES_set_encrypt_key(const unsigned char *userKey, const int bits,
-                               Aes* aes)
+int AES_set_encrypt_key (const unsigned char *userKey, const int bits,
+                         Aes* aes)
 { 
     if (!userKey || !aes)
         return BAD_FUNC_ARG;
@@ -1182,8 +799,8 @@ static int AES_set_encrypt_key(const unsigned char *userKey, const int bits,
 }
 
 
-static int AES_set_decrypt_key(const unsigned char* userKey, const int bits,
-                               Aes* aes)
+int AES_set_decrypt_key (const unsigned char* userKey, const int bits,
+                         Aes* aes)
 {
     int nr;
     Aes temp_key;
@@ -1230,15 +847,42 @@ static int AES_set_decrypt_key(const unsigned char* userKey, const int bits,
 #endif /* CYASSL_AESNI */
 
 
-static int AesSetKeyLocal(Aes* aes, const byte* userKey, word32 keylen,
-            const byte* iv, int dir)
+int AesSetIV(Aes* aes, const byte* iv)
+{
+    if (aes == NULL)
+        return BAD_FUNC_ARG;
+
+    if (iv)
+        XMEMCPY(aes->reg, iv, AES_BLOCK_SIZE);
+
+    return 0;
+}
+
+
+int AesSetKey(Aes* aes, const byte* userKey, word32 keylen, const byte* iv,
+              int dir)
 {
     word32 temp, *rk = aes->key;
     unsigned int i = 0;
 
-    #ifdef CYASSL_AESNI
-        aes->use_aesni = 0;
-    #endif /* CYASSL_AESNI */
+    if (!((keylen == 16) || (keylen == 24) || (keylen == 32)))
+        return BAD_FUNC_ARG;
+
+#ifdef CYASSL_AESNI
+    if (checkAESNI == 0) {
+        haveAESNI  = Check_CPU_support_AES();
+        checkAESNI = 1;
+    }
+    if (haveAESNI) {
+        if (iv)
+            XMEMCPY(aes->reg, iv, AES_BLOCK_SIZE);
+        if (dir == AES_ENCRYPTION)
+            return AES_set_encrypt_key(userKey, keylen * 8, aes);
+        else
+            return AES_set_decrypt_key(userKey, keylen * 8, aes);
+    }
+#endif /* CYASSL_AESNI */
+
     aes->rounds = keylen/4 + 6;
 
     XMEMCPY(rk, userKey, keylen);
@@ -1364,38 +1008,6 @@ static int AesSetKeyLocal(Aes* aes, const byte* userKey, word32 keylen,
 }
 
 
-int AesSetKey(Aes* aes, const byte* userKey, word32 keylen, const byte* iv,
-              int dir)
-{
-
-    if (!((keylen == 16) || (keylen == 24) || (keylen == 32)))
-        return BAD_FUNC_ARG;
-
-#ifdef HAVE_CAVIUM
-    if (aes->magic == CYASSL_AES_CAVIUM_MAGIC)
-        return AesCaviumSetKey(aes, userKey, keylen, iv);
-#endif
-
-#ifdef CYASSL_AESNI
-    if (checkAESNI == 0) {
-        haveAESNI  = Check_CPU_support_AES();
-        checkAESNI = 1;
-    }
-    if (haveAESNI) {
-        aes->use_aesni = 1;
-        if (iv)
-            XMEMCPY(aes->reg, iv, AES_BLOCK_SIZE);
-        if (dir == AES_ENCRYPTION)
-            return AES_set_encrypt_key(userKey, keylen * 8, aes);
-        else
-            return AES_set_decrypt_key(userKey, keylen * 8, aes);
-    }
-#endif /* CYASSL_AESNI */
-
-    return AesSetKeyLocal(aes, userKey, keylen, iv, dir);
-}
-
-
 static void AesEncrypt(Aes* aes, const byte* inBlock, byte* outBlock)
 {
     word32 s0, s1, s2, s3;
@@ -1407,13 +1019,6 @@ static void AesEncrypt(Aes* aes, const byte* inBlock, byte* outBlock)
         CYASSL_MSG("AesEncrypt encountered improper key, set it up");
         return;  /* stop instead of segfaulting, set up your keys! */
     }
-#ifdef CYASSL_AESNI
-    if (aes->use_aesni) {
-        CYASSL_MSG("AesEncrypt encountered aesni keysetup, don't use direct");
-        return;  /* just stop now */
-    } 
-#endif
-
     /*
      * map byte array block to cipher state
      * and add initial round key:
@@ -1552,13 +1157,6 @@ static void AesDecrypt(Aes* aes, const byte* inBlock, byte* outBlock)
         CYASSL_MSG("AesDecrypt encountered improper key, set it up");
         return;  /* stop instead of segfaulting, set up your keys! */
     }
-#ifdef CYASSL_AESNI
-    if (aes->use_aesni) {
-        CYASSL_MSG("AesEncrypt encountered aesni keysetup, don't use direct");
-        return;  /* just stop now */
-    } 
-#endif
-
     /*
      * map byte array block to cipher state
      * and add initial round key:
@@ -1684,14 +1282,9 @@ static void AesDecrypt(Aes* aes, const byte* inBlock, byte* outBlock)
 }
 
 
-int AesCbcEncrypt(Aes* aes, byte* out, const byte* in, word32 sz)
+void AesCbcEncrypt(Aes* aes, byte* out, const byte* in, word32 sz)
 {
     word32 blocks = sz / AES_BLOCK_SIZE;
-
-#ifdef HAVE_CAVIUM
-    if (aes->magic == CYASSL_AES_CAVIUM_MAGIC)
-        return AesCaviumCbcEncrypt(aes, out, in, sz);
-#endif
 
 #ifdef CYASSL_AESNI
     if (haveAESNI) {
@@ -1704,33 +1297,11 @@ int AesCbcEncrypt(Aes* aes, byte* out, const byte* in, word32 sz)
             printf("aes->rounds = %d\n", aes->rounds);
             printf("sz = %d\n", sz);
         #endif
-
-        /* check alignment, decrypt doesn't need alignment */
-        if ((word)in % 16) {
-        #ifndef NO_CYASSL_ALLOC_ALIGN
-            byte* tmp = (byte*)XMALLOC(sz, NULL, DYNAMIC_TYPE_TMP_BUFFER);
-            if (tmp == NULL) return MEMORY_E;
-
-            XMEMCPY(tmp, in, sz);
-            AES_CBC_encrypt(tmp, tmp, (byte*)aes->reg, sz, (byte*)aes->key,
-                        aes->rounds);
-            /* store iv for next call */
-            XMEMCPY(aes->reg, tmp + sz - AES_BLOCK_SIZE, AES_BLOCK_SIZE);
-
-            XMEMCPY(out, tmp, sz);
-            XFREE(tmp, NULL, DYNAMIC_TYPE_TMP_BUFFER);
-            return 0;
-        #else
-            return BAD_ALIGN_E;
-        #endif
-        }
-
         AES_CBC_encrypt(in, out, (byte*)aes->reg, sz, (byte*)aes->key,
                         aes->rounds);
         /* store iv for next call */
         XMEMCPY(aes->reg, out + sz - AES_BLOCK_SIZE, AES_BLOCK_SIZE);
-
-        return 0;
+        return;
     }
 #endif
 
@@ -1742,19 +1313,12 @@ int AesCbcEncrypt(Aes* aes, byte* out, const byte* in, word32 sz)
         out += AES_BLOCK_SIZE;
         in  += AES_BLOCK_SIZE; 
     }
-
-    return 0;
 }
 
 
-int AesCbcDecrypt(Aes* aes, byte* out, const byte* in, word32 sz)
+void AesCbcDecrypt(Aes* aes, byte* out, const byte* in, word32 sz)
 {
     word32 blocks = sz / AES_BLOCK_SIZE;
-
-#ifdef HAVE_CAVIUM
-    if (aes->magic == CYASSL_AES_CAVIUM_MAGIC)
-        return AesCaviumCbcDecrypt(aes, out, in, sz);
-#endif
 
 #ifdef CYASSL_AESNI
     if (haveAESNI) {
@@ -1774,7 +1338,7 @@ int AesCbcDecrypt(Aes* aes, byte* out, const byte* in, word32 sz)
                         aes->rounds);
         /* store iv for next call */
         XMEMCPY(aes->reg, aes->tmp, AES_BLOCK_SIZE);
-        return 0;
+        return;
     }
 #endif
 
@@ -1787,8 +1351,6 @@ int AesCbcDecrypt(Aes* aes, byte* out, const byte* in, word32 sz)
         out += AES_BLOCK_SIZE;
         in  += AES_BLOCK_SIZE; 
     }
-
-    return 0;
 }
 
 
@@ -1809,18 +1371,6 @@ void AesDecryptDirect(Aes* aes, byte* out, const byte* in)
 
 
 #endif /* CYASSL_AES_DIRECT */
-
-
-#if defined(CYASSL_AES_DIRECT) || defined(CYASSL_AES_COUNTER)
-
-/* AES-CTR and AES-DIRECT need to use this for key setup, no aesni yet */
-int AesSetKeyDirect(Aes* aes, const byte* userKey, word32 keylen,
-                    const byte* iv, int dir)
-{
-    return AesSetKeyLocal(aes, userKey, keylen, iv, dir);
-}
-
-#endif /* CYASSL_AES_DIRECT || CYASSL_AES_COUNTER */
 
 
 #ifdef CYASSL_AES_COUNTER
@@ -1870,6 +1420,8 @@ void AesCtrEncrypt(Aes* aes, byte* out, const byte* in, word32 sz)
  */
 
 enum {
+    IMPLICIT_IV_SZ = 4,
+    EXPLICIT_IV_SZ = 8,
     CTR_SZ = 4
 };
 
@@ -1890,6 +1442,36 @@ static INLINE void IncrementGcmCounter(byte* inOutCtr)
     /* in network byte order so start at end and work back */
     for (i = AES_BLOCK_SIZE - 1; i >= AES_BLOCK_SIZE - CTR_SZ; i--) {
         if (++inOutCtr[i])  /* we're done unless we overflow */
+            return;
+    }
+}
+
+
+/*
+ * The explicit IV is set by the caller. A common practice is to treat it as
+ * a sequence number seeded with a random number. The caller manages
+ * incrementing the explicit IV when appropriate.
+ */
+
+void AesGcmSetExpIV(Aes* aes, const byte* iv)
+{
+    XMEMCPY((byte*)aes->reg + IMPLICIT_IV_SZ, iv, EXPLICIT_IV_SZ);
+}
+
+
+void AesGcmGetExpIV(Aes* aes, byte* iv)
+{
+    XMEMCPY(iv, (byte*)aes->reg + IMPLICIT_IV_SZ, EXPLICIT_IV_SZ);
+}
+
+
+void AesGcmIncExpIV(Aes* aes)
+{
+    int i;
+    byte* iv = (byte*)aes->reg + IMPLICIT_IV_SZ;
+
+    for (i = EXPLICIT_IV_SZ - 1; i >= 0; i--) {
+        if (++iv[i])
             return;
     }
 }
@@ -1960,17 +1542,17 @@ static void GenerateM0(Aes* aes)
 #endif /* GCM_TABLE */
 
 
-void AesGcmSetKey(Aes* aes, const byte* key, word32 len)
+void AesGcmSetKey(Aes* aes, const byte* key, word32 len,
+                                                    const byte* implicitIV)
 {
-    byte iv[AES_BLOCK_SIZE];
+    byte fullIV[AES_BLOCK_SIZE];
 
-    if (!((len == 16) || (len == 24) || (len == 32)))
-        return;
+    XMEMSET(fullIV, 0, AES_BLOCK_SIZE);
+    XMEMCPY(fullIV, implicitIV, IMPLICIT_IV_SZ);
+    AesSetKey(aes, key, len, fullIV, AES_ENCRYPTION);
 
-    XMEMSET(iv, 0, AES_BLOCK_SIZE);
-    AesSetKeyLocal(aes, key, len, iv, AES_ENCRYPTION);
-
-    AesEncrypt(aes, iv, aes->H);
+    XMEMSET(fullIV, 0, AES_BLOCK_SIZE);
+    AesEncrypt(aes, fullIV, aes->H);
 #ifdef GCM_TABLE
     GenerateM0(aes);
 #endif /* GCM_TABLE */
@@ -2477,7 +2059,6 @@ static void GHASH(Aes* aes, const byte* a, word32 aSz,
 
 
 void AesGcmEncrypt(Aes* aes, byte* out, const byte* in, word32 sz,
-                   const byte* iv, word32 ivSz,
                    byte* authTag, word32 authTagSz,
                    const byte* authIn, word32 authInSz)
 {
@@ -2490,8 +2071,9 @@ void AesGcmEncrypt(Aes* aes, byte* out, const byte* in, word32 sz,
 
     CYASSL_ENTER("AesGcmEncrypt");
 
-    XMEMSET(ctr, 0, AES_BLOCK_SIZE);
-    XMEMCPY(ctr, iv, ivSz);
+    /* Initialize the counter with the MS 96 bits of IV, and the counter
+     * portion set to "1". */
+    XMEMCPY(ctr, aes->reg, AES_BLOCK_SIZE);
     InitGcmCounter(ctr);
 
     while (blocks--) {
@@ -2517,7 +2099,6 @@ void AesGcmEncrypt(Aes* aes, byte* out, const byte* in, word32 sz,
 
 
 int  AesGcmDecrypt(Aes* aes, byte* out, const byte* in, word32 sz,
-                   const byte* iv, word32 ivSz,
                    const byte* authTag, word32 authTagSz,
                    const byte* authIn, word32 authInSz)
 {
@@ -2530,8 +2111,9 @@ int  AesGcmDecrypt(Aes* aes, byte* out, const byte* in, word32 sz,
 
     CYASSL_ENTER("AesGcmDecrypt");
 
-    XMEMSET(ctr, 0, AES_BLOCK_SIZE);
-    XMEMCPY(ctr, iv, ivSz);
+    /* Initialize the counter with the MS 96 bits of IV, and the counter
+     * portion set to "1". */
+    XMEMCPY(ctr, aes->reg, AES_BLOCK_SIZE);
     InitGcmCounter(ctr);
 
     /* Calculate the authTag again using the received auth data and the
@@ -2569,354 +2151,6 @@ int  AesGcmDecrypt(Aes* aes, byte* out, const byte* in, word32 sz,
 
 #endif /* HAVE_AESGCM */
 
-#ifdef HAVE_AESCCM
-
-void AesCcmSetKey(Aes* aes, const byte* key, word32 keySz)
-{
-    byte nonce[AES_BLOCK_SIZE];
-
-    if (!((keySz == 16) || (keySz == 24) || (keySz == 32)))
-        return;
-
-    XMEMSET(nonce, 0, sizeof(nonce));
-    AesSetKeyLocal(aes, key, keySz, nonce, AES_ENCRYPTION);
-}
-
-
-static void roll_x(Aes* aes, const byte* in, word32 inSz, byte* out)
-{
-    /* process the bulk of the data */
-    while (inSz >= AES_BLOCK_SIZE) {
-        xorbuf(out, in, AES_BLOCK_SIZE);
-        in += AES_BLOCK_SIZE;
-        inSz -= AES_BLOCK_SIZE;
-
-        AesEncrypt(aes, out, out);
-    }
-
-    /* process remainder of the data */
-    if (inSz > 0) {
-        xorbuf(out, in, inSz);
-        AesEncrypt(aes, out, out);
-    }
-}
-
-
-static void roll_auth(Aes* aes, const byte* in, word32 inSz, byte* out)
-{
-    word32 authLenSz;
-    word32 remainder;
-
-    /* encode the length in */
-    if (inSz <= 0xFEFF) {
-        authLenSz = 2;
-        out[0] ^= ((inSz & 0xFF00) >> 8);
-        out[1] ^=  (inSz & 0x00FF);
-    }
-    else if (inSz <= 0xFFFFFFFF) {
-        authLenSz = 6;
-        out[0] ^= 0xFF; out[1] ^= 0xFE;
-        out[2] ^= ((inSz & 0xFF000000) >> 24);
-        out[3] ^= ((inSz & 0x00FF0000) >> 16);
-        out[4] ^= ((inSz & 0x0000FF00) >>  8);
-        out[5] ^=  (inSz & 0x000000FF);
-    }
-    /* Note, the protocol handles auth data up to 2^64, but we are
-     * using 32-bit sizes right now, so the bigger data isn't handled
-     * else if (inSz <= 0xFFFFFFFFFFFFFFFF) {} */
-    else
-        return;
-
-    /* start fill out the rest of the first block */
-    remainder = AES_BLOCK_SIZE - authLenSz;
-    if (inSz >= remainder) {
-        /* plenty of bulk data to fill the remainder of this block */
-        xorbuf(out + authLenSz, in, remainder);
-        inSz -= remainder;
-        in += remainder;
-    }
-    else {
-        /* not enough bulk data, copy what is available, and pad zero */
-        xorbuf(out + authLenSz, in, inSz);
-        inSz = 0;
-    }
-    AesEncrypt(aes, out, out);
-
-    if (inSz > 0)
-        roll_x(aes, in, inSz, out);
-}
-
-
-static INLINE void AesCcmCtrInc(byte* B, word32 lenSz)
-{
-    word32 i;
-
-    for (i = 0; i < lenSz; i++) {
-        if (++B[AES_BLOCK_SIZE - 1 - i] != 0) return;
-    }
-}
-
-
-void AesCcmEncrypt(Aes* aes, byte* out, const byte* in, word32 inSz,
-                   const byte* nonce, word32 nonceSz,
-                   byte* authTag, word32 authTagSz,
-                   const byte* authIn, word32 authInSz)
-{
-    byte A[AES_BLOCK_SIZE];
-    byte B[AES_BLOCK_SIZE];
-    word32 i, lenSz;
-
-    XMEMCPY(B+1, nonce, nonceSz);
-    lenSz = AES_BLOCK_SIZE - 1 - nonceSz;
-    B[0] = (authInSz > 0 ? 64 : 0)
-         + (8 * ((authTagSz - 2) / 2))
-         + (lenSz - 1);
-    for (i = 0; i < lenSz; i++)
-        B[AES_BLOCK_SIZE - 1 - i] = (inSz >> (8 * i)) & 0xFF;
-
-    AesEncrypt(aes, B, A);
-    if (authInSz > 0)
-        roll_auth(aes, authIn, authInSz, A);
-    if (inSz > 0)
-        roll_x(aes, in, inSz, A);
-    XMEMCPY(authTag, A, authTagSz);
-
-    B[0] = (lenSz - 1);
-    for (i = 0; i < lenSz; i++)
-        B[AES_BLOCK_SIZE - 1 - i] = 0;
-    AesEncrypt(aes, B, A);
-    xorbuf(authTag, A, authTagSz);
-
-    B[15] = 1;
-    while (inSz >= AES_BLOCK_SIZE) {
-        AesEncrypt(aes, B, A);
-        xorbuf(A, in, AES_BLOCK_SIZE);
-        XMEMCPY(out, A, AES_BLOCK_SIZE);
-
-        AesCcmCtrInc(B, lenSz);
-        inSz -= AES_BLOCK_SIZE;
-        in += AES_BLOCK_SIZE;
-        out += AES_BLOCK_SIZE;
-    }
-    if (inSz > 0) {
-        AesEncrypt(aes, B, A);
-        xorbuf(A, in, inSz);
-        XMEMCPY(out, A, inSz);
-    }
-
-    XMEMSET(A, 0, AES_BLOCK_SIZE);
-    XMEMSET(B, 0, AES_BLOCK_SIZE);
-}
-
-
-int  AesCcmDecrypt(Aes* aes, byte* out, const byte* in, word32 inSz,
-                   const byte* nonce, word32 nonceSz,
-                   const byte* authTag, word32 authTagSz,
-                   const byte* authIn, word32 authInSz)
-{
-    byte A[AES_BLOCK_SIZE];
-    byte B[AES_BLOCK_SIZE];
-    byte* o;
-    word32 i, lenSz, oSz, result = 0;
-
-    o = out;
-    oSz = inSz;
-    XMEMCPY(B+1, nonce, nonceSz);
-    lenSz = AES_BLOCK_SIZE - 1 - nonceSz;
-
-    B[0] = (lenSz - 1);
-    for (i = 0; i < lenSz; i++)
-        B[AES_BLOCK_SIZE - 1 - i] = 0;
-    B[15] = 1;
-    
-    while (oSz >= AES_BLOCK_SIZE) {
-        AesEncrypt(aes, B, A);
-        xorbuf(A, in, AES_BLOCK_SIZE);
-        XMEMCPY(o, A, AES_BLOCK_SIZE);
-
-        AesCcmCtrInc(B, lenSz);
-        oSz -= AES_BLOCK_SIZE;
-        in += AES_BLOCK_SIZE;
-        o += AES_BLOCK_SIZE;
-    }
-    if (inSz > 0) {
-        AesEncrypt(aes, B, A);
-        xorbuf(A, in, oSz);
-        XMEMCPY(o, A, oSz);
-    }
-
-    for (i = 0; i < lenSz; i++)
-        B[AES_BLOCK_SIZE - 1 - i] = 0;
-    AesEncrypt(aes, B, A);
-
-    o = out;
-    oSz = inSz;
-
-    B[0] = (authInSz > 0 ? 64 : 0)
-         + (8 * ((authTagSz - 2) / 2))
-         + (lenSz - 1);
-    for (i = 0; i < lenSz; i++)
-        B[AES_BLOCK_SIZE - 1 - i] = (inSz >> (8 * i)) & 0xFF;
-
-    AesEncrypt(aes, B, A);
-    if (authInSz > 0)
-        roll_auth(aes, authIn, authInSz, A);
-    if (inSz > 0)
-        roll_x(aes, o, oSz, A);
-
-    B[0] = (lenSz - 1);
-    for (i = 0; i < lenSz; i++)
-        B[AES_BLOCK_SIZE - 1 - i] = 0;
-    AesEncrypt(aes, B, B);
-    xorbuf(A, B, authTagSz);
-
-    if (XMEMCMP(A, authTag, authTagSz) != 0) {
-        /* If the authTag check fails, don't keep the decrypted data.
-         * Unfortunately, you need the decrypted data to calculate the
-         * check value. */
-        XMEMSET(out, 0, inSz);
-        result = AES_CCM_AUTH_E;
-    }
-
-    XMEMSET(A, 0, AES_BLOCK_SIZE);
-    XMEMSET(B, 0, AES_BLOCK_SIZE);
-    o = NULL;
-
-    return result;
-}
-
-#endif
-
-#endif /* STM32F2_CRYPTO */
-
-int AesSetIV(Aes* aes, const byte* iv)
-{
-    if (aes == NULL)
-        return BAD_FUNC_ARG;
-
-    if (iv)
-        XMEMCPY(aes->reg, iv, AES_BLOCK_SIZE);
-
-    return 0;
-}
-
-
-#ifdef HAVE_CAVIUM
-
-#include <cyassl/ctaocrypt/logging.h>
-#include "cavium_common.h"
-
-/* Initiliaze Aes for use with Nitrox device */
-int AesInitCavium(Aes* aes, int devId)
-{
-    if (aes == NULL)
-        return -1;
-
-    if (CspAllocContext(CONTEXT_SSL, &aes->contextHandle, devId) != 0)
-        return -1;
-
-    aes->devId = devId;
-    aes->magic = CYASSL_AES_CAVIUM_MAGIC;
-   
-    return 0;
-}
-
-
-/* Free Aes from use with Nitrox device */
-void AesFreeCavium(Aes* aes)
-{
-    if (aes == NULL)
-        return;
-
-    if (aes->magic != CYASSL_AES_CAVIUM_MAGIC)
-        return;
-
-    CspFreeContext(CONTEXT_SSL, aes->contextHandle, aes->devId);
-    aes->magic = 0;
-}
-
-
-static int AesCaviumSetKey(Aes* aes, const byte* key, word32 length,
-                           const byte* iv)
-{
-    if (aes == NULL)
-        return -1;
-
-    XMEMCPY(aes->key, key, length);   /* key still holds key, iv still in reg */
-    if (length == 16)
-        aes->type = AES_128;
-    else if (length == 24)
-        aes->type = AES_192;
-    else if (length == 32)
-        aes->type = AES_256;
-
-    return AesSetIV(aes, iv);
-}
-
-
-static void AesCaviumCbcEncrypt(Aes* aes, byte* out, const byte* in,
-                                word32 length)
-{
-    word   offset = 0;
-    word32 requestId;
-
-    while (length > CYASSL_MAX_16BIT) {
-        word16 slen = (word16)CYASSL_MAX_16BIT;
-        if (CspEncryptAes(CAVIUM_BLOCKING, aes->contextHandle, CAVIUM_NO_UPDATE,
-                          aes->type, slen, (byte*)in + offset, out + offset,
-                          (byte*)aes->reg, (byte*)aes->key, &requestId,
-                          aes->devId) != 0) {
-            CYASSL_MSG("Bad Cavium Aes Encrypt");
-        }
-        length -= CYASSL_MAX_16BIT;
-        offset += CYASSL_MAX_16BIT;
-        XMEMCPY(aes->reg, out + offset - AES_BLOCK_SIZE, AES_BLOCK_SIZE);
-    }
-    if (length) {
-        word16 slen = (word16)length;
-        if (CspEncryptAes(CAVIUM_BLOCKING, aes->contextHandle, CAVIUM_NO_UPDATE,
-                          aes->type, slen, (byte*)in + offset, out + offset,
-                          (byte*)aes->reg, (byte*)aes->key, &requestId,
-                          aes->devId) != 0) {
-            CYASSL_MSG("Bad Cavium Aes Encrypt");
-        }
-        XMEMCPY(aes->reg, out + offset+length - AES_BLOCK_SIZE, AES_BLOCK_SIZE);
-    }
-}
-
-static void AesCaviumCbcDecrypt(Aes* aes, byte* out, const byte* in,
-                                word32 length)
-{
-    word32 requestId;
-    word   offset = 0;
-
-    while (length > CYASSL_MAX_16BIT) {
-        word16 slen = (word16)CYASSL_MAX_16BIT;
-        XMEMCPY(aes->tmp, in + offset + slen - AES_BLOCK_SIZE, AES_BLOCK_SIZE);
-        if (CspDecryptAes(CAVIUM_BLOCKING, aes->contextHandle, CAVIUM_NO_UPDATE,
-                          aes->type, slen, (byte*)in + offset, out + offset,
-                          (byte*)aes->reg, (byte*)aes->key, &requestId,
-                          aes->devId) != 0) {
-            CYASSL_MSG("Bad Cavium Aes Decrypt");
-        }
-        length -= CYASSL_MAX_16BIT;
-        offset += CYASSL_MAX_16BIT;
-        XMEMCPY(aes->reg, aes->tmp, AES_BLOCK_SIZE);
-    }
-    if (length) {
-        word16 slen = (word16)length;
-        XMEMCPY(aes->tmp, in + offset + slen - AES_BLOCK_SIZE, AES_BLOCK_SIZE);
-        if (CspDecryptAes(CAVIUM_BLOCKING, aes->contextHandle, CAVIUM_NO_UPDATE,
-                          aes->type, slen, (byte*)in + offset, out + offset,
-                          (byte*)aes->reg, (byte*)aes->key, &requestId,
-                          aes->devId) != 0) {
-            CYASSL_MSG("Bad Cavium Aes Decrypt");
-        }
-        XMEMCPY(aes->reg, aes->tmp, AES_BLOCK_SIZE);
-    }
-}
-
-#endif /* HAVE_CAVIUM */
 
 #endif /* NO_AES */
 

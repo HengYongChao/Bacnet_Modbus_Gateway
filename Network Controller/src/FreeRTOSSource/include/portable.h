@@ -37,6 +37,7 @@
 #ifndef PORTABLE_H
 #define PORTABLE_H
 
+#include "projdefs.h"
 /* Include the macro file relevant to the port being used. */
 
 #ifdef OPEN_WATCOM_INDUSTRIAL_PC_PORT

@@ -1,0 +1,59 @@
+Initialise the API the following way: 
+
+- Include bmp180.c in you programming environment.
+- In the file where you want to call the read functions, please add 
+	#include "bmp180.h" and declare a bmp180 variable using "bmp180_t bmp180;"
+
+Then setup the read, write and delay function: 
+- bmp180.bus_read = BMP180_I2C_bus_read;   // assign read function
+- bmp180.bus_write = BMP180_I2C_bus_write; // assign write function
+- bmp180.delay_msec = BMP180_delay_msek;   // assign wait function
+
+Some sample implementations are provided further below. 
+
+After this, the sensor can be initialised
+- bmp180_init(&bmp180);                    // init BMP180 API
+
+You can check if this initialisation worked by reading bmp180->chip_id, which should equal 0x55. 
+Then you should be aber to read uncompensated pressure and temperature using the functions
+bmp180_get_up() and bmp180_get_up(). 
+
+Please use an oscilloscope to verify the correct working of the millisecond delay function. If you cannot set exact timings, 
+make sure that the delays are never shorter than requested by the software. 
+
+Oversampling can be configured using e.g. "bmp180.oversampling_setting = 3;" (ultra high resolution)
+Additional external averaging ("advanced resolution mode") is possible by setting "bmp180.sw_oss = 1;" (only works if OSS is set to 3)
+
+===============================================
+
+Sample read/write functions (platform dependant!)
+
+signed char BMP180_I2C_bus_read(unsigned char device_addr, unsigned char reg_addr, unsigned char *reg_data, unsigned char cnt)
+{
+	int iError=0;
+	unsigned char array[I2C_BUFFER_LEN];
+	unsigned char stringpos;
+	array[0] = reg_addr;
+	iError = I2C_write_read_string(I2C0, device_addr, array, array, 1, cnt);
+	for(stringpos=0;stringpos<cnt;stringpos++)
+		*(reg_data + stringpos) = array[stringpos];
+	return (signed char)iError;
+}
+
+signed char BMP180_I2C_bus_write(unsigned char device_addr, unsigned char reg_addr, unsigned char *reg_data, unsigned char cnt)
+{
+	int iError=0;
+	unsigned char array[I2C_BUFFER_LEN];
+	unsigned char stringpos;
+	array[0] = reg_addr;
+	for(stringpos=0;stringpos<cnt;stringpos++)
+		array[stringpos+1] = *(reg_data + stringpos);
+	iError = I2C_write_string(I2C0, device_addr, array, cnt+1);
+	return (signed char)iError;
+}
+
+void BMP180_delay_msek(U32 msek) //delay in milliseconds
+{
+	S32 counter;
+	for (counter = 0; counter < 2000*msek; counter++); // 2000 counts take 1 millisecond
+}

@@ -1,6 +1,6 @@
 /* keys.c
  *
- * Copyright (C) 2006-2013 wolfSSL Inc.
+ * Copyright (C) 2006-2012 Sawtooth Consulting Ltd.
  *
  * This file is part of CyaSSL.
  *
@@ -24,155 +24,20 @@
     #include <config.h>
 #endif
 
-#include <cyassl/ctaocrypt/settings.h>
-
 #include <cyassl/internal.h>
 #include <cyassl/error.h>
 #ifdef SHOW_SECRETS
-    #ifdef FREESCALE_MQX
-        #include <fio.h>
-    #else
-        #include <stdio.h>
-    #endif
+    #include <stdio.h>
 #endif
 
 
 int SetCipherSpecs(CYASSL* ssl)
 {
-    /* ECC extensions, or AES-CCM */
+#ifdef HAVE_ECC
+    /* ECC extensions */
     if (ssl->options.cipherSuite0 == ECC_BYTE) {
     
     switch (ssl->options.cipherSuite) {
-
-#ifdef HAVE_ECC
-
-#ifdef BUILD_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
-    case TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256 :
-        ssl->specs.bulk_cipher_algorithm = aes;
-        ssl->specs.cipher_type           = block;
-        ssl->specs.mac_algorithm         = sha256_mac;
-        ssl->specs.kea                   = ecc_diffie_hellman_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
-        ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = AES_128_KEY_SIZE;
-        ssl->specs.iv_size               = AES_IV_SIZE;
-        ssl->specs.block_size            = AES_BLOCK_SIZE;
-    break;
-#endif
-
-#ifdef BUILD_TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
-    case TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256 :
-        ssl->specs.bulk_cipher_algorithm = aes;
-        ssl->specs.cipher_type           = block;
-        ssl->specs.mac_algorithm         = sha256_mac;
-        ssl->specs.kea                   = ecc_diffie_hellman_kea;
-        ssl->specs.sig_algo              = ecc_dsa_sa_algo;
-        ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = AES_128_KEY_SIZE;
-        ssl->specs.iv_size               = AES_IV_SIZE;
-        ssl->specs.block_size            = AES_BLOCK_SIZE;
-    break;
-#endif
-
-#ifdef BUILD_TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256
-    case TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256 :
-        ssl->specs.bulk_cipher_algorithm = aes;
-        ssl->specs.cipher_type           = block;
-        ssl->specs.mac_algorithm         = sha256_mac;
-        ssl->specs.kea                   = ecc_diffie_hellman_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
-        ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 1;
-        ssl->specs.key_size              = AES_128_KEY_SIZE;
-        ssl->specs.iv_size               = AES_IV_SIZE;
-        ssl->specs.block_size            = AES_BLOCK_SIZE;
-    break;
-#endif
-
-#ifdef BUILD_TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256
-    case TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256 :
-        ssl->specs.bulk_cipher_algorithm = aes;
-        ssl->specs.cipher_type           = block;
-        ssl->specs.mac_algorithm         = sha256_mac;
-        ssl->specs.kea                   = ecc_diffie_hellman_kea;
-        ssl->specs.sig_algo              = ecc_dsa_sa_algo;
-        ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 1;
-        ssl->specs.key_size              = AES_128_KEY_SIZE;
-        ssl->specs.iv_size               = AES_IV_SIZE;
-        ssl->specs.block_size            = AES_BLOCK_SIZE;
-    break;
-#endif
-
-#ifdef BUILD_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
-    case TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384 :
-        ssl->specs.bulk_cipher_algorithm = aes;
-        ssl->specs.cipher_type           = block;
-        ssl->specs.mac_algorithm         = sha384_mac;
-        ssl->specs.kea                   = ecc_diffie_hellman_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
-        ssl->specs.hash_size             = SHA384_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = AES_256_KEY_SIZE;
-        ssl->specs.iv_size               = AES_IV_SIZE;
-        ssl->specs.block_size            = AES_BLOCK_SIZE;
-    break;
-#endif
-
-#ifdef BUILD_TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384
-    case TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384 :
-        ssl->specs.bulk_cipher_algorithm = aes;
-        ssl->specs.cipher_type           = block;
-        ssl->specs.mac_algorithm         = sha384_mac;
-        ssl->specs.kea                   = ecc_diffie_hellman_kea;
-        ssl->specs.sig_algo              = ecc_dsa_sa_algo;
-        ssl->specs.hash_size             = SHA384_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = AES_256_KEY_SIZE;
-        ssl->specs.iv_size               = AES_IV_SIZE;
-        ssl->specs.block_size            = AES_BLOCK_SIZE;
-    break;
-#endif
-
-#ifdef BUILD_TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384
-    case TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384 :
-        ssl->specs.bulk_cipher_algorithm = aes;
-        ssl->specs.cipher_type           = block;
-        ssl->specs.mac_algorithm         = sha384_mac;
-        ssl->specs.kea                   = ecc_diffie_hellman_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
-        ssl->specs.hash_size             = SHA384_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 1;
-        ssl->specs.key_size              = AES_256_KEY_SIZE;
-        ssl->specs.iv_size               = AES_IV_SIZE;
-        ssl->specs.block_size            = AES_BLOCK_SIZE;
-    break;
-#endif
-
-#ifdef BUILD_TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384
-    case TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384 :
-        ssl->specs.bulk_cipher_algorithm = aes;
-        ssl->specs.cipher_type           = block;
-        ssl->specs.mac_algorithm         = sha384_mac;
-        ssl->specs.kea                   = ecc_diffie_hellman_kea;
-        ssl->specs.sig_algo              = ecc_dsa_sa_algo;
-        ssl->specs.hash_size             = SHA384_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 1;
-        ssl->specs.key_size              = AES_256_KEY_SIZE;
-        ssl->specs.iv_size               = AES_IV_SIZE;
-        ssl->specs.block_size            = AES_BLOCK_SIZE;
-    break;
-#endif
 
 #ifdef BUILD_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
     case TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA :
@@ -458,8 +323,7 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.static_ecdh           = 0;
         ssl->specs.key_size              = AES_128_KEY_SIZE;
         ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AEAD_IMP_IV_SZ;
-        ssl->specs.aead_mac_size         = AES_GCM_AUTH_SZ;
+        ssl->specs.iv_size               = AES_GCM_IMP_IV_SZ;
 
         break;
 #endif
@@ -476,8 +340,7 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.static_ecdh           = 0;
         ssl->specs.key_size              = AES_256_KEY_SIZE;
         ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AEAD_IMP_IV_SZ;
-        ssl->specs.aead_mac_size         = AES_GCM_AUTH_SZ;
+        ssl->specs.iv_size               = AES_GCM_IMP_IV_SZ;
 
         break;
 #endif
@@ -494,8 +357,7 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.static_ecdh           = 0;
         ssl->specs.key_size              = AES_128_KEY_SIZE;
         ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AEAD_IMP_IV_SZ;
-        ssl->specs.aead_mac_size         = AES_GCM_AUTH_SZ;
+        ssl->specs.iv_size               = AES_GCM_IMP_IV_SZ;
 
         break;
 #endif
@@ -512,8 +374,7 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.static_ecdh           = 0;
         ssl->specs.key_size              = AES_256_KEY_SIZE;
         ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AEAD_IMP_IV_SZ;
-        ssl->specs.aead_mac_size         = AES_GCM_AUTH_SZ;
+        ssl->specs.iv_size               = AES_GCM_IMP_IV_SZ;
 
         break;
 #endif
@@ -530,8 +391,7 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.static_ecdh           = 1;
         ssl->specs.key_size              = AES_128_KEY_SIZE;
         ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AEAD_IMP_IV_SZ;
-        ssl->specs.aead_mac_size         = AES_GCM_AUTH_SZ;
+        ssl->specs.iv_size               = AES_GCM_IMP_IV_SZ;
 
         break;
 #endif
@@ -548,8 +408,7 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.static_ecdh           = 1;
         ssl->specs.key_size              = AES_256_KEY_SIZE;
         ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AEAD_IMP_IV_SZ;
-        ssl->specs.aead_mac_size         = AES_GCM_AUTH_SZ;
+        ssl->specs.iv_size               = AES_GCM_IMP_IV_SZ;
 
         break;
 #endif
@@ -566,8 +425,7 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.static_ecdh           = 1;
         ssl->specs.key_size              = AES_128_KEY_SIZE;
         ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AEAD_IMP_IV_SZ;
-        ssl->specs.aead_mac_size         = AES_GCM_AUTH_SZ;
+        ssl->specs.iv_size               = AES_GCM_IMP_IV_SZ;
 
         break;
 #endif
@@ -584,120 +442,8 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.static_ecdh           = 1;
         ssl->specs.key_size              = AES_256_KEY_SIZE;
         ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AEAD_IMP_IV_SZ;
-        ssl->specs.aead_mac_size         = AES_GCM_AUTH_SZ;
+        ssl->specs.iv_size               = AES_GCM_IMP_IV_SZ;
 
-        break;
-#endif
-
-#ifdef BUILD_TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8
-    case TLS_ECDHE_ECDSA_WITH_AES_128_CCM_8 :
-        ssl->specs.bulk_cipher_algorithm = aes_ccm;
-        ssl->specs.cipher_type           = aead;
-        ssl->specs.mac_algorithm         = sha256_mac;
-        ssl->specs.kea                   = ecc_diffie_hellman_kea;
-        ssl->specs.sig_algo              = ecc_dsa_sa_algo;
-        ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = AES_128_KEY_SIZE;
-        ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AEAD_IMP_IV_SZ;
-        ssl->specs.aead_mac_size         = AES_CCM_8_AUTH_SZ;
-
-        break;
-#endif
-
-#ifdef BUILD_TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8
-    case TLS_ECDHE_ECDSA_WITH_AES_256_CCM_8 :
-        ssl->specs.bulk_cipher_algorithm = aes_ccm;
-        ssl->specs.cipher_type           = aead;
-        ssl->specs.mac_algorithm         = sha256_mac;
-        ssl->specs.kea                   = ecc_diffie_hellman_kea;
-        ssl->specs.sig_algo              = ecc_dsa_sa_algo;
-        ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = AES_256_KEY_SIZE;
-        ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AEAD_IMP_IV_SZ;
-        ssl->specs.aead_mac_size         = AES_CCM_8_AUTH_SZ;
-
-        break;
-#endif
-#endif /* HAVE_ECC */
-
-#ifdef BUILD_TLS_RSA_WITH_AES_128_CCM_8
-    case TLS_RSA_WITH_AES_128_CCM_8 :
-        ssl->specs.bulk_cipher_algorithm = aes_ccm;
-        ssl->specs.cipher_type           = aead;
-        ssl->specs.mac_algorithm         = sha256_mac;
-        ssl->specs.kea                   = rsa_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
-        ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = AES_128_KEY_SIZE;
-        ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AEAD_IMP_IV_SZ;
-        ssl->specs.aead_mac_size         = AES_CCM_8_AUTH_SZ;
-
-        break;
-#endif
-
-#ifdef BUILD_TLS_RSA_WITH_AES_256_CCM_8
-    case TLS_RSA_WITH_AES_256_CCM_8 :
-        ssl->specs.bulk_cipher_algorithm = aes_ccm;
-        ssl->specs.cipher_type           = aead;
-        ssl->specs.mac_algorithm         = sha256_mac;
-        ssl->specs.kea                   = rsa_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
-        ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = AES_256_KEY_SIZE;
-        ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AEAD_IMP_IV_SZ;
-        ssl->specs.aead_mac_size         = AES_CCM_8_AUTH_SZ;
-
-        break;
-#endif
-
-#ifdef BUILD_TLS_PSK_WITH_AES_128_CCM_8
-    case TLS_PSK_WITH_AES_128_CCM_8 :
-        ssl->specs.bulk_cipher_algorithm = aes_ccm;
-        ssl->specs.cipher_type           = aead;
-        ssl->specs.mac_algorithm         = sha256_mac;
-        ssl->specs.kea                   = psk_kea;
-        ssl->specs.sig_algo              = anonymous_sa_algo;
-        ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = AES_128_KEY_SIZE;
-        ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AEAD_IMP_IV_SZ;
-        ssl->specs.aead_mac_size         = AES_CCM_8_AUTH_SZ;
-
-        ssl->options.usingPSK_cipher     = 1;
-        break;
-#endif
-
-#ifdef BUILD_TLS_PSK_WITH_AES_256_CCM_8
-    case TLS_PSK_WITH_AES_256_CCM_8 :
-        ssl->specs.bulk_cipher_algorithm = aes_ccm;
-        ssl->specs.cipher_type           = aead;
-        ssl->specs.mac_algorithm         = sha256_mac;
-        ssl->specs.kea                   = psk_kea;
-        ssl->specs.sig_algo              = anonymous_sa_algo;
-        ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = AES_256_KEY_SIZE;
-        ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AEAD_IMP_IV_SZ;
-        ssl->specs.aead_mac_size         = AES_CCM_8_AUTH_SZ;
-
-        ssl->options.usingPSK_cipher     = 1;
         break;
 #endif
 
@@ -706,6 +452,7 @@ int SetCipherSpecs(CYASSL* ssl)
         return UNSUPPORTED_SUITE;
     }   /* switch */
     }   /* if     */
+#endif /* HAVE_ECC */
     if (ssl->options.cipherSuite0 != ECC_BYTE) {   /* normal suites */
     switch (ssl->options.cipherSuite) {
 
@@ -715,7 +462,6 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.cipher_type           = stream;
         ssl->specs.mac_algorithm         = sha_mac;
         ssl->specs.kea                   = rsa_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
         ssl->specs.hash_size             = SHA_DIGEST_SIZE;
         ssl->specs.pad_size              = PAD_SHA;
         ssl->specs.static_ecdh           = 0;
@@ -732,7 +478,6 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.cipher_type           = stream;
         ssl->specs.mac_algorithm         = sha_mac;
         ssl->specs.kea                   = ntru_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
         ssl->specs.hash_size             = SHA_DIGEST_SIZE;
         ssl->specs.pad_size              = PAD_SHA;
         ssl->specs.static_ecdh           = 0;
@@ -749,7 +494,6 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.cipher_type           = stream;
         ssl->specs.mac_algorithm         = md5_mac;
         ssl->specs.kea                   = rsa_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
         ssl->specs.hash_size             = MD5_DIGEST_SIZE;
         ssl->specs.pad_size              = PAD_MD5;
         ssl->specs.static_ecdh           = 0;
@@ -766,7 +510,6 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.cipher_type           = block;
         ssl->specs.mac_algorithm         = sha_mac;
         ssl->specs.kea                   = rsa_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
         ssl->specs.hash_size             = SHA_DIGEST_SIZE;
         ssl->specs.pad_size              = PAD_SHA;
         ssl->specs.static_ecdh           = 0;
@@ -783,7 +526,6 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.cipher_type           = block;
         ssl->specs.mac_algorithm         = sha_mac;
         ssl->specs.kea                   = ntru_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
         ssl->specs.hash_size             = SHA_DIGEST_SIZE;
         ssl->specs.pad_size              = PAD_SHA;
         ssl->specs.static_ecdh           = 0;
@@ -800,7 +542,6 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.cipher_type           = block;
         ssl->specs.mac_algorithm         = sha_mac;
         ssl->specs.kea                   = rsa_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
         ssl->specs.hash_size             = SHA_DIGEST_SIZE;
         ssl->specs.pad_size              = PAD_SHA;
         ssl->specs.static_ecdh           = 0;
@@ -817,7 +558,6 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.cipher_type           = block;
         ssl->specs.mac_algorithm         = sha256_mac;
         ssl->specs.kea                   = rsa_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
         ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
         ssl->specs.pad_size              = PAD_SHA;
         ssl->specs.static_ecdh           = 0;
@@ -828,47 +568,12 @@ int SetCipherSpecs(CYASSL* ssl)
         break;
 #endif
 
-#ifdef BUILD_TLS_RSA_WITH_NULL_SHA
-    case TLS_RSA_WITH_NULL_SHA :
-        ssl->specs.bulk_cipher_algorithm = cipher_null;
-        ssl->specs.cipher_type           = stream;
-        ssl->specs.mac_algorithm         = sha_mac;
-        ssl->specs.kea                   = rsa_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
-        ssl->specs.hash_size             = SHA_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = 0;
-        ssl->specs.block_size            = 0;
-        ssl->specs.iv_size               = 0;
-
-        break;
-#endif
-
-#ifdef BUILD_TLS_RSA_WITH_NULL_SHA256
-    case TLS_RSA_WITH_NULL_SHA256 :
-        ssl->specs.bulk_cipher_algorithm = cipher_null;
-        ssl->specs.cipher_type           = stream;
-        ssl->specs.mac_algorithm         = sha256_mac;
-        ssl->specs.kea                   = rsa_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
-        ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = 0;
-        ssl->specs.block_size            = 0;
-        ssl->specs.iv_size               = 0;
-
-        break;
-#endif
-
 #ifdef BUILD_TLS_NTRU_RSA_WITH_AES_128_CBC_SHA
     case TLS_NTRU_RSA_WITH_AES_128_CBC_SHA :
         ssl->specs.bulk_cipher_algorithm = aes;
         ssl->specs.cipher_type           = block;
         ssl->specs.mac_algorithm         = sha_mac;
         ssl->specs.kea                   = ntru_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
         ssl->specs.hash_size             = SHA_DIGEST_SIZE;
         ssl->specs.pad_size              = PAD_SHA;
         ssl->specs.static_ecdh           = 0;
@@ -885,7 +590,6 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.cipher_type           = block;
         ssl->specs.mac_algorithm         = sha_mac;
         ssl->specs.kea                   = rsa_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
         ssl->specs.hash_size             = SHA_DIGEST_SIZE;
         ssl->specs.pad_size              = PAD_SHA;
         ssl->specs.static_ecdh           = 0;
@@ -902,7 +606,6 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.cipher_type           = block;
         ssl->specs.mac_algorithm         = sha256_mac;
         ssl->specs.kea                   = rsa_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
         ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
         ssl->specs.pad_size              = PAD_SHA;
         ssl->specs.static_ecdh           = 0;
@@ -919,7 +622,6 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.cipher_type           = block;
         ssl->specs.mac_algorithm         = sha_mac;
         ssl->specs.kea                   = ntru_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
         ssl->specs.hash_size             = SHA_DIGEST_SIZE;
         ssl->specs.pad_size              = PAD_SHA;
         ssl->specs.static_ecdh           = 0;
@@ -930,31 +632,12 @@ int SetCipherSpecs(CYASSL* ssl)
         break;
 #endif
 
-#ifdef BUILD_TLS_PSK_WITH_AES_128_CBC_SHA256
-    case TLS_PSK_WITH_AES_128_CBC_SHA256 :
-        ssl->specs.bulk_cipher_algorithm = aes;
-        ssl->specs.cipher_type           = block;
-        ssl->specs.mac_algorithm         = sha256_mac;
-        ssl->specs.kea                   = psk_kea;
-        ssl->specs.sig_algo              = anonymous_sa_algo;
-        ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = AES_128_KEY_SIZE;
-        ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AES_IV_SIZE;
-
-        ssl->options.usingPSK_cipher     = 1;
-        break;
-#endif
-
 #ifdef BUILD_TLS_PSK_WITH_AES_128_CBC_SHA
     case TLS_PSK_WITH_AES_128_CBC_SHA :
         ssl->specs.bulk_cipher_algorithm = aes;
         ssl->specs.cipher_type           = block;
         ssl->specs.mac_algorithm         = sha_mac;
         ssl->specs.kea                   = psk_kea;
-        ssl->specs.sig_algo              = anonymous_sa_algo;
         ssl->specs.hash_size             = SHA_DIGEST_SIZE;
         ssl->specs.pad_size              = PAD_SHA;
         ssl->specs.static_ecdh           = 0;
@@ -972,49 +655,12 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.cipher_type           = block;
         ssl->specs.mac_algorithm         = sha_mac;
         ssl->specs.kea                   = psk_kea;
-        ssl->specs.sig_algo              = anonymous_sa_algo;
         ssl->specs.hash_size             = SHA_DIGEST_SIZE;
         ssl->specs.pad_size              = PAD_SHA;
         ssl->specs.static_ecdh           = 0;
         ssl->specs.key_size              = AES_256_KEY_SIZE;
         ssl->specs.block_size            = AES_BLOCK_SIZE;
         ssl->specs.iv_size               = AES_IV_SIZE;
-
-        ssl->options.usingPSK_cipher     = 1;
-        break;
-#endif
-
-#ifdef BUILD_TLS_PSK_WITH_NULL_SHA256
-    case TLS_PSK_WITH_NULL_SHA256 :
-        ssl->specs.bulk_cipher_algorithm = cipher_null;
-        ssl->specs.cipher_type           = stream;
-        ssl->specs.mac_algorithm         = sha256_mac;
-        ssl->specs.kea                   = psk_kea;
-        ssl->specs.sig_algo              = anonymous_sa_algo;
-        ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = 0;
-        ssl->specs.block_size            = 0;
-        ssl->specs.iv_size               = 0;
-
-        ssl->options.usingPSK_cipher     = 1;
-        break;
-#endif
-
-#ifdef BUILD_TLS_PSK_WITH_NULL_SHA
-    case TLS_PSK_WITH_NULL_SHA :
-        ssl->specs.bulk_cipher_algorithm = cipher_null;
-        ssl->specs.cipher_type           = stream;
-        ssl->specs.mac_algorithm         = sha_mac;
-        ssl->specs.kea                   = psk_kea;
-        ssl->specs.sig_algo              = anonymous_sa_algo;
-        ssl->specs.hash_size             = SHA_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = 0;
-        ssl->specs.block_size            = 0;
-        ssl->specs.iv_size               = 0;
 
         ssl->options.usingPSK_cipher     = 1;
         break;
@@ -1094,7 +740,6 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.cipher_type           = stream;
         ssl->specs.mac_algorithm         = md5_mac;
         ssl->specs.kea                   = rsa_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
         ssl->specs.hash_size             = MD5_DIGEST_SIZE;
         ssl->specs.pad_size              = PAD_MD5;
         ssl->specs.static_ecdh           = 0;
@@ -1111,7 +756,6 @@ int SetCipherSpecs(CYASSL* ssl)
             ssl->specs.cipher_type           = stream;
             ssl->specs.mac_algorithm         = sha_mac;
             ssl->specs.kea                   = rsa_kea;
-            ssl->specs.sig_algo              = rsa_sa_algo;
             ssl->specs.hash_size             = SHA_DIGEST_SIZE;
             ssl->specs.pad_size              = PAD_SHA;
             ssl->specs.static_ecdh           = 0;
@@ -1128,7 +772,6 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.cipher_type           = stream;
         ssl->specs.mac_algorithm         = sha_mac;
         ssl->specs.kea                   = rsa_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
         ssl->specs.hash_size             = SHA_DIGEST_SIZE;
         ssl->specs.pad_size              = PAD_SHA;
         ssl->specs.static_ecdh           = 0;
@@ -1151,8 +794,7 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.static_ecdh           = 0;
         ssl->specs.key_size              = AES_128_KEY_SIZE;
         ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AEAD_IMP_IV_SZ;
-        ssl->specs.aead_mac_size         = AES_GCM_AUTH_SZ;
+        ssl->specs.iv_size               = AES_GCM_IMP_IV_SZ;
 
         break;
 #endif
@@ -1169,8 +811,7 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.static_ecdh           = 0;
         ssl->specs.key_size              = AES_256_KEY_SIZE;
         ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AEAD_IMP_IV_SZ;
-        ssl->specs.aead_mac_size         = AES_GCM_AUTH_SZ;
+        ssl->specs.iv_size               = AES_GCM_IMP_IV_SZ;
 
         break;
 #endif
@@ -1187,8 +828,7 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.static_ecdh           = 0;
         ssl->specs.key_size              = AES_128_KEY_SIZE;
         ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AEAD_IMP_IV_SZ;
-        ssl->specs.aead_mac_size         = AES_GCM_AUTH_SZ;
+        ssl->specs.iv_size               = AES_GCM_IMP_IV_SZ;
 
         break;
 #endif
@@ -1205,144 +845,7 @@ int SetCipherSpecs(CYASSL* ssl)
         ssl->specs.static_ecdh           = 0;
         ssl->specs.key_size              = AES_256_KEY_SIZE;
         ssl->specs.block_size            = AES_BLOCK_SIZE;
-        ssl->specs.iv_size               = AEAD_IMP_IV_SZ;
-        ssl->specs.aead_mac_size         = AES_GCM_AUTH_SZ;
-
-        break;
-#endif
-
-#ifdef BUILD_TLS_RSA_WITH_CAMELLIA_128_CBC_SHA
-    case TLS_RSA_WITH_CAMELLIA_128_CBC_SHA :
-        ssl->specs.bulk_cipher_algorithm = camellia;
-        ssl->specs.cipher_type           = block;
-        ssl->specs.mac_algorithm         = sha_mac;
-        ssl->specs.kea                   = rsa_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
-        ssl->specs.hash_size             = SHA_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = CAMELLIA_128_KEY_SIZE;
-        ssl->specs.block_size            = CAMELLIA_BLOCK_SIZE;
-        ssl->specs.iv_size               = CAMELLIA_IV_SIZE;
-
-        break;
-#endif
-    
-#ifdef BUILD_TLS_RSA_WITH_CAMELLIA_256_CBC_SHA
-    case TLS_RSA_WITH_CAMELLIA_256_CBC_SHA :
-        ssl->specs.bulk_cipher_algorithm = camellia;
-        ssl->specs.cipher_type           = block;
-        ssl->specs.mac_algorithm         = sha_mac;
-        ssl->specs.kea                   = rsa_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
-        ssl->specs.hash_size             = SHA_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = CAMELLIA_256_KEY_SIZE;
-        ssl->specs.block_size            = CAMELLIA_BLOCK_SIZE;
-        ssl->specs.iv_size               = CAMELLIA_IV_SIZE;
-
-        break;
-#endif
-
-#ifdef BUILD_TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256
-    case TLS_RSA_WITH_CAMELLIA_128_CBC_SHA256 :
-        ssl->specs.bulk_cipher_algorithm = camellia;
-        ssl->specs.cipher_type           = block;
-        ssl->specs.mac_algorithm         = sha256_mac;
-        ssl->specs.kea                   = rsa_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
-        ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = CAMELLIA_128_KEY_SIZE;
-        ssl->specs.block_size            = CAMELLIA_BLOCK_SIZE;
-        ssl->specs.iv_size               = CAMELLIA_IV_SIZE;
-
-        break;
-#endif
-
-#ifdef BUILD_TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256
-    case TLS_RSA_WITH_CAMELLIA_256_CBC_SHA256 :
-        ssl->specs.bulk_cipher_algorithm = camellia;
-        ssl->specs.cipher_type           = block;
-        ssl->specs.mac_algorithm         = sha256_mac;
-        ssl->specs.kea                   = rsa_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
-        ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = CAMELLIA_256_KEY_SIZE;
-        ssl->specs.block_size            = CAMELLIA_BLOCK_SIZE;
-        ssl->specs.iv_size               = CAMELLIA_IV_SIZE;
-
-        break;
-#endif
-
-#ifdef BUILD_TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA
-    case TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA :
-        ssl->specs.bulk_cipher_algorithm = camellia;
-        ssl->specs.cipher_type           = block;
-        ssl->specs.mac_algorithm         = sha_mac;
-        ssl->specs.kea                   = diffie_hellman_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
-        ssl->specs.hash_size             = SHA_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = CAMELLIA_128_KEY_SIZE;
-        ssl->specs.block_size            = CAMELLIA_BLOCK_SIZE;
-        ssl->specs.iv_size               = CAMELLIA_IV_SIZE;
-
-        break;
-#endif
-
-#ifdef BUILD_TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA
-    case TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA :
-        ssl->specs.bulk_cipher_algorithm = camellia;
-        ssl->specs.cipher_type           = block;
-        ssl->specs.mac_algorithm         = sha_mac;
-        ssl->specs.kea                   = diffie_hellman_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
-        ssl->specs.hash_size             = SHA_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = CAMELLIA_256_KEY_SIZE;
-        ssl->specs.block_size            = CAMELLIA_BLOCK_SIZE;
-        ssl->specs.iv_size               = CAMELLIA_IV_SIZE;
-
-        break;
-#endif
-
-#ifdef BUILD_TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256
-    case TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA256 :
-        ssl->specs.bulk_cipher_algorithm = camellia;
-        ssl->specs.cipher_type           = block;
-        ssl->specs.mac_algorithm         = sha256_mac;
-        ssl->specs.kea                   = diffie_hellman_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
-        ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = CAMELLIA_128_KEY_SIZE;
-        ssl->specs.block_size            = CAMELLIA_BLOCK_SIZE;
-        ssl->specs.iv_size               = CAMELLIA_IV_SIZE;
-
-        break;
-#endif
-
-#ifdef BUILD_TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256
-    case TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA256 :
-        ssl->specs.bulk_cipher_algorithm = camellia;
-        ssl->specs.cipher_type           = block;
-        ssl->specs.mac_algorithm         = sha256_mac;
-        ssl->specs.kea                   = diffie_hellman_kea;
-        ssl->specs.sig_algo              = rsa_sa_algo;
-        ssl->specs.hash_size             = SHA256_DIGEST_SIZE;
-        ssl->specs.pad_size              = PAD_SHA;
-        ssl->specs.static_ecdh           = 0;
-        ssl->specs.key_size              = CAMELLIA_256_KEY_SIZE;
-        ssl->specs.block_size            = CAMELLIA_BLOCK_SIZE;
-        ssl->specs.iv_size               = CAMELLIA_IV_SIZE;
+        ssl->specs.iv_size               = AES_GCM_IMP_IV_SZ;
 
         break;
 #endif
@@ -1380,7 +883,7 @@ enum KeyStuff {
 
 };
 
-#ifndef NO_OLD_TLS
+
 /* true or false, zero for error */
 static int SetPrefix(byte* sha_input, int idx)
 {
@@ -1412,287 +915,117 @@ static int SetPrefix(byte* sha_input, int idx)
     }
     return 1;
 }
-#endif
 
 
 static int SetKeys(Ciphers* enc, Ciphers* dec, Keys* keys, CipherSpecs* specs,
-                   byte side, void* heap, int devId)
+                   byte side)
 {
 #ifdef BUILD_ARC4
     word32 sz = specs->key_size;
     if (specs->bulk_cipher_algorithm == rc4) {
-        enc->arc4 = (Arc4*)XMALLOC(sizeof(Arc4), heap, DYNAMIC_TYPE_CIPHER);
-        if (enc->arc4 == NULL)
-            return MEMORY_E;
-        dec->arc4 = (Arc4*)XMALLOC(sizeof(Arc4), heap, DYNAMIC_TYPE_CIPHER);
-        if (dec->arc4 == NULL)
-            return MEMORY_E;
-#ifdef HAVE_CAVIUM
-        if (devId != NO_CAVIUM_DEVICE) {
-            if (Arc4InitCavium(enc->arc4, devId) != 0) {
-                CYASSL_MSG("Arc4InitCavium failed in SetKeys");
-                return CAVIUM_INIT_E;
-            }
-            if (Arc4InitCavium(dec->arc4, devId) != 0) {
-                CYASSL_MSG("Arc4InitCavium failed in SetKeys");
-                return CAVIUM_INIT_E;
-            }
-        }
-#endif
         if (side == CLIENT_END) {
-            Arc4SetKey(enc->arc4, keys->client_write_key, sz);
-            Arc4SetKey(dec->arc4, keys->server_write_key, sz);
+            Arc4SetKey(&enc->arc4, keys->client_write_key, sz);
+            Arc4SetKey(&dec->arc4, keys->server_write_key, sz);
         }
         else {
-            Arc4SetKey(enc->arc4, keys->server_write_key, sz);
-            Arc4SetKey(dec->arc4, keys->client_write_key, sz);
+            Arc4SetKey(&enc->arc4, keys->server_write_key, sz);
+            Arc4SetKey(&dec->arc4, keys->client_write_key, sz);
         }
-        enc->setup = 1;
-        dec->setup = 1;
     }
 #endif
     
 #ifdef HAVE_HC128
     if (specs->bulk_cipher_algorithm == hc128) {
-        int hcRet;
-        enc->hc128 = (HC128*)XMALLOC(sizeof(HC128), heap, DYNAMIC_TYPE_CIPHER);
-        if (enc->hc128 == NULL)
-            return MEMORY_E;
-        dec->hc128 = (HC128*)XMALLOC(sizeof(HC128), heap, DYNAMIC_TYPE_CIPHER);
-        if (dec->hc128 == NULL)
-            return MEMORY_E;
         if (side == CLIENT_END) {
-            hcRet = Hc128_SetKey(enc->hc128, keys->client_write_key,
-                                 keys->client_write_IV);
-            if (hcRet != 0) return hcRet;
-            hcRet = Hc128_SetKey(dec->hc128, keys->server_write_key,
-                                  keys->server_write_IV);
-            if (hcRet != 0) return hcRet;
+            Hc128_SetKey(&enc->hc128, keys->client_write_key,
+                                          keys->client_write_IV);
+            Hc128_SetKey(&dec->hc128, keys->server_write_key,
+                                          keys->server_write_IV);
         }
         else {
-            hcRet = Hc128_SetKey(enc->hc128, keys->server_write_key,
-                                  keys->server_write_IV);
-            if (hcRet != 0) return hcRet;
-            hcRet = Hc128_SetKey(dec->hc128, keys->client_write_key,
-                                  keys->client_write_IV);
-            if (hcRet != 0) return hcRet;
+            Hc128_SetKey(&enc->hc128, keys->server_write_key,
+                                         keys->server_write_IV);
+            Hc128_SetKey(&dec->hc128, keys->client_write_key,
+                                         keys->client_write_IV);
         }
-        enc->setup = 1;
-        dec->setup = 1;
     }
 #endif
     
 #ifdef BUILD_RABBIT
     if (specs->bulk_cipher_algorithm == rabbit) {
-        int rabRet;
-        enc->rabbit = (Rabbit*)XMALLOC(sizeof(Rabbit),heap,DYNAMIC_TYPE_CIPHER);
-        if (enc->rabbit == NULL)
-            return MEMORY_E;
-        dec->rabbit = (Rabbit*)XMALLOC(sizeof(Rabbit),heap,DYNAMIC_TYPE_CIPHER);
-        if (dec->rabbit == NULL)
-            return MEMORY_E;
         if (side == CLIENT_END) {
-            rabRet = RabbitSetKey(enc->rabbit, keys->client_write_key,
-                                  keys->client_write_IV);
-            if (rabRet != 0) return rabRet;
-            rabRet = RabbitSetKey(dec->rabbit, keys->server_write_key,
-                                  keys->server_write_IV);
-            if (rabRet != 0) return rabRet;
+            RabbitSetKey(&enc->rabbit, keys->client_write_key,
+                                           keys->client_write_IV);
+            RabbitSetKey(&dec->rabbit, keys->server_write_key,
+                                           keys->server_write_IV);
         }
         else {
-            rabRet = RabbitSetKey(enc->rabbit, keys->server_write_key,
+            RabbitSetKey(&enc->rabbit, keys->server_write_key,
                                            keys->server_write_IV);
-            if (rabRet != 0) return rabRet;
-            rabRet = RabbitSetKey(dec->rabbit, keys->client_write_key,
+            RabbitSetKey(&dec->rabbit, keys->client_write_key,
                                            keys->client_write_IV);
-            if (rabRet != 0) return rabRet;
         }
-        enc->setup = 1;
-        dec->setup = 1;
     }
 #endif
     
 #ifdef BUILD_DES3
     if (specs->bulk_cipher_algorithm == triple_des) {
-        enc->des3 = (Des3*)XMALLOC(sizeof(Des3), heap, DYNAMIC_TYPE_CIPHER);
-        if (enc->des3 == NULL)
-            return MEMORY_E;
-        dec->des3 = (Des3*)XMALLOC(sizeof(Des3), heap, DYNAMIC_TYPE_CIPHER);
-        if (dec->des3 == NULL)
-            return MEMORY_E;
-#ifdef HAVE_CAVIUM
-        if (devId != NO_CAVIUM_DEVICE) {
-            if (Des3_InitCavium(enc->des3, devId) != 0) {
-                CYASSL_MSG("Des3_InitCavium failed in SetKeys");
-                return CAVIUM_INIT_E;
-            }
-            if (Des3_InitCavium(dec->des3, devId) != 0) {
-                CYASSL_MSG("Des3_InitCavium failed in SetKeys");
-                return CAVIUM_INIT_E;
-            }
-        }
-#endif
         if (side == CLIENT_END) {
-            Des3_SetKey(enc->des3, keys->client_write_key,
+            Des3_SetKey(&enc->des3, keys->client_write_key,
                         keys->client_write_IV, DES_ENCRYPTION);
-            Des3_SetKey(dec->des3, keys->server_write_key,
+            Des3_SetKey(&dec->des3, keys->server_write_key,
                         keys->server_write_IV, DES_DECRYPTION);
         }
         else {
-            Des3_SetKey(enc->des3, keys->server_write_key,
+            Des3_SetKey(&enc->des3, keys->server_write_key,
                         keys->server_write_IV, DES_ENCRYPTION);
-            Des3_SetKey(dec->des3, keys->client_write_key,
+            Des3_SetKey(&dec->des3, keys->client_write_key,
                 keys->client_write_IV, DES_DECRYPTION);
         }
-        enc->setup = 1;
-        dec->setup = 1;
     }
 #endif
 
 #ifdef BUILD_AES
     if (specs->bulk_cipher_algorithm == aes) {
-        enc->aes = (Aes*)XMALLOC(sizeof(Aes), heap, DYNAMIC_TYPE_CIPHER);
-        if (enc->aes == NULL)
-            return MEMORY_E;
-        dec->aes = (Aes*)XMALLOC(sizeof(Aes), heap, DYNAMIC_TYPE_CIPHER);
-        if (dec->aes == NULL)
-            return MEMORY_E;
-#ifdef HAVE_CAVIUM
-        if (devId != NO_CAVIUM_DEVICE) {
-            if (AesInitCavium(enc->aes, devId) != 0) {
-                CYASSL_MSG("AesInitCavium failed in SetKeys");
-                return CAVIUM_INIT_E;
-            }
-            if (AesInitCavium(dec->aes, devId) != 0) {
-                CYASSL_MSG("AesInitCavium failed in SetKeys");
-                return CAVIUM_INIT_E;
-            }
-        }
-#endif
         if (side == CLIENT_END) {
-            AesSetKey(enc->aes, keys->client_write_key,
+            AesSetKey(&enc->aes, keys->client_write_key,
                       specs->key_size, keys->client_write_IV,
                       AES_ENCRYPTION);
-            AesSetKey(dec->aes, keys->server_write_key,
+            AesSetKey(&dec->aes, keys->server_write_key,
                       specs->key_size, keys->server_write_IV,
                       AES_DECRYPTION);
         }
         else {
-            AesSetKey(enc->aes, keys->server_write_key,
+            AesSetKey(&enc->aes, keys->server_write_key,
                       specs->key_size, keys->server_write_IV,
                       AES_ENCRYPTION);
-            AesSetKey(dec->aes, keys->client_write_key,
+            AesSetKey(&dec->aes, keys->client_write_key,
                       specs->key_size, keys->client_write_IV,
                       AES_DECRYPTION);
         }
-        enc->setup = 1;
-        dec->setup = 1;
     }
 #endif
 
 #ifdef BUILD_AESGCM
     if (specs->bulk_cipher_algorithm == aes_gcm) {
-        enc->aes = (Aes*)XMALLOC(sizeof(Aes), heap, DYNAMIC_TYPE_CIPHER);
-        if (enc->aes == NULL)
-            return MEMORY_E;
-        dec->aes = (Aes*)XMALLOC(sizeof(Aes), heap, DYNAMIC_TYPE_CIPHER);
-        if (dec->aes == NULL)
-            return MEMORY_E;
-
         if (side == CLIENT_END) {
-            AesGcmSetKey(enc->aes, keys->client_write_key, specs->key_size);
-            XMEMCPY(keys->aead_enc_imp_IV,
-                                     keys->client_write_IV, AEAD_IMP_IV_SZ);
-            AesGcmSetKey(dec->aes, keys->server_write_key, specs->key_size);
-            XMEMCPY(keys->aead_dec_imp_IV,
-                                     keys->server_write_IV, AEAD_IMP_IV_SZ);
+            AesGcmSetKey(&enc->aes, keys->client_write_key, specs->key_size,
+                        keys->client_write_IV);
+            AesGcmSetKey(&dec->aes, keys->server_write_key, specs->key_size,
+                        keys->server_write_IV);
         }
         else {
-            AesGcmSetKey(enc->aes, keys->server_write_key, specs->key_size);
-            XMEMCPY(keys->aead_enc_imp_IV,
-                                     keys->server_write_IV, AEAD_IMP_IV_SZ);
-            AesGcmSetKey(dec->aes, keys->client_write_key, specs->key_size);
-            XMEMCPY(keys->aead_dec_imp_IV,
-                                     keys->client_write_IV, AEAD_IMP_IV_SZ);
+            AesGcmSetKey(&enc->aes, keys->server_write_key, specs->key_size,
+                        keys->server_write_IV);
+            AesGcmSetKey(&dec->aes, keys->client_write_key, specs->key_size,
+                        keys->client_write_IV);
         }
-        enc->setup = 1;
-        dec->setup = 1;
-    }
-#endif
-
-#ifdef HAVE_AESCCM
-    if (specs->bulk_cipher_algorithm == aes_ccm) {
-        enc->aes = (Aes*)XMALLOC(sizeof(Aes), heap, DYNAMIC_TYPE_CIPHER);
-        if (enc->aes == NULL)
-            return MEMORY_E;
-        dec->aes = (Aes*)XMALLOC(sizeof(Aes), heap, DYNAMIC_TYPE_CIPHER);
-        if (dec->aes == NULL)
-            return MEMORY_E;
-
-        if (side == CLIENT_END) {
-            AesCcmSetKey(enc->aes, keys->client_write_key, specs->key_size);
-            XMEMCPY(keys->aead_enc_imp_IV,
-                                     keys->client_write_IV, AEAD_IMP_IV_SZ);
-            AesCcmSetKey(dec->aes, keys->server_write_key, specs->key_size);
-            XMEMCPY(keys->aead_dec_imp_IV,
-                                     keys->server_write_IV, AEAD_IMP_IV_SZ);
-        }
-        else {
-            AesCcmSetKey(enc->aes, keys->server_write_key, specs->key_size);
-            XMEMCPY(keys->aead_enc_imp_IV,
-                                     keys->server_write_IV, AEAD_IMP_IV_SZ);
-            AesCcmSetKey(dec->aes, keys->client_write_key, specs->key_size);
-            XMEMCPY(keys->aead_dec_imp_IV,
-                                     keys->client_write_IV, AEAD_IMP_IV_SZ);
-        }
-        enc->setup = 1;
-        dec->setup = 1;
-    }
-#endif
-
-#ifdef HAVE_CAMELLIA
-    if (specs->bulk_cipher_algorithm == camellia) {
-        enc->cam = (Camellia*)XMALLOC(sizeof(Camellia),
-                                                     heap, DYNAMIC_TYPE_CIPHER);
-        if (enc->cam == NULL)
-            return MEMORY_E;
-        dec->cam = (Camellia*)XMALLOC(sizeof(Camellia),
-                                                     heap, DYNAMIC_TYPE_CIPHER);
-        if (dec->cam == NULL)
-            return MEMORY_E;
-        if (side == CLIENT_END) {
-            CamelliaSetKey(enc->cam, keys->client_write_key,
-                      specs->key_size, keys->client_write_IV);
-            CamelliaSetKey(dec->cam, keys->server_write_key,
-                      specs->key_size, keys->server_write_IV);
-        }
-        else {
-            CamelliaSetKey(enc->cam, keys->server_write_key,
-                      specs->key_size, keys->server_write_IV);
-            CamelliaSetKey(dec->cam, keys->client_write_key,
-                      specs->key_size, keys->client_write_IV);
-        }
-        enc->setup = 1;
-        dec->setup = 1;
-    }
-#endif
-
-#ifdef HAVE_NULL_CIPHER
-    if (specs->bulk_cipher_algorithm == cipher_null) {
-        enc->setup = 1;
-        dec->setup = 1;
     }
 #endif
 
     keys->sequence_number      = 0;
     keys->peer_sequence_number = 0;
     keys->encryptionOn         = 0;
-    (void)side;
-    (void)heap;
-    (void)enc;
-    (void)dec;
-    (void)specs;
-    (void)devId;
 
     return 0;
 }
@@ -1702,11 +1035,6 @@ static int SetKeys(Ciphers* enc, Ciphers* dec, Keys* keys, CipherSpecs* specs,
 int StoreKeys(CYASSL* ssl, const byte* keyData)
 {
     int sz, i = 0;
-    int devId = NO_CAVIUM_DEVICE;
-
-#ifdef HAVE_CAVIUM
-    devId = ssl->devId;
-#endif
 
     if (ssl->specs.cipher_type != aead) {
         sz = ssl->specs.hash_size;
@@ -1715,6 +1043,16 @@ int StoreKeys(CYASSL* ssl, const byte* keyData)
         XMEMCPY(ssl->keys.server_write_MAC_secret,&keyData[i], sz);
         i += sz;
     }
+#ifdef BUILD_AESGCM
+    else if (ssl->specs.bulk_cipher_algorithm == aes_gcm) {
+        byte iv[AES_GCM_EXP_IV_SZ];
+
+        /* Initialize the AES-GCM explicit IV to a random number. */
+        RNG_GenerateBlock(&ssl->rng, iv, sizeof(iv));
+        AesGcmSetExpIV(&ssl->encrypt.aes, iv);
+    }
+#endif
+
     sz = ssl->specs.key_size;
     XMEMCPY(ssl->keys.client_write_key, &keyData[i], sz);
     i += sz;
@@ -1726,18 +1064,11 @@ int StoreKeys(CYASSL* ssl, const byte* keyData)
     i += sz;
     XMEMCPY(ssl->keys.server_write_IV, &keyData[i], sz);
 
-#ifdef HAVE_AEAD
-    if (ssl->specs.cipher_type == aead) {
-        /* Initialize the AES-GCM explicit IV to a random number. */
-        RNG_GenerateBlock(ssl->rng, ssl->keys.aead_exp_IV, AEAD_EXP_IV_SZ);
-    }
-#endif
-
     return SetKeys(&ssl->encrypt, &ssl->decrypt, &ssl->keys, &ssl->specs,
-                   ssl->options.side, ssl->heap, devId);
+                   ssl->options.side);
 }
 
-#ifndef NO_OLD_TLS
+
 int DeriveKeys(CYASSL* ssl)
 {
     int length = 2 * ssl->specs.hash_size + 
@@ -1757,7 +1088,7 @@ int DeriveKeys(CYASSL* ssl)
     InitMd5(&md5);
     InitSha(&sha);
 
-    XMEMCPY(md5Input, ssl->arrays->masterSecret, SECRET_LEN);
+    XMEMCPY(md5Input, ssl->arrays.masterSecret, SECRET_LEN);
 
     for (i = 0; i < rounds; ++i) {
         int j   = i + 1;
@@ -1767,13 +1098,14 @@ int DeriveKeys(CYASSL* ssl)
             return PREFIX_ERROR;
         }
 
-        XMEMCPY(shaInput + idx, ssl->arrays->masterSecret, SECRET_LEN);
+        XMEMCPY(shaInput + idx, ssl->arrays.masterSecret, SECRET_LEN);
         idx += SECRET_LEN;
-        XMEMCPY(shaInput + idx, ssl->arrays->serverRandom, RAN_LEN);
+        XMEMCPY(shaInput + idx, ssl->arrays.serverRandom, RAN_LEN);
         idx += RAN_LEN;
-        XMEMCPY(shaInput + idx, ssl->arrays->clientRandom, RAN_LEN);
+        XMEMCPY(shaInput + idx, ssl->arrays.clientRandom, RAN_LEN);
+        idx += RAN_LEN;
 
-        ShaUpdate(&sha, shaInput, (word32)sizeof(shaInput) - KEY_PREFIX + j);
+        ShaUpdate(&sha, shaInput, sizeof(shaInput) - KEY_PREFIX + j);
         ShaFinal(&sha, shaOutput);
 
         XMEMCPY(&md5Input[SECRET_LEN], shaOutput, SHA_DIGEST_SIZE);
@@ -1787,46 +1119,50 @@ int DeriveKeys(CYASSL* ssl)
 
 static void CleanPreMaster(CYASSL* ssl)
 {
-    int i, sz = ssl->arrays->preMasterSz;
+    int i, sz = ssl->arrays.preMasterSz;
 
     for (i = 0; i < sz; i++)
-        ssl->arrays->preMasterSecret[i] = 0;
+        ssl->arrays.preMasterSecret[i] = 0;
 
-    RNG_GenerateBlock(ssl->rng, ssl->arrays->preMasterSecret, sz);
+    RNG_GenerateBlock(&ssl->rng, ssl->arrays.preMasterSecret, sz);
 
     for (i = 0; i < sz; i++)
-        ssl->arrays->preMasterSecret[i] = 0;
+        ssl->arrays.preMasterSecret[i] = 0;
 
 }
 
 
 /* Create and store the master secret see page 32, 6.1 */
-static int MakeSslMasterSecret(CYASSL* ssl)
+int MakeMasterSecret(CYASSL* ssl)
 {
     byte   shaOutput[SHA_DIGEST_SIZE];
     byte   md5Input[ENCRYPT_LEN + SHA_DIGEST_SIZE];
     byte   shaInput[PREFIX + ENCRYPT_LEN + 2 * RAN_LEN];
     int    i, ret;
     word32 idx;
-    word32 pmsSz = ssl->arrays->preMasterSz;
+    word32 pmsSz = ssl->arrays.preMasterSz;
 
     Md5 md5;
     Sha sha;
 
 #ifdef SHOW_SECRETS
     {
-        word32 j;
+        int j;
         printf("pre master secret: ");
         for (j = 0; j < pmsSz; j++)
-            printf("%02x", ssl->arrays->preMasterSecret[j]);
+            printf("%02x", ssl->arrays.preMasterSecret[j]);
         printf("\n");
     }
+#endif
+
+#ifndef NO_TLS
+    if (ssl->options.tls) return MakeTlsMasterSecret(ssl);
 #endif
 
     InitMd5(&md5);
     InitSha(&sha);
 
-    XMEMCPY(md5Input, ssl->arrays->preMasterSecret, pmsSz);
+    XMEMCPY(md5Input, ssl->arrays.preMasterSecret, pmsSz);
 
     for (i = 0; i < MASTER_ROUNDS; ++i) {
         byte prefix[PREFIX];
@@ -1838,11 +1174,11 @@ static int MakeSslMasterSecret(CYASSL* ssl)
         XMEMCPY(shaInput, prefix, i + 1);
         idx += i + 1;
 
-        XMEMCPY(shaInput + idx, ssl->arrays->preMasterSecret, pmsSz);
+        XMEMCPY(shaInput + idx, ssl->arrays.preMasterSecret, pmsSz);
         idx += pmsSz;
-        XMEMCPY(shaInput + idx, ssl->arrays->clientRandom, RAN_LEN);
+        XMEMCPY(shaInput + idx, ssl->arrays.clientRandom, RAN_LEN);
         idx += RAN_LEN;
-        XMEMCPY(shaInput + idx, ssl->arrays->serverRandom, RAN_LEN);
+        XMEMCPY(shaInput + idx, ssl->arrays.serverRandom, RAN_LEN);
         idx += RAN_LEN;
         ShaUpdate(&sha, shaInput, idx);
         ShaFinal(&sha, shaOutput);
@@ -1851,15 +1187,15 @@ static int MakeSslMasterSecret(CYASSL* ssl)
         XMEMCPY(md5Input + idx, shaOutput, SHA_DIGEST_SIZE);
         idx += SHA_DIGEST_SIZE;
         Md5Update(&md5, md5Input, idx);
-        Md5Final(&md5, &ssl->arrays->masterSecret[i * MD5_DIGEST_SIZE]);
+        Md5Final(&md5, &ssl->arrays.masterSecret[i * MD5_DIGEST_SIZE]);
     }
 
 #ifdef SHOW_SECRETS
     {
-        word32 j;
+        int i;
         printf("master secret: ");
-        for (j = 0; j < SECRET_LEN; j++)
-            printf("%02x", ssl->arrays->masterSecret[j]);
+        for (i = 0; i < SECRET_LEN; i++)
+            printf("%02x", ssl->arrays.masterSecret[i]);
         printf("\n");
     }
 #endif
@@ -1868,21 +1204,5 @@ static int MakeSslMasterSecret(CYASSL* ssl)
     CleanPreMaster(ssl);
 
     return ret;
-}
-#endif
-
-
-/* Master wrapper, doesn't use SSL stack space in TLS mode */
-int MakeMasterSecret(CYASSL* ssl)
-{
-#ifdef NO_OLD_TLS
-    return MakeTlsMasterSecret(ssl);
-#elif !defined(NO_TLS)
-    if (ssl->options.tls) return MakeTlsMasterSecret(ssl);
-#endif
-
-#ifndef NO_OLD_TLS
-    return MakeSslMasterSecret(ssl);
-#endif
 }
 

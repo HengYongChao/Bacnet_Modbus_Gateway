@@ -524,9 +524,9 @@ void SPI_FlagClr(U8_T clrBit)
  */
 void SPI_GetData(U8_T *ptBuf)
 {
-	U8_T	i;
+//	U8_T	i;
 
-	*ptBuf=spiRxBuf[0];
+	*ptBuf = spiRxBuf[0];
 /*
 	for (i=0 ; i<4 ; i++)
 	{
