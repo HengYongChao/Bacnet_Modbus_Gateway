@@ -181,17 +181,13 @@ typedef struct _BUF_SELECT
 
 } BUF_SELECT;
 #endif
-
-
 /*-------------------------------------------------------------*/
  typedef struct {
 	U8_T* name;
 	U8_T* val;
 } entry;
-
-
-extern entry entries[20];
-extern U8_T num_parms;
+	extern entry entries[20];
+	extern U8_T num_parms;
 
 /*-------------------------------------------------------------*/
 

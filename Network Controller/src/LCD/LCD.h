@@ -13,6 +13,7 @@ void Lcd_All_Off(void);
 void lcdreset(void);
 void Display_Updating(void);
 void Display_reboot(void);
+void Searching_ip(void);
 
 
 

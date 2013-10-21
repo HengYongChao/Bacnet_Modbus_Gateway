@@ -15,14 +15,9 @@
  * Date:
  * Notes:
  * $Log: MODBUSTCPd.c,v $
- * Revision 1.1.1.1  2006/06/20 05:50:28  borbin
+ * Revision 1.0 	2012/06/20 17:50:28  heng
  * no message
- *
- * Revision 1.2  2006/02/24 00:33:06  borbin
- * no message
- *
- * Revision 1.1.1.1  2006/02/23 00:55:10  borbin
- * no message
+ * 
  *
  *=============================================================================
  */
@@ -971,7 +966,7 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 	    send_tcp[StartAdd++] = CRClo;
 	
 		EA = 1;
-	//	Uart0_Tx(send_tcp, StartAdd);//////////////////
+//		Uart0_Tx(send_tcp, StartAdd);
 
 		MUTEX_TASK = 1;
 

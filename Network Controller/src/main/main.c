@@ -134,9 +134,9 @@
 #define GSM_TASK_ENABLE  	0	// if enbale gsm task
 
 
+extern  U8_T count_enter;
 
 extern  GCONFIG_Init1();
-
 
 volatile char xdata  temco_version[30] _at_ 0x02;
 char temco_version[30] = {"model:100 fw:69.11 hw:26"}; 		//ascii hw:26 bl:14
@@ -219,6 +219,7 @@ xTaskHandle xHandle10;
 xTaskHandle xHandle11; 
 xTaskHandle xHandle12; 
 xTaskHandle xHandle13; 
+xTaskHandle xHandle14;
 
 
 U8_T  byteWrite[4] = {0xa5,0x31,0x45,0x32};   
@@ -331,10 +332,7 @@ void CheckArpTable(void)
 
 void TCPIP_Task(void)reentrant
 {
-   portTickType xDelayPeriod  = ( portTickType ) 200 / portTICK_RATE_MS;  //250
-   	
-
-   
+   portTickType xDelayPeriod  = ( portTickType ) 200 / portTICK_RATE_MS;  //250   
 
 #if (BOOTLDR_ISR)
 	ERROR: BOOTLDR_ISR must set to '0' in non-bootloader driver.
@@ -370,6 +368,7 @@ void TCPIP_Task(void)reentrant
 #if (INCLUDE_DHCP_CLIENT)	
 	if ( (Para[213] == 1) && ((GCONFIG_GetNetwork() & GCONFIG_NETWORK_DHCP_ENABLE) == GCONFIG_NETWORK_DHCP_ENABLE) )
 	{
+		
 		printd("DHCP request... ");
 		DHCP_Start();
 #if (!STOE_TRANSPARENT)
@@ -393,11 +392,10 @@ void TCPIP_Task(void)reentrant
 	GUDPBC_Init(ServerBroadcastListenPort);
 
 	HTTP_Init();
-	MODBUSTCP_Init();	  // add modbustcp service instead http modbus old and add webpage feature.
+	MODBUSTCP_Init();	  // add modbustcp service instead http modbus and add webpage feature.
 
 	FSYS_Init();
 	ETH_Start();
-
 
 	init_dyndns();
 
@@ -421,6 +419,9 @@ void TCPIP_Task(void)reentrant
 			else
 			{
 			 	UpdateIpSettings(STOE_GetIPAddr());
+
+				Lcd_Show_String(2,14,"  ",1,2);
+				display_ip();
 #if (!STOE_TRANSPARENT)
 				STOE_EnableIpFilter();
 #endif
@@ -884,9 +885,6 @@ void Led_RS232_Rx(void)
 
 
 
-
-
-
 /*=================================================*/
 
 void Led_ispSet(void)
@@ -897,8 +895,7 @@ void Led_ispSet(void)
 	else {
 	DisPlay1 = 1;
 	DisPlay2 = 0;  }
-	
-	
+		
 	
 	LE = 0;                     	   
 	LEDS = 0xfe;            	                                 
@@ -1415,8 +1412,6 @@ void Uart1_Tx(U8_T *buf,U8_T len)
 
 U8_T forward_buffer[300];
 U8_T forward_buffer1[300];
-//U16_T 	uart2_count = 0;
-
 extern U16_T sessonlen;
 extern void Set_transaction_ID(U8_T *str, U16_T reg);
 
@@ -1528,7 +1523,7 @@ void Uart1_Receive(void)
 			{
 				case SCAN_BINSEARCH:
 					scan_response_state = MULTIPLE_ID;
-					if(uart1_count >= 9) 
+					if(uart1_count >= 9) // right
 					{
 						U8_T i;
 						InitCRC16();
@@ -1537,14 +1532,10 @@ void Uart1_Receive(void)
 		
 						if((forward_buffer1[7] == CRChi) && (forward_buffer1[8] == CRClo))
 						{
-							if((forward_buffer1[0] == 0xff) && (forward_buffer1[1] == 0x19))
+							if((forward_buffer1[0] == 0xff) && (forward_buffer1[1] == 0x19)) // double check it is the response for scan command
 							{
 								current_db.id = forward_buffer1[2];
-								current_db.sn = ((U32_T)forward_buffer1[6] << 24) |
-								 				((U32_T)forward_buffer1[5] << 16) |
-								  				 ((U32_T)forward_buffer1[4] << 8) |
-								   							   forward_buffer1[3];
-
+								current_db.sn = ((U32_T)forward_buffer1[6] << 24) | ((U32_T)forward_buffer1[5] << 16) | ((U32_T)forward_buffer1[4] << 8) | forward_buffer1[3];
 								if(uart1_count == 9)
 								{
 									scan_response_state = UNIQUE_ID;
@@ -1556,44 +1547,12 @@ void Uart1_Receive(void)
 							}
 						}
 					}
-//					if(uart2_count >= 9) 
-//					{
-//						U8_T i;
-//						InitCRC16();
-//						for(i = 0; i < 7; i++)
-//							CRC16_Tstat(forward_buffer[i]);
-//		
-//						if((forward_buffer[7] == CRChi) && (forward_buffer[8] == CRClo))
-//						{
-//							if((forward_buffer[0] == 0xff) && (forward_buffer[1] == 0x19)) 
-//							{
-//								current_db.id = forward_buffer[2];
-//								current_db.sn = ((U32_T)forward_buffer[6] << 24) |
-//								 				((U32_T)forward_buffer[5] << 16) |
-//								  					((U32_T)forward_buffer[4] << 8) |
-//								   							forward_buffer[3];
-//								if(uart2_count == 9)
-//								{
-//									scan_response_state = UNIQUE_ID;
-//								}
-//								else
-//								{
-//									scan_response_state = UNIQUE_ID_FROM_MULTIPLE;
-//								}
-//							}
-//						}
-//					}
-
 					break;
 				case SCAN_ASSIGN_ID_WITH_SN:
 					if(uart1_count == 12) 
 					{
 						scan_response_state = ASSIGN_ID;
 					}
-//					if(uart2_count == 12) 
-//					{
-//						scan_response_state = ASSIGN_ID;
-//					}
 					break;
 			}
 		}
@@ -1626,7 +1585,6 @@ void display_ip(void)
 
 	sn = a + b + c + d ;
 	
-	Lcd_Show_String(3,0,"ip = ",1,5);
 	Lcd_Show_Data(3,5,Para[215],0,1);
 	Lcd_Show_String(3,8,".",1,1);
 	Lcd_Show_Data(3,9,Para[217],0,1);
@@ -1634,6 +1592,7 @@ void display_ip(void)
 	Lcd_Show_Data(3,13,Para[219],0,1);
 	Lcd_Show_String(3,14,".",1,1);
 	Lcd_Show_Data(3,15,Para[221],0,1);
+	Lcd_Show_String(3,0,"ip = ",1,5);
 
 
 	Lcd_Show_String(1,0,"id = ",1,5);
@@ -1644,7 +1603,7 @@ void display_ip(void)
 
 	adr = Para[9] % 10 ;
 	i = 0;
-	Lcd_Show_String(4,i,"fw:",1,3);
+//	Lcd_Show_String(4,i,"fw:",1,3);
 	Lcd_Show_Data(4,i+3,Para[11],0,1);
 	Lcd_Show_String(4,i+5,".",1,1);
 
@@ -1656,9 +1615,9 @@ void display_ip(void)
 	Lcd_Show_String(4,i+15,"bl:",1,3);
 	Lcd_Show_Data(4,i+18,Para[29],0,1);
 
-	Lcd_Show_String(0,1,"Network Controller",0,12);		 //invert color!
-	Lcd_Show_String(3,0,"ip = ",1,5);
+//	Lcd_Show_String(3,0,"ip = ",1,5);
 	Lcd_Show_String(4,0,"fw:",1,3);
+	Lcd_Show_String(0,1,"Network Controller",0,12);		 //invert color!
 }
 
 
@@ -1669,6 +1628,13 @@ void Display_Updating(void)
 	Lcd_Show_String(2,5,"Updating...",1,11);
 }
 
+void display_task(void)
+{
+
+   display_ip();
+
+}
+
 
 
 /*****Uart2 routine***********************/
@@ -1676,6 +1642,7 @@ void Display_Updating(void)
 void Uart2_Receive(void)
 {
 	U16_T 	uart2_count = 0;
+
 	EINT4 = 0;
 
 	if(hsurRxCount)
@@ -1808,13 +1775,14 @@ void Tx_To_Tstat(U8_T *buf, U8_T len)
 
 	Uart1_Tx(buf, len);
 
-	Uart0_Tx(buf, len);
+//	Uart0_Tx(buf, len);
 
 	for(i = 0; i < len; i++)  
 		HSUR_PutChar(buf[i]);
 
 	if(len < 10)
 		DELAY_Us(1900);		   //1
+		
 	else
 		DELAY_Ms((len + 1) / 8);
 
@@ -2108,6 +2076,18 @@ void UdpBroadcast_task(void)
 	}
 }
 
+void LCD_task(void)
+{
+	portTickType xDelayPeriod = ( portTickType ) 2000 / portTICK_RATE_MS;
+	while(1)
+	{
+
+	   display_task();
+	   vTaskDelay(xDelayPeriod);
+	}
+}
+
+
 
 
 void USB_task(void)
@@ -2150,6 +2130,8 @@ void USB_task(void)
 							cSemaphoreGive(sem_subnet_tx);
 #endif
 
+							
+									   												
 						}					
 						else if(DownBuf[1] == 0x1a)	//scan NC
 						{ 
@@ -2426,82 +2408,90 @@ BOOL send_out = TRUE;
 U8_T test_setpoint[] = { 0xfe, 0x06, 0x01, 0x5b, 0x00, 0x19, 0x2c, 0x20}; 
 U8_T rev_cnt = 0;
 
-void gsm_task(void) reentrant						// LJ
+void gsm_task(void) reentrant						
 {
 	U8_T end_ch = 0x1a;
-	char temp_gsm[100];
-	portTickType xDelayPeriod = ( portTickType)	1000 / portTICK_RATE_MS;
+	char temp_gsm[256] = "\r\nWhatever is worth doing is worth doing well..Whatever is worth doing is worth doing well..";
+//	char ch[] = "TEST";
+	portTickType xDelayPeriod = ( portTickType)	500 / portTICK_RATE_MS;
 
-	gsm_init();                     // LJ
     
 	for (;;)
 	{
 		vTaskDelay(xDelayPeriod);
 
-
-		switch ( g_state)
+//		simulate_write_string(temp_gsm,92);
+//		Uart0_Tx(temp_gsm,92) ;
+							   
+		if(GSM_Rxcount)
 		{
-			case GSM_INITING:
-				gsm_module_init();
-				break;
-			case GSM_ERROR:
-				break;
-			case GSM_INIT_DONE:
-				if(1)          // wait for temperature register
-				{
-					if(send_out)
-					{
-						sprintf( temp_gsm, "AT+CMGS=\"%s\"", &phoneNumber[3]);
-						send_at_cmd( temp_gsm);
-						MicroWait(65000);
-						send_at_cmd( "NetworkController");
-								simulate_write_byte(0x1a);
-					//	Uart1_Tx( &end_ch, 1);
-						//g_state = SMS_SENDING;
-						send_out = FALSE;
-					}
-				}
-				break;				
-			case SMS_READY:
-				send_at_cmd( "Test GSM module first time");
-			//	Uart1_Tx( &end_ch, 1);
-			simulate_write_byte(0x1a);
-				g_state = GSM_INIT_DONE;
-				break;
-			case SMS_SEND_SUCCESS:
-				g_state = GSM_INIT_DONE;
-				break;
-			case GET_MSG:
-//				gsm_debug( "send cmgr");
-				send_at_cmd( "AT+CMGR=1");
-				rev_cnt++;
-				g_state = GSM_INIT_DONE;
-				if( rev_cnt > 9)
-				{
-					g_state = GSM_INIT_DONE;
-					rev_cnt = 0;
-					send_at_cmd( "AT+CMGD=1");			   // ³¢ÊÔ10´Îºó£¬É¾³ý¶ÌÐÅ
-				}
-				break;
-			case SET_POINT:
+//		  simulate_write_string(GSM_RxBuff,120);
+		  Uart0_Tx(GSM_RxBuff,GSM_Rxcount-1);
+		  		 
+		  GSM_Rxcount = 0;
+//		  count_enter = 0;
+		}
 
-#ifdef  SemaphoreCreate						  
-				if(cSemaphoreTake(sem_subnet_tx, 10) == pdFALSE)
-					break;
-#endif
-				Tx_To_Tstat( test_setpoint, 8);
-#ifdef  SemaphoreCreate						  
-				cSemaphoreGive(sem_subnet_tx);
-#endif
-				g_state = GSM_INIT_DONE;
-				break;
-			default:
-				break;
-		}
-		if( gsm_RxBuf.size > 1)
-		{
-			gsm_msg_process (gsm_RxBuf.buf); 
-		}
+
+//		switch ( g_state)
+//		{
+//			case GSM_INITING:
+//				gsm_module_init();
+//				break;
+//			case GSM_ERROR:
+//				break;
+//			case GSM_INIT_DONE:
+//				if(1)          // wait for temperature register
+//				{
+//					if(send_out)
+//					{
+//						sprintf( temp_gsm, "AT+CMGS=\"%s\"", &phoneNumber[3]);
+//						send_at_cmd( temp_gsm);
+//						MicroWait(65000);
+//						send_at_cmd( "NetworkController");
+//								simulate_write_byte(0x1a);
+//						send_out = FALSE;
+//					}
+//				}
+//				break;				
+//			case SMS_READY:
+//				send_at_cmd( "Test GSM module first time");
+//			simulate_write_byte(0x1a);
+//				g_state = GSM_INIT_DONE;
+//				break;
+//			case SMS_SEND_SUCCESS:
+//				g_state = GSM_INIT_DONE;
+//				break;
+//			case GET_MSG:
+//				send_at_cmd( "AT+CMGR=1");
+//				rev_cnt++;
+//				g_state = GSM_INIT_DONE;
+//				if( rev_cnt > 9)
+//				{
+//					g_state = GSM_INIT_DONE;
+//					rev_cnt = 0;
+//					send_at_cmd( "AT+CMGD=1");			   // ³¢ÊÔ10´Îºó£¬É¾³ý¶ÌÐÅ
+//				}
+//				break;
+//			case SET_POINT:
+//
+//#ifdef  SemaphoreCreate						  
+//				if(cSemaphoreTake(sem_subnet_tx, 10) == pdFALSE)
+//					break;
+//#endif
+//				Tx_To_Tstat( test_setpoint, 8);
+//#ifdef  SemaphoreCreate						  
+//				cSemaphoreGive(sem_subnet_tx);
+//#endif
+//				g_state = GSM_INIT_DONE;
+//				break;
+//			default:
+//				break;
+//		}
+//		if( gsm_RxBuf.size > 1)
+//		{
+//			gsm_msg_process (gsm_RxBuf.buf); 
+//		}
 	}
 }
 
@@ -2532,11 +2522,13 @@ void main(void )
 	UART_Init(0);
 	UART_Init(1);
 	Lcd_Initial();
-
 	uart2_rescue();
-
-
     I2C_Init();
+	DELAY_Init();
+//	gsm_init();                     
+//	GPRS_Init();
+
+
 
 	for(i = 0; i < 100; i++)
     { 
@@ -2582,7 +2574,10 @@ void main(void )
   	if(Para[33]==0x1f)			  //if update is not completed,flashing led shows this statement.
      	FlagIsp=1; 
 
-	display_ip();
+	if(Para[213] == 1)
+		Searching_ip();	
+	else
+		display_ip();
 	
 	for(i = 0; i < 2 ;i++)
 		hardversion[i] = Para[16 + i];
@@ -2593,6 +2588,7 @@ void main(void )
 
   sTaskCreate(TCPIP_Task, (const signed portCHAR * const)"TCPIP_task",
 		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, (xTaskHandle *)&xHandle1);  //2
+
 
   sTaskCreate(LedBeat_task, (const signed portCHAR * const)"LedBeat_task",
 		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 4, (xTaskHandle *)&xHandle3);  //3
@@ -2612,11 +2608,11 @@ void main(void )
    sTaskCreate(Uart2_task, (const signed portCHAR * const)"Uart2_task",
 		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 9, (xTaskHandle *)&xHandle9);
 
-   sTaskCreate(Scan_task, (const signed portCHAR * const)"Scan_task",	
-   		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 6, (xTaskHandle *)&xHandle12);
-
-   sTaskCreate(Schedule_task, (const signed portCHAR * const)"Schedule_task",
-		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 6, (xTaskHandle *)&xHandle8);
+//   sTaskCreate(Scan_task, (const signed portCHAR * const)"Scan_task",	
+//   		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 6, (xTaskHandle *)&xHandle12);
+//
+//   sTaskCreate(Schedule_task, (const signed portCHAR * const)"Schedule_task",
+//		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 6, (xTaskHandle *)&xHandle8);
 
    sTaskCreate(TimeServer_task, (const signed portCHAR * const)"TimeServer_task",
 		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 7, (xTaskHandle *)&xHandle7); 
@@ -2629,9 +2625,14 @@ void main(void )
 
 #if   GSM_TASK_ENABLE
 	sTaskCreate(gsm_task, (const signed portCHAR * const)"gsm_task",
-		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 4, (xTaskHandle *)&xHandle13);		  
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 10, (xTaskHandle *)&xHandle13);		  
 #endif
 	   /*GSM task has a issue that may cause TCPIP task very lag */
+
+
+//  sTaskCreate(LCD_task, (const signed portCHAR * const)"LCD_task",
+//		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, (xTaskHandle *)&xHandle14);  
+
 
   /* Finally kick off the scheduler.  This function should never return. */
 	vTaskStartScheduler( portUSE_PREEMPTION );
