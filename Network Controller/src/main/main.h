@@ -89,7 +89,6 @@ extern void Uart1_Tx(U8_T *buf,U8_T len);
 extern void Tx_To_Tstat(U8_T *buf,U8_T len);
 
 void OSDelay(U8_T x);
-void display_ip(void);
 #endif /* End of __MAIN_H__ */
 
 

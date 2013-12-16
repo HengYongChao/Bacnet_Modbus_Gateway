@@ -272,8 +272,8 @@ void vIntPortContextSwitch(void) reentrant
 #if portUSE_PREEMPTION == 1
 
 /*-----------------------------------------------------------*/
-U16_T ms_delay;
-void vTimer2ISR( void ) interrupt 10			//10MS
+
+void vTimer2ISR( void ) interrupt 10
 {
 	unsigned portCHAR	isr;
 #pragma ASM
@@ -291,11 +291,6 @@ void vTimer2ISR( void ) interrupt 10			//10MS
 		{ uart1_timeout--;  }
 		if(USB_timeout)
 			USB_timeout--;
-
-		ms_delay--;
-//		P3_5 = ~P3_5;
-
-
 		TICK_INT = 1;
 		SaveSP=SP;
         prvGetCurrentTCB_XBP();

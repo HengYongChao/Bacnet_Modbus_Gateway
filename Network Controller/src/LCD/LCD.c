@@ -350,11 +350,7 @@ void Display_reboot(void)
 	Lcd_Show_String(2,5,"Reboot...",1,9);
 }
 
-void Searching_ip(void)
-{
 
-	Lcd_Show_String(2,4,"Searching...",1,12);		 
-}
 
 
 void Lcd_Initial(void)

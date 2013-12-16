@@ -90,13 +90,14 @@ static void dyndns_CloseConnection(void);
  */
 void DynDNS_Init(void)
 {
-// to bind a TCPIP connection
+	// to bind a TCPIP connection
 	dyndns_AppId = TCPIP_Bind(NULL, DynDNS_EventHandle, DynDNS_ReceiveHandle);
 //	test_dyndns_AppId = dyndns_AppId;
-//  to initialize the parameters
+	// to initialize the parameters
 	dyndns_State = DYNDNS_STATE_IDLE;
 	dyndns_bUpdateStart = TRUE;
 	dyndns_bUpdateDone = FALSE;
+
 }
 
 /*
@@ -343,6 +344,7 @@ void DynDNS_EventHandle(U8_T connID, U8_T event)
  */
 void DynDNS_ReceiveHandle(U8_T XDATA *pData, U16_T length, U8_T connId)
 {
+//	U8_T i;
 	pData = pData;
 	length = length;
 	connId = connId;

@@ -145,9 +145,7 @@ void SendSchedualData(unsigned char id_index, bit output)
 #ifdef  SemaphoreCreate						  
 		cSemaphoreGive(sem_subnet_tx);
 #endif
-
 		
-							  
 		OSDelay(5);
 		if(schedule_flag == 1)
 		{
@@ -209,7 +207,6 @@ void CaculateTime(void)
 			current_hour++;
 			Set_Clock(PCF_HOUR, current_hour);
 			daylight_flag = 0; 
-//			write_eeprom(EEP_DAYLIGHT_STATUS, daylight_flag);			
 		}
 	}
 	else if(daylight_flag == 2)
@@ -217,10 +214,8 @@ void CaculateTime(void)
 		if(current_hour >= 2)
 		{
 			current_hour--;
-//			SetPCF8563(0x04,HexToBcd(current_hour));	//hour]
 			Set_Clock(PCF_HOUR, current_hour);
 			daylight_flag = 0; 
-//			write_eeprom(EEP_DAYLIGHT_STATUS, daylight_flag);			
 		}
 	}
 
@@ -247,7 +242,6 @@ void CaculateTime(void)
 					if(temp_day >= 8 && temp_day <= 14 && dayofweek == 6)	
 					{
 						daylight_flag = 1; 
-//						write_eeprom(EEP_DAYLIGHT_STATUS, daylight_flag);			
 					}
 				}				
 				break;
@@ -262,7 +256,6 @@ void CaculateTime(void)
 					if(temp_day <= 7 && dayofweek == 6)	
 					{
 						daylight_flag = 1; 
-//						write_eeprom(EEP_DAYLIGHT_STATUS, daylight_flag);			
 					}
 				}	
 				break;
@@ -306,7 +299,6 @@ void CaculateTime(void)
 					if((31 - temp_day <= 6) && dayofweek == 6)	
 					{
 						daylight_flag = 2; 
-//						write_eeprom(EEP_DAYLIGHT_STATUS, daylight_flag);		
 					}
 				}	
 				break;
@@ -320,7 +312,6 @@ void CaculateTime(void)
 					if(temp_day <= 7 && dayofweek == 6)	
 					{
 						daylight_flag = 2; 
-//						write_eeprom(EEP_DAYLIGHT_STATUS, daylight_flag);			
 					}
 				}			
 				break;
@@ -342,9 +333,7 @@ void CheckAnnualRoutines(void)
 {
 	unsigned char i;
 	unsigned char mask;
-//	unsigned char mask_r;
 	unsigned char octet_index;
-//	unsigned char code *base_address;
 	for(i = 0; i < MAX_AR; i++)
 	{
   		AR_FLAG = AR_Roution[i].UN.Desc.flag;
@@ -358,7 +347,6 @@ void CheckAnnualRoutines(void)
 			/* bit_index = ora_current.day_of_year & 0x07;*/
 			mask = mask << (dayofyear & 0x07);
 			
-//			base_address = AR_Roution[i].Time; // ttt[i];
        		if(AR_Roution[i].Time[11] != 0xff && AR_Roution[i].Time[38] != 0xff)
 			{ 
 				if(AR_Roution[i].Time[octet_index] & mask)
@@ -385,7 +373,6 @@ void CheckAnnualRoutines(void)
 	   	}
 		else  // mannual
 		{
-//			if(*base_address != 0xff && *(base_address+1) != 0xff)
 			if(AR_FLAG != 0xff)
 			{
 				if(AR_VALUE)
@@ -414,7 +401,6 @@ void CheckWeeklyRoutines(void)
 	unsigned char w, i;
 	signed char j, timeout = 0;
 	unsigned char mask;
-//	unsigned char mask_r;
 	for(i = 0; i < MAX_WR; i++)
 	{
 		w = dayofweek;
@@ -563,7 +549,6 @@ void CheckWeeklyRoutines(void)
 void CheckIdRoutines(void)
 {
 	unsigned char i;
-//	unsigned char code *base_address;
     bit wr1_value = 0;
     bit wr2_value = 0;
 	bit output_value = 0;
@@ -572,6 +557,12 @@ void CheckIdRoutines(void)
 	bit wr2_valid;
 	for(i = 0; i < MAX_ID; i++)
 	{
+//		poll_id;
+//		if(false)
+//		{
+//			continue;
+//		}
+
 		if(ID_Config[i].all != NO_DEFINE_ADDRESS)
 		{
 			ID_FLAG = ID_Config[i].Str.flag;
@@ -656,13 +647,10 @@ void CheckIdRoutines(void)
 			{
 				if(ID_FLAG != 0xff)
 				{
-//					SendSchedualData(i, ID_OUTPUT);  
-//					test0 = 7;
 				#if 1
 					temp_bit = GetBit(i, first_time_schedual);
 					if(ID_OUTPUT != GetBit(i,output_state_index) || temp_bit == 0)
 					{ 
-//						test0 = 8;
 						if(temp_bit == 0)
 							SetBit(i & 0x07, &first_time_schedual[i >> 3]);
 												 
@@ -670,7 +658,6 @@ void CheckIdRoutines(void)
 					}
 					else if(cycle_minutes_timeout == 1)
 					{
-//						test0 = 9;
 						SendSchedualData(i, ID_OUTPUT);
 
 						if(i == (MAX_ID - 1))
@@ -679,6 +666,7 @@ void CheckIdRoutines(void)
 				#endif
 				}
 			}
+		//	vTaskDelay(xDelayPeriod);
 		} // check if the correspond ID has been used
 	} // for 
 } // main function

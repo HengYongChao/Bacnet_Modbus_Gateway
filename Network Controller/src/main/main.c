@@ -109,13 +109,12 @@
 #include "../gsm/gsm.h"
 #include "dyndns_app.h"
 
+
 //#include	"spi.h"
 //#include  "spiapi.h"
 //#include  "sd.h"
-
-
-//#include "sddriver.h"
-//#include "ff.h"
+//#include  "sddriver.h"
+//#include  "ff.h"
 
 #include "semphr.h"
 
@@ -133,13 +132,14 @@
 
 #define GSM_TASK_ENABLE  	0	// if enbale gsm task
 
-
-extern  U8_T count_enter;
+#define firmware_version_h	69
+#define firmware_version_l  19
 
 extern  GCONFIG_Init1();
 
+
 volatile char xdata  temco_version[30] _at_ 0x02;
-char temco_version[30] = {"model:100 fw:69.11 hw:26"}; 		//ascii hw:26 bl:14
+char temco_version[30] = {"model:100 fw:69.17 hw:26"}; 		//ascii hw:26 bl:14
 
 extern U8_T bytesN ;
 
@@ -219,7 +219,6 @@ xTaskHandle xHandle10;
 xTaskHandle xHandle11; 
 xTaskHandle xHandle12; 
 xTaskHandle xHandle13; 
-xTaskHandle xHandle14;
 
 
 U8_T  byteWrite[4] = {0xa5,0x31,0x45,0x32};   
@@ -332,7 +331,10 @@ void CheckArpTable(void)
 
 void TCPIP_Task(void)reentrant
 {
-   portTickType xDelayPeriod  = ( portTickType ) 200 / portTICK_RATE_MS;  //250   
+   portTickType xDelayPeriod  = ( portTickType ) 200 / portTICK_RATE_MS;  //250
+   	
+
+   
 
 #if (BOOTLDR_ISR)
 	ERROR: BOOTLDR_ISR must set to '0' in non-bootloader driver.
@@ -368,7 +370,6 @@ void TCPIP_Task(void)reentrant
 #if (INCLUDE_DHCP_CLIENT)	
 	if ( (Para[213] == 1) && ((GCONFIG_GetNetwork() & GCONFIG_NETWORK_DHCP_ENABLE) == GCONFIG_NETWORK_DHCP_ENABLE) )
 	{
-		
 		printd("DHCP request... ");
 		DHCP_Start();
 #if (!STOE_TRANSPARENT)
@@ -392,10 +393,11 @@ void TCPIP_Task(void)reentrant
 	GUDPBC_Init(ServerBroadcastListenPort);
 
 	HTTP_Init();
-	MODBUSTCP_Init();	  // add modbustcp service instead http modbus and add webpage feature.
+	MODBUSTCP_Init();	  // add modbustcp service instead http modbus old and add webpage feature.
 
 	FSYS_Init();
 	ETH_Start();
+
 
 	init_dyndns();
 
@@ -419,13 +421,12 @@ void TCPIP_Task(void)reentrant
 			else
 			{
 			 	UpdateIpSettings(STOE_GetIPAddr());
-
-				Lcd_Show_String(2,14,"  ",1,2);
-				display_ip();
 #if (!STOE_TRANSPARENT)
 				STOE_EnableIpFilter();
 #endif
 				cmdDhcpFlag = 0;
+
+
 			}
 		}
 #endif
@@ -885,6 +886,9 @@ void Led_RS232_Rx(void)
 
 
 
+
+
+
 /*=================================================*/
 
 void Led_ispSet(void)
@@ -895,7 +899,8 @@ void Led_ispSet(void)
 	else {
 	DisPlay1 = 1;
 	DisPlay2 = 0;  }
-		
+	
+	
 	
 	LE = 0;                     	   
 	LEDS = 0xfe;            	                                 
@@ -923,7 +928,7 @@ void Uart0_Receive(void)
 {
 	if(uart0_RxCount > 0)
 	{
-
+	    U8_T  temp1[10],k;
 		LED = RS232_OK;
 				
 		
@@ -933,13 +938,29 @@ void Uart0_Receive(void)
 			{
 				Sever_Order = SERVER_RS232;
 				Sever_id = uart0_RxBuf[0]; 
+				temp1[0] = 0xff;
+				temp1[1] = 0x19;
+				temp1[2] = Para[13];
+				temp1[3] = Para[1];
+				temp1[4] = Para[3]; 
+				temp1[5] = Para[5]; 
+				temp1[6] = Para[7]; 
+
+				InitCRC16();
+	 			for(k = 0; k < 7; k++) 
+	                CRC16_Tstat(temp1[k]);
+
+				temp1[7] = CRChi;
+			    temp1[8] = CRClo;
+				Uart0_Tx(temp1, 9);
+
 
 
 #ifdef  SemaphoreCreate						  
 				if(cSemaphoreTake(sem_subnet_tx, 10) == pdFALSE)
 					return;
 #endif
-				Tx_To_Tstat(uart0_RxBuf, uart0_RxCount);
+			//	Tx_To_Tstat(temp, 9);
 #ifdef  SemaphoreCreate						  
 				cSemaphoreGive(sem_subnet_tx);
 #endif
@@ -1162,13 +1183,12 @@ void Uart0_Receive(void)
 					}
 					else if(StartAdd == 106)
 					{
-						if((((Para[212] << 8) | Para[213]) == 0) && (((uart0_RxBuf[4] << 8) | uart0_RxBuf[5]) != 0))
+						if(Para[213] != uart0_RxBuf[5])
 						{
-							Para[212] = uart0_RxBuf[4];
 							Para[213] = uart0_RxBuf[5];
-							ChangeIP = 1;
-							ChangeFlash = 2;
 						}
+						ChangeIP = 1;
+						ChangeFlash = 2;
 					}
 					else if((StartAdd >= 107) && (StartAdd <= 120)) //IP change ,reset cpu
 					{
@@ -1270,6 +1290,24 @@ void Uart0_Receive(void)
 								Para[2 * StartAdd + i] = uart0_RxBuf[i];
 						} 
 					}
+				}
+				else if((StartAdd == 107) && (uart0_RxBuf[6] == 24))	//IP,MASK,GATEWAY,multi-write
+				{
+					Para[215] = uart0_RxBuf[8];
+					Para[217] = uart0_RxBuf[10];
+					Para[219] = uart0_RxBuf[12];
+					Para[221] = uart0_RxBuf[14];
+					Para[223] = uart0_RxBuf[16];
+					Para[225] = uart0_RxBuf[18];
+					Para[227] = uart0_RxBuf[20];
+					Para[229] = uart0_RxBuf[22];
+					Para[231] = uart0_RxBuf[24];
+					Para[233] = uart0_RxBuf[26];
+					Para[235] = uart0_RxBuf[28];
+					Para[237] = uart0_RxBuf[30];
+	
+					mac_change_enable = 1;
+					ChangeIP = 1;
 				}
 				else if(StartAdd == SCHEDUAL_MODBUS_ADDRESS) //200th register ,write time 
 				{
@@ -1569,7 +1607,7 @@ void Uart1_Receive(void)
 
 void display_ip(void)
 {
-	U8_T adr,i;		//num,
+	U8_T adr,i;			//num,
 	U32_T sn,a,b,c,d;
 
 	a =  Para[7];
@@ -1585,6 +1623,7 @@ void display_ip(void)
 
 	sn = a + b + c + d ;
 	
+	Lcd_Show_String(3,0,"ip = ",1,5);
 	Lcd_Show_Data(3,5,Para[215],0,1);
 	Lcd_Show_String(3,8,".",1,1);
 	Lcd_Show_Data(3,9,Para[217],0,1);
@@ -1592,7 +1631,6 @@ void display_ip(void)
 	Lcd_Show_Data(3,13,Para[219],0,1);
 	Lcd_Show_String(3,14,".",1,1);
 	Lcd_Show_Data(3,15,Para[221],0,1);
-	Lcd_Show_String(3,0,"ip = ",1,5);
 
 
 	Lcd_Show_String(1,0,"id = ",1,5);
@@ -1603,7 +1641,7 @@ void display_ip(void)
 
 	adr = Para[9] % 10 ;
 	i = 0;
-//	Lcd_Show_String(4,i,"fw:",1,3);
+	Lcd_Show_String(4,i,"fw:",1,3);
 	Lcd_Show_Data(4,i+3,Para[11],0,1);
 	Lcd_Show_String(4,i+5,".",1,1);
 
@@ -1615,9 +1653,9 @@ void display_ip(void)
 	Lcd_Show_String(4,i+15,"bl:",1,3);
 	Lcd_Show_Data(4,i+18,Para[29],0,1);
 
-//	Lcd_Show_String(3,0,"ip = ",1,5);
-	Lcd_Show_String(4,0,"fw:",1,3);
 	Lcd_Show_String(0,1,"Network Controller",0,12);		 //invert color!
+	Lcd_Show_String(3,0,"ip = ",1,5);
+	Lcd_Show_String(4,0,"fw:",1,3);
 }
 
 
@@ -1626,13 +1664,6 @@ void Display_Updating(void)
 {
 
 	Lcd_Show_String(2,5,"Updating...",1,11);
-}
-
-void display_task(void)
-{
-
-   display_ip();
-
 }
 
 
@@ -1781,8 +1812,7 @@ void Tx_To_Tstat(U8_T *buf, U8_T len)
 		HSUR_PutChar(buf[i]);
 
 	if(len < 10)
-		DELAY_Us(1900);		   //1
-		
+		DELAY_Us(1000);		   //1900
 	else
 		DELAY_Ms((len + 1) / 8);
 
@@ -1793,7 +1823,7 @@ void Tx_To_Tstat(U8_T *buf, U8_T len)
 void LedBeat_task(void) reentrant
 {   U16_T i;
   
-	portTickType xDelayPeriod = ( portTickType ) 500 / portTICK_RATE_MS;  //2000
+	portTickType xDelayPeriod = ( portTickType ) 500 / portTICK_RATE_MS;  	//2000
     portTickType xDelayPeriod1 = ( portTickType ) 100 / portTICK_RATE_MS;
 
 	for (;;)				
@@ -1979,11 +2009,12 @@ void Uart1_task(void) reentrant
    	
 	for (;;)
     { 
-		vTaskDelay(xDelayPeriod);
 		if(uart1_timeout == 0)
 		{
 			Uart1_Receive();
 		}
+
+		vTaskDelay(xDelayPeriod);
 	}
 }
 
@@ -1993,11 +2024,11 @@ void Uart2_task(void) reentrant
 	portTickType xDelayPeriod = ( portTickType ) 2000 / portTICK_RATE_MS;	//1000
 	for (;;)
     { 
-		vTaskDelay(xDelayPeriod);
 	//	if(uart2_timeout == 0)
 		{
 			Uart2_Receive();
 		}
+		vTaskDelay(xDelayPeriod);
 	}
 }
 
@@ -2072,21 +2103,10 @@ void UdpBroadcast_task(void)
 	portTickType xDelayPeriod = ( portTickType ) 2000 / portTICK_RATE_MS;
 	while(1)
 	{
+		display_ip();
 		vTaskDelay(xDelayPeriod);
 	}
 }
-
-void LCD_task(void)
-{
-	portTickType xDelayPeriod = ( portTickType ) 2000 / portTICK_RATE_MS;
-	while(1)
-	{
-
-	   display_task();
-	   vTaskDelay(xDelayPeriod);
-	}
-}
-
 
 
 
@@ -2408,90 +2428,82 @@ BOOL send_out = TRUE;
 U8_T test_setpoint[] = { 0xfe, 0x06, 0x01, 0x5b, 0x00, 0x19, 0x2c, 0x20}; 
 U8_T rev_cnt = 0;
 
-void gsm_task(void) reentrant						
+void gsm_task(void) reentrant						// LJ
 {
 	U8_T end_ch = 0x1a;
-	char temp_gsm[256] = "\r\nWhatever is worth doing is worth doing well..Whatever is worth doing is worth doing well..";
-//	char ch[] = "TEST";
-	portTickType xDelayPeriod = ( portTickType)	500 / portTICK_RATE_MS;
+	char temp_gsm[100];
+	portTickType xDelayPeriod = ( portTickType)	1000 / portTICK_RATE_MS;
 
+	gsm_init();                     // LJ
     
 	for (;;)
 	{
 		vTaskDelay(xDelayPeriod);
 
-//		simulate_write_string(temp_gsm,92);
-//		Uart0_Tx(temp_gsm,92) ;
-							   
-		if(GSM_Rxcount)
+
+		switch ( g_state)
 		{
-//		  simulate_write_string(GSM_RxBuff,120);
-		  Uart0_Tx(GSM_RxBuff,GSM_Rxcount-1);
-		  		 
-		  GSM_Rxcount = 0;
-//		  count_enter = 0;
+			case GSM_INITING:
+				gsm_module_init();
+				break;
+			case GSM_ERROR:
+				break;
+			case GSM_INIT_DONE:
+				if(1)          // wait for temperature register
+				{
+					if(send_out)
+					{
+						sprintf( temp_gsm, "AT+CMGS=\"%s\"", &phoneNumber[3]);
+						send_at_cmd( temp_gsm);
+						MicroWait(65000);
+						send_at_cmd( "NetworkController");
+								simulate_write_byte(0x1a);
+					//	Uart1_Tx( &end_ch, 1);
+						//g_state = SMS_SENDING;
+						send_out = FALSE;
+					}
+				}
+				break;				
+			case SMS_READY:
+				send_at_cmd( "Test GSM module first time");
+			//	Uart1_Tx( &end_ch, 1);
+			simulate_write_byte(0x1a);
+				g_state = GSM_INIT_DONE;
+				break;
+			case SMS_SEND_SUCCESS:
+				g_state = GSM_INIT_DONE;
+				break;
+			case GET_MSG:
+//				gsm_debug( "send cmgr");
+				send_at_cmd( "AT+CMGR=1");
+				rev_cnt++;
+				g_state = GSM_INIT_DONE;
+				if( rev_cnt > 9)
+				{
+					g_state = GSM_INIT_DONE;
+					rev_cnt = 0;
+					send_at_cmd( "AT+CMGD=1");			   // ³¢ÊÔ10´Îºó£¬É¾³ý¶ÌÐÅ
+				}
+				break;
+			case SET_POINT:
+
+#ifdef  SemaphoreCreate						  
+				if(cSemaphoreTake(sem_subnet_tx, 10) == pdFALSE)
+					break;
+#endif
+				Tx_To_Tstat( test_setpoint, 8);
+#ifdef  SemaphoreCreate						  
+				cSemaphoreGive(sem_subnet_tx);
+#endif
+				g_state = GSM_INIT_DONE;
+				break;
+			default:
+				break;
 		}
-
-
-//		switch ( g_state)
-//		{
-//			case GSM_INITING:
-//				gsm_module_init();
-//				break;
-//			case GSM_ERROR:
-//				break;
-//			case GSM_INIT_DONE:
-//				if(1)          // wait for temperature register
-//				{
-//					if(send_out)
-//					{
-//						sprintf( temp_gsm, "AT+CMGS=\"%s\"", &phoneNumber[3]);
-//						send_at_cmd( temp_gsm);
-//						MicroWait(65000);
-//						send_at_cmd( "NetworkController");
-//								simulate_write_byte(0x1a);
-//						send_out = FALSE;
-//					}
-//				}
-//				break;				
-//			case SMS_READY:
-//				send_at_cmd( "Test GSM module first time");
-//			simulate_write_byte(0x1a);
-//				g_state = GSM_INIT_DONE;
-//				break;
-//			case SMS_SEND_SUCCESS:
-//				g_state = GSM_INIT_DONE;
-//				break;
-//			case GET_MSG:
-//				send_at_cmd( "AT+CMGR=1");
-//				rev_cnt++;
-//				g_state = GSM_INIT_DONE;
-//				if( rev_cnt > 9)
-//				{
-//					g_state = GSM_INIT_DONE;
-//					rev_cnt = 0;
-//					send_at_cmd( "AT+CMGD=1");			   // ³¢ÊÔ10´Îºó£¬É¾³ý¶ÌÐÅ
-//				}
-//				break;
-//			case SET_POINT:
-//
-//#ifdef  SemaphoreCreate						  
-//				if(cSemaphoreTake(sem_subnet_tx, 10) == pdFALSE)
-//					break;
-//#endif
-//				Tx_To_Tstat( test_setpoint, 8);
-//#ifdef  SemaphoreCreate						  
-//				cSemaphoreGive(sem_subnet_tx);
-//#endif
-//				g_state = GSM_INIT_DONE;
-//				break;
-//			default:
-//				break;
-//		}
-//		if( gsm_RxBuf.size > 1)
-//		{
-//			gsm_msg_process (gsm_RxBuf.buf); 
-//		}
+		if( gsm_RxBuf.size > 1)
+		{
+			gsm_msg_process (gsm_RxBuf.buf); 
+		}
 	}
 }
 
@@ -2515,20 +2527,17 @@ void main(void )
 	ExecuteRuntimeFlag = 1;
 	
 #if  RS485_EN2
-	Rs485_2_EN = 0;
+	 Rs485_2_EN = 0;
 #endif
 
 	AX11000_Init();
 	UART_Init(0);
 	UART_Init(1);
 	Lcd_Initial();
+
 	uart2_rescue();
+
     I2C_Init();
-	DELAY_Init();
-//	gsm_init();                     
-//	GPRS_Init();
-
-
 
 	for(i = 0; i < 100; i++)
     { 
@@ -2553,6 +2562,9 @@ void main(void )
 	for(i = 0; i < 400; i++)   //read 
 		IntFlashReadByte(0x70000 + i, &Para[i]);   //the first para means location,last means array
 
+	Para[11] = firmware_version_h;
+	Para[9] = firmware_version_l;
+
 	E2prom_Read_Byte_From_Absolute_Address(0x0b, Para + 201);
 	E2prom_Read_Byte_From_Absolute_Address(0x0a, Para + 203);
 	E2prom_Read_Byte_From_Absolute_Address(0x09, Para + 205);
@@ -2574,10 +2586,7 @@ void main(void )
   	if(Para[33]==0x1f)			  //if update is not completed,flashing led shows this statement.
      	FlagIsp=1; 
 
-	if(Para[213] == 1)
-		Searching_ip();	
-	else
-		display_ip();
+	display_ip();
 	
 	for(i = 0; i < 2 ;i++)
 		hardversion[i] = Para[16 + i];
@@ -2588,7 +2597,6 @@ void main(void )
 
   sTaskCreate(TCPIP_Task, (const signed portCHAR * const)"TCPIP_task",
 		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, (xTaskHandle *)&xHandle1);  //2
-
 
   sTaskCreate(LedBeat_task, (const signed portCHAR * const)"LedBeat_task",
 		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 4, (xTaskHandle *)&xHandle3);  //3
@@ -2610,7 +2618,7 @@ void main(void )
 
 //   sTaskCreate(Scan_task, (const signed portCHAR * const)"Scan_task",	
 //   		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 6, (xTaskHandle *)&xHandle12);
-//
+
 //   sTaskCreate(Schedule_task, (const signed portCHAR * const)"Schedule_task",
 //		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 6, (xTaskHandle *)&xHandle8);
 
@@ -2625,14 +2633,9 @@ void main(void )
 
 #if   GSM_TASK_ENABLE
 	sTaskCreate(gsm_task, (const signed portCHAR * const)"gsm_task",
-		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 10, (xTaskHandle *)&xHandle13);		  
+		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 4, (xTaskHandle *)&xHandle13);		  
 #endif
 	   /*GSM task has a issue that may cause TCPIP task very lag */
-
-
-//  sTaskCreate(LCD_task, (const signed portCHAR * const)"LCD_task",
-//		portMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, (xTaskHandle *)&xHandle14);  
-
 
   /* Finally kick off the scheduler.  This function should never return. */
 	vTaskStartScheduler( portUSE_PREEMPTION );

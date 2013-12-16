@@ -48,7 +48,6 @@ void init_dyndns(void)
 	update_from_dyndns = TRUE;
 }
 
-//extern Uart0_Tx(U8_T *, U8_T);
 void do_dyndns(void)
 {
 	if(dyndns_enable == FALSE)
@@ -65,8 +64,6 @@ void do_dyndns(void)
 		if(DynDNS_GetUpdateState() == TRUE)
 		{
 			update_from_dyndns = FALSE;
-
-//			Uart0_Tx(&update_from_dyndns, 1);
 		}
 	}
 }

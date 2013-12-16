@@ -10,8 +10,11 @@ sbit GSM_TX = P1^1;
 
 #define HI_U16(a) (((a) >> 8) & 0xFF)
 #define LO_U16(a) ((a) & 0xFF)
+//#define GSM_TX			pin2_1
+//#define GSM_RX			pin3_2
+//#define GSM_SWITCH		pin3_1
 
-#define GSM_MAX_RX_LEN  	256
+#define GSM_MAX_RX_LEN  	300
 #define GSM_TIMEOUT_VALUE	5
 #define GSM_PHONE_NUM		"15618081525"
 
@@ -43,18 +46,8 @@ extern gsm_buf_t gsm_RxBuf;
 
 extern U8_T phoneNumber[PHONE_NUM_SIZE + 1];
 
-
-extern void Micro_Delay(U16_T cnt);
-extern U8_T GSM_RxBuff[254];
-extern U8_T GSM_Rxcount;
-extern U8_T GPRS_Init(void);
-extern void send_wait(void);
 extern void MicroWait( U16_T timeout);
-extern void gsm_wait(void);
 extern void gsm_init(void);
-extern void gsm_start_wait(void);
-extern void gsm_stop_wait(void);
-extern U8_T GSM_write_string( char *str, U8_T len);
 extern void gsm_module_init(void);
 extern void gsm_send_msg ( char *msg);
 extern U8_T gsm_msg_process( char *msg);

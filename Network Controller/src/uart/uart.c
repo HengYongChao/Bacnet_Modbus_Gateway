@@ -247,6 +247,8 @@ static void uart0_Init(void)
 	TR1 = 1;				// Run Timer 1
 	TI0 = 0;
 
+	
+
 } /* End of UART_Init */
 
 
@@ -267,7 +269,8 @@ S8_T uart0_PutChar (S8_T c)
 
 	if (c == 0xa)
 	{
-		do{
+		do
+		{
 			EA = 0;
 			count = uart0_TxCount; 
 			EA = 1;
@@ -299,6 +302,7 @@ S8_T uart0_PutChar (S8_T c)
 	}
 
 	return c;
+
 }
 
 /*

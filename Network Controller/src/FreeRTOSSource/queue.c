@@ -221,9 +221,7 @@ unsigned portSHORT usQueueSizeInBytes;
 }
 /*-----------------------------------------------------------*/
 
-signed portCHAR cQueueSend( xQueueHandle pxQueue,
-						 const void *pvItemToQueue,
-						  portTickType xTicksToWait ) reentrant
+signed portCHAR cQueueSend( xQueueHandle pxQueue, const void *pvItemToQueue, portTickType xTicksToWait ) reentrant
 {
 signed portCHAR cReturn;
 

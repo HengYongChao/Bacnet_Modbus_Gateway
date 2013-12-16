@@ -15,9 +15,14 @@
  * Date:
  * Notes:
  * $Log: MODBUSTCPd.c,v $
- * Revision 1.0 	2012/06/20 17:50:28  heng
+ * Revision 1.1.1.1  2006/06/20 05:50:28  borbin
  * no message
- * 
+ *
+ * Revision 1.2  2006/02/24 00:33:06  borbin
+ * no message
+ *
+ * Revision 1.1.1.1  2006/02/23 00:55:10  borbin
+ * no message
  *
  *=============================================================================
  */
@@ -81,7 +86,7 @@ U8_T bytesN ;	//Mupitlewrite byte number
 unsigned char dbuf[6]={0,0,0,0,0,0};
 U8_T  far Para[400]; 
 U8_T  far  Parame[400] = {
-0, 0x01 , 0 , 1 , 0 , 0x01 , 0, 0,  0, 12 ,	//fireware version :69.11
+0, 0x01 , 0 , 1 , 0 , 0x01 , 0, 0,  0, 19 ,		//fireware version :69.11
 0, 69 ,0 , 9,0, 0x64 ,0 ,0x1a ,0, 0xFF ,		//hardware	version :26  [bootloader version :14]
 0, 0xFF ,0, 20, 0, 0 ,  0, 0xFF, 0 , 0x0e ,
 0, 0xFF ,0,0x01, 0, 24, 0, 2,  0, 1, 			//16 register for ISP state
@@ -99,7 +104,7 @@ U8_T  far  Parame[400] = {
 0 ,1 ,0, 1, 0, 1 ,0, 1, 0, 1, 
 0 ,1, 0 ,1, 0, 1, 0, 1, 0, 1 ,
 0 ,1 ,0 ,1, 0, 1, 0, 1, 0, 1, 
-0 ,0 ,0, 1, 0, 1, 0, 0, 0, 1 ,	//Modified by Evan, for MAC addrss changeable.
+0 ,0 ,0, 1, 0, 1, 0, 0, 0, 1 ,					//Modified by Evan, for MAC addrss changeable.
 0 ,1, 0, 1, 0, 1 ,0, 1, 0, 4 ,    
 
 0, 0, 0 ,1, 0, 0xFF ,0 ,0xFF, 0,0xFF,
@@ -212,7 +217,7 @@ void InitCRC16(void)
 	CRChi = 0xFF;
 }
 
-//-------------------crc16_tstat ---------------------
+//------------------ crc16_tstat ---------------------
 // calculate crc with one byte
 void CRC16_Tstat(unsigned char ch)
 {
@@ -413,7 +418,7 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 				{ 
 					send_tcp[UIP_HEAD + 3 + loop * 2] = Para[(StartAdd + loop) * 2] ;
 				    send_tcp[UIP_HEAD + 3 + loop * 2 + 1] = Para[(StartAdd + loop) * 2 + 1];//6+3开始
-				}//前 200个 1对2 ，以后1对1 
+				}
 				else if((StartAdd + loop) >= MODBUS_TIMER_ADDRESS) 
 				{
 					/*	add schedule by chelsea								*/						
@@ -966,7 +971,7 @@ void MODBUSTCP_Receive(U8_T XDATA* pData, U16_T length, U8_T conn_id)
 	    send_tcp[StartAdd++] = CRClo;
 	
 		EA = 1;
-//		Uart0_Tx(send_tcp, StartAdd);
+	//	Uart0_Tx(send_tcp, StartAdd);//////////////////
 
 		MUTEX_TASK = 1;
 

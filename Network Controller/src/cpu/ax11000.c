@@ -125,7 +125,7 @@ void AX11000_Init(void)
 	else if(cpuSysClk == SCS_25M)
 		CPU_FREQUENCY = 25000000;
 	else
-		CPU_FREQUENCY = 25000000;	   //default
+		CPU_FREQUENCY = 25000000;
 
 
 //	IP = 0x02;	  // SET UART1 priority.

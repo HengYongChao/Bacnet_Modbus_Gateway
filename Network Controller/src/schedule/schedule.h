@@ -25,14 +25,8 @@
 #define MAX_PASSWORD_SIZE       32
 
 
-
-
-
-
 #define	MAX_INTERVALS_PER_DAY	4
-
 /* the following defintion is for schedule */
-
 #define SCHEDUAL_MODBUS_ADDRESS 200
 
 typedef enum
